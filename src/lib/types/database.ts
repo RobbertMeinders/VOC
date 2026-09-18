@@ -21,6 +21,8 @@ export interface Database {
           avatar_url: string | null;
           role: UserRole;
           is_active: boolean;
+          show_email: boolean;
+          show_phone: boolean;
           created_at: string;
           updated_at: string;
         };

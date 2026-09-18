@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { Avatar } from "@/components/ui/Avatar";
 import { clsx } from "clsx";
-import { ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
+import { isBoard, ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
 import type { Database } from "@/lib/types/database";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
@@ -22,8 +22,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function MemberProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await requireProfile();
+  const viewer = await requireProfile();
   const supabase = await createClient();
+  const canSeePrivate = viewer.id === id || isBoard(viewer.role);
 
   const { data: member } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle<Profile>();
 
@@ -69,14 +70,21 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
       )}
 
       <div className="mt-6 flex flex-col gap-2 border-t border-border pt-6">
-        <a
-          href={`mailto:${member.email}`}
-          className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-        >
-          <Mail size={16} className="text-muted" />
-          {member.email}
-        </a>
-        {member.phone && (
+        {member.show_email || canSeePrivate ? (
+          <a
+            href={`mailto:${member.email}`}
+            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+          >
+            <Mail size={16} className="text-muted" />
+            {member.email}
+          </a>
+        ) : (
+          <p className="flex items-center gap-3 px-3 py-2 text-sm text-muted">
+            <Mail size={16} />
+            E-mailadres is verborgen
+          </p>
+        )}
+        {member.phone && (member.show_phone || canSeePrivate) && (
           <a
             href={`tel:${member.phone}`}
             className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"

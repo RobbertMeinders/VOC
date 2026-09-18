@@ -83,6 +83,10 @@ export function ProfileForm({ profile, avatarUrl }: { profile: Profile; avatarUr
             Telefoonnummer
           </label>
           <Input id="phone" name="phone" type="tel" defaultValue={profile.phone ?? ""} />
+          <label className="flex items-center gap-1.5 text-xs text-muted">
+            <input type="checkbox" name="show_phone" defaultChecked={profile.show_phone} className="rounded" />
+            Zichtbaar voor andere leden
+          </label>
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="website" className="text-sm font-medium text-foreground">
@@ -95,6 +99,10 @@ export function ProfileForm({ profile, avatarUrl }: { profile: Profile; avatarUr
       <div className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-foreground">E-mailadres</span>
         <p className="text-sm text-muted">{profile.email}</p>
+        <label className="flex items-center gap-1.5 text-xs text-muted">
+          <input type="checkbox" name="show_email" defaultChecked={profile.show_email} className="rounded" />
+          Zichtbaar voor andere leden
+        </label>
       </div>
 
       {state.error && (

@@ -65,9 +65,11 @@ export function PostCard({
             key={attachment.id}
             src={attachment.url}
             alt={attachment.fileName}
-            width={600}
-            height={400}
-            className="mt-3 max-h-[420px] w-full rounded-xl object-cover"
+            width={0}
+            height={0}
+            sizes="(min-width: 640px) 600px, 100vw"
+            className="mt-3 max-h-[520px] w-full rounded-xl object-contain"
+            style={{ width: "100%", height: "auto" }}
           />
         ) : attachment.url ? (
           <a

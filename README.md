@@ -70,6 +70,11 @@ Voor **"Wachtwoord vergeten"** (via `/wachtwoord-vergeten`) moet de **"Reset Pas
 e-mailtemplate in Supabase linken naar
 `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/wachtwoord-instellen`.
 
+Voor **"E-mailadres wijzigen"** (op het profielscherm) gebruikt Supabase standaard de
+**"Change Email Address"**-template naar zowel het oude als het nieuwe adres (afhankelijk van of
+"Secure email change" aan staat in Authentication → Settings); die hoeft niet aangepast te worden
+tenzij je 'm wilt aanpassen aan de huisstijl.
+
 ### 3. Database-migraties
 
 Voer de migraties uit tegen je project, bijvoorbeeld met de Supabase CLI:
