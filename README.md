@@ -21,6 +21,7 @@ src/
   app/
     (app)/            # Beveiligde app-shell: feed, agenda, leden, profiel, beheer
     login/             # Inloggen
+    register/           # Eerste account aanmaken (alleen zolang er nog geen profiel bestaat)
     register/[token]/  # Registreren via een uitnodigingslink
     auth/confirm/       # Callback voor e-mailbevestiging (Supabase Auth)
   components/
@@ -77,15 +78,22 @@ in de SQL Editor van het Supabase dashboard.
 
 ### 4. Eerste beheerder aanmaken
 
-Profielen ontstaan alleen via een geldige uitnodiging (zie `handle_new_user()` in
-`0001_init.sql`), dus de allereerste account heeft een handmatig gezaaide uitnodiging nodig:
+Profielen ontstaan normaal alleen via een geldige uitnodiging (zie `handle_new_user()` in
+`0001_init.sql`). Voor het allereerste account op een verse installatie is dat niet werkbaar —
+er is dan nog niemand om een uitnodiging te versturen — dus `0003_bootstrap_first_admin.sql`
+opent een eenmalig token-vrij pad:
 
-1. Voer `supabase/seed.sql` één keer uit in de SQL Editor.
-2. Kopieer de teruggegeven `bootstrap_invitation_token`.
-3. Open `http://localhost:3000/register/<token>` en maak het account aan — deze uitnodiging heeft
-   de rol **beheerder**.
+1. Voer ook `supabase/migrations/0003_bootstrap_first_admin.sql` uit (na 0001 en 0002).
+2. Open `http://localhost:3000/register` (géén token in de URL) en maak het account aan. Zolang
+   `public.profiles` leeg is, wordt dit account automatisch **beheerder**.
+3. Zodra dit account bestaat, sluit deze pagina zichzelf af (`has_any_profiles()` geeft `true`) —
+   zowel de UI als de trigger zelf weigeren daarna elke token-vrije registratie. Nieuwe leden gaan
+   vanaf dan altijd via een échte uitnodigingslink.
 4. Vanaf nu kan deze beheerder via **Uitnodigingen** (in de sidebar) nieuwe leden, bestuursleden of
    beheerders uitnodigen.
+
+`supabase/seed.sql` (een handmatig gezaaide uitnodiging) werkt nog steeds als alternatief, maar is
+met de bootstrap-route hierboven niet meer nodig.
 
 ### 5. Dev server
 
