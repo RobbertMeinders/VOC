@@ -15,58 +15,6 @@ create type public.user_role as enum ('lid', 'bestuurslid', 'beheerder');
 create type public.invitation_status as enum ('pending', 'accepted', 'revoked', 'expired');
 create type public.feed_attachment_type as enum ('image', 'pdf');
 
--- ---------------------------------------------------------------------------
--- Helper functions (security definer, used inside RLS policies)
--- ---------------------------------------------------------------------------
--- These read the caller's own profile row. They run as definer so they can
--- be evaluated inside a policy on `profiles` itself without recursive RLS
--- lookups, and are marked stable so the planner can cache them per query.
-
-create or replace function public.current_role()
-returns public.user_role
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select role from public.profiles where id = auth.uid() and is_active = true;
-$$;
-
-create or replace function public.is_active_member()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select exists (select 1 from public.profiles where id = auth.uid() and is_active = true);
-$$;
-
-create or replace function public.is_board()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select coalesce(public.current_role() in ('bestuurslid', 'beheerder'), false);
-$$;
-
-create or replace function public.is_admin()
-returns boolean
-language sql
-stable
-security definer
-set search_path = public
-as $$
-  select coalesce(public.current_role() = 'beheerder', false);
-$$;
-
-grant execute on function public.current_role() to anon, authenticated;
-grant execute on function public.is_active_member() to anon, authenticated;
-grant execute on function public.is_board() to anon, authenticated;
-grant execute on function public.is_admin() to anon, authenticated;
-
 -- Generic updated_at maintenance trigger.
 create or replace function public.set_updated_at()
 returns trigger
@@ -127,6 +75,60 @@ create index profiles_name_idx on public.profiles (lower(last_name), lower(first
 create trigger profiles_set_updated_at
   before update on public.profiles
   for each row execute function public.set_updated_at();
+
+-- ---------------------------------------------------------------------------
+-- Helper functions (security definer, used inside RLS policies)
+-- ---------------------------------------------------------------------------
+-- These read the caller's own profile row. They run as definer so they can
+-- be evaluated inside a policy on `profiles` itself without recursive RLS
+-- lookups, and are marked stable so the planner can cache them per query.
+-- They must come after `profiles` exists: LANGUAGE SQL functions (unlike
+-- plpgsql) are parsed and validated against the catalog at CREATE time.
+
+create or replace function public.current_role()
+returns public.user_role
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select role from public.profiles where id = auth.uid() and is_active = true;
+$$;
+
+create or replace function public.is_active_member()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select exists (select 1 from public.profiles where id = auth.uid() and is_active = true);
+$$;
+
+create or replace function public.is_board()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(public.current_role() in ('bestuurslid', 'beheerder'), false);
+$$;
+
+create or replace function public.is_admin()
+returns boolean
+language sql
+stable
+security definer
+set search_path = public
+as $$
+  select coalesce(public.current_role() = 'beheerder', false);
+$$;
+
+grant execute on function public.current_role() to anon, authenticated;
+grant execute on function public.is_active_member() to anon, authenticated;
+grant execute on function public.is_board() to anon, authenticated;
+grant execute on function public.is_admin() to anon, authenticated;
 
 -- Prevent a member from escalating their own role or reactivating themselves
 -- through a self-service profile update; only an admin (or the definer-owned
