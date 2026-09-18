@@ -254,6 +254,10 @@ export interface Database {
         Args: { p_query: string };
         Returns: { id: string; name: string; city: string | null }[];
       };
+      has_any_profiles: {
+        Args: Record<string, never>;
+        Returns: boolean;
+      };
       is_board: {
         Args: Record<string, never>;
         Returns: boolean;
