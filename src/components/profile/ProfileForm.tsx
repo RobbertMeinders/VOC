@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
 import { updateProfileAction, type UpdateProfileState } from "@/app/(app)/profiel/actions";
+import { compressInputFile } from "@/lib/image/compress";
 import type { Profile } from "@/lib/auth/session";
 
 const initialState: UpdateProfileState = {};
@@ -46,9 +47,10 @@ export function ProfileForm({ profile, avatarUrl }: { profile: Profile; avatarUr
             type="file"
             accept="image/png,image/jpeg,image/webp"
             className="sr-only"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) setPreview(URL.createObjectURL(file));
+            onChange={async (e) => {
+              const input = e.target;
+              const compressed = await compressInputFile(input);
+              if (compressed) setPreview(URL.createObjectURL(compressed));
             }}
           />
         </div>
@@ -77,23 +79,15 @@ export function ProfileForm({ profile, avatarUrl }: { profile: Profile; avatarUr
         <Input id="job_title" name="job_title" defaultValue={profile.job_title ?? ""} />
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="phone" className="text-sm font-medium text-foreground">
-            Telefoonnummer
-          </label>
-          <Input id="phone" name="phone" type="tel" defaultValue={profile.phone ?? ""} />
-          <label className="flex items-center gap-1.5 text-xs text-muted">
-            <input type="checkbox" name="show_phone" defaultChecked={profile.show_phone} className="rounded" />
-            Zichtbaar voor andere leden
-          </label>
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="website" className="text-sm font-medium text-foreground">
-            Website
-          </label>
-          <Input id="website" name="website" type="url" defaultValue={profile.website ?? ""} placeholder="https://" />
-        </div>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="phone" className="text-sm font-medium text-foreground">
+          Telefoonnummer
+        </label>
+        <Input id="phone" name="phone" type="tel" defaultValue={profile.phone ?? ""} />
+        <label className="flex items-center gap-1.5 text-xs text-muted">
+          <input type="checkbox" name="show_phone" defaultChecked={profile.show_phone} className="rounded" />
+          Zichtbaar voor andere leden
+        </label>
       </div>
 
       <div className="flex flex-col gap-1.5">

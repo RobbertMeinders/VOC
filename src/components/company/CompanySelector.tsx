@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/Input";
+import { INDUSTRIES } from "@/lib/constants/industries";
 import { searchCompaniesAction, type CompanyOption } from "@/app/register/[token]/actions";
 
 /**
@@ -23,14 +24,14 @@ export function CompanySelector({ initialSelected = null }: { initialSelected?: 
           onClick={() => setCompanyMode("existing")}
           className={`rounded-full px-3 py-1 ${companyMode === "existing" ? "bg-voc-red text-white" : "bg-black/5 text-muted dark:bg-white/10"}`}
         >
-          Bestaand bedrijf
+          Bedrijf zoeken
         </button>
         <button
           type="button"
           onClick={() => setCompanyMode("new")}
           className={`rounded-full px-3 py-1 ${companyMode === "new" ? "bg-voc-red text-white" : "bg-black/5 text-muted dark:bg-white/10"}`}
         >
-          Nieuw bedrijf
+          Mijn bedrijf toevoegen
         </button>
       </div>
 
@@ -45,7 +46,18 @@ export function CompanySelector({ initialSelected = null }: { initialSelected?: 
         <div className="flex flex-col gap-3 rounded-lg border border-border p-3">
           <Input name="new_company_name" placeholder="Bedrijfsnaam" required />
           <div className="grid grid-cols-2 gap-3">
-            <Input name="new_company_industry" placeholder="Branche" />
+            <select
+              name="new_company_industry"
+              defaultValue=""
+              className="h-10 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+            >
+              <option value="">Kies een branche</option>
+              {INDUSTRIES.map((industry) => (
+                <option key={industry} value={industry}>
+                  {industry}
+                </option>
+              ))}
+            </select>
             <Input name="new_company_city" placeholder="Vestigingsplaats" />
           </div>
           <Input name="new_company_website" placeholder="Website (optioneel)" type="url" />

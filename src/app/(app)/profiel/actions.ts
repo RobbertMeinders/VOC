@@ -17,7 +17,6 @@ export async function updateProfileAction(
   const lastName = String(formData.get("last_name") ?? "").trim();
   const jobTitle = String(formData.get("job_title") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
-  const website = String(formData.get("website") ?? "").trim();
   const showEmail = formData.get("show_email") === "on";
   const showPhone = formData.get("show_phone") === "on";
 
@@ -42,7 +41,6 @@ export async function updateProfileAction(
       last_name: lastName,
       job_title: jobTitle || null,
       phone: phone || null,
-      website: website || null,
       show_email: showEmail,
       show_phone: showPhone,
       ...(avatarPath ? { avatar_url: avatarPath } : {}),

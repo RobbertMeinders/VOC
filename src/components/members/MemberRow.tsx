@@ -5,7 +5,6 @@ export type MemberListItem = {
   id: string;
   first_name: string;
   last_name: string;
-  job_title: string | null;
   avatarUrl: string | null;
   company: { id: string; name: string } | null;
 };
@@ -21,11 +20,7 @@ export function MemberRow({ member }: { member: MemberListItem }) {
         <p className="truncate text-sm font-medium text-foreground">
           {member.first_name} {member.last_name}
         </p>
-        <p className="truncate text-xs text-muted">
-          {member.job_title && <span>{member.job_title}</span>}
-          {member.job_title && member.company && <span> — </span>}
-          {member.company && <span>{member.company.name}</span>}
-        </p>
+        {member.company && <p className="truncate text-xs text-muted">{member.company.name}</p>}
       </div>
     </Link>
   );

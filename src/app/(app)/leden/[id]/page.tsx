@@ -1,13 +1,14 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { Building2, Globe, Mail, Phone } from "lucide-react";
+import { Building2, Mail, Phone } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { Avatar } from "@/components/ui/Avatar";
 import { clsx } from "clsx";
-import { isBoard, ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
+import { isAdmin, isBoard, ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
+import { RoleEditor } from "@/components/members/RoleEditor";
 import type { Database } from "@/lib/types/database";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
@@ -58,6 +59,12 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
         </div>
       </div>
 
+      {isAdmin(viewer.role) && (
+        <div className="mt-4">
+          <RoleEditor memberId={member.id} currentRole={member.role} />
+        </div>
+      )}
+
       {membership?.company && (
         <Link
           href={`/bedrijven/${membership.company.id}`}
@@ -91,17 +98,6 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
           >
             <Phone size={16} className="text-muted" />
             {member.phone}
-          </a>
-        )}
-        {member.website && (
-          <a
-            href={member.website}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-          >
-            <Globe size={16} className="text-muted" />
-            {member.website.replace(/^https?:\/\//, "")}
           </a>
         )}
       </div>

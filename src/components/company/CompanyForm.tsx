@@ -7,6 +7,8 @@ import { Building2, Camera } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { updateCompanyAction, type UpdateCompanyState } from "@/app/(app)/bedrijven/[id]/actions";
+import { compressInputFile } from "@/lib/image/compress";
+import { INDUSTRIES } from "@/lib/constants/industries";
 import type { Database } from "@/lib/types/database";
 
 type Company = Database["public"]["Tables"]["companies"]["Row"];
@@ -51,9 +53,10 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
             type="file"
             accept="image/png,image/jpeg,image/webp"
             className="sr-only"
-            onChange={(e) => {
-              const file = e.target.files?.[0];
-              if (file) setPreview(URL.createObjectURL(file));
+            onChange={async (e) => {
+              const input = e.target;
+              const compressed = await compressInputFile(input);
+              if (compressed) setPreview(URL.createObjectURL(compressed));
             }}
           />
         </div>
@@ -85,7 +88,22 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           <label htmlFor="industry" className="text-sm font-medium text-foreground">
             Branche
           </label>
-          <Input id="industry" name="industry" defaultValue={company.industry ?? ""} />
+          <select
+            id="industry"
+            name="industry"
+            defaultValue={company.industry ?? ""}
+            className="h-10 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+          >
+            <option value="">Kies een branche</option>
+            {INDUSTRIES.map((industry) => (
+              <option key={industry} value={industry}>
+                {industry}
+              </option>
+            ))}
+            {company.industry && !(INDUSTRIES as readonly string[]).includes(company.industry) && (
+              <option value={company.industry}>{company.industry}</option>
+            )}
+          </select>
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="city" className="text-sm font-medium text-foreground">

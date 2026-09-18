@@ -6,6 +6,7 @@ import { FileText, Image as ImageIcon, X } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { createPostAction, type CreatePostState } from "@/app/(app)/actions";
+import { compressInputFile } from "@/lib/image/compress";
 import type { FeedAuthor, FeedPost } from "@/lib/feed/types";
 
 const initialState: CreatePostState = {};
@@ -97,7 +98,11 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
             name="attachment"
             accept="image/png,image/jpeg,image/webp,application/pdf"
             className="sr-only"
-            onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+            onChange={async (e) => {
+              const input = e.target;
+              const compressed = await compressInputFile(input);
+              setFileName(compressed?.name ?? null);
+            }}
           />
         </label>
         <SubmitButton />

@@ -12,7 +12,6 @@ type ProfileRow = {
   id: string;
   first_name: string;
   last_name: string;
-  job_title: string | null;
   avatar_url: string | null;
   company_members: { is_primary: boolean; company: { id: string; name: string; industry: string | null } | null }[];
 };
@@ -29,7 +28,7 @@ export default async function LedenPage({
     supabase
       .from("profiles")
       .select(
-        "id, first_name, last_name, job_title, avatar_url, company_members(is_primary, company:companies(id, name, industry))"
+        "id, first_name, last_name, avatar_url, company_members(is_primary, company:companies(id, name, industry))"
       )
       .order("last_name")
       .returns<ProfileRow[]>(),
@@ -46,7 +45,6 @@ export default async function LedenPage({
       id: row.id,
       first_name: row.first_name,
       last_name: row.last_name,
-      job_title: row.job_title,
       avatarUrl: null,
       company: membership?.company ? { id: membership.company.id, name: membership.company.name } : null,
     };
