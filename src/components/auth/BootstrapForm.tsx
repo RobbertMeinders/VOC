@@ -22,7 +22,7 @@ export function BootstrapForm() {
 
   if (state.success) {
     return (
-      <div className="rounded-lg bg-voc-red-light px-4 py-3 text-sm text-voc-red">
+      <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-500/10 dark:text-green-400">
         {state.needsEmailConfirmation
           ? "Bijna klaar! Check je e-mail en klik op de bevestigingslink om je account te activeren."
           : "Account aangemaakt. Je wordt automatisch ingelogd…"}

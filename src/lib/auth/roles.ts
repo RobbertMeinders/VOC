@@ -18,3 +18,11 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   bestuurslid: "Bestuurslid",
   beheerder: "Beheerder",
 };
+
+// "Lid" is the common case and gets a neutral badge; board roles keep the
+// accent color so elevated privileges still stand out.
+export const ROLE_BADGE_CLASS: Record<UserRole, string> = {
+  lid: "bg-black/5 text-muted dark:bg-white/10",
+  bestuurslid: "bg-voc-red-light text-voc-red",
+  beheerder: "bg-voc-red-light text-voc-red",
+};

@@ -24,7 +24,7 @@ export async function submitAccessRequestAction(
   });
 
   if (error) {
-    return { error: "Versturen is niet gelukt. Probeer het later opnieuw." };
+    return { error: `Versturen is niet gelukt: ${error.message}` };
   }
 
   return { success: true };

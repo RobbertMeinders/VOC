@@ -22,7 +22,7 @@ export function ForgotPasswordForm() {
 
   if (state.submitted) {
     return (
-      <div className="rounded-lg bg-voc-red-light px-4 py-3 text-sm text-voc-red">
+      <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-500/10 dark:text-green-400">
         Als dit e-mailadres bij ons bekend is, ontvang je binnen enkele minuten een link om je
         wachtwoord opnieuw in te stellen.
       </div>

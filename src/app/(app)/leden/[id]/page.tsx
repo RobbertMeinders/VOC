@@ -6,7 +6,8 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { Avatar } from "@/components/ui/Avatar";
-import { ROLE_LABELS } from "@/lib/auth/roles";
+import { clsx } from "clsx";
+import { ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
 import type { Database } from "@/lib/types/database";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
@@ -50,7 +51,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
             {member.first_name} {member.last_name}
           </p>
           {member.job_title && <p className="text-sm text-muted">{member.job_title}</p>}
-          <span className="mt-1 inline-block rounded-full bg-voc-red-light px-2.5 py-0.5 text-xs font-medium text-voc-red">
+          <span className={clsx("mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium", ROLE_BADGE_CLASS[member.role])}>
             {ROLE_LABELS[member.role]}
           </span>
         </div>

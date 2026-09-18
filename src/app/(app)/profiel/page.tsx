@@ -5,7 +5,8 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { ProfileForm } from "@/components/profile/ProfileForm";
-import { ROLE_LABELS } from "@/lib/auth/roles";
+import { clsx } from "clsx";
+import { ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
 
 export const metadata: Metadata = { title: "Profiel" };
 
@@ -30,7 +31,7 @@ export default async function ProfielPage() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-foreground">Mijn profiel</h1>
-        <span className="rounded-full bg-voc-red-light px-2.5 py-0.5 text-xs font-medium text-voc-red">
+        <span className={clsx("rounded-full px-2.5 py-0.5 text-xs font-medium", ROLE_BADGE_CLASS[profile.role])}>
           {ROLE_LABELS[profile.role]}
         </span>
       </div>
