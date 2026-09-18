@@ -1,18 +1,93 @@
 import type { Metadata } from "next";
 import { Users } from "lucide-react";
+import { createClient } from "@/lib/supabase/server";
+import { getSignedStorageUrl } from "@/lib/supabase/storage";
+import { MemberFilters } from "@/components/members/MemberFilters";
+import { MemberRow, type MemberListItem } from "@/components/members/MemberRow";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 
 export const metadata: Metadata = { title: "Leden" };
 
-export default function LedenPage() {
+type ProfileRow = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  job_title: string | null;
+  avatar_url: string | null;
+  company_members: { is_primary: boolean; company: { id: string; name: string; industry: string | null } | null }[];
+};
+
+export default async function LedenPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ q?: string; branche?: string }>;
+}) {
+  const { q, branche } = await searchParams;
+  const supabase = await createClient();
+
+  const [{ data: profileRows }, { data: companies }] = await Promise.all([
+    supabase
+      .from("profiles")
+      .select(
+        "id, first_name, last_name, job_title, avatar_url, company_members(is_primary, company:companies(id, name, industry))"
+      )
+      .order("last_name")
+      .returns<ProfileRow[]>(),
+    supabase.from("companies").select("industry"),
+  ]);
+
+  const branches = Array.from(
+    new Set((companies ?? []).map((c) => c.industry).filter((v): v is string => Boolean(v)))
+  ).sort((a, b) => a.localeCompare(b));
+
+  const members: MemberListItem[] = (profileRows ?? []).map((row) => {
+    const membership = row.company_members.find((m) => m.is_primary) ?? row.company_members[0];
+    return {
+      id: row.id,
+      first_name: row.first_name,
+      last_name: row.last_name,
+      job_title: row.job_title,
+      avatarUrl: null,
+      company: membership?.company ? { id: membership.company.id, name: membership.company.name } : null,
+    };
+  });
+
+  const query = (q ?? "").trim().toLowerCase();
+  const filtered = members.filter((member) => {
+    const matchesQuery =
+      !query ||
+      `${member.first_name} ${member.last_name}`.toLowerCase().includes(query) ||
+      member.company?.name.toLowerCase().includes(query);
+    const matchesBranche =
+      !branche || (profileRows ?? []).find((r) => r.id === member.id)?.company_members.some((m) => m.company?.industry === branche);
+    return matchesQuery && matchesBranche;
+  });
+
+  const withAvatars = await Promise.all(
+    filtered.map(async (member) => ({
+      ...member,
+      avatarUrl: await getSignedStorageUrl(
+        "avatars",
+        (profileRows ?? []).find((r) => r.id === member.id)?.avatar_url ?? null
+      ),
+    }))
+  );
+
   return (
     <div>
       <h1 className="mb-4 text-xl font-semibold text-foreground">Leden</h1>
-      <ComingSoon
-        icon={Users}
-        title="Ledenlijst volgt in fase 2"
-        description="Hier kun je straks alle VOC-leden en bedrijven doorzoeken en hun profiel bekijken."
-      />
+
+      <MemberFilters branches={branches} />
+
+      {withAvatars.length > 0 ? (
+        <div className="grid gap-2 sm:grid-cols-2">
+          {withAvatars.map((member) => (
+            <MemberRow key={member.id} member={member} />
+          ))}
+        </div>
+      ) : (
+        <ComingSoon icon={Users} title="Geen leden gevonden" description="Pas je zoekopdracht of filter aan." />
+      )}
     </div>
   );
 }

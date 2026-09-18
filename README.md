@@ -3,9 +3,11 @@
 Besloten community- en ledenportaal voor de Veendammer OndernemersCompagnie (VOC), gebouwd als
 Progressive Web App met Next.js (App Router) en Supabase.
 
-> **Status:** Fase 1 — Fundering. Authenticatie, rollen/autorisatie, de databasebasis en de
-> responsive app-shell met community-feed als startpagina staan. Profielen, bedrijven, de volledige
-> feed, agenda, notificaties, documenten en het beheergedeelte volgen in latere fases (zie onderaan).
+> **Status:** Fase 2 — Profielen, bedrijven en ledenlijst. Authenticatie, rollen/autorisatie, de
+> databasebasis en de responsive app-shell staan (fase 1); leden kunnen nu hun eigen profiel
+> (inclusief foto) bewerken, bedrijfsprofielen bekijken/beheren en elkaar vinden via de doorzoekbare
+> ledenlijst. De volledige feed, agenda, notificaties, documenten en het beheergedeelte volgen in
+> latere fases (zie onderaan).
 
 ## Stack
 
@@ -158,11 +160,16 @@ Open [http://localhost:3000](http://localhost:3000).
 - **Handgeschreven `Database`-type** (`src/lib/types/database.ts`) is 1-op-1 gestructureerd zoals de
   output van `supabase gen types typescript`, zodat het straks zonder codewijzigingen te vervangen
   is door een gegenereerd bestand.
+- **Signed URLs voor profielfoto's en logo's** (`src/lib/supabase/storage.ts`): omdat alle
+  Storage-buckets privé zijn, wordt `avatar_url`/`logo_url` als een pad opgeslagen
+  (`avatars/<profile_id>/<bestand>`), en genereert elke Server Component die een afbeelding toont
+  er zelf een kortlevende (1 uur) signed URL voor. Geen publieke URL's, geen aparte
+  cache-invalidatie nodig.
 
 ## Fases
 
 1. ✅ Fundering — project, Supabase, database, auth, rollen, responsive layout, feed-shell
-2. Profielen, bedrijven, ledenlijst, zoeken/filteren
+2. ✅ Profielen, bedrijven, ledenlijst, zoeken/filteren
 3. Community: berichten, afbeeldingen/PDF's, likes, reacties, moderatie, realtime
 4. Agenda: activiteiten, aanmelden/afmelden, herinneringen, WordPress-embed
 5. Notificaties: in-app + push, voorkeuren
