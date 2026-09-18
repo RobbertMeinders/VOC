@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
-import { UserPlus } from "lucide-react";
+import { Inbox, UserPlus } from "lucide-react";
 import { PRIMARY_NAV_ITEMS } from "./nav-items";
 import { Logo } from "@/components/ui/Logo";
 import { Avatar } from "@/components/ui/Avatar";
@@ -41,18 +41,32 @@ export function Sidebar({ profile }: { profile: Profile }) {
         })}
 
         {isBoard(profile.role) && (
-          <Link
-            href="/beheer/uitnodigingen"
-            className={clsx(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-              pathname.startsWith("/beheer")
-                ? "bg-voc-red-light text-voc-red"
-                : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-            )}
-          >
-            <UserPlus size={20} strokeWidth={pathname.startsWith("/beheer") ? 2.5 : 2} />
-            Uitnodigingen
-          </Link>
+          <>
+            <Link
+              href="/beheer/uitnodigingen"
+              className={clsx(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                pathname.startsWith("/beheer/uitnodigingen")
+                  ? "bg-voc-red-light text-voc-red"
+                  : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+              )}
+            >
+              <UserPlus size={20} strokeWidth={pathname.startsWith("/beheer/uitnodigingen") ? 2.5 : 2} />
+              Uitnodigingen
+            </Link>
+            <Link
+              href="/beheer/aanvragen"
+              className={clsx(
+                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+                pathname.startsWith("/beheer/aanvragen")
+                  ? "bg-voc-red-light text-voc-red"
+                  : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+              )}
+            >
+              <Inbox size={20} strokeWidth={pathname.startsWith("/beheer/aanvragen") ? 2.5 : 2} />
+              Aanvragen
+            </Link>
+          </>
         )}
       </nav>
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { LoginForm } from "@/components/auth/LoginForm";
 
@@ -19,11 +20,21 @@ export default async function LoginPage({
         </div>
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
           <h1 className="mb-1 text-xl font-semibold text-foreground">Welkom terug</h1>
-          <p className="mb-6 text-sm text-muted">Log in om verder te gaan naar je community.</p>
+          <p className="mb-6 text-sm text-muted">Log in om verder te gaan.</p>
           <LoginForm redirectTo={next ?? "/"} />
+          <Link
+            href="/wachtwoord-vergeten"
+            className="mt-4 block text-center text-sm font-medium text-voc-red hover:underline"
+          >
+            Wachtwoord vergeten?
+          </Link>
         </div>
         <p className="mt-6 text-center text-sm text-muted">
-          Nieuw lid? Vraag een uitnodigingslink aan het bestuur.
+          Nieuw lid?{" "}
+          <Link href="/toegang-aanvragen" className="font-medium text-voc-red hover:underline">
+            Vraag toegang aan
+          </Link>
+          .
         </p>
       </div>
     </div>

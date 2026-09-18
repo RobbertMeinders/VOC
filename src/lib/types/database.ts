@@ -243,6 +243,22 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["push_subscriptions"]["Row"]>;
         Relationships: [];
       };
+      access_requests: {
+        Row: {
+          id: string;
+          name: string;
+          email: string;
+          message: string | null;
+          status: "pending" | "handled";
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["access_requests"]["Row"]> & {
+          name: string;
+          email: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["access_requests"]["Row"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {

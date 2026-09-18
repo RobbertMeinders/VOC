@@ -64,6 +64,10 @@ bevestigen is een extra stap die weinig toevoegt. Laat je het wél aan staan, da
 bevestigingsflow via `/auth/confirm` (zorg dat de Supabase e-mailtemplate linkt naar
 `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup`).
 
+Voor **"Wachtwoord vergeten"** (via `/wachtwoord-vergeten`) moet de **"Reset Password"**
+e-mailtemplate in Supabase linken naar
+`{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/wachtwoord-instellen`.
+
 ### 3. Database-migraties
 
 Voer de migraties uit tegen je project, bijvoorbeeld met de Supabase CLI:

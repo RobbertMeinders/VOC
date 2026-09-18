@@ -13,9 +13,7 @@ export function Logo({ withLabel = true, className }: { withLabel?: boolean; cla
         priority
       />
       {withLabel && (
-        <span className="text-lg font-semibold tracking-tight text-foreground">
-          VOC <span className="font-normal text-muted">Ledenportaal</span>
-        </span>
+        <span className="text-lg font-semibold tracking-tight text-foreground">Ledenportaal</span>
       )}
     </Link>
   );
