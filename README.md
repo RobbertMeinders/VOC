@@ -3,11 +3,11 @@
 Besloten community- en ledenportaal voor de Veendammer OndernemersCompagnie (VOC), gebouwd als
 Progressive Web App met Next.js (App Router) en Supabase.
 
-> **Status:** Fase 2 — Profielen, bedrijven en ledenlijst. Authenticatie, rollen/autorisatie, de
-> databasebasis en de responsive app-shell staan (fase 1); leden kunnen nu hun eigen profiel
-> (inclusief foto) bewerken, bedrijfsprofielen bekijken/beheren en elkaar vinden via de doorzoekbare
-> ledenlijst. De volledige feed, agenda, notificaties, documenten en het beheergedeelte volgen in
-> latere fases (zie onderaan).
+> **Status:** Fase 3 — Community. Bovenop de fundering (fase 1) en profielen/bedrijven/ledenlijst
+> (fase 2) is de community-feed nu volledig werkend: berichten met foto's of PDF's, likes, reacties
+> (met notificatie naar de auteur), moderatie door bestuur/beheer, en alles verschijnt realtime bij
+> iedereen zonder pagina-refresh. Agenda, het volledige notificatiecentrum, documenten en het
+> beheergedeelte volgen in latere fases (zie onderaan).
 
 ## Stack
 
@@ -165,12 +165,25 @@ Open [http://localhost:3000](http://localhost:3000).
   (`avatars/<profile_id>/<bestand>`), en genereert elke Server Component die een afbeelding toont
   er zelf een kortlevende (1 uur) signed URL voor. Geen publieke URL's, geen aparte
   cache-invalidatie nodig.
+- **Feed-realtime via Postgres Changes, niet via optimistic-only state** (`FeedList.tsx`):
+  nieuwe berichten/reacties komen bij *alle* kijkers binnen via een Supabase Realtime-subscription
+  op `feed_posts`/`feed_comments` (aangezet in `0005_feed_realtime.sql`). Bij een INSERT-event wordt
+  de volledige, gehydrateerde rij (met signed URL's) via een server action opgehaald — de
+  Postgres-changes-payload zelf bevat alleen de kale rij, geen joins. De auteur van een nieuw
+  bericht ziet het ook direct via de return-waarde van de post-actie (dus niet afhankelijk van een
+  werkende websocket-verbinding); reacties en likes verschijnen bij de auteur zelf via diezelfde
+  realtime-laag als bij ieder ander.
+- **Reacties triggeren een notificatie, likes niet** (`notify_on_feed_comment()` in
+  `0005_feed_realtime.sql`): een database-trigger — niet applicatiecode — schrijft een rij naar
+  `notifications` zodra iemand op jouw bericht reageert (nooit bij een reactie op je eigen bericht).
+  Dit is bewust in de database gelegd zodat het ook werkt ongeacht welke client de reactie plaatst.
+  Het volledige notificatiecentrum (ongelezen-teller, voorkeuren, push) volgt in fase 5.
 
 ## Fases
 
 1. ✅ Fundering — project, Supabase, database, auth, rollen, responsive layout, feed-shell
 2. ✅ Profielen, bedrijven, ledenlijst, zoeken/filteren
-3. Community: berichten, afbeeldingen/PDF's, likes, reacties, moderatie, realtime
+3. ✅ Community: berichten, afbeeldingen/PDF's, likes, reacties, moderatie, realtime
 4. Agenda: activiteiten, aanmelden/afmelden, herinneringen, WordPress-embed
 5. Notificaties: in-app + push, voorkeuren
 6. Documenten: categorieën, upload/download, rechten
