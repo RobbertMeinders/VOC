@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getSignedStorageUrl } from "@/lib/supabase/storage";
+import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { MemberFilters } from "@/components/members/MemberFilters";
 import { MemberRow, type MemberListItem } from "@/components/members/MemberRow";
 import { ComingSoon } from "@/components/ui/ComingSoon";
@@ -63,15 +63,15 @@ export default async function LedenPage({
     return matchesQuery && matchesBranche;
   });
 
-  const withAvatars = await Promise.all(
-    filtered.map(async (member) => ({
-      ...member,
-      avatarUrl: await getSignedStorageUrl(
-        "avatars",
-        (profileRows ?? []).find((r) => r.id === member.id)?.avatar_url ?? null
-      ),
-    }))
+  const avatarUrls = await getSignedStorageUrls(
+    supabase,
+    "avatars",
+    filtered.map((member) => (profileRows ?? []).find((r) => r.id === member.id)?.avatar_url)
   );
+  const withAvatars = filtered.map((member) => {
+    const path = (profileRows ?? []).find((r) => r.id === member.id)?.avatar_url;
+    return { ...member, avatarUrl: path ? (avatarUrls.get(path) ?? null) : null };
+  });
 
   return (
     <div>

@@ -2,7 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/types/database";
-import { getSignedStorageUrl } from "@/lib/supabase/storage";
+import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import type { FeedAttachment, FeedAuthor, FeedComment, FeedPost } from "./types";
 
 const POST_SELECT = `
@@ -30,58 +30,81 @@ type RawPost = {
   likes: { profile_id: string }[];
 };
 
-async function hydrateAuthor(author: RawAuthor): Promise<FeedAuthor> {
+// Collects every avatar/attachment path referenced by a batch of raw posts
+// so callers can resolve them with a single signed-URL request per bucket,
+// instead of one request per image (which times the page out once there
+// are more than a handful of posts/comments).
+function collectPaths(posts: RawPost[]) {
+  const avatarPaths = new Set<string>();
+  const attachmentPaths = new Set<string>();
+
+  for (const post of posts) {
+    if (post.author.avatar_url) avatarPaths.add(post.author.avatar_url);
+    for (const comment of post.comments) {
+      if (comment.author.avatar_url) avatarPaths.add(comment.author.avatar_url);
+    }
+    for (const attachment of post.attachments) {
+      attachmentPaths.add(attachment.storage_path);
+    }
+  }
+
+  return { avatarPaths: Array.from(avatarPaths), attachmentPaths: Array.from(attachmentPaths) };
+}
+
+function buildAuthor(author: RawAuthor, avatarUrls: Map<string, string>): FeedAuthor {
   return {
     id: author.id,
     first_name: author.first_name,
     last_name: author.last_name,
-    avatarUrl: await getSignedStorageUrl("avatars", author.avatar_url),
+    avatarUrl: author.avatar_url ? (avatarUrls.get(author.avatar_url) ?? null) : null,
   };
 }
 
-async function hydrateAttachment(attachment: RawAttachment): Promise<FeedAttachment> {
+function buildAttachment(attachment: RawAttachment, mediaUrls: Map<string, string>): FeedAttachment {
   return {
     id: attachment.id,
     type: attachment.type,
     fileName: attachment.file_name,
-    url: await getSignedStorageUrl("feed-media", attachment.storage_path),
+    url: mediaUrls.get(attachment.storage_path) ?? null,
   };
 }
 
-async function hydrateComment(comment: RawComment): Promise<FeedComment> {
+function buildComment(comment: RawComment, avatarUrls: Map<string, string>): FeedComment {
   return {
     id: comment.id,
     postId: comment.post_id,
     content: comment.content,
     createdAt: comment.created_at,
-    author: await hydrateAuthor(comment.author),
+    author: buildAuthor(comment.author, avatarUrls),
   };
 }
 
-async function hydratePost(post: RawPost, viewerId: string): Promise<FeedPost> {
-  const [author, attachments, comments] = await Promise.all([
-    hydrateAuthor(post.author),
-    Promise.all(post.attachments.map(hydrateAttachment)),
-    Promise.all(post.comments.map(hydrateComment)),
-  ]);
-
+function buildPost(post: RawPost, viewerId: string, avatarUrls: Map<string, string>, mediaUrls: Map<string, string>): FeedPost {
   return {
     id: post.id,
     content: post.content,
     createdAt: post.created_at,
-    author,
-    attachments,
-    comments: comments.sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
+    author: buildAuthor(post.author, avatarUrls),
+    attachments: post.attachments.map((a) => buildAttachment(a, mediaUrls)),
+    comments: post.comments
+      .map((c) => buildComment(c, avatarUrls))
+      .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
     likesCount: post.likes.length,
     likedByMe: post.likes.some((like) => like.profile_id === viewerId),
   };
 }
 
-export async function fetchFeedPosts(
-  supabase: SupabaseClient<Database>,
-  viewerId: string,
-  limit = 20
-): Promise<FeedPost[]> {
+async function hydrateAll(supabase: SupabaseClient<Database>, posts: RawPost[], viewerId: string): Promise<FeedPost[]> {
+  const { avatarPaths, attachmentPaths } = collectPaths(posts);
+  const [avatarUrls, mediaUrls] = await Promise.all([
+    getSignedStorageUrls(supabase, "avatars", avatarPaths),
+    getSignedStorageUrls(supabase, "feed-media", attachmentPaths),
+  ]);
+
+  return posts.map((post) => buildPost(post, viewerId, avatarUrls, mediaUrls));
+}
+
+export async function fetchFeedPosts(supabase: SupabaseClient<Database>, viewerId: string, limit = 20): Promise<FeedPost[]> {
   const { data } = await supabase
     .from("feed_posts")
     .select(POST_SELECT)
@@ -90,14 +113,10 @@ export async function fetchFeedPosts(
     .limit(limit)
     .returns<RawPost[]>();
 
-  return Promise.all((data ?? []).map((post) => hydratePost(post, viewerId)));
+  return hydrateAll(supabase, data ?? [], viewerId);
 }
 
-export async function fetchPostById(
-  supabase: SupabaseClient<Database>,
-  postId: string,
-  viewerId: string
-): Promise<FeedPost | null> {
+export async function fetchPostById(supabase: SupabaseClient<Database>, postId: string, viewerId: string): Promise<FeedPost | null> {
   const { data } = await supabase
     .from("feed_posts")
     .select(POST_SELECT)
@@ -106,13 +125,12 @@ export async function fetchPostById(
     .maybeSingle()
     .returns<RawPost>();
 
-  return data ? hydratePost(data, viewerId) : null;
+  if (!data) return null;
+  const [post] = await hydrateAll(supabase, [data], viewerId);
+  return post;
 }
 
-export async function fetchCommentById(
-  supabase: SupabaseClient<Database>,
-  commentId: string
-): Promise<FeedComment | null> {
+export async function fetchCommentById(supabase: SupabaseClient<Database>, commentId: string): Promise<FeedComment | null> {
   const { data } = await supabase
     .from("feed_comments")
     .select(
@@ -122,5 +140,7 @@ export async function fetchCommentById(
     .maybeSingle()
     .returns<RawComment>();
 
-  return data ? hydrateComment(data) : null;
+  if (!data) return null;
+  const avatarUrls = await getSignedStorageUrls(supabase, "avatars", [data.author.avatar_url]);
+  return buildComment(data, avatarUrls);
 }

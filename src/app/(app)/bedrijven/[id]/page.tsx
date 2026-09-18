@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { getSignedStorageUrl } from "@/lib/supabase/storage";
+import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { isBoard } from "@/lib/auth/roles";
 import { CompanyHeader } from "@/components/company/CompanyHeader";
 import { CompanyMemberList, type CompanyMember } from "@/components/company/CompanyMemberList";
@@ -38,18 +38,18 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
     .eq("company_id", id)
     .returns<MemberRow[]>();
 
-  const [logoUrl, members] = await Promise.all([
+  const [logoUrl, avatarUrls] = await Promise.all([
     getSignedStorageUrl("company-logos", company.logo_url),
-    Promise.all(
-      (memberRows ?? []).map(async (row): Promise<CompanyMember> => ({
-        id: row.profile.id,
-        first_name: row.profile.first_name,
-        last_name: row.profile.last_name,
-        job_title: row.profile.job_title,
-        avatarUrl: await getSignedStorageUrl("avatars", row.profile.avatar_url),
-      }))
-    ),
+    getSignedStorageUrls(supabase, "avatars", (memberRows ?? []).map((row) => row.profile.avatar_url)),
   ]);
+
+  const members: CompanyMember[] = (memberRows ?? []).map((row) => ({
+    id: row.profile.id,
+    first_name: row.profile.first_name,
+    last_name: row.profile.last_name,
+    job_title: row.profile.job_title,
+    avatarUrl: row.profile.avatar_url ? (avatarUrls.get(row.profile.avatar_url) ?? null) : null,
+  }));
 
   return (
     <div className="flex flex-col gap-6">
