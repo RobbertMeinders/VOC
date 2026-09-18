@@ -172,6 +172,15 @@ Elke Next.js-hostingprovider werkt (Vercel is de eenvoudigste optie). Zet de twe
 `NEXT_PUBLIC_SUPABASE_*`-variabelen in de environment settings van je hostingprovider en voer de
 migraties uit tegen je productie-Supabase-project vóór de eerste deploy.
 
+**Let op bij Vercel + Supabase**: gebruik je Vercel's ingebouwde Supabase-marketplace-integratie
+(via "Storage" of tijdens het importeren), dan maakt Vercel automatisch een *eigen*, apart
+Supabase-project aan en injecteert dat zijn eigen `NEXT_PUBLIC_SUPABASE_*`-variabelen in al je
+environments — die overschrijven of overschaduwen environment variables die je zelf handmatig hebt
+ingesteld, zonder duidelijke melding. Wil je met je eigen, al bestaande Supabase-project werken
+(zoals hier beschreven), gebruik dan **niet** die marketplace-integratie: zet de twee
+`NEXT_PUBLIC_SUPABASE_*`-variabelen zelf, handmatig, onder Project → Settings → Environments →
+Production.
+
 ## WordPress-embed (agenda)
 
 Volgt in fase 4: een aparte, responsive `/embed/agenda`-route zonder navigatie, bedoeld om in een
