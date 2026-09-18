@@ -9,7 +9,7 @@ export const metadata: Metadata = { title: "Account aanmaken" };
 export default async function RegisterPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
   const supabase = await createClient();
-  const { data } = await supabase.rpc("get_invitation_preview", { p_token: token });
+  const { data, error } = await supabase.rpc("get_invitation_preview", { p_token: token });
   const invitation = data?.[0];
 
   return (
@@ -19,7 +19,17 @@ export default async function RegisterPage({ params }: { params: Promise<{ token
           <Logo />
         </div>
 
-        {!invitation?.valid ? (
+        {error ? (
+          <div className="rounded-2xl border border-border bg-surface p-6 text-center shadow-sm">
+            <h1 className="mb-2 text-xl font-semibold text-foreground">Kan uitnodiging niet controleren</h1>
+            <p className="text-sm text-muted">
+              Er ging iets mis bij het verbinden met de database. Probeer het later opnieuw.
+            </p>
+            <p className="mt-4 rounded-lg bg-voc-red-light px-3 py-2 text-left text-xs text-voc-red">
+              {error.message}
+            </p>
+          </div>
+        ) : !invitation?.valid ? (
           <div className="rounded-2xl border border-border bg-surface p-6 text-center shadow-sm">
             <h1 className="mb-2 text-xl font-semibold text-foreground">Uitnodiging niet geldig</h1>
             <p className="text-sm text-muted">
