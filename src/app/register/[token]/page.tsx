@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Logo } from "@/components/ui/Logo";
 import { RegisterForm } from "@/components/auth/RegisterForm";
 import { createClient } from "@/lib/supabase/server";
+import { supabaseUrl } from "@/lib/supabase/env";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 
 export const metadata: Metadata = { title: "Account aanmaken" };
@@ -35,6 +36,9 @@ export default async function RegisterPage({ params }: { params: Promise<{ token
             <p className="text-sm text-muted">
               Deze uitnodigingslink is ongeldig, verlopen of al gebruikt. Vraag het bestuur om een
               nieuwe link.
+            </p>
+            <p className="mt-4 break-all rounded-lg bg-black/[.04] px-3 py-2 text-left text-xs text-muted dark:bg-white/[.06]">
+              debug: token=&quot;{token}&quot; project={supabaseUrl()}
             </p>
           </div>
         ) : (
