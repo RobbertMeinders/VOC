@@ -218,6 +218,7 @@ export interface Database {
           body: string | null;
           link: string | null;
           is_read: boolean;
+          pushed_at: string | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["notifications"]["Row"]> & {
@@ -288,6 +289,22 @@ export interface Database {
       create_activity_reminders: {
         Args: Record<string, never>;
         Returns: number;
+      };
+      get_pending_push_notifications: {
+        Args: { p_limit?: number };
+        Returns: {
+          notification_id: string;
+          title: string;
+          body: string | null;
+          link: string | null;
+          endpoint: string;
+          p256dh: string;
+          auth: string;
+        }[];
+      };
+      mark_notifications_pushed: {
+        Args: { p_ids: string[] };
+        Returns: undefined;
       };
     };
     Enums: {

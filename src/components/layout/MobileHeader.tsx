@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Inbox, Menu, UserPlus, X } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { LogoutButton } from "./LogoutButton";
+import { NotificationBellIcon } from "@/components/notifications/NotificationBellIcon";
 import { BEDRIJVEN_NAV_ITEM, type NavItem } from "./nav-items";
 import { isBoard, ROLE_LABELS } from "@/lib/auth/roles";
 import type { Profile } from "@/lib/auth/session";
@@ -15,17 +16,21 @@ const BOARD_MENU_ITEMS: NavItem[] = [
   { href: "/beheer/aanvragen", label: "Aanvragen", icon: Inbox },
 ];
 
-export function MobileHeader({ profile }: { profile: Profile }) {
+export function MobileHeader({ profile, unreadNotifications }: { profile: Profile; unreadNotifications: number }) {
   const pathname = usePathname();
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur md:hidden">
       <div className="flex h-14 items-center justify-between px-4">
         <Logo />
-        {/* Keyed by pathname so the panel remounts (and its open state resets
-            to closed) on every navigation, instead of closing it from an
-            effect — a direct setState in an effect body cascades a render. */}
-        <MobileMenuButton key={pathname} profile={profile} />
+        <div className="flex items-center gap-1">
+          <NotificationBellIcon profileId={profile.id} initialUnreadCount={unreadNotifications} />
+          {/* Keyed by pathname so the panel remounts (and its open state
+              resets to closed) on every navigation, instead of closing it
+              from an effect — a direct setState in an effect body cascades
+              a render. */}
+          <MobileMenuButton key={pathname} profile={profile} />
+        </div>
       </div>
     </header>
   );

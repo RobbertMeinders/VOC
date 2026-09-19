@@ -8,10 +8,11 @@ import { SIDEBAR_NAV_ITEMS } from "./nav-items";
 import { Logo } from "@/components/ui/Logo";
 import { Avatar } from "@/components/ui/Avatar";
 import { LogoutButton } from "./LogoutButton";
+import { NotificationBellLink } from "@/components/notifications/NotificationBellLink";
 import { isBoard, ROLE_LABELS } from "@/lib/auth/roles";
 import type { Profile } from "@/lib/auth/session";
 
-export function Sidebar({ profile }: { profile: Profile }) {
+export function Sidebar({ profile, unreadNotifications }: { profile: Profile; unreadNotifications: number }) {
   const pathname = usePathname();
 
   return (
@@ -39,6 +40,8 @@ export function Sidebar({ profile }: { profile: Profile }) {
             </Link>
           );
         })}
+
+        <NotificationBellLink profileId={profile.id} initialUnreadCount={unreadNotifications} />
 
         {isBoard(profile.role) && (
           <>

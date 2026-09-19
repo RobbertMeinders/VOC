@@ -55,6 +55,37 @@ export async function updateProfileAction(
   return { success: true };
 }
 
+export type PushActionResult = { error?: string };
+
+export async function subscribeToPushAction(subscription: {
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+}): Promise<PushActionResult> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("push_subscriptions").upsert(
+    {
+      profile_id: profile.id,
+      endpoint: subscription.endpoint,
+      p256dh: subscription.keys.p256dh,
+      auth: subscription.keys.auth,
+    },
+    { onConflict: "endpoint" }
+  );
+
+  if (error) {
+    return { error: "Aanmelden voor pushmeldingen is niet gelukt." };
+  }
+  return {};
+}
+
+export async function unsubscribeFromPushAction(endpoint: string): Promise<void> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+  await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint).eq("profile_id", profile.id);
+}
+
 export type ChangeEmailState = { error?: string; success?: boolean };
 
 export async function changeEmailAction(_prevState: ChangeEmailState, formData: FormData): Promise<ChangeEmailState> {
