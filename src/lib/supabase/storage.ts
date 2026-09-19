@@ -19,9 +19,16 @@ type Bucket = "avatars" | "company-logos" | "feed-media" | "documents" | "activi
 export async function getSignedStorageUrl(bucket: Bucket, path: string | null, expiresIn = 3600): Promise<string | null> {
   if (!path) return null;
 
-  const supabase = await createClient();
-  const { data } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
-  return data?.signedUrl ?? null;
+  try {
+    const supabase = await createClient();
+    const { data } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
+    return data?.signedUrl ?? null;
+  } catch {
+    // A bucket that doesn't exist yet (a pending migration) or a transient
+    // Storage API error shouldn't take the whole page down — just render
+    // without that image.
+    return null;
+  }
 }
 
 /**
@@ -40,11 +47,15 @@ export async function getSignedStorageUrls(
   const map = new Map<string, string>();
   if (uniquePaths.length === 0) return map;
 
-  const { data } = await supabase.storage.from(bucket).createSignedUrls(uniquePaths, expiresIn);
-  for (const item of data ?? []) {
-    if (item.signedUrl && !item.error && item.path) {
-      map.set(item.path, item.signedUrl);
+  try {
+    const { data } = await supabase.storage.from(bucket).createSignedUrls(uniquePaths, expiresIn);
+    for (const item of data ?? []) {
+      if (item.signedUrl && !item.error && item.path) {
+        map.set(item.path, item.signedUrl);
+      }
     }
+  } catch {
+    // Same reasoning as getSignedStorageUrl: fail soft, not the whole page.
   }
   return map;
 }
