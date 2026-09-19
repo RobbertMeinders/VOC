@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/types/database";
 import { createClient } from "./server";
 
-type Bucket = "avatars" | "company-logos" | "feed-media" | "documents";
+type Bucket = "avatars" | "company-logos" | "feed-media" | "documents" | "activity-images";
 
 /**
  * Every Storage bucket in this project is private (see

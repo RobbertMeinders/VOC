@@ -283,6 +283,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: boolean;
       };
+      create_activity_reminders: {
+        Args: Record<string, never>;
+        Returns: number;
+      };
     };
     Enums: {
       user_role: UserRole;

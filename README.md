@@ -3,10 +3,11 @@
 Besloten community- en ledenportaal voor de Veendammer OndernemersCompagnie (VOC), gebouwd als
 Progressive Web App met Next.js (App Router) en Supabase.
 
-> **Status:** Fase 3 — Community. Bovenop de fundering (fase 1) en profielen/bedrijven/ledenlijst
-> (fase 2) is de community-feed nu volledig werkend: berichten met foto's of PDF's, likes, reacties
-> (met notificatie naar de auteur), moderatie door bestuur/beheer, en alles verschijnt realtime bij
-> iedereen zonder pagina-refresh. Agenda, het volledige notificatiecentrum, documenten en het
+> **Status:** Fase 4 — Agenda. Bovenop de fundering (fase 1), profielen/bedrijven/ledenlijst (fase 2)
+> en de community-feed (fase 3) heeft het portaal nu een volledige agenda: activiteiten aanmaken en
+> bewerken (bestuur/beheer), aanmelden/afmelden met automatische deadline- en capaciteitsbewaking,
+> herinneringen (via een dagelijkse Vercel Cron job) en een publieke, navigatieloze
+> `/embed/agenda`-route voor de WordPress-site. Het volledige notificatiecentrum, documenten en het
 > beheergedeelte volgen in latere fases (zie onderaan).
 
 ## Stack
@@ -26,6 +27,8 @@ src/
     register/           # Eerste account aanmaken (alleen zolang er nog geen profiel bestaat)
     register/[token]/  # Registreren via een uitnodigingslink
     auth/confirm/       # Callback voor e-mailbevestiging (Supabase Auth)
+    embed/agenda/       # Publieke, navigatieloze pagina voor de WordPress-iframe
+    api/cron/           # Vercel Cron-endpoints (agenda-herinneringen)
   components/
     layout/            # AppShell, Sidebar (desktop), BottomNav (mobiel), header
     ui/                # Kleine herbruikbare UI-bouwstenen (Button, Input, Avatar, Logo, …)
@@ -183,13 +186,28 @@ Open [http://localhost:3000](http://localhost:3000).
   `notifications` zodra iemand op jouw bericht reageert (nooit bij een reactie op je eigen bericht).
   Dit is bewust in de database gelegd zodat het ook werkt ongeacht welke client de reactie plaatst.
   Het volledige notificatiecentrum (ongelezen-teller, voorkeuren, push) volgt in fase 5.
+- **Activiteiten zijn publiek leesbaar** (`activities_public_select` in `0008_agenda.sql`): bewust
+  een uitzondering op het "besloten community"-uitgangspunt, omdat `/embed/agenda` zonder sessie
+  moet kunnen laden op de publieke WordPress-site. Wie zich aanmeldt blijft wél alleen zichtbaar
+  voor leden (`activity_registrations` bleef ongewijzigd members-only).
+- **Deadline en maximum aantal deelnemers worden in de database afgedwongen**
+  (`enforce_activity_registration_rules()` in `0001_init.sql`, `for update`-lock op de activiteit),
+  niet in de server action — zo kan een race tussen twee gelijktijdige aanmeldingen het maximum
+  nooit overschrijden, en geeft de trigger direct een Nederlandse foutmelding die de UI ongewijzigd
+  doorgeeft.
+- **Herinneringen lopen buiten de request-cyclus om**: `create_activity_reminders()` (security
+  definer, `0008_agenda.sql`) schrijft notificatie-rijen voor iedereen die is aangemeld voor een
+  activiteit die binnen 2 dagen begint, en is idempotent (dedupe op profiel + activiteit). Vercel
+  Cron roept dit dagelijks aan via `/api/cron/agenda-reminders`, beveiligd met `CRON_SECRET` (zie
+  `vercel.json` en `.env.local.example`). De notificatie-rij bestaat al; het bijbehorende
+  notificatiecentrum (badge, lijst) volgt in fase 5.
 
 ## Fases
 
 1. ✅ Fundering — project, Supabase, database, auth, rollen, responsive layout, feed-shell
 2. ✅ Profielen, bedrijven, ledenlijst, zoeken/filteren
 3. ✅ Community: berichten, afbeeldingen/PDF's, likes, reacties, moderatie, realtime
-4. Agenda: activiteiten, aanmelden/afmelden, herinneringen, WordPress-embed
+4. ✅ Agenda: activiteiten, aanmelden/afmelden, herinneringen, WordPress-embed
 5. Notificaties: in-app + push, voorkeuren
 6. Documenten: categorieën, upload/download, rechten
 7. Beheeromgeving: bestuursdashboard voor leden, bedrijven, activiteiten, moderatie
@@ -212,8 +230,23 @@ Production.
 
 ## WordPress-embed (agenda)
 
-Volgt in fase 4: een aparte, responsive `/embed/agenda`-route zonder navigatie, bedoeld om in een
-Elementor/WordPress-iframe te laden.
+`/embed/agenda` is een publieke, responsive pagina zonder navigatie of ingelogde sessie — bedoeld om
+in een Elementor/WordPress-iframe op de publieke VOC-site te laden. Toon alleen aankomende
+activiteiten (titel, datum, locatie, korte omschrijving, afbeelding); wie zich heeft aangemeld blijft
+verborgen. Voorbeeld-iframe:
+
+```html
+<iframe src="https://<jouw-portaal-domein>/embed/agenda" style="width:100%;border:0;height:600px"></iframe>
+```
+
+## Herinneringen (agenda)
+
+`/api/cron/agenda-reminders` wordt dagelijks om 07:00 UTC aangeroepen door Vercel Cron (zie
+`vercel.json`) en schrijft een herinneringsnotificatie voor iedereen die is aangemeld voor een
+activiteit die binnen 2 dagen begint. Zet `CRON_SECRET` (zie `.env.local.example`) in de
+environment variables van je hostingprovider — Vercel Cron stuurt die dan automatisch mee als
+`Authorization: Bearer <CRON_SECRET>`. Gebruik je geen Vercel, dan kan elke cron-dienst dit endpoint
+met diezelfde header aanroepen.
 
 ## Capacitor (toekomst)
 

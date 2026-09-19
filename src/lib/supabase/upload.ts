@@ -24,7 +24,7 @@ function randomFileName(): string {
  */
 export async function uploadImage(
   supabase: SupabaseClient<Database>,
-  bucket: "avatars" | "company-logos",
+  bucket: "avatars" | "company-logos" | "activity-images",
   folder: string,
   file: File
 ): Promise<ImageUploadResult> {
