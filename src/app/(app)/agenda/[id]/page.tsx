@@ -113,7 +113,7 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
             Bewerken
           </Link>
           <DeleteButton
-            onDelete={() => deleteActivityAction(activity.id)}
+            onDelete={deleteActivityAction.bind(null, activity.id)}
             confirmMessage="Weet je zeker dat je deze activiteit wilt verwijderen? Aanmeldingen worden ook verwijderd."
             className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red hover:border-voc-red"
           />
