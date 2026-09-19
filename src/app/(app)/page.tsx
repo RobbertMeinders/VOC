@@ -3,7 +3,7 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { fetchFeedPosts } from "@/lib/feed/queries";
-import { isBoard } from "@/lib/auth/roles";
+import { isAdmin, isBoard } from "@/lib/auth/roles";
 import { FeedList } from "@/components/feed/FeedList";
 
 export const metadata: Metadata = { title: "Home" };
@@ -27,6 +27,7 @@ export default async function FeedPage() {
         avatarUrl,
       }}
       canModerate={isBoard(profile.role)}
+      canEditOthers={isAdmin(profile.role)}
     />
   );
 }

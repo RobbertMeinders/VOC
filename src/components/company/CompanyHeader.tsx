@@ -1,5 +1,6 @@
 import Image from "next/image";
 import { Building2, Globe, MapPin } from "lucide-react";
+import { ExpandableText } from "@/components/ui/ExpandableText";
 import type { Database } from "@/lib/types/database";
 
 type Company = Database["public"]["Tables"]["companies"]["Row"];
@@ -39,7 +40,7 @@ export function CompanyHeader({ company, logoUrl }: { company: Company; logoUrl:
           </div>
         </div>
       </div>
-      {company.description && <p className="mt-4 whitespace-pre-wrap text-sm text-foreground">{company.description}</p>}
+      {company.description && <ExpandableText text={company.description} className="mt-4" />}
 
       {company.address && (
         <p className="mt-4 flex items-start gap-1 border-t border-border pt-4 text-sm text-muted">

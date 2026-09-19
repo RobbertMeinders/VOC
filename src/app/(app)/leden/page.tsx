@@ -78,7 +78,7 @@ export default async function LedenPage({
       <MemberFilters branches={branches} />
 
       {withAvatars.length > 0 ? (
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid gap-3 sm:grid-cols-2">
           {withAvatars.map((member) => (
             <MemberRow key={member.id} member={member} />
           ))}

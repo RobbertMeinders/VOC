@@ -10,6 +10,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { clsx } from "clsx";
 import { isAdmin, isBoard, ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
 import { RoleEditor } from "@/components/members/RoleEditor";
+import { AdminEditProfile } from "@/components/members/AdminEditProfile";
 import type { Database } from "@/lib/types/database";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
@@ -75,8 +76,9 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
       </div>
 
       {isAdmin(viewer.role) && (
-        <div className="mt-4">
+        <div className="mt-4 flex flex-col gap-3">
           <RoleEditor memberId={member.id} currentRole={member.role} />
+          <AdminEditProfile member={member} avatarUrl={avatarUrl} />
         </div>
       )}
 

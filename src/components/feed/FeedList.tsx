@@ -12,10 +12,12 @@ export function FeedList({
   initialPosts,
   currentAuthor,
   canModerate,
+  canEditOthers,
 }: {
   initialPosts: FeedPost[];
   currentAuthor: FeedAuthor;
   canModerate: boolean;
+  canEditOthers: boolean;
 }) {
   const [posts, setPosts] = useState(initialPosts);
 
@@ -86,6 +88,7 @@ export function FeedList({
               post={post}
               currentUserId={currentAuthor.id}
               canModerate={canModerate}
+              canEditOthers={canEditOthers}
               onDeleted={removePost}
               onUpdated={updatePost}
               onCommentDeleted={removeComment}

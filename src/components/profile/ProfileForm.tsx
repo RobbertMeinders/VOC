@@ -21,8 +21,16 @@ function SubmitButton() {
   );
 }
 
-export function ProfileForm({ profile, avatarUrl }: { profile: Profile; avatarUrl: string | null }) {
-  const [state, formAction] = useActionState(updateProfileAction, initialState);
+export function ProfileForm({
+  profile,
+  avatarUrl,
+  action = updateProfileAction,
+}: {
+  profile: Profile;
+  avatarUrl: string | null;
+  action?: (prevState: UpdateProfileState, formData: FormData) => Promise<UpdateProfileState>;
+}) {
+  const [state, formAction] = useActionState(action, initialState);
   const [preview, setPreview] = useState<string | null>(null);
 
   return (

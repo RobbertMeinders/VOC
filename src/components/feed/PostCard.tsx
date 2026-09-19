@@ -85,6 +85,7 @@ export function PostCard({
   post,
   currentUserId,
   canModerate,
+  canEditOthers,
   onDeleted,
   onUpdated,
   onCommentDeleted,
@@ -92,12 +93,14 @@ export function PostCard({
   post: FeedPost;
   currentUserId: string;
   canModerate: boolean;
+  canEditOthers: boolean;
   onDeleted: (postId: string) => void;
   onUpdated: (post: FeedPost) => void;
   onCommentDeleted: (commentId: string) => void;
 }) {
   const [editing, setEditing] = useState(false);
   const isOwnPost = post.author.id === currentUserId;
+  const canEditPost = isOwnPost || canEditOthers;
   const canDeletePost = canModerate || isOwnPost;
   const isEdited = post.updatedAt !== post.createdAt;
 
@@ -117,7 +120,7 @@ export function PostCard({
           </div>
         </Link>
         <div className="flex items-center gap-1">
-          {isOwnPost && !editing && (
+          {canEditPost && !editing && (
             <button
               type="button"
               title="Bewerken"

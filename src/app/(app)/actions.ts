@@ -2,6 +2,7 @@
 
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { isAdmin } from "@/lib/auth/roles";
 import { fetchCommentById, fetchPostById } from "@/lib/feed/queries";
 import type { FeedComment, FeedPost } from "@/lib/feed/types";
 
@@ -83,13 +84,11 @@ export async function updatePostAction(
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("feed_posts")
-    .update({ content })
-    .eq("id", postId)
-    .eq("author_id", profile.id)
-    .select("id")
-    .maybeSingle();
+  let query = supabase.from("feed_posts").update({ content }).eq("id", postId);
+  if (!isAdmin(profile.role)) {
+    query = query.eq("author_id", profile.id);
+  }
+  const { data, error } = await query.select("id").maybeSingle();
 
   if (error || !data) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
