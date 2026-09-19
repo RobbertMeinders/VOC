@@ -35,6 +35,10 @@ export function LoginForm({ redirectTo }: { redirectTo: string }) {
         </label>
         <Input id="password" name="password" type="password" autoComplete="current-password" required />
       </div>
+      <label className="flex items-center gap-2 text-sm text-foreground">
+        <input type="checkbox" name="remember" className="rounded" />
+        Blijf ingelogd
+      </label>
       {state.error && (
         <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
           {state.error}

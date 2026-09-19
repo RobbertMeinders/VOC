@@ -2,6 +2,7 @@ import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import type { Database } from "@/lib/types/database";
 import { supabaseAnonKey, supabaseUrl } from "./env";
+import { DEFAULT_MAX_AGE, REMEMBERED_MAX_AGE, REMEMBER_ME_COOKIE } from "./session-persistence";
 
 /**
  * Supabase client for Server Components, Route Handlers and Server Actions.
@@ -14,8 +15,10 @@ import { supabaseAnonKey, supabaseUrl } from "./env";
  */
 export async function createClient() {
   const cookieStore = await cookies();
+  const maxAge = cookieStore.get(REMEMBER_ME_COOKIE)?.value === "1" ? REMEMBERED_MAX_AGE : DEFAULT_MAX_AGE;
 
   return createServerClient<Database>(supabaseUrl(), supabaseAnonKey(), {
+    cookieOptions: { maxAge },
     cookies: {
       getAll() {
         return cookieStore.getAll();

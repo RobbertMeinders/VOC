@@ -2,6 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/types/database";
 import { supabaseAnonKey, supabaseUrl } from "./env";
+import { DEFAULT_MAX_AGE, REMEMBERED_MAX_AGE, REMEMBER_ME_COOKIE } from "./session-persistence";
 
 const PUBLIC_PATHS = ["/login", "/register", "/auth", "/wachtwoord-vergeten", "/toegang-aanvragen"];
 
@@ -17,8 +18,10 @@ function isPublicPath(pathname: string) {
  */
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
+  const maxAge = request.cookies.get(REMEMBER_ME_COOKIE)?.value === "1" ? REMEMBERED_MAX_AGE : DEFAULT_MAX_AGE;
 
   const supabase = createServerClient<Database>(supabaseUrl(), supabaseAnonKey(), {
+    cookieOptions: { maxAge },
     cookies: {
       getAll() {
         return request.cookies.getAll();
