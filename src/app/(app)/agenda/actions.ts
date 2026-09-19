@@ -8,6 +8,27 @@ import { uploadImage } from "@/lib/supabase/upload";
 
 export type ActionResult = { error?: string };
 
+// next/navigation's redirect() throws internally to unwind the render; that
+// throw must always be allowed through, never caught as a "real" error.
+function isNextRedirectError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    "digest" in error &&
+    typeof (error as { digest?: unknown }).digest === "string" &&
+    (error as { digest: string }).digest.startsWith("NEXT_REDIRECT")
+  );
+}
+
+// Never let a malformed date string reach .toISOString() and throw — that
+// crashed the whole Server Action (React error #441) instead of showing a
+// form error. Empty input, or input that doesn't parse, both become null.
+function parseIsoOrNull(value: string): string | null {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
 export async function registerForActivityAction(activityId: string): Promise<ActionResult> {
   const profile = await requireProfile();
   const supabase = await createClient();
@@ -61,15 +82,16 @@ function parseActivityForm(formData: FormData) {
   const endsAtRaw = String(formData.get("ends_at") ?? "").trim();
   const deadlineRaw = String(formData.get("registration_deadline") ?? "").trim();
   const maxParticipantsRaw = String(formData.get("max_participants") ?? "").trim();
+  const maxParticipantsNumber = maxParticipantsRaw ? Number(maxParticipantsRaw) : NaN;
 
   return {
     title,
-    startsAtRaw,
+    startsAt: parseIsoOrNull(startsAtRaw),
     description: description || null,
     location: location || null,
-    ends_at: endsAtRaw ? new Date(endsAtRaw).toISOString() : null,
-    registration_deadline: deadlineRaw ? new Date(deadlineRaw).toISOString() : null,
-    max_participants: maxParticipantsRaw ? Number(maxParticipantsRaw) : null,
+    ends_at: parseIsoOrNull(endsAtRaw),
+    registration_deadline: parseIsoOrNull(deadlineRaw),
+    max_participants: Number.isFinite(maxParticipantsNumber) && maxParticipantsNumber > 0 ? maxParticipantsNumber : null,
   };
 }
 
@@ -77,34 +99,40 @@ export async function createActivityAction(
   _prevState: ActivityFormState,
   formData: FormData
 ): Promise<ActivityFormState> {
-  const profile = await requireBoard();
-  const { title, startsAtRaw, ...rest } = parseActivityForm(formData);
+  try {
+    const profile = await requireBoard();
+    const { title, startsAt, ...rest } = parseActivityForm(formData);
 
-  if (!title || !startsAtRaw) {
-    return { error: "Titel en startdatum zijn verplicht." };
-  }
-
-  const supabase = await createClient();
-  const { data: activity, error } = await supabase
-    .from("activities")
-    .insert({ title, starts_at: new Date(startsAtRaw).toISOString(), ...rest, created_by: profile.id })
-    .select("id")
-    .single();
-
-  if (error || !activity) {
-    return { error: "Aanmaken is niet gelukt. Probeer het opnieuw." };
-  }
-
-  const image = formData.get("image");
-  if (image instanceof File && image.size > 0) {
-    const result = await uploadImage(supabase, "activity-images", activity.id, image);
-    if (!("error" in result)) {
-      await supabase.from("activities").update({ image_url: result.path }).eq("id", activity.id);
+    if (!title || !startsAt) {
+      return { error: "Titel en een geldige startdatum zijn verplicht." };
     }
-  }
 
-  revalidatePath("/agenda");
-  redirect(`/agenda/${activity.id}`);
+    const supabase = await createClient();
+    const { data: activity, error } = await supabase
+      .from("activities")
+      .insert({ title, starts_at: startsAt, ...rest, created_by: profile.id })
+      .select("id")
+      .single();
+
+    if (error || !activity) {
+      return { error: "Aanmaken is niet gelukt. Probeer het opnieuw." };
+    }
+
+    const image = formData.get("image");
+    if (image instanceof File && image.size > 0) {
+      const result = await uploadImage(supabase, "activity-images", activity.id, image);
+      if (!("error" in result)) {
+        await supabase.from("activities").update({ image_url: result.path }).eq("id", activity.id);
+      }
+    }
+
+    revalidatePath("/agenda");
+    redirect(`/agenda/${activity.id}`);
+  } catch (cause) {
+    if (isNextRedirectError(cause)) throw cause;
+    console.error("[agenda] createActivityAction failed:", cause);
+    return { error: "Er ging iets onverwachts mis bij het aanmaken. Probeer het opnieuw." };
+  }
 }
 
 export async function updateActivityAction(
@@ -112,46 +140,58 @@ export async function updateActivityAction(
   _prevState: ActivityFormState,
   formData: FormData
 ): Promise<ActivityFormState> {
-  await requireBoard();
-  const { title, startsAtRaw, ...rest } = parseActivityForm(formData);
+  try {
+    await requireBoard();
+    const { title, startsAt, ...rest } = parseActivityForm(formData);
 
-  if (!title || !startsAtRaw) {
-    return { error: "Titel en startdatum zijn verplicht." };
+    if (!title || !startsAt) {
+      return { error: "Titel en een geldige startdatum zijn verplicht." };
+    }
+
+    const supabase = await createClient();
+
+    let imagePath: string | undefined;
+    const image = formData.get("image");
+    if (image instanceof File && image.size > 0) {
+      const result = await uploadImage(supabase, "activity-images", activityId, image);
+      if ("error" in result) return { error: result.error };
+      imagePath = result.path;
+    }
+
+    const { error } = await supabase
+      .from("activities")
+      .update({
+        title,
+        starts_at: startsAt,
+        ...rest,
+        ...(imagePath ? { image_url: imagePath } : {}),
+      })
+      .eq("id", activityId);
+
+    if (error) {
+      return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+    }
+
+    revalidatePath(`/agenda/${activityId}`);
+    revalidatePath("/agenda");
+    return { success: true };
+  } catch (cause) {
+    if (isNextRedirectError(cause)) throw cause;
+    console.error("[agenda] updateActivityAction failed:", cause);
+    return { error: "Er ging iets onverwachts mis bij het opslaan. Probeer het opnieuw." };
   }
-
-  const supabase = await createClient();
-
-  let imagePath: string | undefined;
-  const image = formData.get("image");
-  if (image instanceof File && image.size > 0) {
-    const result = await uploadImage(supabase, "activity-images", activityId, image);
-    if ("error" in result) return { error: result.error };
-    imagePath = result.path;
-  }
-
-  const { error } = await supabase
-    .from("activities")
-    .update({
-      title,
-      starts_at: new Date(startsAtRaw).toISOString(),
-      ...rest,
-      ...(imagePath ? { image_url: imagePath } : {}),
-    })
-    .eq("id", activityId);
-
-  if (error) {
-    return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
-  }
-
-  revalidatePath(`/agenda/${activityId}`);
-  revalidatePath("/agenda");
-  return { success: true };
 }
 
 export async function deleteActivityAction(activityId: string) {
-  await requireBoard();
-  const supabase = await createClient();
-  await supabase.from("activities").delete().eq("id", activityId);
-  revalidatePath("/agenda");
-  redirect("/agenda");
+  try {
+    await requireBoard();
+    const supabase = await createClient();
+    await supabase.from("activities").delete().eq("id", activityId);
+    revalidatePath("/agenda");
+    redirect("/agenda");
+  } catch (cause) {
+    if (isNextRedirectError(cause)) throw cause;
+    console.error("[agenda] deleteActivityAction failed:", cause);
+    throw cause;
+  }
 }
