@@ -44,6 +44,8 @@ export interface Database {
           industry: string | null;
           website: string | null;
           city: string | null;
+          address: string | null;
+          postal_code: string | null;
           created_at: string;
           updated_at: string;
         };

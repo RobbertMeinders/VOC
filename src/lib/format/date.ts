@@ -1,5 +1,13 @@
+// Pinned to Europe/Amsterdam explicitly rather than the executing
+// environment's own local timezone: a Vercel serverless function usually
+// runs in UTC, so leaving the timezone implicit showed the wrong wall-clock
+// time to Dutch visitors (and, worse, produced a different string on the
+// server than on the client for anything computed client-side too).
+const NL_TIMEZONE = "Europe/Amsterdam";
+
 export function formatActivityDate(iso: string): string {
   return new Intl.DateTimeFormat("nl-NL", {
+    timeZone: NL_TIMEZONE,
     weekday: "long",
     day: "numeric",
     month: "long",
@@ -10,8 +18,17 @@ export function formatActivityDate(iso: string): string {
 
 export function formatActivityDateShort(iso: string): string {
   return new Intl.DateTimeFormat("nl-NL", {
+    timeZone: NL_TIMEZONE,
     day: "numeric",
     month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(iso));
+}
+
+export function formatActivityTimeOnly(iso: string): string {
+  return new Intl.DateTimeFormat("nl-NL", {
+    timeZone: NL_TIMEZONE,
     hour: "2-digit",
     minute: "2-digit",
   }).format(new Date(iso));

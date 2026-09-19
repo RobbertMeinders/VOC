@@ -40,6 +40,17 @@ export function CompanyHeader({ company, logoUrl }: { company: Company; logoUrl:
         </div>
       </div>
       {company.description && <p className="mt-4 whitespace-pre-wrap text-sm text-foreground">{company.description}</p>}
+
+      {company.address && (
+        <p className="mt-4 flex items-start gap-1 border-t border-border pt-4 text-sm text-muted">
+          <MapPin size={14} className="mt-0.5 shrink-0" />
+          <span>
+            {company.address}
+            {company.postal_code && `, ${company.postal_code}`}
+            {company.city && ` ${company.city}`}
+          </span>
+        </p>
+      )}
     </div>
   );
 }

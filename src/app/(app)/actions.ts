@@ -68,6 +68,37 @@ export async function createPostAction(_prevState: CreatePostState, formData: Fo
   return { success: true, post: post ?? undefined };
 }
 
+export type UpdatePostState = { error?: string; success?: boolean; post?: FeedPost };
+
+export async function updatePostAction(
+  postId: string,
+  _prevState: UpdatePostState,
+  formData: FormData
+): Promise<UpdatePostState> {
+  const profile = await requireProfile();
+  const content = String(formData.get("content") ?? "").trim();
+
+  if (!content) {
+    return { error: "Een bericht kan niet leeg zijn." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("feed_posts")
+    .update({ content })
+    .eq("id", postId)
+    .eq("author_id", profile.id)
+    .select("id")
+    .maybeSingle();
+
+  if (error || !data) {
+    return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+  }
+
+  const post = await fetchPostById(supabase, postId, profile.id);
+  return { success: true, post: post ?? undefined };
+}
+
 export async function deletePostAction(postId: string) {
   await requireProfile();
   const supabase = await createClient();

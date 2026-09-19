@@ -6,7 +6,7 @@ import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import type { FeedAttachment, FeedAuthor, FeedComment, FeedPost } from "./types";
 
 const POST_SELECT = `
-  id, author_id, content, created_at,
+  id, author_id, content, created_at, updated_at,
   author:profiles!feed_posts_author_id_fkey(id, first_name, last_name, avatar_url),
   attachments:feed_attachments(id, type, storage_path, file_name),
   comments:feed_comments(
@@ -24,6 +24,7 @@ type RawPost = {
   author_id: string;
   content: string | null;
   created_at: string;
+  updated_at: string;
   author: RawAuthor;
   attachments: RawAttachment[];
   comments: RawComment[];
@@ -84,6 +85,7 @@ function buildPost(post: RawPost, viewerId: string, avatarUrls: Map<string, stri
     id: post.id,
     content: post.content,
     createdAt: post.created_at,
+    updatedAt: post.updated_at,
     author: buildAuthor(post.author, avatarUrls),
     attachments: post.attachments.map((a) => buildAttachment(a, mediaUrls)),
     comments: post.comments

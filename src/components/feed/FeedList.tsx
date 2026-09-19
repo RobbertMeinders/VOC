@@ -27,6 +27,10 @@ export function FeedList({
     setPosts((prev) => prev.filter((p) => p.id !== postId));
   }
 
+  function updatePost(post: FeedPost) {
+    setPosts((prev) => prev.map((p) => (p.id === post.id ? post : p)));
+  }
+
   function upsertComment(comment: { id: string; postId: string } & Record<string, unknown>) {
     setPosts((prev) =>
       prev.map((post) => {
@@ -51,6 +55,10 @@ export function FeedList({
       })
       .on("postgres_changes", { event: "DELETE", schema: "public", table: "feed_posts" }, (payload) => {
         removePost(payload.old.id as string);
+      })
+      .on("postgres_changes", { event: "UPDATE", schema: "public", table: "feed_posts" }, (payload) => {
+        const postId = payload.new.id as string;
+        getPostAction(postId).then((post) => post && updatePost(post));
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "feed_comments" }, (payload) => {
         const commentId = payload.new.id as string;
@@ -79,6 +87,7 @@ export function FeedList({
               currentUserId={currentAuthor.id}
               canModerate={canModerate}
               onDeleted={removePost}
+              onUpdated={updatePost}
               onCommentDeleted={removeComment}
             />
           ))}

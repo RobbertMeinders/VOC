@@ -13,45 +13,38 @@ type Activity = Database["public"]["Tables"]["activities"]["Row"];
 
 const initialState: ActivityFormState = {};
 
-// datetime-local wants "YYYY-MM-DDTHH:mm" in the viewer's own wall-clock
-// time, with no timezone info — converting to/from ISO must happen in the
-// browser (not the server action) or a UTC-timezoned server would shift it.
-function toLocalInputValue(iso: string | null): string {
-  if (!iso) return "";
-  const date = new Date(iso);
-  const local = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-  return local.toISOString().slice(0, 16);
+// Every conversion below is pinned to the fixed "Europe/Amsterdam" IANA zone
+// via Intl, never the executing environment's own local offset (e.g.
+// Date.prototype.getTimezoneOffset()). That matters because this value is
+// computed once during server rendering and again during client hydration —
+// a Vercel serverless function runs in UTC while the board member's browser
+// runs in Europe/Amsterdam, so anything using the *local* offset produced a
+// different string in each place and crashed with a hydration-mismatch
+// error. Intl with an explicit timeZone is deterministic regardless of where
+// it executes, so server and client always agree.
+function amsterdamParts(iso: string) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Amsterdam",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(new Date(iso));
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "00";
+  return { date: `${get("year")}-${get("month")}-${get("day")}`, time: `${get("hour")}:${get("minute")}` };
 }
 
-function DateTimeField({
-  label,
-  name,
-  defaultValue,
-  required,
-}: {
-  label: string;
-  name: string;
-  defaultValue: string | null;
-  required?: boolean;
-}) {
-  const [value, setValue] = useState(toLocalInputValue(defaultValue));
-  const iso = value ? new Date(value).toISOString() : "";
+function toLocalInputValue(iso: string | null): string {
+  if (!iso) return "";
+  const { date, time } = amsterdamParts(iso);
+  return `${date}T${time}`;
+}
 
-  return (
-    <div className="flex flex-col gap-1.5">
-      <label htmlFor={name} className="text-sm font-medium text-foreground">
-        {label}
-      </label>
-      <Input
-        id={name}
-        type="datetime-local"
-        value={value}
-        onChange={(e) => setValue(e.target.value)}
-        required={required}
-      />
-      <input type="hidden" name={name} value={iso} />
-    </div>
-  );
+function toLocalTimeValue(iso: string | null): string {
+  if (!iso) return "";
+  return amsterdamParts(iso).time;
 }
 
 function SubmitButton({ label }: { label: string }) {
@@ -77,6 +70,15 @@ export function ActivityForm({
   const [state, formAction] = useActionState(action, initialState);
   const [preview, setPreview] = useState<string | null>(null);
   const shownImage = preview ?? imageUrl;
+
+  const [startsAt, setStartsAt] = useState(toLocalInputValue(activity?.starts_at ?? null));
+  const [endTime, setEndTime] = useState(toLocalTimeValue(activity?.ends_at ?? null));
+  const [deadline, setDeadline] = useState(toLocalInputValue(activity?.registration_deadline ?? null));
+
+  const startDatePart = startsAt.split("T")[0] ?? "";
+  const startsAtIso = startsAt ? new Date(startsAt).toISOString() : "";
+  const endsAtIso = startDatePart && endTime ? new Date(`${startDatePart}T${endTime}`).toISOString() : "";
+  const deadlineIso = deadline ? new Date(deadline).toISOString() : "";
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -108,16 +110,48 @@ export function ActivityForm({
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <DateTimeField label="Start" name="starts_at" defaultValue={activity?.starts_at ?? null} required />
-        <DateTimeField label="Einde (optioneel)" name="ends_at" defaultValue={activity?.ends_at ?? null} />
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="starts_at" className="text-sm font-medium text-foreground">
+            Start
+          </label>
+          <Input
+            id="starts_at"
+            type="datetime-local"
+            value={startsAt}
+            onChange={(e) => setStartsAt(e.target.value)}
+            required
+          />
+          <input type="hidden" name="starts_at" value={startsAtIso} />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="ends_at_time" className="text-sm font-medium text-foreground">
+            Eindtijd (optioneel)
+          </label>
+          <Input
+            id="ends_at_time"
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            disabled={!startDatePart}
+          />
+          <input type="hidden" name="ends_at" value={endsAtIso} />
+          <p className="text-xs text-muted">Op dezelfde dag als de start.</p>
+        </div>
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <DateTimeField
-          label="Aanmelddeadline (optioneel)"
-          name="registration_deadline"
-          defaultValue={activity?.registration_deadline ?? null}
-        />
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="registration_deadline" className="text-sm font-medium text-foreground">
+            Aanmelddeadline (optioneel)
+          </label>
+          <Input
+            id="registration_deadline"
+            type="datetime-local"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+          />
+          <input type="hidden" name="registration_deadline" value={deadlineIso} />
+        </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="max_participants" className="text-sm font-medium text-foreground">
             Maximum deelnemers

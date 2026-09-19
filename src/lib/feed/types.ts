@@ -24,6 +24,7 @@ export type FeedPost = {
   id: string;
   content: string | null;
   createdAt: string;
+  updatedAt: string;
   author: FeedAuthor;
   attachments: FeedAttachment[];
   comments: FeedComment[];

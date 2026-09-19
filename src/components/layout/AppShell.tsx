@@ -8,7 +8,7 @@ export function AppShell({ profile, children }: { profile: Profile; children: Re
   return (
     <div className="min-h-dvh bg-background">
       <Sidebar profile={profile} />
-      <MobileHeader />
+      <MobileHeader profile={profile} />
       <main className="pb-20 md:ml-64 md:pb-0">
         <div className="mx-auto w-full max-w-2xl px-4 py-6 md:max-w-3xl md:px-8 md:py-10">{children}</div>
       </main>

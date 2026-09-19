@@ -7,7 +7,7 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { isBoard } from "@/lib/auth/roles";
-import { formatActivityDate } from "@/lib/format/date";
+import { formatActivityDate, formatActivityTimeOnly } from "@/lib/format/date";
 import { RegisterButton } from "@/components/agenda/RegisterButton";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { deleteActivityAction } from "@/app/(app)/agenda/actions";
@@ -52,9 +52,15 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
     <div className="flex flex-col gap-4">
       <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
         {imageUrl && (
-          <div className="relative h-48 w-full">
-            <Image src={imageUrl} alt={activity.title} fill className="object-cover" />
-          </div>
+          <Image
+            src={imageUrl}
+            alt={activity.title}
+            width={0}
+            height={0}
+            sizes="(min-width: 640px) 640px, 100vw"
+            className="max-h-64 w-full object-cover"
+            style={{ width: "100%", height: "auto" }}
+          />
         )}
         <div className="p-6">
           <h1 className="text-xl font-semibold text-foreground">{activity.title}</h1>
@@ -62,7 +68,7 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
             <span className="flex items-center gap-2">
               <CalendarDays size={16} />
               {formatActivityDate(activity.starts_at)}
-              {activity.ends_at && ` – ${formatActivityDate(activity.ends_at)}`}
+              {activity.ends_at && ` – ${formatActivityTimeOnly(activity.ends_at)}`}
             </span>
             {activity.location && (
               <span className="flex items-center gap-2">

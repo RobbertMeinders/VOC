@@ -7,9 +7,12 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { createPostAction, type CreatePostState } from "@/app/(app)/actions";
 import { compressInputFile } from "@/lib/image/compress";
+import { autoGrowTextarea } from "@/lib/dom/autoGrow";
 import type { FeedAuthor, FeedPost } from "@/lib/feed/types";
 
 const initialState: CreatePostState = {};
+
+const TEXTAREA_MAX_HEIGHT = 160; // ~7 lines, then it scrolls instead of growing further
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -61,7 +64,9 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
           rows={2}
           required
           placeholder="Wat wil je delen met het netwerk?"
-          className="flex-1 resize-none rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+          onInput={(e) => autoGrowTextarea(e.currentTarget, TEXTAREA_MAX_HEIGHT)}
+          className="flex-1 resize-none overflow-y-auto rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+          style={{ maxHeight: TEXTAREA_MAX_HEIGHT }}
         />
       </div>
 

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import { Inbox, UserPlus } from "lucide-react";
-import { PRIMARY_NAV_ITEMS } from "./nav-items";
+import { SIDEBAR_NAV_ITEMS } from "./nav-items";
 import { Logo } from "@/components/ui/Logo";
 import { Avatar } from "@/components/ui/Avatar";
 import { LogoutButton } from "./LogoutButton";
@@ -21,7 +21,7 @@ export function Sidebar({ profile }: { profile: Profile }) {
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">
-        {PRIMARY_NAV_ITEMS.map(({ href, label, icon: Icon }) => {
+        {SIDEBAR_NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
           return (
             <Link

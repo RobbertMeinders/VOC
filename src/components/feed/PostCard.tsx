@@ -1,13 +1,16 @@
 "use client";
 
+import { useActionState, useEffect, useState } from "react";
+import { useFormStatus } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
-import { FileText } from "lucide-react";
+import { FileText, Pencil } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { LikeButton } from "./LikeButton";
 import { CommentForm } from "./CommentForm";
 import { DeleteButton } from "./DeleteButton";
-import { deleteCommentAction, deletePostAction } from "@/app/(app)/actions";
+import { deleteCommentAction, deletePostAction, updatePostAction, type UpdatePostState } from "@/app/(app)/actions";
+import { autoGrowTextarea } from "@/lib/dom/autoGrow";
 import type { FeedPost } from "@/lib/feed/types";
 
 function formatDate(iso: string) {
@@ -19,20 +22,84 @@ function formatDate(iso: string) {
   }).format(new Date(iso));
 }
 
+const editInitialState: UpdatePostState = {};
+
+function EditSaveButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="rounded-full bg-voc-red px-3 py-1.5 text-xs font-medium text-white hover:bg-voc-red-dark disabled:opacity-60"
+    >
+      {pending ? "Opslaan…" : "Opslaan"}
+    </button>
+  );
+}
+
+function EditPostForm({
+  post,
+  onSaved,
+  onCancel,
+}: {
+  post: FeedPost;
+  onSaved: (post: FeedPost) => void;
+  onCancel: () => void;
+}) {
+  const updateWithId = updatePostAction.bind(null, post.id);
+  const [state, formAction] = useActionState(updateWithId, editInitialState);
+
+  useEffect(() => {
+    if (state.success && state.post) {
+      onSaved(state.post);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
+
+  return (
+    <form action={formAction} className="mt-3">
+      <textarea
+        name="content"
+        rows={2}
+        required
+        defaultValue={post.content ?? ""}
+        onInput={(e) => autoGrowTextarea(e.currentTarget, 240)}
+        className="w-full resize-none overflow-y-auto rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+      />
+      {state.error && (
+        <p role="alert" className="mt-1.5 text-xs text-voc-red">
+          {state.error}
+        </p>
+      )}
+      <div className="mt-2 flex items-center gap-2">
+        <EditSaveButton />
+        <button type="button" onClick={onCancel} className="text-xs text-muted hover:underline">
+          Annuleren
+        </button>
+      </div>
+    </form>
+  );
+}
+
 export function PostCard({
   post,
   currentUserId,
   canModerate,
   onDeleted,
+  onUpdated,
   onCommentDeleted,
 }: {
   post: FeedPost;
   currentUserId: string;
   canModerate: boolean;
   onDeleted: (postId: string) => void;
+  onUpdated: (post: FeedPost) => void;
   onCommentDeleted: (commentId: string) => void;
 }) {
-  const canDeletePost = canModerate || post.author.id === currentUserId;
+  const [editing, setEditing] = useState(false);
+  const isOwnPost = post.author.id === currentUserId;
+  const canDeletePost = canModerate || isOwnPost;
+  const isEdited = post.updatedAt !== post.createdAt;
 
   return (
     <article className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
@@ -43,21 +110,41 @@ export function PostCard({
             <p className="text-sm font-medium text-foreground">
               {post.author.first_name} {post.author.last_name}
             </p>
-            <p className="text-xs text-muted">{formatDate(post.createdAt)}</p>
+            <p className="text-xs text-muted">
+              {formatDate(post.createdAt)}
+              {isEdited && " · bewerkt"}
+            </p>
           </div>
         </Link>
-        {canDeletePost && (
-          <DeleteButton
-            confirmMessage="Weet je zeker dat je dit bericht wilt verwijderen?"
-            onDelete={async () => {
-              await deletePostAction(post.id);
-              onDeleted(post.id);
-            }}
-          />
-        )}
+        <div className="flex items-center gap-1">
+          {isOwnPost && !editing && (
+            <button
+              type="button"
+              title="Bewerken"
+              aria-label="Bewerken"
+              onClick={() => setEditing(true)}
+              className="text-muted hover:text-voc-red"
+            >
+              <Pencil size={14} />
+            </button>
+          )}
+          {canDeletePost && (
+            <DeleteButton
+              confirmMessage="Weet je zeker dat je dit bericht wilt verwijderen?"
+              onDelete={async () => {
+                await deletePostAction(post.id);
+                onDeleted(post.id);
+              }}
+            />
+          )}
+        </div>
       </div>
 
-      {post.content && <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{post.content}</p>}
+      {editing ? (
+        <EditPostForm post={post} onSaved={(updated) => { onUpdated(updated); setEditing(false); }} onCancel={() => setEditing(false)} />
+      ) : (
+        post.content && <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{post.content}</p>
+      )}
 
       {post.attachments.map((attachment) =>
         attachment.type === "image" && attachment.url ? (

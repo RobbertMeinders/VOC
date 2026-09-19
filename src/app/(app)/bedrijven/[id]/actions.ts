@@ -19,6 +19,8 @@ export async function updateCompanyAction(
   const industry = String(formData.get("industry") ?? "").trim();
   const website = String(formData.get("website") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
+  const address = String(formData.get("address") ?? "").trim();
+  const postalCode = String(formData.get("postal_code") ?? "").trim();
 
   if (!name) {
     return { error: "Bedrijfsnaam is verplicht." };
@@ -42,6 +44,8 @@ export async function updateCompanyAction(
       industry: industry || null,
       website: website || null,
       city: city || null,
+      address: address || null,
+      postal_code: postalCode || null,
       ...(logoPath ? { logo_url: logoPath } : {}),
     })
     .eq("id", companyId);

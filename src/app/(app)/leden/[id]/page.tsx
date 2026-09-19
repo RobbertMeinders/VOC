@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Building2, Mail, Phone } from "lucide-react";
+import { Building2, Globe, Mail, Phone } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
@@ -12,7 +13,17 @@ import { RoleEditor } from "@/components/members/RoleEditor";
 import type { Database } from "@/lib/types/database";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
-type Membership = { company: { id: string; name: string; city: string | null } | null };
+type Membership = {
+  company: {
+    id: string;
+    name: string;
+    city: string | null;
+    industry: string | null;
+    website: string | null;
+    description: string | null;
+    logo_url: string | null;
+  } | null;
+};
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -37,12 +48,16 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
     getSignedStorageUrl("avatars", member.avatar_url),
     supabase
       .from("company_members")
-      .select("company:companies(id, name, city)")
+      .select("company:companies(id, name, city, industry, website, description, logo_url)")
       .eq("profile_id", id)
       .limit(1)
       .maybeSingle()
       .returns<Membership>(),
   ]);
+
+  const logoUrl = membership?.company?.logo_url
+    ? await getSignedStorageUrl("company-logos", membership.company.logo_url)
+    : null;
 
   return (
     <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
@@ -68,11 +83,38 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
       {membership?.company && (
         <Link
           href={`/bedrijven/${membership.company.id}`}
-          className="mt-4 flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-foreground hover:border-voc-red"
+          className="mt-4 flex items-start gap-3 rounded-xl border border-border p-3 hover:border-voc-red"
         >
-          <Building2 size={16} className="text-muted" />
-          <span className="font-medium">{membership.company.name}</span>
-          {membership.company.city && <span className="text-muted">— {membership.company.city}</span>}
+          {logoUrl ? (
+            <Image
+              src={logoUrl}
+              alt={membership.company.name}
+              width={48}
+              height={48}
+              className="h-12 w-12 shrink-0 rounded-lg object-cover"
+            />
+          ) : (
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red">
+              <Building2 size={20} />
+            </div>
+          )}
+          <div className="min-w-0">
+            <p className="font-medium text-foreground">{membership.company.name}</p>
+            <p className="text-xs text-muted">
+              {membership.company.industry && <span>{membership.company.industry}</span>}
+              {membership.company.industry && membership.company.city && <span> — </span>}
+              {membership.company.city && <span>{membership.company.city}</span>}
+            </p>
+            {membership.company.website && (
+              <span className="mt-1 inline-flex items-center gap-1 text-xs text-voc-red">
+                <Globe size={12} />
+                {membership.company.website.replace(/^https?:\/\//, "")}
+              </span>
+            )}
+            {membership.company.description && (
+              <p className="mt-1 line-clamp-2 text-xs text-muted">{membership.company.description}</p>
+            )}
+          </div>
         </Link>
       )}
 
