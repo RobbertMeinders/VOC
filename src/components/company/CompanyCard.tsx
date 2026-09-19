@@ -30,8 +30,8 @@ export function CompanyCard({ company }: { company: CompanyListItem }) {
         </div>
       )}
       <div className="min-w-0">
-        <p className="truncate text-base font-semibold text-foreground">{company.name}</p>
-        <p className="truncate text-sm text-muted">
+        <p className="truncate text-sm font-medium text-foreground">{company.name}</p>
+        <p className="truncate text-xs text-muted">
           {company.industry && <span>{company.industry}</span>}
           {company.industry && company.city && <span> — </span>}
           {company.city && <span>{company.city}</span>}
