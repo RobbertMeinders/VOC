@@ -2,20 +2,12 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/types/database";
+import { randomFileName } from "./randomFileName";
 
 const ALLOWED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export type ImageUploadResult = { path: string } | { error: string };
-
-function randomFileName(): string {
-  // Avoid depending on the global Web Crypto API being present in every
-  // runtime — build the id from Math.random if crypto.randomUUID is missing.
-  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
-    return crypto.randomUUID();
-  }
-  return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
-}
 
 /**
  * Uploads an image to a private bucket at `<folder>/<random>.<ext>`, replacing

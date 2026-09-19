@@ -7,7 +7,7 @@ import { Inbox, Menu, UserPlus, X } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { LogoutButton } from "./LogoutButton";
 import { NotificationBellIcon } from "@/components/notifications/NotificationBellIcon";
-import { BEDRIJVEN_NAV_ITEM, type NavItem } from "./nav-items";
+import { BEDRIJVEN_NAV_ITEM, DOCUMENTEN_NAV_ITEM, type NavItem } from "./nav-items";
 import { isBoard, ROLE_LABELS } from "@/lib/auth/roles";
 import type { Profile } from "@/lib/auth/session";
 
@@ -38,7 +38,7 @@ export function MobileHeader({ profile, unreadNotifications }: { profile: Profil
 
 function MobileMenuButton({ profile }: { profile: Profile }) {
   const [open, setOpen] = useState(false);
-  const menuItems = [BEDRIJVEN_NAV_ITEM, ...(isBoard(profile.role) ? BOARD_MENU_ITEMS : [])];
+  const menuItems = [BEDRIJVEN_NAV_ITEM, DOCUMENTEN_NAV_ITEM, ...(isBoard(profile.role) ? BOARD_MENU_ITEMS : [])];
 
   return (
     <>
