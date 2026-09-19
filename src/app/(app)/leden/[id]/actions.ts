@@ -37,6 +37,26 @@ export async function updateMemberRoleAction(
   return { success: true };
 }
 
+export type UpdateMemberActiveState = { error?: string; success?: boolean };
+
+export async function updateMemberActiveAction(memberId: string, isActive: boolean): Promise<UpdateMemberActiveState> {
+  const admin = await requireAdmin();
+
+  if (memberId === admin.id) {
+    return { error: "Je kunt je eigen account niet deactiveren." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("profiles").update({ is_active: isActive }).eq("id", memberId);
+
+  if (error) {
+    return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
+  }
+
+  revalidatePath(`/leden/${memberId}`);
+  return { success: true };
+}
+
 export async function updateMemberProfileAction(
   memberId: string,
   _prevState: UpdateProfileState,

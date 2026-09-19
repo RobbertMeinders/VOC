@@ -11,6 +11,7 @@ import { clsx } from "clsx";
 import { isAdmin, isBoard, ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
 import { RoleEditor } from "@/components/members/RoleEditor";
 import { AdminEditProfile } from "@/components/members/AdminEditProfile";
+import { MemberActiveToggle } from "@/components/members/MemberActiveToggle";
 import type { Database } from "@/lib/types/database";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
@@ -72,6 +73,11 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
           <span className={clsx("mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-medium", ROLE_BADGE_CLASS[member.role])}>
             {ROLE_LABELS[member.role]}
           </span>
+          {!member.is_active && (
+            <span className="ml-1.5 mt-1 inline-block rounded-full bg-black/5 px-2.5 py-0.5 text-xs font-medium text-muted dark:bg-white/10">
+              Gedeactiveerd
+            </span>
+          )}
         </div>
       </div>
 
@@ -79,6 +85,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
         <div className="mt-4 flex flex-col gap-3">
           <RoleEditor memberId={member.id} currentRole={member.role} />
           <AdminEditProfile member={member} avatarUrl={avatarUrl} />
+          {member.id !== viewer.id && <MemberActiveToggle memberId={member.id} initialActive={member.is_active} />}
         </div>
       )}
 

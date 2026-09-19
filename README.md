@@ -3,32 +3,34 @@
 Besloten community- en ledenportaal voor de Veendammer OndernemersCompagnie (VOC), gebouwd als
 Progressive Web App met Next.js (App Router) en Supabase.
 
-> **Status:** Fase 4 — Agenda. Bovenop de fundering (fase 1), profielen/bedrijven/ledenlijst (fase 2)
-> en de community-feed (fase 3) heeft het portaal nu een volledige agenda: activiteiten aanmaken en
-> bewerken (bestuur/beheer), aanmelden/afmelden met automatische deadline- en capaciteitsbewaking,
-> herinneringen (via een dagelijkse Vercel Cron job) en een publieke, navigatieloze
-> `/embed/agenda`-route voor de WordPress-site. Het volledige notificatiecentrum, documenten en het
-> beheergedeelte volgen in latere fases (zie onderaan).
+> **Status:** Fase 7 — Beheeromgeving. Bovenop de fundering (fase 1), profielen/bedrijven/ledenlijst
+> (fase 2), de community-feed (fase 3) en de agenda (fase 4) heeft het portaal nu ook: een
+> notificatiecentrum met web push (fase 5), een documentenbibliotheek met categorieën en
+> upload/downloadrechten (fase 6), en een `/beheer`-dashboard met kengetallen en snelkoppelingen plus
+> de mogelijkheid voor een beheerder om een lid te (de)activeren (fase 7). Alleen fase 8
+> (PWA-afwerking: installability, offline, performance, Capacitor) staat nog open.
 
 ## Stack
 
 - **Next.js 16** (App Router, TypeScript strict)
 - **Supabase**: Postgres, Auth, Storage, Row Level Security
 - **Tailwind CSS v4** met de VOC-huisstijl (`#E8000F`) als thema
-- **PWA / Web Push / Capacitor**: architectuur is hierop voorbereid, wordt in fase 8 afgerond
+- **Web Push**: live sinds fase 5 (VAPID + service worker + Vercel Cron dispatch)
+- **PWA / Capacitor**: architectuur is hierop voorbereid, installability/offline/performance volgen in fase 8
 
 ## Projectstructuur
 
 ```
 src/
   app/
-    (app)/            # Beveiligde app-shell: feed, agenda, leden, profiel, beheer
+    (app)/            # Beveiligde app-shell: feed, agenda, leden, bedrijven, documenten,
+                       # notificaties, profiel, beheer
     login/             # Inloggen
     register/           # Eerste account aanmaken (alleen zolang er nog geen profiel bestaat)
     register/[token]/  # Registreren via een uitnodigingslink
     auth/confirm/       # Callback voor e-mailbevestiging (Supabase Auth)
     embed/agenda/       # Publieke, navigatieloze pagina voor de WordPress-iframe
-    api/cron/           # Vercel Cron-endpoints (agenda-herinneringen)
+    api/cron/           # Vercel Cron-endpoints (agenda-herinneringen, push-dispatch)
   components/
     layout/            # AppShell, Sidebar (desktop), BottomNav (mobiel), header
     ui/                # Kleine herbruikbare UI-bouwstenen (Button, Input, Avatar, Logo, …)
@@ -208,9 +210,9 @@ Open [http://localhost:3000](http://localhost:3000).
 2. ✅ Profielen, bedrijven, ledenlijst, zoeken/filteren
 3. ✅ Community: berichten, afbeeldingen/PDF's, likes, reacties, moderatie, realtime
 4. ✅ Agenda: activiteiten, aanmelden/afmelden, herinneringen, WordPress-embed
-5. Notificaties: in-app + push, voorkeuren
-6. Documenten: categorieën, upload/download, rechten
-7. Beheeromgeving: bestuursdashboard voor leden, bedrijven, activiteiten, moderatie
+5. ✅ Notificaties: in-app + push, voorkeuren
+6. ✅ Documenten: categorieën, upload/download, rechten
+7. ✅ Beheeromgeving: bestuursdashboard voor leden, bedrijven, activiteiten, moderatie
 8. PWA-afwerking: installability, offline, performance, toegankelijkheid, Capacitor-voorbereiding
 
 ## Deployment
@@ -247,6 +249,39 @@ activiteit die binnen 2 dagen begint. Zet `CRON_SECRET` (zie `.env.local.example
 environment variables van je hostingprovider — Vercel Cron stuurt die dan automatisch mee als
 `Authorization: Bearer <CRON_SECRET>`. Gebruik je geen Vercel, dan kan elke cron-dienst dit endpoint
 met diezelfde header aanroepen.
+
+## Notificaties & web push (fase 5)
+
+In-app meldingen (notificatiebel, `/notificaties`) werken realtime via Supabase Realtime — geen
+cron nodig. Web push is anders: een browser-pushbericht versturen betekent een HTTP-call naar de
+pushdienst maken, en dat kan een Postgres-trigger niet zelf. Daarom haalt `/api/cron/send-push`
+(elke 15 minuten, zie `vercel.json`) nog-niet-verstuurde notificaties op via de
+`get_pending_push_notifications()` RPC en verstuurt ze met de `web-push`-library.
+
+**Let op op Vercel's Hobby-plan**: crons draaien daar maximaal 1x per dag, ongeacht het schema in
+`vercel.json` — pushmeldingen komen dan pas de volgende ochtend aan in plaats van binnen 15 minuten.
+Voor bijna-realtime push is een Pro-abonnement nodig.
+
+Vereiste environment variables (zie `.env.local.example`): `VAPID_PRIVATE_KEY` en
+`NEXT_PUBLIC_VAPID_PUBLIC_KEY`. Genereer je eigen paar met `npx web-push generate-vapid-keys` — nooit
+een paar uit een voorbeeld of chat hergebruiken.
+
+## Documenten (fase 6)
+
+`/documenten` groepeert bestanden op categorie (vrij tekstveld met autocomplete uit bestaande
+categorieën — geen vaste lijst). Bestuur/beheer uploadt en verwijdert (PDF, Word, PowerPoint, PNG,
+JPEG, max 25 MB); leden kunnen alleen bekijken en downloaden. Rechten zitten in de RLS-policies en
+storage-policies van `0002_storage.sql` (al sinds fase 1 aanwezig).
+
+## Beheeromgeving (fase 7)
+
+`/beheer` is het dashboard voor bestuur/beheer: kengetallen (actieve leden, openstaande
+uitnodigingen/aanvragen, aankomende activiteiten) plus snelkoppelingen naar Uitnodigingen,
+Aanvragen, Leden, Bedrijven, Documenten en Agenda. Een beheerder (niet bestuur) kan een lid
+activeren/deactiveren vanaf diens ledenpagina — een gedeactiveerd account wordt bij de eerstvolgende
+aanvraag naar `/account-gedeactiveerd` gestuurd. Moderatie (berichten/reacties verwijderen, en sinds
+de vorige update ook bewerken voor een beheerder) zat al in de feed zelf (fase 3) en is bewust niet
+verdubbeld in een apart moderatiescherm.
 
 ## Capacitor (toekomst)
 

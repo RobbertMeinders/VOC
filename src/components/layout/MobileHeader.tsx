@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Inbox, Menu, UserPlus, X } from "lucide-react";
+import { LayoutDashboard, Menu, X } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { LogoutButton } from "./LogoutButton";
 import { NotificationBellIcon } from "@/components/notifications/NotificationBellIcon";
@@ -11,10 +11,7 @@ import { BEDRIJVEN_NAV_ITEM, DOCUMENTEN_NAV_ITEM, type NavItem } from "./nav-ite
 import { isBoard, ROLE_LABELS } from "@/lib/auth/roles";
 import type { Profile } from "@/lib/auth/session";
 
-const BOARD_MENU_ITEMS: NavItem[] = [
-  { href: "/beheer/uitnodigingen", label: "Uitnodigingen", icon: UserPlus },
-  { href: "/beheer/aanvragen", label: "Aanvragen", icon: Inbox },
-];
+const BEHEER_NAV_ITEM: NavItem = { href: "/beheer", label: "Beheer", icon: LayoutDashboard };
 
 export function MobileHeader({ profile, unreadNotifications }: { profile: Profile; unreadNotifications: number }) {
   const pathname = usePathname();
@@ -38,7 +35,7 @@ export function MobileHeader({ profile, unreadNotifications }: { profile: Profil
 
 function MobileMenuButton({ profile }: { profile: Profile }) {
   const [open, setOpen] = useState(false);
-  const menuItems = [BEDRIJVEN_NAV_ITEM, DOCUMENTEN_NAV_ITEM, ...(isBoard(profile.role) ? BOARD_MENU_ITEMS : [])];
+  const menuItems = [BEDRIJVEN_NAV_ITEM, DOCUMENTEN_NAV_ITEM, ...(isBoard(profile.role) ? [BEHEER_NAV_ITEM] : [])];
 
   return (
     <>
