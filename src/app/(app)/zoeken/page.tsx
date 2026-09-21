@@ -21,7 +21,8 @@ type ProfileRow = {
   first_name: string;
   last_name: string;
   avatar_url: string | null;
-  company_members: { is_primary: boolean; company: { id: string; name: string } | null }[];
+  job_title: string | null;
+  company_members: { is_primary: boolean; company: { id: string; name: string; industry: string | null } | null }[];
 };
 type CompanyRow = {
   id: string;
@@ -60,7 +61,9 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
     await Promise.all([
       supabase
         .from("profiles")
-        .select("id, first_name, last_name, avatar_url, company_members(is_primary, company:companies(id, name))")
+        .select(
+          "id, first_name, last_name, avatar_url, job_title, company_members(is_primary, company:companies(id, name, industry))"
+        )
         .returns<ProfileRow[]>(),
       supabase.from("companies").select("id, name, industry, city, logo_url, tagline").returns<CompanyRow[]>(),
       supabase.from("documents").select("*").returns<DocumentRowData[]>(),
@@ -98,13 +101,14 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
       getSignedStorageUrls(supabase, "company-logos", matchedCompanies.map((c) => c.logo_url)),
       getSignedStorageUrls(supabase, "documents", matchedDocuments.map((d) => d.storage_path)),
       getSignedStorageUrls(supabase, "activity-images", matchedActivities.map((a) => a.image_url)),
-      supabase.from("activity_registrations").select("activity_id"),
+      supabase.from("activity_registrations").select("activity_id, is_waitlisted"),
       supabase.from("activity_registrations").select("activity_id").eq("profile_id", profile.id),
     ]);
 
   const registeredIds = new Set((myRegistrations ?? []).map((r) => r.activity_id));
   const registrationCounts = new Map<string, number>();
   for (const registration of allRegistrations ?? []) {
+    if (registration.is_waitlisted) continue;
     registrationCounts.set(registration.activity_id, (registrationCounts.get(registration.activity_id) ?? 0) + 1);
   }
 
@@ -115,6 +119,7 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
       first_name: p.first_name,
       last_name: p.last_name,
       avatarUrl: p.avatar_url ? (avatarUrls.get(p.avatar_url) ?? null) : null,
+      jobTitle: p.job_title,
       company: membership?.company ?? null,
     };
   });
