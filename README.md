@@ -215,6 +215,16 @@ Open [http://localhost:3000](http://localhost:3000).
 7. ✅ Beheeromgeving: bestuursdashboard voor leden, bedrijven, activiteiten, moderatie
 8. PWA-afwerking: installability, offline, performance, toegankelijkheid, Capacitor-voorbereiding
 
+## Bedrijfskoppeling vereist goedkeuring
+
+Een lid kiest bij registratie of via `/profiel` bij welk bedrijf het werkt. Kiest iemand een
+*bestaand* bedrijf, dan wordt dat geen directe koppeling meer maar een aanvraag
+(`company_membership_requests`, status `pending`) — een bestaand (goedgekeurd) lid van dat bedrijf,
+of bestuur/beheerder, moet die eerst goedkeuren voordat de `company_members`-rij ontstaat (zie
+`0013_company_membership_approval.sql`). Een gloednieuw bedrijf aanmaken blijft direct lid maken: er
+is dan nog niemand om het goed te keuren. Beide partijen (aanvrager bij afhandeling, bestaande
+leden/bestuur bij een nieuwe aanvraag) krijgen een in-app notificatie.
+
 ## Deployment
 
 Elke Next.js-hostingprovider werkt (Vercel is de eenvoudigste optie). Zet de twee

@@ -18,14 +18,22 @@ function SubmitButton() {
   );
 }
 
-export function CompanyMembershipForm({ hasCompany }: { hasCompany: boolean }) {
+export function CompanyMembershipForm({
+  hasCompany,
+  defaultOpen,
+}: {
+  hasCompany: boolean;
+  defaultOpen?: boolean;
+}) {
   const [state, formAction] = useActionState(updateMyCompanyAction, initialState);
-  const [open, setOpen] = useState(!hasCompany);
+  const [open, setOpen] = useState(defaultOpen ?? !hasCompany);
 
   if (state.success) {
     return (
       <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-500/10 dark:text-green-400">
-        Bedrijfskoppeling opgeslagen.
+        {state.pending
+          ? "Aanvraag verzonden — een collega bij dit bedrijf of bestuur/beheerder moet 'm nog goedkeuren."
+          : "Bedrijfskoppeling opgeslagen."}
       </p>
     );
   }

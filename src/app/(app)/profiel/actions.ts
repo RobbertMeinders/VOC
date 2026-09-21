@@ -106,7 +106,7 @@ export async function changeEmailAction(_prevState: ChangeEmailState, formData: 
   return { success: true };
 }
 
-export type UpdateCompanyMembershipState = { error?: string; success?: boolean };
+export type UpdateCompanyMembershipState = { error?: string; success?: boolean; pending?: boolean };
 
 function slugify(name: string, suffix: string): string {
   return `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}-${suffix}`;
@@ -156,14 +156,30 @@ export async function updateMyCompanyAction(
   // A member has one primary company in this UI — drop any existing link first.
   await supabase.from("company_members").delete().eq("profile_id", profile.id);
 
-  const { error: linkError } = await supabase
-    .from("company_members")
-    .insert({ company_id: targetCompanyId, profile_id: profile.id, is_primary: true });
+  if (companyMode === "new") {
+    // Net aangemaakt door dit lid — niemand hoeft dat goed te keuren.
+    const { error: linkError } = await supabase
+      .from("company_members")
+      .insert({ company_id: targetCompanyId, profile_id: profile.id, is_primary: true });
 
-  if (linkError) {
-    return { error: "Koppelen aan het bedrijf is niet gelukt. Probeer het opnieuw." };
+    if (linkError) {
+      return { error: "Koppelen aan het bedrijf is niet gelukt. Probeer het opnieuw." };
+    }
+
+    revalidatePath("/profiel");
+    return { success: true };
+  }
+
+  // Bestaand bedrijf: een bedrijfsgenoot of bestuur/beheerder moet dit goedkeuren.
+  const { error: requestError } = await supabase.from("company_membership_requests").upsert(
+    { company_id: targetCompanyId, profile_id: profile.id, status: "pending", decided_by: null, decided_at: null },
+    { onConflict: "company_id,profile_id" }
+  );
+
+  if (requestError) {
+    return { error: "Aanvraag versturen is niet gelukt. Probeer het opnieuw." };
   }
 
   revalidatePath("/profiel");
-  return { success: true };
+  return { success: true, pending: true };
 }

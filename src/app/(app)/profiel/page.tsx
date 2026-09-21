@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Building2 } from "lucide-react";
+import { Building2, Clock } from "lucide-react";
 import { clsx } from "clsx";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -15,12 +15,13 @@ import { ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
 export const metadata: Metadata = { title: "Profiel" };
 
 type Membership = { company: { id: string; name: string; city: string | null } | null };
+type PendingRequest = { company: { id: string; name: string } | null };
 
 export default async function ProfielPage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: membership }, avatarUrl] = await Promise.all([
+  const [{ data: membership }, { data: pendingRequest }, avatarUrl] = await Promise.all([
     supabase
       .from("company_members")
       .select("company:companies(id, name, city)")
@@ -28,6 +29,14 @@ export default async function ProfielPage() {
       .limit(1)
       .maybeSingle()
       .returns<Membership>(),
+    supabase
+      .from("company_membership_requests")
+      .select("company:companies(id, name)")
+      .eq("profile_id", profile.id)
+      .eq("status", "pending")
+      .limit(1)
+      .maybeSingle()
+      .returns<PendingRequest>(),
     getSignedStorageUrl("avatars", profile.avatar_url),
   ]);
 
@@ -51,6 +60,15 @@ export default async function ProfielPage() {
             {membership.company.city && <span className="text-muted">— {membership.company.city}</span>}
           </Link>
           <CompanyMembershipForm hasCompany />
+        </div>
+      ) : pendingRequest?.company ? (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">
+          <p className="flex items-center gap-2 text-sm text-muted">
+            <Clock size={16} />
+            Aanvraag voor <span className="font-medium text-foreground">{pendingRequest.company.name}</span> in
+            behandeling
+          </p>
+          <CompanyMembershipForm hasCompany={false} defaultOpen={false} />
         </div>
       ) : (
         <CompanyMembershipForm hasCompany={false} />

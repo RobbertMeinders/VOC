@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireBoard } from "@/lib/auth/session";
+import { requireBoard, requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
 
@@ -62,4 +62,28 @@ export async function updateCompanyAction(
 
   revalidatePath(`/bedrijven/${companyId}`);
   return { success: true };
+}
+
+// Goedkeuren/afwijzen mag door een bestaand lid van dit bedrijf of door
+// bestuur/beheerder — company_membership_requests_decide_update (RLS) is de
+// echte poortwachter hier; deze check is alleen voor een nette foutmelding.
+export async function decideCompanyMembershipRequestAction(
+  requestId: string,
+  companyId: string,
+  decision: "approved" | "rejected"
+): Promise<{ error?: string }> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const { error, count } = await supabase
+    .from("company_membership_requests")
+    .update({ status: decision, decided_by: profile.id }, { count: "exact" })
+    .eq("id", requestId);
+
+  if (error || !count) {
+    return { error: "Afhandelen is niet gelukt. Probeer het opnieuw." };
+  }
+
+  revalidatePath(`/bedrijven/${companyId}`);
+  return {};
 }

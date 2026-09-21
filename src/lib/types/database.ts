@@ -74,6 +74,23 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["company_members"]["Row"]>;
         Relationships: [];
       };
+      company_membership_requests: {
+        Row: {
+          id: string;
+          company_id: string;
+          profile_id: string;
+          status: "pending" | "approved" | "rejected";
+          requested_at: string;
+          decided_by: string | null;
+          decided_at: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["company_membership_requests"]["Row"]> & {
+          company_id: string;
+          profile_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["company_membership_requests"]["Row"]>;
+        Relationships: [];
+      };
       invitations: {
         Row: {
           id: string;
