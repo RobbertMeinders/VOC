@@ -19,7 +19,7 @@ export function CompanyHeader({ company, logoUrl }: { company: Company; logoUrl:
         <div className="min-w-0">
           <h1 className="text-xl font-semibold text-foreground">{company.name}</h1>
           {company.tagline ? (
-            <p className="text-sm font-medium text-voc-red">{company.tagline}</p>
+            <p className="text-sm font-medium text-muted">{company.tagline}</p>
           ) : (
             company.industry && <p className="text-sm text-muted">{company.industry}</p>
           )}

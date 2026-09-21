@@ -33,7 +33,7 @@ export function CompanyCard({ company }: { company: CompanyListItem }) {
       <div className="min-w-0">
         <p className="truncate text-sm font-medium text-foreground">{company.name}</p>
         {company.tagline ? (
-          <p className="truncate text-xs text-voc-red">{company.tagline}</p>
+          <p className="truncate text-xs text-muted">{company.tagline}</p>
         ) : (
           <p className="truncate text-xs text-muted">
             {company.industry && <span>{company.industry}</span>}
