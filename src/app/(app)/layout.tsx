@@ -8,17 +8,23 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ count: unreadNotifications }, avatarUrl] = await Promise.all([
+  const [{ count: unreadNotifications }, avatarUrl, { data: membership }] = await Promise.all([
     supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
       .eq("profile_id", profile.id)
       .eq("is_read", false),
     getSignedStorageUrl("avatars", profile.avatar_url),
+    supabase.from("company_members").select("company_id").eq("profile_id", profile.id).limit(1).maybeSingle(),
   ]);
 
   return (
-    <AppShell profile={profile} unreadNotifications={unreadNotifications ?? 0} avatarUrl={avatarUrl}>
+    <AppShell
+      profile={profile}
+      unreadNotifications={unreadNotifications ?? 0}
+      avatarUrl={avatarUrl}
+      companyId={membership?.company_id ?? null}
+    >
       {children}
     </AppShell>
   );

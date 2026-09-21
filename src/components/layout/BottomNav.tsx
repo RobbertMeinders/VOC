@@ -4,8 +4,18 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import { PRIMARY_NAV_ITEMS } from "./nav-items";
+import { BottomNavProfileMenu } from "./ProfileMenu";
+import type { Profile } from "@/lib/auth/session";
 
-export function BottomNav() {
+export function BottomNav({
+  profile,
+  avatarUrl,
+  companyId,
+}: {
+  profile: Profile;
+  avatarUrl: string | null;
+  companyId: string | null;
+}) {
   const pathname = usePathname();
 
   return (
@@ -31,6 +41,9 @@ export function BottomNav() {
             </li>
           );
         })}
+        <li className="flex-1">
+          <BottomNavProfileMenu profile={profile} avatarUrl={avatarUrl} companyId={companyId} />
+        </li>
       </ul>
     </nav>
   );

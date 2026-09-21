@@ -6,20 +6,22 @@ import { clsx } from "clsx";
 import { LayoutDashboard } from "lucide-react";
 import { SIDEBAR_NAV_ITEMS } from "./nav-items";
 import { Logo } from "@/components/ui/Logo";
-import { Avatar } from "@/components/ui/Avatar";
 import { LogoutButton } from "./LogoutButton";
+import { SidebarProfileMenu } from "./ProfileMenu";
 import { NotificationBellLink } from "@/components/notifications/NotificationBellLink";
-import { isBoard, ROLE_LABELS } from "@/lib/auth/roles";
+import { isBoard } from "@/lib/auth/roles";
 import type { Profile } from "@/lib/auth/session";
 
 export function Sidebar({
   profile,
   unreadCount,
   avatarUrl,
+  companyId,
 }: {
   profile: Profile;
   unreadCount: number;
   avatarUrl: string | null;
+  companyId: string | null;
 }) {
   const pathname = usePathname();
 
@@ -68,15 +70,7 @@ export function Sidebar({
       </nav>
 
       <div className="flex items-center gap-3 border-t border-border pt-4">
-        <Link href="/profiel" className="flex min-w-0 flex-1 items-center gap-3 rounded-lg -m-1.5 p-1.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]">
-          <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={36} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-sm font-medium text-foreground">
-              {profile.first_name} {profile.last_name}
-            </p>
-            <p className="truncate text-xs text-muted">{ROLE_LABELS[profile.role]}</p>
-          </div>
-        </Link>
+        <SidebarProfileMenu profile={profile} avatarUrl={avatarUrl} companyId={companyId} />
         <LogoutButton />
       </div>
     </aside>
