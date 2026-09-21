@@ -107,6 +107,46 @@ export function ProfileForm({
         </label>
       </div>
 
+      <div className="flex flex-col gap-3">
+        <p className="text-sm font-medium text-foreground">Social media</p>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="linkedin_url" className="text-xs font-medium text-muted">
+            LinkedIn
+          </label>
+          <Input
+            id="linkedin_url"
+            name="linkedin_url"
+            type="url"
+            defaultValue={profile.linkedin_url ?? ""}
+            placeholder="https://www.linkedin.com/in/..."
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="instagram_url" className="text-xs font-medium text-muted">
+            Instagram
+          </label>
+          <Input
+            id="instagram_url"
+            name="instagram_url"
+            type="url"
+            defaultValue={profile.instagram_url ?? ""}
+            placeholder="https://www.instagram.com/..."
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="facebook_url" className="text-xs font-medium text-muted">
+            Facebook
+          </label>
+          <Input
+            id="facebook_url"
+            name="facebook_url"
+            type="url"
+            defaultValue={profile.facebook_url ?? ""}
+            placeholder="https://www.facebook.com/..."
+          />
+        </div>
+      </div>
+
       {state.error && (
         <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
           {state.error}

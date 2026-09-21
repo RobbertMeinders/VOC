@@ -70,6 +70,9 @@ export async function updateMemberProfileAction(
   const phone = String(formData.get("phone") ?? "").trim();
   const showEmail = formData.get("show_email") === "on";
   const showPhone = formData.get("show_phone") === "on";
+  const linkedinUrl = String(formData.get("linkedin_url") ?? "").trim();
+  const instagramUrl = String(formData.get("instagram_url") ?? "").trim();
+  const facebookUrl = String(formData.get("facebook_url") ?? "").trim();
 
   if (!firstName || !lastName) {
     return { error: "Voor- en achternaam zijn verplicht." };
@@ -94,6 +97,9 @@ export async function updateMemberProfileAction(
       phone: phone || null,
       show_email: showEmail,
       show_phone: showPhone,
+      linkedin_url: linkedinUrl || null,
+      instagram_url: instagramUrl || null,
+      facebook_url: facebookUrl || null,
       ...(avatarPath ? { avatar_url: avatarPath } : {}),
     })
     .eq("id", memberId);

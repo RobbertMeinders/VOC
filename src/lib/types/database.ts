@@ -26,6 +26,9 @@ export interface Database {
           show_email: boolean;
           show_phone: boolean;
           last_active_at: string | null;
+          linkedin_url: string | null;
+          instagram_url: string | null;
+          facebook_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -55,6 +58,9 @@ export interface Database {
           email: string | null;
           latitude: number | null;
           longitude: number | null;
+          linkedin_url: string | null;
+          instagram_url: string | null;
+          facebook_url: string | null;
           created_at: string;
           updated_at: string;
         };

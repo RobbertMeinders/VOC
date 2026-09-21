@@ -34,10 +34,16 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
     toggle();
     if (willOpen && notifications === null) {
       setLoading(true);
-      void getRecentNotificationsAction().then((result) => {
-        setNotifications(result);
-        setLoading(false);
-      });
+      void getRecentNotificationsAction()
+        .then((result) => {
+          setNotifications(result);
+        })
+        .catch(() => {
+          setNotifications([]);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
     }
   }
 

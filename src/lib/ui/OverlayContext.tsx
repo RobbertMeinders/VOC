@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
 
 // De vier menu-overlays (zoeken, notificaties, netwerk, account) leven allemaal
 // zowel in de sidebar als in de mobiele header/bottom-nav tegelijk in de DOM
@@ -22,6 +22,19 @@ const OverlayContext = createContext<OverlayContextValue | null>(null);
 
 export function OverlayProvider({ children }: { children: ReactNode }) {
   const [openOverlay, setOpenOverlay] = useState<OverlayKey | null>(null);
+
+  // Achtergrond niet laten scrollen terwijl een overlay open staat — zonder
+  // dit kan de focus op een input in een fixed paneel (Zoeken) de pagina op
+  // iOS Safari alsnog laten "springen" terwijl het toetsenbord opent, ook al
+  // is het paneel zelf al fixed gepositioneerd.
+  useEffect(() => {
+    if (!openOverlay) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [openOverlay]);
 
   const value = useMemo<OverlayContextValue>(
     () => ({

@@ -6,7 +6,6 @@ import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storag
 import { isBoard } from "@/lib/auth/roles";
 import { CompanyHeader } from "@/components/company/CompanyHeader";
 import { CompanyMemberList, type CompanyMember } from "@/components/company/CompanyMemberList";
-import { CompanyForm } from "@/components/company/CompanyForm";
 import { CompanyMembershipRequests, type PendingMembershipRequest } from "@/components/company/CompanyMembershipRequests";
 import type { Database } from "@/lib/types/database";
 
@@ -84,7 +83,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="flex flex-col gap-6">
-      <CompanyHeader company={company} logoUrl={logoUrl} />
+      <CompanyHeader company={company} logoUrl={logoUrl} editHref={isBoard(profile.role) ? `/bedrijven/${id}/bewerken` : undefined} />
 
       <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
         <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij dit bedrijf</h2>
@@ -92,14 +91,6 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
       </div>
 
       {canSeeRequests && <CompanyMembershipRequests companyId={id} requests={pendingRequests} />}
-
-      {isBoard(profile.role) && (
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-          <h2 className="mb-1 text-sm font-semibold text-foreground">Bedrijfsgegevens bewerken</h2>
-          <p className="mb-4 text-xs text-muted">Alleen zichtbaar voor bestuur en beheer.</p>
-          <CompanyForm company={company} logoUrl={logoUrl} />
-        </div>
-      )}
     </div>
   );
 }

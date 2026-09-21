@@ -25,6 +25,9 @@ export async function updateCompanyAction(
   const postalCode = String(formData.get("postal_code") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
+  const linkedinUrl = String(formData.get("linkedin_url") ?? "").trim();
+  const instagramUrl = String(formData.get("instagram_url") ?? "").trim();
+  const facebookUrl = String(formData.get("facebook_url") ?? "").trim();
 
   if (!name) {
     return { error: "Bedrijfsnaam is verplicht." };
@@ -76,6 +79,9 @@ export async function updateCompanyAction(
       postal_code: postalCode || null,
       phone: phone || null,
       email: email || null,
+      linkedin_url: linkedinUrl || null,
+      instagram_url: instagramUrl || null,
+      facebook_url: facebookUrl || null,
       ...(logoPath ? { logo_url: logoPath } : {}),
       ...(coordinates !== undefined
         ? { latitude: coordinates?.latitude ?? null, longitude: coordinates?.longitude ?? null }

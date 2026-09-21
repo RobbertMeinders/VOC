@@ -66,7 +66,10 @@ export function SearchOverlay({ variant }: { variant: "sidebar" | "mobile" }) {
         {open && (
           <>
             <div className="fixed inset-0 z-40 bg-black/40" onClick={close} />
-            <div className="fixed inset-x-0 top-0 z-50 border-b border-border bg-surface pt-[env(safe-area-inset-top)] shadow-lg">
+            <div
+              className="fixed inset-x-3 z-50 mt-3 overflow-hidden rounded-2xl border border-border bg-surface shadow-lg"
+              style={{ top: "env(safe-area-inset-top)" }}
+            >
               {panel}
             </div>
           </>

@@ -135,6 +135,46 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
         <Input id="website" name="website" type="url" defaultValue={company.website ?? ""} placeholder="https://" />
       </div>
 
+      <div className="flex flex-col gap-3">
+        <p className="text-sm font-medium text-foreground">Social media</p>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="linkedin_url" className="text-xs font-medium text-muted">
+            LinkedIn
+          </label>
+          <Input
+            id="linkedin_url"
+            name="linkedin_url"
+            type="url"
+            defaultValue={company.linkedin_url ?? ""}
+            placeholder="https://www.linkedin.com/company/..."
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="instagram_url" className="text-xs font-medium text-muted">
+            Instagram
+          </label>
+          <Input
+            id="instagram_url"
+            name="instagram_url"
+            type="url"
+            defaultValue={company.instagram_url ?? ""}
+            placeholder="https://www.instagram.com/..."
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="facebook_url" className="text-xs font-medium text-muted">
+            Facebook
+          </label>
+          <Input
+            id="facebook_url"
+            name="facebook_url"
+            type="url"
+            defaultValue={company.facebook_url ?? ""}
+            placeholder="https://www.facebook.com/..."
+          />
+        </div>
+      </div>
+
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="address" className="text-sm font-medium text-foreground">

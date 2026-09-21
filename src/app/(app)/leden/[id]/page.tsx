@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { formatLastActive } from "@/lib/format/date";
 import { Avatar } from "@/components/ui/Avatar";
+import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
 import { clsx } from "clsx";
 import { isAdmin, isBoard, ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
 import { RoleEditor } from "@/components/members/RoleEditor";
@@ -85,6 +86,12 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
               Laatst actief: {formatLastActive(member.last_active_at)}
             </p>
           )}
+          <EntitySocialLinks
+            linkedinUrl={member.linkedin_url}
+            instagramUrl={member.instagram_url}
+            facebookUrl={member.facebook_url}
+            className="mt-2"
+          />
         </div>
       </div>
 
