@@ -230,6 +230,11 @@ ingesteld, zonder duidelijke melding. Wil je met je eigen, al bestaande Supabase
 `NEXT_PUBLIC_SUPABASE_*`-variabelen zelf, handmatig, onder Project → Settings → Environments →
 Production.
 
+**Als pushes geen nieuwe deployment meer triggeren** (de deployment-lijst blijft op een oude commit
+staan, zelfs zonder foutmelding): de Vercel↔GitHub-koppeling kan onopgemerkt "stuk" raken zonder dat
+dit ergens zichtbaar is. Fix: Vercel-project → Settings → Git → **Disconnect**, daarna opnieuw
+**Connect** met dezelfde repository. Dat forceert Vercel om de webhook opnieuw aan te maken.
+
 ## WordPress-embed (agenda)
 
 `/embed/agenda` is een publieke, responsive pagina zonder navigatie of ingelogde sessie — bedoeld om
