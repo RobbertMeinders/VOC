@@ -13,8 +13,10 @@ const FIELD_LABELS: { key: keyof ImportRow; label: string }[] = [
   { key: "lastName", label: "Achternaam" },
   { key: "email", label: "E-mail" },
   { key: "phone", label: "Telefoon" },
-  { key: "jobTitle", label: "Functie" },
   { key: "companyName", label: "Bedrijf" },
+  { key: "companyAddress", label: "Bezoekersadres" },
+  { key: "companyPostalCode", label: "Postcode" },
+  { key: "companyCity", label: "Vestigingsplaats" },
 ];
 
 export function BulkImportForm() {
@@ -66,7 +68,9 @@ export function BulkImportForm() {
           />
         </label>
         <p className="mt-2 text-xs text-muted">
-          Verwachte kolommen (in elke volgorde): voornaam, achternaam, email, telefoon, functie, bedrijf.
+          Verwachte kolommen (in elke volgorde): voornaam, achternaam, email, telefoon, bedrijf, bezoekersadres,
+          postcode, vestigingsplaats. Een bedrijf dat nog niet bestaat wordt automatisch aangemaakt met het
+          opgegeven adres.
         </p>
       </div>
 
@@ -76,7 +80,7 @@ export function BulkImportForm() {
             <h2 className="text-sm font-semibold text-foreground">{rows.length} rijen gevonden — controleer voor import</h2>
           </div>
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px] text-sm">
+            <table className="w-full min-w-[920px] text-sm">
               <thead>
                 <tr className="text-left text-xs font-medium text-muted">
                   {FIELD_LABELS.map((f) => (

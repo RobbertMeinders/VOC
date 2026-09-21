@@ -50,6 +50,39 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
   const pendingEmails = new Set((existingInvitations ?? []).map((i) => (i.email ?? "").toLowerCase()));
   const companyByName = new Map((companies ?? []).map((c) => [c.name.toLowerCase(), c.id]));
 
+  // Bedrijven die nog niet bestaan worden meteen aangemaakt met het
+  // meegeleverde bezoekersadres — anders zou de koppeling verloren gaan
+  // (de bedrijfsnaam op de rij is er dan alleen nog voor de sier).
+  const newCompaniesByName = new Map<string, { name: string; address: string | null; postal_code: string | null; city: string | null }>();
+  for (const { data } of validRows) {
+    const key = data.companyName.toLowerCase();
+    if (data.companyName && !companyByName.has(key) && !newCompaniesByName.has(key)) {
+      newCompaniesByName.set(key, {
+        name: data.companyName,
+        address: data.companyAddress || null,
+        postal_code: data.companyPostalCode || null,
+        city: data.companyCity || null,
+      });
+    }
+  }
+
+  if (newCompaniesByName.size > 0) {
+    const toCreate = [...newCompaniesByName.values()].map((c) => ({
+      ...c,
+      slug: c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Math.random().toString(36).slice(2, 8),
+    }));
+    const { data: createdCompanies, error: companyError } = await supabase.from("companies").insert(toCreate).select("id, name");
+    if (companyError) {
+      return {
+        imported: 0,
+        skipped: [...skipped, { row: 0, email: "", reason: "Bedrijven aanmaken is niet gelukt: " + companyError.message }],
+      };
+    }
+    for (const created of createdCompanies ?? []) {
+      companyByName.set(created.name.toLowerCase(), created.id);
+    }
+  }
+
   const seenInBatch = new Set<string>();
   const toInsert: {
     email: string;
@@ -58,7 +91,6 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
     first_name: string;
     last_name: string;
     phone: string | null;
-    job_title: string | null;
     company_id: string | null;
     imported: true;
   }[] = [];
@@ -81,7 +113,6 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
       first_name: data.firstName,
       last_name: data.lastName,
       phone: data.phone || null,
-      job_title: data.jobTitle || null,
       company_id: data.companyName ? (companyByName.get(data.companyName.toLowerCase()) ?? null) : null,
       imported: true,
     });

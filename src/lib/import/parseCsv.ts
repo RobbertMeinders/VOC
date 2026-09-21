@@ -3,8 +3,10 @@ export type ImportRow = {
   lastName: string;
   email: string;
   phone: string;
-  jobTitle: string;
   companyName: string;
+  companyAddress: string;
+  companyPostalCode: string;
+  companyCity: string;
 };
 
 const HEADER_ALIASES: Record<keyof ImportRow, string[]> = {
@@ -12,8 +14,10 @@ const HEADER_ALIASES: Record<keyof ImportRow, string[]> = {
   lastName: ["achternaam", "last_name", "lastname"],
   email: ["email", "e-mail", "emailadres", "e-mailadres"],
   phone: ["telefoon", "telefoonnummer", "phone", "tel"],
-  jobTitle: ["functie", "job_title", "functietitel", "titel"],
   companyName: ["bedrijf", "bedrijfsnaam", "company", "organisatie"],
+  companyAddress: ["bezoekersadres", "adres", "address", "straat"],
+  companyPostalCode: ["postcode", "postal_code", "zip", "zipcode"],
+  companyCity: ["vestigingsplaats", "plaats", "stad", "city", "woonplaats"],
 };
 
 function splitLine(line: string, delimiter: string): string[] {
@@ -76,8 +80,10 @@ export function parseMemberCsv(text: string): ImportRow[] {
       lastName: get("lastName"),
       email: get("email").toLowerCase(),
       phone: get("phone"),
-      jobTitle: get("jobTitle"),
       companyName: get("companyName"),
+      companyAddress: get("companyAddress"),
+      companyPostalCode: get("companyPostalCode"),
+      companyCity: get("companyCity"),
     };
   });
 }
