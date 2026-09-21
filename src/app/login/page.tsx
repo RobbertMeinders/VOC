@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { LoginForm } from "@/components/auth/LoginForm";
+import { VocSocialLinks } from "@/components/ui/VocSocialLinks";
 
 export const metadata: Metadata = { title: "Inloggen" };
 
@@ -36,6 +37,7 @@ export default async function LoginPage({
           </Link>
           .
         </p>
+        <VocSocialLinks className="mt-6 justify-center" />
       </div>
     </div>
   );

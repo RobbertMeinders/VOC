@@ -9,6 +9,7 @@ import { fetchFeedPosts } from "@/lib/feed/queries";
 import { isBoard } from "@/lib/auth/roles";
 import { formatActivityDate } from "@/lib/format/date";
 import { Avatar } from "@/components/ui/Avatar";
+import { VocSocialLinks } from "@/components/ui/VocSocialLinks";
 import { MentionedText } from "@/components/feed/MentionedText";
 import type { Database } from "@/lib/types/database";
 
@@ -292,6 +293,11 @@ export default async function HomePage() {
           </div>
         </section>
       )}
+
+      <div className="flex items-center gap-3 border-t border-border pt-4">
+        <p className="text-xs text-muted">Volg de VOC:</p>
+        <VocSocialLinks />
+      </div>
     </div>
   );
 }

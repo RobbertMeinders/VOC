@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { AccessRequestForm } from "@/components/auth/AccessRequestForm";
+import { VocSocialLinks } from "@/components/ui/VocSocialLinks";
 
 export const metadata: Metadata = { title: "Toegang aanvragen" };
 
@@ -24,6 +25,7 @@ export default function AccessRequestPage() {
             Terug naar inloggen
           </Link>
         </p>
+        <VocSocialLinks className="mt-6 justify-center" />
       </div>
     </div>
   );
