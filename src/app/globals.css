@@ -74,3 +74,18 @@ body {
   color: var(--muted);
   pointer-events: none;
 }
+
+/* iOS Safari zoomt automatisch in op een tekstveld met een font-size onder
+   16px bij het focussen — de tekstvelden zijn overal in de app text-sm
+   (14px). Op mobiel dwingen we daarom 16px af op alle tekstinvoer, zodat
+   die ongewenste zoom niet meer optreedt; op desktop blijft de kleinere
+   maat (text-sm/text-xs) gewoon staan. !important omdat dit anders per
+   Tailwind-klasse in tientallen bestanden overschreven zou moeten worden. */
+@media (max-width: 767px) {
+  input,
+  textarea,
+  select,
+  [contenteditable="true"] {
+    font-size: 16px !important;
+  }
+}
