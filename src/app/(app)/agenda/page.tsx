@@ -14,15 +14,28 @@ export const metadata: Metadata = { title: "Agenda" };
 
 type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
 
-export default async function AgendaPage() {
+const TYPE_TABS = [
+  { value: undefined, label: "Alles" },
+  { value: "activiteit", label: "Activiteiten" },
+  { value: "ingebracht", label: "Ingebracht" },
+] as const;
+
+export default async function AgendaPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
   const profile = await requireProfile();
+  const { type } = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: activities }, { data: allRegistrations }, { data: myRegistrations }] = await Promise.all([
+  const [{ data: allActivities }, { data: allRegistrations }, { data: myRegistrations }] = await Promise.all([
     supabase.from("activities").select("*").order("starts_at", { ascending: true }).returns<ActivityRow[]>(),
     supabase.from("activity_registrations").select("activity_id, is_waitlisted"),
     supabase.from("activity_registrations").select("activity_id, is_waitlisted").eq("profile_id", profile.id),
   ]);
+
+  const activities = (allActivities ?? []).filter((a) => {
+    if (type === "activiteit") return a.source === "voc";
+    if (type === "ingebracht") return a.source === "lid";
+    return true;
+  });
 
   const myRegistrationByActivity = new Map((myRegistrations ?? []).map((r) => [r.activity_id, r.is_waitlisted]));
   const registrationCounts = new Map<string, number>();
@@ -33,10 +46,10 @@ export default async function AgendaPage() {
   const imageUrls = await getSignedStorageUrls(
     supabase,
     "activity-images",
-    (activities ?? []).map((a) => a.image_url)
+    activities.map((a) => a.image_url)
   );
 
-  const { upcoming, past } = splitUpcomingAndPast(activities ?? []);
+  const { upcoming, past } = splitUpcomingAndPast(activities);
 
   function renderCard(activity: ActivityRow) {
     const myStatus = myRegistrationByActivity.get(activity.id);
@@ -63,6 +76,25 @@ export default async function AgendaPage() {
           <CalendarPlus size={16} />
           {isBoard(profile.role) ? "Nieuwe activiteit" : "Activiteit voorstellen"}
         </Link>
+      </div>
+
+      <div className="mb-4 inline-flex rounded-lg border border-border bg-surface p-1">
+        {TYPE_TABS.map((tab) => {
+          const active = (type ?? undefined) === tab.value;
+          return (
+            <Link
+              key={tab.label}
+              href={tab.value ? `/agenda?type=${tab.value}` : "/agenda"}
+              className={
+                active
+                  ? "rounded-md bg-voc-red px-3 py-1.5 text-sm font-medium text-white"
+                  : "rounded-md px-3 py-1.5 text-sm font-medium text-muted hover:text-foreground"
+              }
+            >
+              {tab.label}
+            </Link>
+          );
+        })}
       </div>
 
       {upcoming.length > 0 ? (

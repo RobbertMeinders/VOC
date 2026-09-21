@@ -62,16 +62,23 @@ export function ActivityForm({
   submitLabel,
   imageUrl,
   canUploadImage = true,
+  showTypePicker = false,
 }: {
   activity?: Activity;
   action: (prevState: ActivityFormState, formData: FormData) => Promise<ActivityFormState>;
   submitLabel: string;
   imageUrl?: string | null;
   canUploadImage?: boolean;
+  // Alleen bestuur/beheer mag zelf kiezen tussen een officiële Activiteit
+  // (direct gepubliceerd) en Ingebracht (volgt de gewone goedkeuringslogica)
+  // — een gewoon lid kan hoe dan ook alleen Ingebracht indienen, dat forceert
+  // de normalize_activity_submission-trigger server-side (0024).
+  showTypePicker?: boolean;
 }) {
   const [state, formAction] = useActionState(action, initialState);
   const [preview, setPreview] = useState<string | null>(null);
   const shownImage = preview ?? imageUrl;
+  const [source, setSource] = useState<"voc" | "lid">((activity?.source as "voc" | "lid") ?? "voc");
 
   const [startsAt, setStartsAt] = useState(toLocalInputValue(activity?.starts_at ?? null));
   const [endTime, setEndTime] = useState(toLocalTimeValue(activity?.ends_at ?? null));
@@ -84,6 +91,36 @@ export function ActivityForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
+      {showTypePicker && (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-sm font-medium text-foreground">Type</span>
+          <input type="hidden" name="source" value={source} />
+          <div className="flex gap-1.5">
+            <button
+              type="button"
+              onClick={() => setSource("voc")}
+              className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+                source === "voc" ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
+              }`}
+            >
+              Activiteit
+            </button>
+            <button
+              type="button"
+              onClick={() => setSource("lid")}
+              className={`rounded-full px-3 py-1.5 text-sm font-medium ${
+                source === "lid" ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
+              }`}
+            >
+              Ingebracht
+            </button>
+          </div>
+          {source === "lid" && (
+            <p className="text-xs text-muted">Ingebracht volgt de gewone goedkeuringslogica, net als bij een lid.</p>
+          )}
+        </div>
+      )}
+
       <div className="flex flex-col gap-1.5">
         <label htmlFor="title" className="text-sm font-medium text-foreground">
           Titel

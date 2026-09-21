@@ -115,10 +115,15 @@ export async function createActivityAction(
       return { error: "Titel en een geldige startdatum zijn verplicht." };
     }
 
+    // Alleen relevant voor bestuur/beheer (zie showTypePicker in
+    // ActivityForm) — voor iedereen anders forceert de trigger toch altijd
+    // 'lid', ongeacht wat hier wordt meegestuurd.
+    const source = String(formData.get("source") ?? "") === "lid" ? "lid" : "voc";
+
     const supabase = await createClient();
     const { data: activity, error } = await supabase
       .from("activities")
-      .insert({ title, starts_at: startsAt, ...rest, created_by: profile.id })
+      .insert({ title, starts_at: startsAt, ...rest, source, created_by: profile.id })
       .select("id")
       .single();
 

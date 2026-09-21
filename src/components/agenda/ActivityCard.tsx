@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
+import { clsx } from "clsx";
 import { CalendarDays, MapPin, Users } from "lucide-react";
 import { formatActivityDate } from "@/lib/format/date";
 import type { Database } from "@/lib/types/database";
@@ -20,11 +21,19 @@ export function ActivityCard({
   isWaitlisted?: boolean;
 }) {
   const isFull = activity.max_participants !== null && registrationCount >= activity.max_participants;
+  // Een officiële Activiteit mag wat prominenter ogen dan een Ingebracht
+  // evenement (compacter/neutraler) — vandaar de accentrand hier i.p.v. een
+  // apart badge dat elke kaart evenveel gewicht zou geven.
+  const isOfficial = activity.source === "voc";
 
   return (
     <Link
       href={`/agenda/${activity.id}`}
-      className="flex gap-4 rounded-2xl border border-border bg-surface p-5 shadow-sm hover:border-voc-red"
+      className={clsx(
+        "flex gap-4 rounded-2xl border border-border bg-surface p-5 shadow-sm hover:border-voc-red",
+        isOfficial && "border-l-4"
+      )}
+      style={isOfficial ? { borderLeftColor: "var(--voc-red)" } : undefined}
     >
       {imageUrl ? (
         <Image
@@ -51,7 +60,7 @@ export function ActivityCard({
         <div className="mt-2 flex flex-wrap items-center gap-2">
           {activity.source === "lid" && (
             <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-xs font-medium text-muted dark:bg-white/[.08]">
-              Community
+              Ingebracht
             </span>
           )}
           {activity.status === "pending" && (
