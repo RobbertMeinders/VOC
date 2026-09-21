@@ -18,7 +18,7 @@ export default async function BedrijvenPage({
 
   const { data: companies } = await supabase
     .from("companies")
-    .select("id, name, industry, city, logo_url")
+    .select("id, name, industry, city, logo_url, tagline")
     .order("name");
 
   const branches = Array.from(
@@ -45,6 +45,7 @@ export default async function BedrijvenPage({
     industry: c.industry,
     city: c.city,
     logoUrl: c.logo_url ? (logoUrls.get(c.logo_url) ?? null) : null,
+    tagline: c.tagline,
   }));
 
   return (

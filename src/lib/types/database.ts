@@ -41,11 +41,14 @@ export interface Database {
           slug: string;
           logo_url: string | null;
           description: string | null;
+          tagline: string | null;
           industry: string | null;
           website: string | null;
           city: string | null;
           address: string | null;
           postal_code: string | null;
+          phone: string | null;
+          email: string | null;
           created_at: string;
           updated_at: string;
         };

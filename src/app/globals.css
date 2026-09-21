@@ -28,7 +28,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --background: #0f0f12;
     --surface: #1a1a1e;
     --foreground: #f2f2f3;
@@ -37,6 +37,16 @@
 
     --voc-red-light: #2a1315;
   }
+}
+
+:root[data-theme="dark"] {
+  --background: #0f0f12;
+  --surface: #1a1a1e;
+  --foreground: #f2f2f3;
+  --muted: #9a9aa2;
+  --border: #2b2b30;
+
+  --voc-red-light: #2a1315;
 }
 
 body {

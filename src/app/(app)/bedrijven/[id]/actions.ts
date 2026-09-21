@@ -15,12 +15,15 @@ export async function updateCompanyAction(
   await requireBoard();
 
   const name = String(formData.get("name") ?? "").trim();
+  const tagline = String(formData.get("tagline") ?? "").trim();
   const description = String(formData.get("description") ?? "").trim();
   const industry = String(formData.get("industry") ?? "").trim();
   const website = String(formData.get("website") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();
   const address = String(formData.get("address") ?? "").trim();
   const postalCode = String(formData.get("postal_code") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim();
 
   if (!name) {
     return { error: "Bedrijfsnaam is verplicht." };
@@ -40,12 +43,15 @@ export async function updateCompanyAction(
     .from("companies")
     .update({
       name,
+      tagline: tagline || null,
       description: description || null,
       industry: industry || null,
       website: website || null,
       city: city || null,
       address: address || null,
       postal_code: postalCode || null,
+      phone: phone || null,
+      email: email || null,
       ...(logoPath ? { logo_url: logoPath } : {}),
     })
     .eq("id", companyId);

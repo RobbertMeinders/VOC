@@ -9,6 +9,7 @@ import { ProfileForm } from "@/components/profile/ProfileForm";
 import { EmailChangeForm } from "@/components/profile/EmailChangeForm";
 import { CompanyMembershipForm } from "@/components/profile/CompanyMembershipForm";
 import { PushToggle } from "@/components/profile/PushToggle";
+import { ThemeToggle } from "@/components/profile/ThemeToggle";
 import { ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
 
 export const metadata: Metadata = { title: "Profiel" };
@@ -59,6 +60,10 @@ export default async function ProfielPage() {
         <ProfileForm profile={profile} avatarUrl={avatarUrl} />
         <div className="mt-4 border-t border-border pt-4">
           <EmailChangeForm currentEmail={profile.email} />
+        </div>
+        <div className="mt-4 border-t border-border pt-4">
+          <p className="mb-2 text-sm font-medium text-foreground">Thema</p>
+          <ThemeToggle />
         </div>
         <div className="mt-4 border-t border-border pt-4">
           <p className="mb-2 text-sm font-medium text-foreground">Pushmeldingen</p>

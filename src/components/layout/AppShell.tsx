@@ -18,7 +18,7 @@ export function AppShell({
       <Sidebar profile={profile} unreadNotifications={unreadNotifications} />
       <MobileHeader profile={profile} unreadNotifications={unreadNotifications} />
       <main className="pb-20 md:ml-64 md:pb-0">
-        <div className="mx-auto w-full max-w-2xl px-4 py-6 md:max-w-5xl md:px-8 md:py-10">{children}</div>
+        <div className="mx-auto w-full max-w-2xl px-4 py-6 md:max-w-6xl md:px-8 md:py-10">{children}</div>
       </main>
       <BottomNav />
     </div>

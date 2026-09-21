@@ -71,14 +71,29 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
       </div>
 
       <div className="flex flex-col gap-1.5">
+        <label htmlFor="tagline" className="text-sm font-medium text-foreground">
+          Tagline
+        </label>
+        <Input
+          id="tagline"
+          name="tagline"
+          defaultValue={company.tagline ?? ""}
+          placeholder="Korte pakkende omschrijving in een paar woorden"
+          maxLength={120}
+        />
+        <p className="text-xs text-muted">Wordt getoond op de bedrijfspagina en in het overzicht.</p>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
         <label htmlFor="description" className="text-sm font-medium text-foreground">
-          Korte omschrijving
+          Biografie
         </label>
         <textarea
           id="description"
           name="description"
-          rows={3}
+          rows={5}
           defaultValue={company.description ?? ""}
+          placeholder="Meer over het bedrijf: geschiedenis, aanbod, waar jullie voor staan..."
           className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
         />
       </div>
@@ -134,6 +149,24 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           <Input id="postal_code" name="postal_code" defaultValue={company.postal_code ?? ""} placeholder="9640 AB" />
         </div>
       </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="phone" className="text-sm font-medium text-foreground">
+            Telefoonnummer
+          </label>
+          <Input id="phone" name="phone" type="tel" defaultValue={company.phone ?? ""} placeholder="0598 123456" />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="email" className="text-sm font-medium text-foreground">
+            E-mailadres
+          </label>
+          <Input id="email" name="email" type="email" defaultValue={company.email ?? ""} placeholder="info@bedrijf.nl" />
+        </div>
+      </div>
+      <p className="-mt-3 text-xs text-muted">
+        Contactgegevens van het bedrijf; deze kunnen afwijken van de persoonlijke gegevens van medewerkers.
+      </p>
 
       {state.error && (
         <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
