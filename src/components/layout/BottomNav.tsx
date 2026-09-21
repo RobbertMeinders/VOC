@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
-import { PRIMARY_NAV_ITEMS } from "./nav-items";
+import { PRIMARY_NAV_ITEMS, isNavItemActive } from "./nav-items";
 import { BottomNavProfileMenu } from "./ProfileMenu";
 import type { Profile } from "@/lib/auth/session";
 
@@ -24,8 +24,9 @@ export function BottomNav({
       aria-label="Hoofdnavigatie"
     >
       <ul className="flex items-stretch justify-around">
-        {PRIMARY_NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
+        {PRIMARY_NAV_ITEMS.map((item) => {
+          const { href, label, icon: Icon } = item;
+          const active = isNavItemActive(item, pathname);
           return (
             <li key={href} className="flex-1">
               <Link

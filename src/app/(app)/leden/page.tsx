@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { MemberFilters } from "@/components/members/MemberFilters";
 import { MemberRow, type MemberListItem } from "@/components/members/MemberRow";
+import { NetworkTabs } from "@/components/layout/NetworkTabs";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 
 export const metadata: Metadata = { title: "Leden" };
@@ -73,7 +74,8 @@ export default async function LedenPage({
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-semibold text-foreground">Leden</h1>
+      <h1 className="mb-3 text-xl font-semibold text-foreground">Netwerk</h1>
+      <NetworkTabs />
 
       <MemberFilters branches={branches} />
 

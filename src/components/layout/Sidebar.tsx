@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import { LayoutDashboard } from "lucide-react";
-import { PRIMARY_NAV_ITEMS, SECONDARY_NAV_ITEMS } from "./nav-items";
+import { PRIMARY_NAV_ITEMS, SECONDARY_NAV_ITEMS, isNavItemActive, type NavItem } from "./nav-items";
 import { Logo } from "@/components/ui/Logo";
 import { LogoutButton } from "./LogoutButton";
 import { SidebarProfileMenu } from "./ProfileMenu";
@@ -25,12 +25,9 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
 
-  function isActive(href: string) {
-    return href === "/" ? pathname === "/" : pathname.startsWith(href);
-  }
-
-  function renderItem({ href, label, icon: Icon }: (typeof PRIMARY_NAV_ITEMS)[number]) {
-    const active = isActive(href);
+  function renderItem(item: NavItem) {
+    const { href, label, icon: Icon } = item;
+    const active = isNavItemActive(item, pathname);
     return (
       <Link
         key={href}

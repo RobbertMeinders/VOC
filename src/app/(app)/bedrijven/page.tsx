@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { CompanyFilters } from "@/components/company/CompanyFilters";
 import { BedrijvenView } from "@/components/company/BedrijvenView";
+import { NetworkTabs } from "@/components/layout/NetworkTabs";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 
 export const metadata: Metadata = { title: "Bedrijven" };
@@ -52,7 +53,8 @@ export default async function BedrijvenPage({
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-semibold text-foreground">Bedrijven</h1>
+      <h1 className="mb-3 text-xl font-semibold text-foreground">Netwerk</h1>
+      <NetworkTabs />
 
       <CompanyFilters branches={branches} />
 
