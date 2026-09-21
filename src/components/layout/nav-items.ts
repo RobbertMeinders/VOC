@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Building2, CalendarDays, FileText, Home, Users } from "lucide-react";
+import { Building2, CalendarDays, FileText, Home, Search, Users } from "lucide-react";
 
 export type NavItem = {
   href: string;
@@ -19,6 +19,7 @@ export const PRIMARY_NAV_ITEMS: NavItem[] = [
 // they're reached via the desktop sidebar and the mobile hamburger menu.
 export const BEDRIJVEN_NAV_ITEM: NavItem = { href: "/bedrijven", label: "Bedrijven", icon: Building2 };
 export const DOCUMENTEN_NAV_ITEM: NavItem = { href: "/documenten", label: "Documenten", icon: FileText };
+export const ZOEKEN_NAV_ITEM: NavItem = { href: "/zoeken", label: "Zoeken", icon: Search };
 
 // "Profiel" is bewust geen eigen nav-item meer: dat, "mijn bedrijfsprofiel"
 // en "Instellingen" zijn nu allemaal bereikbaar via het profielmenu
@@ -29,4 +30,5 @@ export const SIDEBAR_NAV_ITEMS: NavItem[] = [
   { href: "/leden", label: "Leden", icon: Users },
   BEDRIJVEN_NAV_ITEM,
   DOCUMENTEN_NAV_ITEM,
+  ZOEKEN_NAV_ITEM,
 ];

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Menu, X } from "lucide-react";
+import { LayoutDashboard, Menu, Search, X } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { LogoutButton } from "./LogoutButton";
 import { NotificationBellIcon } from "@/components/notifications/NotificationBellIcon";
@@ -21,6 +21,13 @@ export function MobileHeader({ profile, unreadCount }: { profile: Profile; unrea
       <div className="flex h-14 items-center justify-between px-4">
         <Logo />
         <div className="flex items-center gap-1">
+          <Link
+            href="/zoeken"
+            aria-label="Zoeken"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.08]"
+          >
+            <Search size={20} />
+          </Link>
           <NotificationBellIcon count={unreadCount} />
           {/* Keyed by pathname so the panel remounts (and its open state
               resets to closed) on every navigation, instead of closing it
