@@ -78,9 +78,17 @@ function MenuPanel({
   );
 }
 
-export function SidebarProfileMenu({ profile, avatarUrl, companyId, companyName, beheerBadge }: ProfileMenuProps) {
+// Op desktop staan Mijn profiel/Mijn bedrijfsprofiel/Instellingen/Beheer nu
+// altijd zichtbaar als gewone sidebar-rijen (zie Sidebar.tsx) i.p.v. achter
+// deze knop verstopt — de profielkaart hier is dus alleen nog de kortste
+// weg naar uitloggen.
+export function SidebarProfileMenu({
+  profile,
+  avatarUrl,
+  companyName,
+}: Pick<ProfileMenuProps, "profile" | "avatarUrl" | "companyName">) {
   const { open, toggle, close } = useOverlay("profile");
-  const items = menuItems(profile, companyId);
+  useEscapeKey(open, close);
 
   return (
     <div className="relative min-w-0 flex-1">
@@ -99,14 +107,28 @@ export function SidebarProfileMenu({ profile, avatarUrl, companyId, companyName,
       </button>
 
       {open && (
-        <MenuPanel items={items} beheerBadge={beheerBadge} onClose={close} className="bottom-full left-0 mb-2" />
+        <>
+          <div className="fixed inset-0 z-40" onClick={close} />
+          <div className="absolute bottom-full left-0 z-50 mb-2 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+              >
+                <LogOut size={20} />
+                Uitloggen
+              </button>
+            </form>
+          </div>
+        </>
       )}
     </div>
   );
 }
 
 // Rechtsboven op mobiel: enkel het profielicoon (naam/bedrijf staat al op
-// het profiel zelf) dat hetzelfde accountmenu opent als de sidebar-kaart.
+// het profiel zelf) dat het volledige accountmenu opent — op mobiel is er
+// geen ruimte voor permanent zichtbare account-links zoals op desktop.
 export function HeaderProfileMenu({ profile, avatarUrl, companyId, beheerBadge }: ProfileMenuProps) {
   const { open, toggle, close } = useOverlay("profile");
   const items = menuItems(profile, companyId);
