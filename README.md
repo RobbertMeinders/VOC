@@ -61,9 +61,10 @@ CLI). Kopieer daarna de environment variables:
 cp .env.local.example .env.local
 ```
 
-Vul `NEXT_PUBLIC_SUPABASE_URL` en `NEXT_PUBLIC_SUPABASE_ANON_KEY` in (Project Settings → API). Zet
-**nooit** de `service_role`-key in een `NEXT_PUBLIC_*`-variabele of in clientcode — deze app heeft
-die key niet nodig; alle autorisatie loopt via Row Level Security.
+Vul `NEXT_PUBLIC_SUPABASE_URL` en `NEXT_PUBLIC_SUPABASE_ANON_KEY` in (Project Settings → API). Zet de
+`service_role`-key **nooit** in een `NEXT_PUBLIC_*`-variabele of in clientcode: alleen als
+server-only `SUPABASE_SERVICE_ROLE_KEY`, alleen gebruikt door `src/lib/supabase/admin.ts` (zie
+"E-mail" hieronder) — al het overige loopt via Row Level Security, niet via deze key.
 
 In **Authentication → Providers → Email** raden we aan **"Confirm email"** uit te zetten voor deze
 besloten omgeving: een account is alleen te maken via een geldige uitnodigingslink, dus e-mail
@@ -71,14 +72,33 @@ bevestigen is een extra stap die weinig toevoegt. Laat je het wél aan staan, da
 bevestigingsflow via `/auth/confirm` (zorg dat de Supabase e-mailtemplate linkt naar
 `{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=signup`).
 
-Voor **"Wachtwoord vergeten"** (via `/wachtwoord-vergeten`) moet de **"Reset Password"**
-e-mailtemplate in Supabase linken naar
-`{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/wachtwoord-instellen`.
+Voor **"Wachtwoord vergeten"** hoeft niets in Supabase zelf ingesteld te worden: die e-mail wordt
+door de app zelf verstuurd, met een eigen, door bestuur/beheer bewerkbaar sjabloon — zie "E-mail"
+hieronder.
 
-Voor **"E-mailadres wijzigen"** (op het profielscherm) gebruikt Supabase standaard de
+Voor **"E-mailadres wijzigen"** (op het profielscherm) gebruikt Supabase nog wél standaard de eigen
 **"Change Email Address"**-template naar zowel het oude als het nieuwe adres (afhankelijk van of
-"Secure email change" aan staat in Authentication → Settings); die hoeft niet aangepast te worden
-tenzij je 'm wilt aanpassen aan de huisstijl.
+"Secure email change" aan staat in Authentication → Settings); die loopt niet via de eigen
+e-mailinfra en hoeft niet aangepast te worden tenzij je 'm wilt aanpassen aan de huisstijl.
+
+## E-mail
+
+Uitnodigingen en wachtwoord-reset verstuurt de app zelf via [Resend](https://resend.com), met
+sjablonen die bestuur/beheer kan bewerken via `/beheer/email-templates` (tabel
+`email_templates`, zie `0014_email_templates.sql`) — in plaats van Supabase Auth's ingebouwde,
+alleen-in-het-Supabase-dashboard-bewerkbare mails.
+
+Benodigde environment variables (zie `.env.local.example`):
+- `RESEND_API_KEY` — vereist een bij Resend geverifieerd domein om naar willekeurige adressen te
+  kunnen versturen; zonder geverifieerd domein kun je alleen naar je eigen Resend-accountmail testen.
+- `EMAIL_FROM` — een afzenderadres op dat geverifieerde domein.
+- `SITE_URL` — basis-URL zonder trailing slash, gebruikt om links in de mails op te bouwen.
+- `SUPABASE_SERVICE_ROLE_KEY` — nodig voor `auth.admin.generateLink()` (genereert alleen de
+  reset-token, zonder dat Supabase zelf een mail verstuurt); server-only, nooit in clientcode.
+
+Verstuurt de e-mail niet (ontbrekende/foutieve Resend-configuratie), dan blijft de rest van de flow
+werken: een uitnodiging is nog steeds aangemaakt en de link nog steeds handmatig te kopiëren en
+delen vanaf `/beheer/uitnodigingen`.
 
 ### 3. Database-migraties
 

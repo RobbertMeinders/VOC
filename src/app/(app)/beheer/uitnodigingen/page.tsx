@@ -21,8 +21,8 @@ export default async function UitnodigingenPage() {
     <div>
       <h1 className="mb-1 text-xl font-semibold text-foreground">Uitnodigingen</h1>
       <p className="mb-6 text-sm text-muted">
-        Nodig nieuwe leden uit voor het ledenportaal. Deel de link zelf met het nieuwe lid — er wordt
-        geen e-mail verstuurd.
+        Nodig nieuwe leden uit voor het ledenportaal. Vul een e-mailadres in om de uitnodiging
+        automatisch te versturen, of laat het leeg en deel de link zelf.
       </p>
 
       <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">

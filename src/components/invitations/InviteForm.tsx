@@ -50,7 +50,20 @@ export function InviteForm({ canInviteBoard }: { canInviteBoard: boolean }) {
       <SubmitButton />
 
       {state.error && <p className="text-sm text-voc-red sm:basis-full">{state.error}</p>}
-      {state.success && <p className="text-sm text-green-600 sm:basis-full">Uitnodiging aangemaakt.</p>}
+      {state.success && state.emailSent && (
+        <p className="text-sm text-green-600 sm:basis-full">Uitnodiging aangemaakt en per e-mail verstuurd.</p>
+      )}
+      {state.success && state.emailError && (
+        <p className="text-sm text-voc-red sm:basis-full">
+          Uitnodiging aangemaakt, maar de e-mail versturen is niet gelukt ({state.emailError}). Deel de link
+          hieronder zelf.
+        </p>
+      )}
+      {state.success && !state.emailSent && !state.emailError && (
+        <p className="text-sm text-green-600 sm:basis-full">
+          Uitnodiging aangemaakt. Geen e-mailadres opgegeven — deel de link hieronder zelf.
+        </p>
+      )}
     </form>
   );
 }

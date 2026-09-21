@@ -283,6 +283,23 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["access_requests"]["Row"]>;
         Relationships: [];
       };
+      email_templates: {
+        Row: {
+          key: string;
+          subject: string;
+          body_html: string;
+          description: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["email_templates"]["Row"]> & {
+          key: string;
+          subject: string;
+          body_html: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["email_templates"]["Row"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -325,6 +342,10 @@ export interface Database {
       mark_notifications_pushed: {
         Args: { p_ids: string[] };
         Returns: undefined;
+      };
+      get_email_template: {
+        Args: { p_key: string };
+        Returns: { subject: string; body_html: string }[];
       };
     };
     Enums: {

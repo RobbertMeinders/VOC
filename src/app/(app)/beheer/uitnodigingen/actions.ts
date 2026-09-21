@@ -3,9 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { sendTemplatedEmail } from "@/lib/email/send";
 import type { UserRole } from "@/lib/types/database";
 
-export type CreateInvitationState = { error?: string; success?: boolean };
+export type CreateInvitationState = { error?: string; success?: boolean; emailSent?: boolean; emailError?: string };
 
 export async function createInvitationAction(
   _prevState: CreateInvitationState,
@@ -20,18 +21,29 @@ export async function createInvitationAction(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("invitations").insert({
-    email: email || null,
-    role,
-    invited_by: profile.id,
-  });
+  const { data: invitation, error } = await supabase
+    .from("invitations")
+    .insert({ email: email || null, role, invited_by: profile.id })
+    .select("token")
+    .single();
 
-  if (error) {
+  if (error || !invitation) {
     return { error: "Uitnodiging aanmaken is niet gelukt. Probeer het opnieuw." };
   }
 
   revalidatePath("/beheer/uitnodigingen");
-  return { success: true };
+
+  if (!email) {
+    return { success: true };
+  }
+
+  const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
+  const { error: emailError } = await sendTemplatedEmail("uitnodiging", email, { link });
+
+  // De uitnodiging zelf is al aangemaakt en blijft via "kopieer link" bruikbaar,
+  // ook als het versturen van de mail zelf mislukt (bijv. Resend nog niet
+  // geconfigureerd) — dat mag het aanmaken niet blokkeren.
+  return { success: true, emailSent: !emailError, emailError: emailError };
 }
 
 export async function revokeInvitationAction(id: string) {
