@@ -34,6 +34,22 @@ export function formatActivityTimeOnly(iso: string): string {
   }).format(new Date(iso));
 }
 
+// Board-only "laatst actief" display (see profiles.last_active_at, set only
+// on a real login — never on background requests). Used server-side only
+// (member detail page), so there's no client/server hydration-mismatch
+// concern from calling Date.now() here.
+export function formatLastActive(iso: string | null): string {
+  if (!iso) return "Nog nooit ingelogd";
+
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / (24 * 60 * 60 * 1000));
+  if (days <= 0) return "Vandaag";
+  if (days === 1) return "Gisteren";
+  if (days < 30) return `${days} dagen geleden`;
+  return new Intl.DateTimeFormat("nl-NL", { timeZone: NL_TIMEZONE, day: "numeric", month: "short", year: "numeric" }).format(
+    new Date(iso)
+  );
+}
+
 /**
  * Split activities into upcoming (soonest first) and past (most recent
  * first). Pulled out of the page component because calling `Date.now()`

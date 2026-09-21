@@ -25,6 +25,7 @@ export interface Database {
           is_active: boolean;
           show_email: boolean;
           show_phone: boolean;
+          last_active_at: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -113,6 +114,7 @@ export interface Database {
           phone: string | null;
           job_title: string | null;
           company_id: string | null;
+          imported: boolean;
         };
         Insert: Partial<Database["public"]["Tables"]["invitations"]["Row"]>;
         Update: Partial<Database["public"]["Tables"]["invitations"]["Row"]>;

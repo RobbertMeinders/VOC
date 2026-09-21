@@ -2,10 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Building2, Globe, Mail, Phone } from "lucide-react";
+import { Building2, Clock, Globe, Mail, Phone } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
+import { formatLastActive } from "@/lib/format/date";
 import { Avatar } from "@/components/ui/Avatar";
 import { clsx } from "clsx";
 import { isAdmin, isBoard, ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
@@ -77,6 +78,12 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
             <span className="ml-1.5 mt-1 inline-block rounded-full bg-black/5 px-2.5 py-0.5 text-xs font-medium text-muted dark:bg-white/10">
               Gedeactiveerd
             </span>
+          )}
+          {isBoard(viewer.role) && (
+            <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted">
+              <Clock size={12} />
+              Laatst actief: {formatLastActive(member.last_active_at)}
+            </p>
           )}
         </div>
       </div>

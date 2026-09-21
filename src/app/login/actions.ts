@@ -33,10 +33,17 @@ export async function signInAction(_prevState: LoginState, formData: FormData): 
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     return { error: "E-mailadres of wachtwoord onjuist." };
+  }
+
+  // "Laatst actief" (zichtbaar voor bestuur/beheer, zie /leden/[id]) wordt
+  // bewust alleen hier gezet — bij een echte inlog — en niet bij elke
+  // achtergrond-request.
+  if (data.user) {
+    await supabase.from("profiles").update({ last_active_at: new Date().toISOString() }).eq("id", data.user.id);
   }
 
   redirect(redirectTo.startsWith("/") ? redirectTo : "/");
