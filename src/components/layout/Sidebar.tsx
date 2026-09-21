@@ -12,7 +12,15 @@ import { NotificationBellLink } from "@/components/notifications/NotificationBel
 import { isBoard, ROLE_LABELS } from "@/lib/auth/roles";
 import type { Profile } from "@/lib/auth/session";
 
-export function Sidebar({ profile, unreadCount }: { profile: Profile; unreadCount: number }) {
+export function Sidebar({
+  profile,
+  unreadCount,
+  avatarUrl,
+}: {
+  profile: Profile;
+  unreadCount: number;
+  avatarUrl: string | null;
+}) {
   const pathname = usePathname();
 
   return (
@@ -60,7 +68,7 @@ export function Sidebar({ profile, unreadCount }: { profile: Profile; unreadCoun
       </nav>
 
       <div className="flex items-center gap-3 border-t border-border pt-4">
-        <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={profile.avatar_url} size={36} />
+        <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={36} />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-medium text-foreground">
             {profile.first_name} {profile.last_name}
