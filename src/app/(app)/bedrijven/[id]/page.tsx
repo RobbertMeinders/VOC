@@ -5,6 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { isBoard } from "@/lib/auth/roles";
 import { CompanyHeader } from "@/components/company/CompanyHeader";
+import { CompanyLocationMap } from "@/components/company/CompanyLocationMap";
 import { CompanyMemberList, type CompanyMember } from "@/components/company/CompanyMemberList";
 import { CompanyMembershipRequests, type PendingMembershipRequest } from "@/components/company/CompanyMembershipRequests";
 import type { Database } from "@/lib/types/database";
@@ -84,6 +85,21 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
   return (
     <div className="flex flex-col gap-6">
       <CompanyHeader company={company} logoUrl={logoUrl} editHref={isBoard(profile.role) ? `/bedrijven/${id}/bewerken` : undefined} />
+
+      {company.latitude !== null && company.longitude !== null && (
+        <CompanyLocationMap
+          company={{
+            id: company.id,
+            name: company.name,
+            industry: company.industry,
+            city: company.city,
+            tagline: company.tagline,
+            logoUrl,
+            latitude: company.latitude,
+            longitude: company.longitude,
+          }}
+        />
+      )}
 
       <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
         <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij dit bedrijf</h2>

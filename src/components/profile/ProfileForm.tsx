@@ -88,6 +88,20 @@ export function ProfileForm({
       </div>
 
       <div className="flex flex-col gap-1.5">
+        <label htmlFor="bio" className="text-sm font-medium text-foreground">
+          Over mij
+        </label>
+        <textarea
+          id="bio"
+          name="bio"
+          rows={4}
+          defaultValue={profile.bio ?? ""}
+          placeholder="Vertel iets over jezelf..."
+          className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
         <label htmlFor="phone" className="text-sm font-medium text-foreground">
           Telefoonnummer
         </label>
@@ -107,44 +121,17 @@ export function ProfileForm({
         </label>
       </div>
 
-      <div className="flex flex-col gap-3">
-        <p className="text-sm font-medium text-foreground">Social media</p>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="linkedin_url" className="text-xs font-medium text-muted">
-            LinkedIn
-          </label>
-          <Input
-            id="linkedin_url"
-            name="linkedin_url"
-            type="url"
-            defaultValue={profile.linkedin_url ?? ""}
-            placeholder="https://www.linkedin.com/in/..."
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="instagram_url" className="text-xs font-medium text-muted">
-            Instagram
-          </label>
-          <Input
-            id="instagram_url"
-            name="instagram_url"
-            type="url"
-            defaultValue={profile.instagram_url ?? ""}
-            placeholder="https://www.instagram.com/..."
-          />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="facebook_url" className="text-xs font-medium text-muted">
-            Facebook
-          </label>
-          <Input
-            id="facebook_url"
-            name="facebook_url"
-            type="url"
-            defaultValue={profile.facebook_url ?? ""}
-            placeholder="https://www.facebook.com/..."
-          />
-        </div>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="linkedin_url" className="text-sm font-medium text-foreground">
+          LinkedIn
+        </label>
+        <Input
+          id="linkedin_url"
+          name="linkedin_url"
+          type="url"
+          defaultValue={profile.linkedin_url ?? ""}
+          placeholder="https://www.linkedin.com/in/..."
+        />
       </div>
 
       {state.error && (

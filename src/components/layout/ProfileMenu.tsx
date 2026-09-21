@@ -21,7 +21,9 @@ type ProfileMenuProps = {
 
 function menuItems(profile: Profile, companyId: string | null) {
   return [
-    { href: "/profiel", label: "Mijn profiel", icon: UserIcon },
+    // Naar de (publieke) weergave i.p.v. meteen het bewerkformulier — daar
+    // staat een "Profiel aanpassen"-knop naar /profiel voor wie wil wijzigen.
+    { href: `/leden/${profile.id}`, label: "Mijn profiel", icon: UserIcon },
     ...(companyId ? [{ href: `/bedrijven/${companyId}`, label: "Mijn bedrijfsprofiel", icon: Building2 }] : []),
     { href: "/instellingen", label: "Instellingen", icon: Settings },
     ...(isBoard(profile.role) ? [{ href: "/beheer", label: "Beheer", icon: LayoutDashboard }] : []),

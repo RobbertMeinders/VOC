@@ -29,6 +29,7 @@ export interface Database {
           linkedin_url: string | null;
           instagram_url: string | null;
           facebook_url: string | null;
+          bio: string | null;
           created_at: string;
           updated_at: string;
         };

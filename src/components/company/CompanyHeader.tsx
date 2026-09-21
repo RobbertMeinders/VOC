@@ -38,7 +38,9 @@ export function CompanyHeader({
               <p className="mt-0.5 text-xs text-muted">{company.industry}</p>
             )}
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
-              {company.city && (
+              {/* Plaatsnaam staat al achter het volledige adres verderop —
+                  alleen hier tonen als er geen adres is, anders dubbelop. */}
+              {company.city && !company.address && (
                 <span className="flex items-center gap-1">
                   <MapPin size={14} />
                   {company.city}
@@ -68,7 +70,15 @@ export function CompanyHeader({
           </Link>
         )}
       </div>
-      {company.description && <ExpandableText text={company.description} className="mt-4" />}
+      {company.description && (
+        <ExpandableText
+          text={company.description}
+          className="mt-4"
+          lines={5}
+          expandLabel="Meer weergeven"
+          collapseLabel="Minder weergeven"
+        />
+      )}
       <EntitySocialLinks
         linkedinUrl={company.linkedin_url}
         instagramUrl={company.instagram_url}

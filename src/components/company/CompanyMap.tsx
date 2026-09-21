@@ -22,10 +22,18 @@ const markerIcon = L.icon({
 
 export type MappableCompany = CompanyListItem & { latitude: number; longitude: number };
 
-export function CompanyMap({ companies }: { companies: MappableCompany[] }) {
+export function CompanyMap({
+  companies,
+  heightClass = "h-[500px]",
+  zoom = 12,
+}: {
+  companies: MappableCompany[];
+  heightClass?: string;
+  zoom?: number;
+}) {
   if (companies.length === 0) {
     return (
-      <div className="flex h-[500px] items-center justify-center rounded-2xl border border-border bg-surface text-sm text-muted">
+      <div className={`flex ${heightClass} items-center justify-center rounded-2xl border border-border bg-surface text-sm text-muted`}>
         Geen bedrijven met een bekende locatie.
       </div>
     );
@@ -36,9 +44,9 @@ export function CompanyMap({ companies }: { companies: MappableCompany[] }) {
   return (
     <MapContainer
       center={center}
-      zoom={12}
+      zoom={zoom}
       scrollWheelZoom
-      className="h-[500px] w-full rounded-2xl border border-border"
+      className={`${heightClass} w-full rounded-2xl border border-border`}
       style={{ zIndex: 0 }}
     >
       <TileLayer
