@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
@@ -9,8 +9,11 @@ import { Avatar } from "@/components/ui/Avatar";
 import { LikeButton } from "./LikeButton";
 import { CommentForm } from "./CommentForm";
 import { DeleteButton } from "./DeleteButton";
+import { MentionDropdown } from "./MentionDropdown";
+import { MentionedText } from "./MentionedText";
 import { deleteCommentAction, deletePostAction, updatePostAction, type UpdatePostState } from "@/app/(app)/actions";
 import { autoGrowTextarea } from "@/lib/dom/autoGrow";
+import { useMentionField } from "@/lib/feed/useMentionField";
 import { PostTypePicker } from "./PostTypePicker";
 import { POST_TYPE_BADGE_CLASS, POST_TYPE_LABELS } from "@/lib/feed/postType";
 import type { FeedPost } from "@/lib/feed/types";
@@ -50,6 +53,9 @@ function EditPostForm({
 }) {
   const updateWithId = updatePostAction.bind(null, post.id);
   const [state, formAction] = useActionState(updateWithId, editInitialState);
+  const [content, setContent] = useState(post.content ?? "");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const mention = useMentionField(content, setContent);
 
   useEffect(() => {
     if (state.success && state.post) {
@@ -60,14 +66,26 @@ function EditPostForm({
 
   return (
     <form action={formAction} className="mt-3">
-      <textarea
-        name="content"
-        rows={2}
-        required
-        defaultValue={post.content ?? ""}
-        onInput={(e) => autoGrowTextarea(e.currentTarget, 240)}
-        className="w-full resize-none overflow-y-auto rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-      />
+      <div className="relative">
+        <textarea
+          ref={textareaRef}
+          name="content"
+          rows={2}
+          required
+          value={content}
+          onChange={(e) => {
+            mention.handleInput(e.currentTarget);
+            autoGrowTextarea(e.currentTarget, 240);
+          }}
+          className="w-full resize-none overflow-y-auto rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        />
+        {mention.open && (
+          <MentionDropdown
+            results={mention.results}
+            onSelect={(name, kind, id) => textareaRef.current && mention.select(textareaRef.current, name, kind, id)}
+          />
+        )}
+      </div>
       <div className="mt-2">
         <PostTypePicker defaultValue={post.type} />
       </div>
@@ -159,7 +177,11 @@ export function PostCard({
               {POST_TYPE_LABELS[post.type]}
             </span>
           )}
-          {post.content && <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{post.content}</p>}
+          {post.content && (
+            <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">
+              <MentionedText text={post.content} />
+            </p>
+          )}
         </>
       )}
 
@@ -207,7 +229,9 @@ export function PostCard({
                 <p className="text-xs font-medium text-foreground">
                   {comment.author.first_name} {comment.author.last_name}
                 </p>
-                <p className="text-sm text-foreground">{comment.content}</p>
+                <p className="text-sm text-foreground">
+                  <MentionedText text={comment.content} />
+                </p>
               </div>
               {(canModerate || comment.author.id === currentUserId) && (
                 <DeleteButton

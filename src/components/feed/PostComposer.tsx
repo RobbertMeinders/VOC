@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { createPostAction, type CreatePostState } from "@/app/(app)/actions";
 import { compressInputFile } from "@/lib/image/compress";
 import { autoGrowTextarea } from "@/lib/dom/autoGrow";
+import { useMentionField } from "@/lib/feed/useMentionField";
+import { MentionDropdown } from "./MentionDropdown";
 import { PostTypePicker } from "./PostTypePicker";
 import type { FeedAuthor, FeedPost } from "@/lib/feed/types";
 
@@ -50,7 +52,10 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
   const [state, formAction] = useActionState(createPostAction, initialState);
   const [fileName, setFileName] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
+  const [content, setContent] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const mention = useMentionField(content, setContent);
 
   useEffect(() => {
     if (state.success && state.post) {
@@ -105,15 +110,28 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
       )}
       <div className="flex items-start gap-3">
         <Avatar firstName={author.first_name} lastName={author.last_name} avatarUrl={author.avatarUrl} size={40} />
-        <textarea
-          name="content"
-          rows={2}
-          required
-          placeholder="Wat wil je delen met het netwerk?"
-          onInput={(e) => autoGrowTextarea(e.currentTarget, TEXTAREA_MAX_HEIGHT)}
-          className="flex-1 resize-none overflow-y-auto rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-          style={{ maxHeight: TEXTAREA_MAX_HEIGHT }}
-        />
+        <div className="relative flex-1">
+          <textarea
+            ref={textareaRef}
+            name="content"
+            rows={2}
+            required
+            value={content}
+            placeholder="Wat wil je delen met het netwerk? Typ @ om een lid of bedrijf te taggen"
+            onChange={(e) => {
+              mention.handleInput(e.currentTarget);
+              autoGrowTextarea(e.currentTarget, TEXTAREA_MAX_HEIGHT);
+            }}
+            className="w-full resize-none overflow-y-auto rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+            style={{ maxHeight: TEXTAREA_MAX_HEIGHT }}
+          />
+          {mention.open && (
+            <MentionDropdown
+              results={mention.results}
+              onSelect={(name, kind, id) => textareaRef.current && mention.select(textareaRef.current, name, kind, id)}
+            />
+          )}
+        </div>
       </div>
 
       <div className="ml-[52px] mt-2">

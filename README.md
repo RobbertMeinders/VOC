@@ -290,6 +290,16 @@ zichtbaar voor anderen (behalve bestuur/beheer en de indiener zelf) nadat bestuu
 goedkeurt op de activiteitpagina zelf. Zie `0015_community_activities.sql`. Community-activiteiten
 tonen een badge en blijven ook na goedkeuring visueel onderscheiden van officiële VOC-activiteiten.
 
+## Feed
+
+Berichten en reacties kunnen leden en bedrijven taggen: typ `@` in het tekstvak om een dropdown met
+suggesties te openen. Een gekozen naam wordt opgeslagen als `@[Naam](profiel:uuid)` (lid) of
+`@[Naam](bedrijf:uuid)` (bedrijf) — platte tekst, geen aparte kolom — en bij het tonen omgezet naar
+een link naar dat profiel/bedrijf. Een database-trigger (niet de client) leest deze tags uit
+`content` na het plaatsen en stuurt een notificatie: naar het getagde lid zelf, of — bij een getagd
+bedrijf — naar alle actieve leden van dat bedrijf. Zie `0020_feed_mentions.sql`. Een foto of PDF kan
+ook los van de bestandskiezer gewoon op het tekstvak gesleept worden.
+
 ## WordPress-embed (agenda)
 
 `/embed/agenda` is een publieke, responsive pagina zonder navigatie of ingelogde sessie — bedoeld om

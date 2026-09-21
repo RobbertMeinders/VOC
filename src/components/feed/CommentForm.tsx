@@ -1,9 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Send } from "lucide-react";
 import { createCommentAction, type CreateCommentState } from "@/app/(app)/actions";
+import { useMentionField } from "@/lib/feed/useMentionField";
+import { MentionDropdown } from "./MentionDropdown";
 
 const initialState: CreateCommentState = {};
 
@@ -24,20 +26,35 @@ function SubmitButton() {
 export function CommentForm({ postId }: { postId: string }) {
   const createWithPostId = createCommentAction.bind(null, postId);
   const [state, formAction] = useActionState(createWithPostId, initialState);
-  const formRef = useRef<HTMLFormElement>(null);
+  const [content, setContent] = useState("");
+  const inputRef = useRef<HTMLInputElement>(null);
+  const mention = useMentionField(content, setContent);
 
   useEffect(() => {
-    if (state.success) formRef.current?.reset();
+    if (state.success) {
+      Promise.resolve().then(() => setContent(""));
+    }
   }, [state]);
 
   return (
-    <form ref={formRef} action={formAction} className="flex items-center gap-2">
-      <input
-        name="content"
-        required
-        placeholder="Schrijf een reactie…"
-        className="h-9 flex-1 rounded-full border border-border bg-background px-3.5 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-      />
+    <form action={formAction} className="flex items-center gap-2">
+      <div className="relative flex-1">
+        <input
+          ref={inputRef}
+          name="content"
+          required
+          value={content}
+          placeholder="Schrijf een reactie… (typ @ om iemand te taggen)"
+          onChange={(e) => mention.handleInput(e.currentTarget)}
+          className="h-9 w-full rounded-full border border-border bg-background px-3.5 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        />
+        {mention.open && (
+          <MentionDropdown
+            results={mention.results}
+            onSelect={(name, kind, id) => inputRef.current && mention.select(inputRef.current, name, kind, id)}
+          />
+        )}
+      </div>
       <SubmitButton />
     </form>
   );

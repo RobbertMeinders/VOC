@@ -172,3 +172,33 @@ export async function getCommentAction(commentId: string): Promise<FeedComment |
   const supabase = await createClient();
   return fetchCommentById(supabase, commentId);
 }
+
+export type MentionSuggestion = { id: string; name: string };
+export type MentionSearchResult = { profiles: MentionSuggestion[]; companies: MentionSuggestion[] };
+
+// Client-side-style filter over the (small) member/company lists, same
+// approach as /zoeken — cheap enough at this org's size, and avoids a
+// separate ilike query per keystroke.
+export async function searchMentionsAction(query: string): Promise<MentionSearchResult> {
+  await requireProfile();
+  const q = query.trim().toLowerCase();
+  if (!q) return { profiles: [], companies: [] };
+
+  const supabase = await createClient();
+  const [{ data: profileRows }, { data: companyRows }] = await Promise.all([
+    supabase.from("profiles").select("id, first_name, last_name").eq("is_active", true),
+    supabase.from("companies").select("id, name"),
+  ]);
+
+  const profiles = (profileRows ?? [])
+    .map((p) => ({ id: p.id, name: `${p.first_name} ${p.last_name}` }))
+    .filter((p) => p.name.toLowerCase().includes(q))
+    .slice(0, 5);
+
+  const companies = (companyRows ?? [])
+    .map((c) => ({ id: c.id, name: c.name }))
+    .filter((c) => c.name.toLowerCase().includes(q))
+    .slice(0, 5);
+
+  return { profiles, companies };
+}
