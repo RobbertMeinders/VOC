@@ -231,9 +231,11 @@ ingesteld, zonder duidelijke melding. Wil je met je eigen, al bestaande Supabase
 Production.
 
 **Als pushes geen nieuwe deployment meer triggeren** (de deployment-lijst blijft op een oude commit
-staan, zelfs zonder foutmelding): de Vercel↔GitHub-koppeling kan onopgemerkt "stuk" raken zonder dat
-dit ergens zichtbaar is. Fix: Vercel-project → Settings → Git → **Disconnect**, daarna opnieuw
-**Connect** met dezelfde repository. Dat forceert Vercel om de webhook opnieuw aan te maken.
+staan, zelfs bij een gloednieuw geïmporteerd project, zonder dat er ooit een build- of foutmelding
+verschijnt): controleer of `vercel.json` een cron-schema bevat dat vaker dan 1x per dag draait.
+Op het Hobby-plan **weigert Vercel de deployment volledig** als dat zo is (in plaats van 'm gewoon
+minder vaak uit te voeren) — en dat gebeurt zonder zichtbare melding in de deployment-lijst zelf, wel
+zichtbaar bij een handmatige "Create Deployment". Zie de cron-schema's verderop in dit document.
 
 ## WordPress-embed (agenda)
 
@@ -260,12 +262,15 @@ met diezelfde header aanroepen.
 In-app meldingen (notificatiebel, `/notificaties`) werken realtime via Supabase Realtime — geen
 cron nodig. Web push is anders: een browser-pushbericht versturen betekent een HTTP-call naar de
 pushdienst maken, en dat kan een Postgres-trigger niet zelf. Daarom haalt `/api/cron/send-push`
-(elke 15 minuten, zie `vercel.json`) nog-niet-verstuurde notificaties op via de
+(dagelijks om 08:00 UTC, zie `vercel.json`) nog-niet-verstuurde notificaties op via de
 `get_pending_push_notifications()` RPC en verstuurt ze met de `web-push`-library.
 
-**Let op op Vercel's Hobby-plan**: crons draaien daar maximaal 1x per dag, ongeacht het schema in
-`vercel.json` — pushmeldingen komen dan pas de volgende ochtend aan in plaats van binnen 15 minuten.
-Voor bijna-realtime push is een Pro-abonnement nodig.
+**Let op op Vercel's Hobby-plan**: crons mogen daar maximaal 1x per dag draaien. Staat er in
+`vercel.json` een vaker-dan-dagelijks schema (zoals eerder `*/15 * * * *`), dan **weigert Vercel de
+hele deployment** — niet alleen de cron, de deployment wordt dan nooit aangemaakt, zonder duidelijke
+foutmelding in de deployment-lijst. Pushmeldingen komen met het huidige, geldige schema dus 1x per
+dag aan in plaats van bijna realtime; voor snellere push is een Pro-abonnement nodig (dan kan het
+schema terug naar bijvoorbeeld elke 15 minuten).
 
 Vereiste environment variables (zie `.env.local.example`): `VAPID_PRIVATE_KEY` en
 `NEXT_PUBLIC_VAPID_PUBLIC_KEY`. Genereer je eigen paar met `npx web-push generate-vapid-keys` — nooit
