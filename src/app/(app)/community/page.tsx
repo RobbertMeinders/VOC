@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
@@ -18,16 +19,18 @@ export default async function CommunityPage() {
   ]);
 
   return (
-    <FeedList
-      initialPosts={posts}
-      currentAuthor={{
-        id: profile.id,
-        first_name: profile.first_name,
-        last_name: profile.last_name,
-        avatarUrl,
-      }}
-      canModerate={isBoard(profile.role)}
-      canEditOthers={isAdmin(profile.role)}
-    />
+    <Suspense>
+      <FeedList
+        initialPosts={posts}
+        currentAuthor={{
+          id: profile.id,
+          first_name: profile.first_name,
+          last_name: profile.last_name,
+          avatarUrl,
+        }}
+        canModerate={isBoard(profile.role)}
+        canEditOthers={isAdmin(profile.role)}
+      />
+    </Suspense>
   );
 }

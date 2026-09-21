@@ -162,6 +162,35 @@ export async function deleteCommentAction(commentId: string) {
   await supabase.from("feed_comments").delete().eq("id", commentId);
 }
 
+export type UpdateCommentState = { error?: string; success?: boolean; comment?: FeedComment };
+
+export async function updateCommentAction(
+  commentId: string,
+  _prevState: UpdateCommentState,
+  formData: FormData
+): Promise<UpdateCommentState> {
+  const profile = await requireProfile();
+  const content = String(formData.get("content") ?? "").trim();
+
+  if (!content) {
+    return { error: "Een reactie kan niet leeg zijn." };
+  }
+
+  const supabase = await createClient();
+  let query = supabase.from("feed_comments").update({ content }).eq("id", commentId);
+  if (!isAdmin(profile.role)) {
+    query = query.eq("author_id", profile.id);
+  }
+  const { data, error } = await query.select("id").maybeSingle();
+
+  if (error || !data) {
+    return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+  }
+
+  const comment = await fetchCommentById(supabase, commentId, profile.id);
+  return { success: true, comment: comment ?? undefined };
+}
+
 export async function getPostAction(postId: string): Promise<FeedPost | null> {
   const profile = await requireProfile();
   const supabase = await createClient();
@@ -169,9 +198,70 @@ export async function getPostAction(postId: string): Promise<FeedPost | null> {
 }
 
 export async function getCommentAction(commentId: string): Promise<FeedComment | null> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+  return fetchCommentById(supabase, commentId, profile.id);
+}
+
+export async function toggleCommentLikeAction(commentId: string): Promise<{ liked: boolean }> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const { data: existing } = await supabase
+    .from("feed_comment_likes")
+    .select("id")
+    .eq("comment_id", commentId)
+    .eq("profile_id", profile.id)
+    .maybeSingle();
+
+  if (existing) {
+    await supabase.from("feed_comment_likes").delete().eq("id", existing.id);
+    return { liked: false };
+  }
+
+  await supabase.from("feed_comment_likes").insert({ comment_id: commentId, profile_id: profile.id });
+  return { liked: true };
+}
+
+export type Liker = { id: string; firstName: string; lastName: string; avatarUrl: string | null };
+
+export async function getPostLikersAction(postId: string): Promise<Liker[]> {
   await requireProfile();
   const supabase = await createClient();
-  return fetchCommentById(supabase, commentId);
+  const { data } = await supabase
+    .from("feed_likes")
+    .select("profile:profiles(id, first_name, last_name, avatar_url)")
+    .eq("post_id", postId)
+    .order("created_at", { ascending: false })
+    .returns<{ profile: { id: string; first_name: string; last_name: string; avatar_url: string | null } }[]>();
+
+  return hydrateLikers(supabase, data ?? []);
+}
+
+export async function getCommentLikersAction(commentId: string): Promise<Liker[]> {
+  await requireProfile();
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("feed_comment_likes")
+    .select("profile:profiles(id, first_name, last_name, avatar_url)")
+    .eq("comment_id", commentId)
+    .order("created_at", { ascending: false })
+    .returns<{ profile: { id: string; first_name: string; last_name: string; avatar_url: string | null } }[]>();
+
+  return hydrateLikers(supabase, data ?? []);
+}
+
+async function hydrateLikers(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  rows: { profile: { id: string; first_name: string; last_name: string; avatar_url: string | null } }[]
+): Promise<Liker[]> {
+  const avatarUrls = await getSignedStorageUrls(supabase, "avatars", rows.map((r) => r.profile.avatar_url));
+  return rows.map((r) => ({
+    id: r.profile.id,
+    firstName: r.profile.first_name,
+    lastName: r.profile.last_name,
+    avatarUrl: r.profile.avatar_url ? (avatarUrls.get(r.profile.avatar_url) ?? null) : null,
+  }));
 }
 
 export type MentionSuggestion = { id: string; name: string; imageUrl: string | null };

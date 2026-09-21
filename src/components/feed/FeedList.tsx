@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { MessageSquare } from "lucide-react";
 import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/client";
@@ -8,7 +9,7 @@ import { getCommentAction, getPostAction } from "@/app/(app)/actions";
 import { PostComposer } from "./PostComposer";
 import { PostCard } from "./PostCard";
 import { POST_TYPES, POST_TYPE_LABELS } from "@/lib/feed/postType";
-import type { FeedAuthor, FeedPost, FeedPostType } from "@/lib/feed/types";
+import type { FeedAuthor, FeedComment, FeedPost, FeedPostType } from "@/lib/feed/types";
 
 type Filter = "alle" | FeedPostType;
 
@@ -25,6 +26,8 @@ export function FeedList({
 }) {
   const [posts, setPosts] = useState(initialPosts);
   const [filter, setFilter] = useState<Filter>("alle");
+  const searchParams = useSearchParams();
+  const highlightId = searchParams.get("highlight");
   const visiblePosts = filter === "alle" ? posts : posts.filter((p) => p.type === filter);
 
   function upsertPost(post: FeedPost) {
@@ -52,6 +55,30 @@ export function FeedList({
   function removeComment(commentId: string) {
     setPosts((prev) => prev.map((post) => ({ ...post, comments: post.comments.filter((c) => c.id !== commentId) })));
   }
+
+  function updateComment(comment: FeedComment) {
+    setPosts((prev) =>
+      prev.map((post) =>
+        post.id === comment.postId
+          ? { ...post, comments: post.comments.map((c) => (c.id === comment.id ? comment : c)) }
+          : post
+      )
+    );
+  }
+
+  // Notificatie op een reactie linkt naar /community?highlight=<comment_id> —
+  // spring naar die reactie en geef 'm even een kleurtje, zodat je meteen
+  // ziet waar het om ging (PostCard opent de comments van dat bericht al
+  // via forceCommentsOpen, dus het element staat er al bij de eerste render).
+  useEffect(() => {
+    if (!highlightId) return;
+    const el = document.getElementById(`comment-${highlightId}`);
+    if (!el) return;
+    el.scrollIntoView({ behavior: "smooth", block: "center" });
+    el.classList.add("ring-2", "ring-voc-red", "rounded-xl");
+    const timeout = setTimeout(() => el.classList.remove("ring-2", "ring-voc-red", "rounded-xl"), 3000);
+    return () => clearTimeout(timeout);
+  }, [highlightId]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -124,6 +151,8 @@ export function FeedList({
               onDeleted={removePost}
               onUpdated={updatePost}
               onCommentDeleted={removeComment}
+              onCommentUpdated={updateComment}
+              forceCommentsOpen={highlightId ? post.comments.some((c) => c.id === highlightId) : false}
             />
           ))}
         </div>

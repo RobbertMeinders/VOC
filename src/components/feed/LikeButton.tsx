@@ -1,11 +1,25 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Heart } from "lucide-react";
+import { ThumbsUp } from "lucide-react";
 import { clsx } from "clsx";
-import { toggleLikeAction } from "@/app/(app)/actions";
 
-export function LikeButton({ postId, initialLiked, initialCount }: { postId: string; initialLiked: boolean; initialCount: number }) {
+// Generiek duimpje voor zowel berichten als reacties — de aanroepende
+// component levert de toggle-server-action (toggleLikeAction/
+// toggleCommentLikeAction) en de eigen id.
+export function LikeButton({
+  targetId,
+  initialLiked,
+  initialCount,
+  toggleAction,
+  size = "md",
+}: {
+  targetId: string;
+  initialLiked: boolean;
+  initialCount: number;
+  toggleAction: (id: string) => Promise<{ liked: boolean }>;
+  size?: "sm" | "md";
+}) {
   const [liked, setLiked] = useState(initialLiked);
   const [count, setCount] = useState(initialCount);
   const [isPending, startTransition] = useTransition();
@@ -17,7 +31,7 @@ export function LikeButton({ postId, initialLiked, initialCount }: { postId: str
 
     startTransition(async () => {
       try {
-        const result = await toggleLikeAction(postId);
+        const result = await toggleAction(targetId);
         if (result.liked !== nextLiked) {
           setLiked(result.liked);
           setCount((c) => c + (result.liked ? 1 : -1));
@@ -35,12 +49,13 @@ export function LikeButton({ postId, initialLiked, initialCount }: { postId: str
       onClick={handleClick}
       disabled={isPending}
       className={clsx(
-        "flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium transition-colors",
+        "flex items-center gap-1.5 rounded-full font-medium transition-colors",
+        size === "sm" ? "px-2 py-1 text-xs" : "px-2.5 py-1.5 text-sm",
         liked ? "text-voc-red" : "text-muted hover:bg-black/[.04] dark:hover:bg-white/[.06]"
       )}
     >
-      <Heart size={16} className={liked ? "fill-voc-red" : ""} />
-      {count > 0 && count}
+      <ThumbsUp size={size === "sm" ? 13 : 16} className={liked ? "fill-voc-red" : ""} />
+      {size === "md" && count > 0 && count}
     </button>
   );
 }

@@ -117,7 +117,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
             rows={3}
             required
             value={content}
-            placeholder="Wat wil je delen met het netwerk? Typ @ om een lid of bedrijf te taggen"
+            placeholder="Wat wil je delen met het netwerk?"
             onChange={(e) => {
               mention.handleInput(e.currentTarget);
               autoGrowTextarea(e.currentTarget, TEXTAREA_MAX_HEIGHT);

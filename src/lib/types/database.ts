@@ -246,6 +246,20 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["feed_likes"]["Row"]>;
         Relationships: [];
       };
+      feed_comment_likes: {
+        Row: {
+          id: string;
+          comment_id: string;
+          profile_id: string;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["feed_comment_likes"]["Row"]> & {
+          comment_id: string;
+          profile_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["feed_comment_likes"]["Row"]>;
+        Relationships: [];
+      };
       documents: {
         Row: {
           id: string;

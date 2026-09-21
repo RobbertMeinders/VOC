@@ -50,6 +50,35 @@ export function formatLastActive(iso: string | null): string {
   );
 }
 
+// Relatieve tijd voor de community-feed (berichten/reacties). Client-only
+// (PostCard e.a. zijn "use client"), dus Date.now() hier geeft geen
+// server/client-hydratatiemismatch.
+export function formatRelativeTime(iso: string): string {
+  const date = new Date(iso);
+  const minutes = Math.floor((Date.now() - date.getTime()) / (60 * 1000));
+
+  if (minutes < 1) return "Nu";
+  if (minutes <= 59) return `${minutes}m geleden`;
+
+  const hours = Math.floor(minutes / 60);
+  if (hours <= 23) return `${hours}u geleden`;
+
+  const days = Math.floor(hours / 24);
+  if (days <= 7) return `${days}d geleden`;
+
+  const weeks = Math.floor(days / 7);
+  if (weeks <= 4) return `${weeks}w geleden`;
+
+  return new Intl.DateTimeFormat("nl-NL", {
+    timeZone: NL_TIMEZONE,
+    day: "numeric",
+    month: "short",
+    ...(days >= 365 ? { year: "numeric" as const } : {}),
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
 /**
  * Split activities into upcoming (soonest first) and past (most recent
  * first). Pulled out of the page component because calling `Date.now()`

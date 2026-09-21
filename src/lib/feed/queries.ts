@@ -11,14 +11,23 @@ const POST_SELECT = `
   attachments:feed_attachments(id, type, storage_path, file_name),
   comments:feed_comments(
     id, post_id, content, created_at,
-    author:profiles!feed_comments_author_id_fkey(id, first_name, last_name, avatar_url)
+    author:profiles!feed_comments_author_id_fkey(id, first_name, last_name, avatar_url),
+    comment_likes:feed_comment_likes(profile_id)
   ),
-  likes:feed_likes(profile_id)
+  likes:feed_likes(profile_id, profile:profiles(first_name, last_name))
 `;
 
 type RawAuthor = { id: string; first_name: string; last_name: string; avatar_url: string | null };
 type RawAttachment = { id: string; type: "image" | "pdf"; storage_path: string; file_name: string };
-type RawComment = { id: string; post_id: string; content: string; created_at: string; author: RawAuthor };
+type RawLike = { profile_id: string; profile: { first_name: string; last_name: string } };
+type RawComment = {
+  id: string;
+  post_id: string;
+  content: string;
+  created_at: string;
+  author: RawAuthor;
+  comment_likes: { profile_id: string }[];
+};
 type RawPost = {
   id: string;
   author_id: string;
@@ -29,7 +38,7 @@ type RawPost = {
   author: RawAuthor;
   attachments: RawAttachment[];
   comments: RawComment[];
-  likes: { profile_id: string }[];
+  likes: RawLike[];
 };
 
 // Collects every avatar/attachment path referenced by a batch of raw posts
@@ -71,17 +80,22 @@ function buildAttachment(attachment: RawAttachment, mediaUrls: Map<string, strin
   };
 }
 
-function buildComment(comment: RawComment, avatarUrls: Map<string, string>): FeedComment {
+function buildComment(comment: RawComment, viewerId: string, avatarUrls: Map<string, string>): FeedComment {
   return {
     id: comment.id,
     postId: comment.post_id,
     content: comment.content,
     createdAt: comment.created_at,
     author: buildAuthor(comment.author, avatarUrls),
+    likesCount: comment.comment_likes.length,
+    likedByMe: comment.comment_likes.some((like) => like.profile_id === viewerId),
   };
 }
 
 function buildPost(post: RawPost, viewerId: string, avatarUrls: Map<string, string>, mediaUrls: Map<string, string>): FeedPost {
+  // post.likes komt binnen op created_at desc (zie .order(..., { referencedTable: "feed_likes" })
+  // hieronder), dus likes[0] is de meest recente liker — voor "Naam en N anderen".
+  const topLiker = post.likes[0]?.profile ?? null;
   return {
     id: post.id,
     content: post.content,
@@ -91,10 +105,14 @@ function buildPost(post: RawPost, viewerId: string, avatarUrls: Map<string, stri
     author: buildAuthor(post.author, avatarUrls),
     attachments: post.attachments.map((a) => buildAttachment(a, mediaUrls)),
     comments: post.comments
-      .map((c) => buildComment(c, avatarUrls))
+      .map((c) => buildComment(c, viewerId, avatarUrls))
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
     likesCount: post.likes.length,
     likedByMe: post.likes.some((like) => like.profile_id === viewerId),
+    likeSummary: {
+      topLikerName: topLiker ? `${topLiker.first_name} ${topLiker.last_name}` : null,
+      count: post.likes.length,
+    },
   };
 }
 
@@ -114,6 +132,7 @@ export async function fetchFeedPosts(supabase: SupabaseClient<Database>, viewerI
     .select(POST_SELECT)
     .order("created_at", { ascending: false })
     .order("created_at", { ascending: true, referencedTable: "feed_comments" })
+    .order("created_at", { ascending: false, referencedTable: "feed_likes" })
     .limit(limit)
     .returns<RawPost[]>();
 
@@ -126,6 +145,7 @@ export async function fetchPostById(supabase: SupabaseClient<Database>, postId: 
     .select(POST_SELECT)
     .eq("id", postId)
     .order("created_at", { ascending: true, referencedTable: "feed_comments" })
+    .order("created_at", { ascending: false, referencedTable: "feed_likes" })
     .maybeSingle()
     .returns<RawPost>();
 
@@ -134,11 +154,15 @@ export async function fetchPostById(supabase: SupabaseClient<Database>, postId: 
   return post;
 }
 
-export async function fetchCommentById(supabase: SupabaseClient<Database>, commentId: string): Promise<FeedComment | null> {
+export async function fetchCommentById(
+  supabase: SupabaseClient<Database>,
+  commentId: string,
+  viewerId: string
+): Promise<FeedComment | null> {
   const { data } = await supabase
     .from("feed_comments")
     .select(
-      "id, post_id, content, created_at, author:profiles!feed_comments_author_id_fkey(id, first_name, last_name, avatar_url)"
+      "id, post_id, content, created_at, author:profiles!feed_comments_author_id_fkey(id, first_name, last_name, avatar_url), comment_likes:feed_comment_likes(profile_id)"
     )
     .eq("id", commentId)
     .maybeSingle()
@@ -146,5 +170,5 @@ export async function fetchCommentById(supabase: SupabaseClient<Database>, comme
 
   if (!data) return null;
   const avatarUrls = await getSignedStorageUrls(supabase, "avatars", [data.author.avatar_url]);
-  return buildComment(data, avatarUrls);
+  return buildComment(data, viewerId, avatarUrls);
 }

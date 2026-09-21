@@ -32,7 +32,7 @@ export function MentionDropdown({
   onSelect: (name: string, kind: MentionKind, id: string) => void;
 }) {
   return (
-    <div className="absolute left-0 top-full z-10 mt-1 max-h-56 w-64 overflow-y-auto rounded-xl border border-border bg-surface py-1 shadow-lg">
+    <div className="absolute left-0 top-full z-50 mt-1 max-h-56 w-64 overflow-y-auto rounded-xl border border-border bg-surface py-1 shadow-lg">
       {results.profiles.map((profile) => (
         <button
           key={`profiel-${profile.id}`}

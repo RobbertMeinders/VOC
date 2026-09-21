@@ -47,7 +47,7 @@ function CommentFormInner({ postId, onPosted }: { postId: string; onPosted: () =
     <form ref={formRef} action={formAction} className="flex items-center gap-2">
       <MentionCommentEditor
         name="content"
-        placeholder="Schrijf een reactie… (typ @ om iemand te taggen)"
+        placeholder="Schrijf een reactie…"
         onEnter={() => formRef.current?.requestSubmit()}
       />
       <SubmitButton />

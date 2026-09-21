@@ -18,9 +18,16 @@ export type FeedComment = {
   content: string;
   createdAt: string;
   author: FeedAuthor;
+  likesCount: number;
+  likedByMe: boolean;
 };
 
 export type FeedPostType = "vraag" | "aanbod" | "nieuws" | "overig";
+
+// Naam van de meest recente liker + totaalaantal, voor "Robbert Meinders en
+// 5 anderen" onder een bericht — het volledige overzicht komt pas on-demand
+// (LikersOverlay) via getPostLikersAction.
+export type LikeSummary = { topLikerName: string | null; count: number };
 
 export type FeedPost = {
   id: string;
@@ -33,4 +40,5 @@ export type FeedPost = {
   comments: FeedComment[];
   likesCount: number;
   likedByMe: boolean;
+  likeSummary: LikeSummary;
 };
