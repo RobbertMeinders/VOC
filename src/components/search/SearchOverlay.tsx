@@ -5,18 +5,19 @@ import { useRouter } from "next/navigation";
 import { Search, X } from "lucide-react";
 import { clsx } from "clsx";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
+import { useOverlay } from "@/lib/ui/OverlayContext";
 
 // Zoeken als snelle overlay i.p.v. altijd eerst naar /zoeken te navigeren —
 // zelfde open/sluit-gevoel als het account- en notificatiemenu. De
 // resultaten zelf blijven op /zoeken staan (SearchForm + ZoekenPage);
 // dit is alleen een sneller ingangspunt ernaartoe.
 export function SearchOverlay({ variant }: { variant: "sidebar" | "mobile" }) {
-  const [open, setOpen] = useState(false);
+  const { open, toggle, close } = useOverlay("search");
   const [value, setValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
 
-  useEscapeKey(open, () => setOpen(false));
+  useEscapeKey(open, close);
 
   useEffect(() => {
     if (open) inputRef.current?.focus();
@@ -25,7 +26,7 @@ export function SearchOverlay({ variant }: { variant: "sidebar" | "mobile" }) {
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
     const q = value.trim();
-    setOpen(false);
+    close();
     router.push(q ? `/zoeken?q=${encodeURIComponent(q)}` : "/zoeken");
   }
 
@@ -42,7 +43,7 @@ export function SearchOverlay({ variant }: { variant: "sidebar" | "mobile" }) {
       />
       <button
         type="button"
-        onClick={() => setOpen(false)}
+        onClick={close}
         aria-label="Sluiten"
         className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
       >
@@ -56,7 +57,7 @@ export function SearchOverlay({ variant }: { variant: "sidebar" | "mobile" }) {
       <>
         <button
           type="button"
-          onClick={() => setOpen(true)}
+          onClick={toggle}
           aria-label="Zoeken"
           className="flex h-9 w-9 items-center justify-center rounded-full text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.08]"
         >
@@ -64,7 +65,7 @@ export function SearchOverlay({ variant }: { variant: "sidebar" | "mobile" }) {
         </button>
         {open && (
           <>
-            <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setOpen(false)} />
+            <div className="fixed inset-0 z-40 bg-black/40" onClick={close} />
             <div className="fixed inset-x-0 top-0 z-50 border-b border-border bg-surface pt-[env(safe-area-inset-top)] shadow-lg">
               {panel}
             </div>
@@ -78,7 +79,7 @@ export function SearchOverlay({ variant }: { variant: "sidebar" | "mobile" }) {
     <div className="relative">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggle}
         aria-label="Zoeken"
         className={clsx(
           "flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]",
@@ -89,8 +90,8 @@ export function SearchOverlay({ variant }: { variant: "sidebar" | "mobile" }) {
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
-          <div className="absolute left-0 top-full z-30 mt-1 w-72 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+          <div className="fixed inset-0 z-40" onClick={close} />
+          <div className="absolute left-0 top-full z-50 mt-1 w-72 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
             {panel}
           </div>
         </>

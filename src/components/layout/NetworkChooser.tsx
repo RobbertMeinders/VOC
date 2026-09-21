@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Building2, ChevronUp, Users } from "lucide-react";
 import { clsx } from "clsx";
 import { NavBadge } from "./NavBadge";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
+import { useOverlay } from "@/lib/ui/OverlayContext";
 
 const OPTIONS = [
   { href: "/bedrijven", label: "Bedrijven", icon: Building2 },
@@ -25,18 +25,18 @@ export function NetworkChooser({
   badgeCount: number;
   variant?: "mobile" | "sidebar";
 }) {
-  const [open, setOpen] = useState(false);
+  const { open, toggle, close } = useOverlay("netwerk");
   const pathname = usePathname();
   const active = pathname.startsWith("/leden") || pathname.startsWith("/bedrijven");
 
-  useEscapeKey(open, () => setOpen(false));
+  useEscapeKey(open, close);
 
   if (variant === "sidebar") {
     return (
       <div className="relative">
         <button
           type="button"
-          onClick={() => setOpen((o) => !o)}
+          onClick={toggle}
           className={clsx(
             "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
             active || open
@@ -54,13 +54,13 @@ export function NetworkChooser({
         </button>
         {open && (
           <>
-            <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
-            <div className="absolute left-0 top-full z-30 mt-1 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+            <div className="fixed inset-0 z-40" onClick={close} />
+            <div className="absolute left-0 top-full z-50 mt-1 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
               {OPTIONS.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
                   href={href}
-                  onClick={() => setOpen(false)}
+                  onClick={close}
                   className="flex items-center gap-3 px-3 py-2.5 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
                 >
                   <Icon size={16} />
@@ -78,7 +78,7 @@ export function NetworkChooser({
     <div className="relative flex-1">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={toggle}
         className={clsx(
           "relative flex h-14 w-full flex-col items-center justify-center gap-0.5 text-xs font-medium",
           active ? "text-voc-red" : "text-muted"
@@ -97,8 +97,8 @@ export function NetworkChooser({
 
       {open && (
         <>
-          <div className="fixed inset-0 z-20" onClick={() => setOpen(false)} />
-          <div className="absolute bottom-full left-1/2 z-30 mb-2 w-44 -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+          <div className="fixed inset-0 z-40" onClick={close} />
+          <div className="absolute bottom-full left-1/2 z-50 mb-2 w-44 -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
             <p className="flex items-center gap-1.5 border-b border-border px-3 py-2 text-xs font-semibold text-muted">
               <ChevronUp size={12} />
               Netwerk
@@ -107,7 +107,7 @@ export function NetworkChooser({
               <Link
                 key={href}
                 href={href}
-                onClick={() => setOpen(false)}
+                onClick={close}
                 className="flex items-center gap-3 px-3 py-2.5 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
               >
                 <Icon size={16} />
