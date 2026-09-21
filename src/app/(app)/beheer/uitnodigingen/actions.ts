@@ -52,3 +52,25 @@ export async function revokeInvitationAction(id: string) {
   await supabase.from("invitations").update({ status: "revoked" }).eq("id", id);
   revalidatePath("/beheer/uitnodigingen");
 }
+
+export async function sendInvitationEmailAction(id: string): Promise<{ error?: string }> {
+  await requireBoard();
+  const supabase = await createClient();
+
+  const { data: invitation } = await supabase
+    .from("invitations")
+    .select("token, email, status")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (!invitation || invitation.status !== "pending") {
+    return { error: "Deze uitnodiging is niet (meer) geldig." };
+  }
+  if (!invitation.email) {
+    return { error: "Deze uitnodiging heeft geen e-mailadres." };
+  }
+
+  const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
+  const { error } = await sendTemplatedEmail("uitnodiging", invitation.email, { link });
+  return { error };
+}

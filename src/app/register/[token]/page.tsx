@@ -48,7 +48,20 @@ export default async function RegisterPage({ params }: { params: Promise<{ token
               Je bent uitgenodigd als <span className="font-medium text-foreground">{ROLE_LABELS[invitation.role]}</span>.
               Maak je account aan om toegang te krijgen tot het ledenportaal.
             </p>
-            <RegisterForm token={token} prefilledEmail={invitation.email} />
+            <RegisterForm
+              token={token}
+              prefilledEmail={invitation.email}
+              prefilled={{
+                firstName: invitation.first_name,
+                lastName: invitation.last_name,
+                phone: invitation.phone,
+                jobTitle: invitation.job_title,
+                company:
+                  invitation.company_id && invitation.company_name
+                    ? { id: invitation.company_id, name: invitation.company_name, city: invitation.company_city }
+                    : null,
+              }}
+            />
           </div>
         )}
       </div>

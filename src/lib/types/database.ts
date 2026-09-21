@@ -108,6 +108,11 @@ export interface Database {
           accepted_by: string | null;
           accepted_at: string | null;
           created_at: string;
+          first_name: string | null;
+          last_name: string | null;
+          phone: string | null;
+          job_title: string | null;
+          company_id: string | null;
         };
         Insert: Partial<Database["public"]["Tables"]["invitations"]["Row"]>;
         Update: Partial<Database["public"]["Tables"]["invitations"]["Row"]>;
@@ -330,7 +335,18 @@ export interface Database {
     Functions: {
       get_invitation_preview: {
         Args: { p_token: string };
-        Returns: { valid: boolean; role: UserRole; email: string | null }[];
+        Returns: {
+          valid: boolean;
+          role: UserRole;
+          email: string | null;
+          first_name: string | null;
+          last_name: string | null;
+          phone: string | null;
+          job_title: string | null;
+          company_id: string | null;
+          company_name: string | null;
+          company_city: string | null;
+        }[];
       };
       search_companies_for_signup: {
         Args: { p_query: string };

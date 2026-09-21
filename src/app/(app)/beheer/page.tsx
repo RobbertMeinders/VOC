@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Building2, CalendarDays, FileText, Inbox, Mail, UserPlus, Users } from "lucide-react";
+import { Building2, CalendarDays, FileText, Inbox, Mail, Upload, UserPlus, Users } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,6 +8,12 @@ export const metadata: Metadata = { title: "Beheer" };
 
 const CARDS = [
   { href: "/beheer/uitnodigingen", label: "Uitnodigingen", icon: UserPlus, description: "Nodig nieuwe leden uit" },
+  {
+    href: "/beheer/leden-import",
+    label: "Leden importeren",
+    icon: Upload,
+    description: "Bestaande ledengegevens in bulk toevoegen",
+  },
   { href: "/beheer/aanvragen", label: "Toegangsaanvragen", icon: Inbox, description: "Beoordeel aanvragen van buitenaf" },
   { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail, description: "Inhoud van uitnodigings- en resetmails" },
   { href: "/leden", label: "Leden", icon: Users, description: "Profielen, rollen, activeren/deactiveren" },

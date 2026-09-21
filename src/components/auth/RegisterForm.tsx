@@ -5,9 +5,17 @@ import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { CompanySelector } from "@/components/company/CompanySelector";
-import { registerAction, type RegisterState } from "@/app/register/[token]/actions";
+import { registerAction, type RegisterState, type CompanyOption } from "@/app/register/[token]/actions";
 
 const initialState: RegisterState = {};
+
+export type RegisterPrefill = {
+  firstName: string | null;
+  lastName: string | null;
+  phone: string | null;
+  jobTitle: string | null;
+  company: CompanyOption | null;
+};
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -21,9 +29,11 @@ function SubmitButton() {
 export function RegisterForm({
   token,
   prefilledEmail,
+  prefilled,
 }: {
   token: string;
   prefilledEmail: string | null;
+  prefilled?: RegisterPrefill;
 }) {
   const registerWithToken = registerAction.bind(null, token);
   const [state, formAction] = useActionState(registerWithToken, initialState);
@@ -45,13 +55,25 @@ export function RegisterForm({
           <label htmlFor="first_name" className="text-sm font-medium text-foreground">
             Voornaam
           </label>
-          <Input id="first_name" name="first_name" required autoComplete="given-name" />
+          <Input
+            id="first_name"
+            name="first_name"
+            required
+            autoComplete="given-name"
+            defaultValue={prefilled?.firstName ?? undefined}
+          />
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="last_name" className="text-sm font-medium text-foreground">
             Achternaam
           </label>
-          <Input id="last_name" name="last_name" required autoComplete="family-name" />
+          <Input
+            id="last_name"
+            name="last_name"
+            required
+            autoComplete="family-name"
+            defaultValue={prefilled?.lastName ?? undefined}
+          />
         </div>
       </div>
 
@@ -82,19 +104,24 @@ export function RegisterForm({
           <label htmlFor="job_title" className="text-sm font-medium text-foreground">
             Functie
           </label>
-          <Input id="job_title" name="job_title" autoComplete="organization-title" />
+          <Input
+            id="job_title"
+            name="job_title"
+            autoComplete="organization-title"
+            defaultValue={prefilled?.jobTitle ?? undefined}
+          />
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="phone" className="text-sm font-medium text-foreground">
             Telefoonnummer
           </label>
-          <Input id="phone" name="phone" type="tel" autoComplete="tel" />
+          <Input id="phone" name="phone" type="tel" autoComplete="tel" defaultValue={prefilled?.phone ?? undefined} />
         </div>
       </div>
 
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium text-foreground">Bedrijf</span>
-        <CompanySelector />
+        <CompanySelector initialSelected={prefilled?.company ?? null} />
       </div>
 
       {state.error && (

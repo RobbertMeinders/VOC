@@ -300,6 +300,19 @@ een link naar dat profiel/bedrijf. Een database-trigger (niet de client) leest d
 bedrijf — naar alle actieve leden van dat bedrijf. Zie `0020_feed_mentions.sql`. Een foto of PDF kan
 ook los van de bestandskiezer gewoon op het tekstvak gesleept worden.
 
+## Leden importeren (bulk)
+
+`/beheer/leden-import` importeert bestaande ledengegevens (naam, e-mail, telefoon, functie, bedrijf)
+vanuit een CSV-bestand, één uitnodiging per rij — zonder dat daar meteen een e-mail bij wordt
+verstuurd. Een profiel kan namelijk pas bestaan met een bijbehorend account (`profiles.id` is een
+foreign key naar `auth.users`), dus de gegevens komen op de uitnodiging zelf te staan
+(`invitations.first_name`/`last_name`/`phone`/`job_title`/`company_id`, zie
+`0021_bulk_member_import.sql`) en vullen het registratieformulier voor zodra de uitnodigingslink
+wél gebruikt wordt. Rijen zonder e-mailadres, met een al bestaand account, of met een al
+openstaande uitnodiging voor dat e-mailadres worden overgeslagen (met reden getoond in de UI).
+Board verstuurt de e-mail per lid op het moment dat het uitkomt, via de "Verstuur e-mail"-knop op
+`/beheer/uitnodigingen`.
+
 ## WordPress-embed (agenda)
 
 `/embed/agenda` is een publieke, responsive pagina zonder navigatie of ingelogde sessie — bedoeld om
