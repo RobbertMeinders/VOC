@@ -3,8 +3,37 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
-export function useUnreadNotificationCount(profileId: string, initialUnreadCount: number): number {
-  const [count, setCount] = useState(initialUnreadCount);
+export type UnreadNotification = { id: string; link: string | null };
+
+export type UnreadNotificationSections = {
+  total: number;
+  agenda: number;
+  netwerk: number;
+  beheer: number;
+};
+
+function sectionFor(link: string | null): keyof Omit<UnreadNotificationSections, "total"> | null {
+  if (!link) return null;
+  if (link.startsWith("/agenda")) return "agenda";
+  if (link.startsWith("/leden") || link.startsWith("/bedrijven")) return "netwerk";
+  if (link.startsWith("/beheer")) return "beheer";
+  return null;
+}
+
+function toSections(items: UnreadNotification[]): UnreadNotificationSections {
+  const sections: UnreadNotificationSections = { total: items.length, agenda: 0, netwerk: 0, beheer: 0 };
+  for (const item of items) {
+    const section = sectionFor(item.link);
+    if (section) sections[section] += 1;
+  }
+  return sections;
+}
+
+export function useUnreadNotificationCount(
+  profileId: string,
+  initialUnread: UnreadNotification[]
+): UnreadNotificationSections {
+  const [items, setItems] = useState(initialUnread);
 
   useEffect(() => {
     const supabase = createClient();
@@ -13,7 +42,10 @@ export function useUnreadNotificationCount(profileId: string, initialUnreadCount
       .on(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications", filter: `profile_id=eq.${profileId}` },
-        () => setCount((c) => c + 1)
+        (payload) => {
+          const row = payload.new as { id: string; link: string | null };
+          setItems((current) => [...current, { id: row.id, link: row.link }]);
+        }
       )
       .on(
         "postgres_changes",
@@ -21,15 +53,18 @@ export function useUnreadNotificationCount(profileId: string, initialUnreadCount
         (payload) => {
           const wasRead = Boolean((payload.old as { is_read?: boolean }).is_read);
           const isRead = Boolean((payload.new as { is_read?: boolean }).is_read);
-          if (!wasRead && isRead) setCount((c) => Math.max(0, c - 1));
+          const row = payload.new as { id: string; link: string | null };
+          if (!wasRead && isRead) {
+            setItems((current) => current.filter((item) => item.id !== row.id));
+          }
         }
       )
       .on(
         "postgres_changes",
         { event: "DELETE", schema: "public", table: "notifications", filter: `profile_id=eq.${profileId}` },
         (payload) => {
-          const wasUnread = !(payload.old as { is_read?: boolean }).is_read;
-          if (wasUnread) setCount((c) => Math.max(0, c - 1));
+          const row = payload.old as { id: string };
+          setItems((current) => current.filter((item) => item.id !== row.id));
         }
       )
       .subscribe();
@@ -39,5 +74,5 @@ export function useUnreadNotificationCount(profileId: string, initialUnreadCount
     };
   }, [profileId]);
 
-  return count;
+  return toSections(items);
 }

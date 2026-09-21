@@ -3,17 +3,17 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Menu, X } from "lucide-react";
+import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { LogoutButton } from "./LogoutButton";
 import { NotificationBellIcon } from "@/components/notifications/NotificationBellIcon";
-import { SECONDARY_NAV_ITEMS, type NavItem } from "./nav-items";
+import { NavBadge } from "./NavBadge";
+import { BEHEER_NAV_ITEM, SECONDARY_NAV_ITEMS } from "./nav-items";
 import { isBoard, ROLE_LABELS } from "@/lib/auth/roles";
 import type { Profile } from "@/lib/auth/session";
+import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
-const BEHEER_NAV_ITEM: NavItem = { href: "/beheer", label: "Beheer", icon: LayoutDashboard };
-
-export function MobileHeader({ profile, unreadCount }: { profile: Profile; unreadCount: number }) {
+export function MobileHeader({ profile, unread }: { profile: Profile; unread: UnreadNotificationSections }) {
   const pathname = usePathname();
 
   return (
@@ -21,19 +21,19 @@ export function MobileHeader({ profile, unreadCount }: { profile: Profile; unrea
       <div className="flex h-14 items-center justify-between px-4">
         <Logo />
         <div className="flex items-center gap-1">
-          <NotificationBellIcon count={unreadCount} />
+          <NotificationBellIcon count={unread.total} />
           {/* Keyed by pathname so the panel remounts (and its open state
               resets to closed) on every navigation, instead of closing it
               from an effect — a direct setState in an effect body cascades
               a render. */}
-          <MobileMenuButton key={pathname} profile={profile} />
+          <MobileMenuButton key={pathname} profile={profile} unread={unread} />
         </div>
       </div>
     </header>
   );
 }
 
-function MobileMenuButton({ profile }: { profile: Profile }) {
+function MobileMenuButton({ profile, unread }: { profile: Profile; unread: UnreadNotificationSections }) {
   const [open, setOpen] = useState(false);
   const menuItems = [...SECONDARY_NAV_ITEMS, ...(isBoard(profile.role) ? [BEHEER_NAV_ITEM] : [])];
 
@@ -54,7 +54,7 @@ function MobileMenuButton({ profile }: { profile: Profile }) {
           <div className="fixed inset-0 top-14 z-20 bg-black/20" onClick={() => setOpen(false)} />
           <div className="absolute right-4 top-14 z-30 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
             <nav className="flex flex-col p-1.5">
-              {menuItems.map(({ href, label, icon: Icon }) => (
+              {menuItems.map(({ href, label, icon: Icon, badgeKey }) => (
                 <Link
                   key={href}
                   href={href}
@@ -62,6 +62,11 @@ function MobileMenuButton({ profile }: { profile: Profile }) {
                 >
                   <Icon size={18} />
                   {label}
+                  {badgeKey && (
+                    <span className="ml-auto">
+                      <NavBadge count={unread[badgeKey]} />
+                    </span>
+                  )}
                 </Link>
               ))}
             </nav>

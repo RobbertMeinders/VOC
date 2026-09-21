@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
-import { CalendarDays, FileText, Home, Search, Users } from "lucide-react";
+import { CalendarDays, FileText, Home, LayoutDashboard, Search, Users } from "lucide-react";
+import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
 export type NavItem = {
   href: string;
@@ -9,6 +10,9 @@ export type NavItem = {
   // /leden als /bedrijven dekt) — zonder deze is het gewoon een
   // prefix-match op href.
   activeMatch?: (pathname: string) => boolean;
+  // Koppelt dit item aan een sectie van ongelezen-notificatie-aantallen
+  // (zie useUnreadNotificationCount), voor het badge-getal op het item zelf.
+  badgeKey?: keyof Omit<UnreadNotificationSections, "total">;
 };
 
 export function isNavItemActive(item: NavItem, pathname: string): boolean {
@@ -25,6 +29,7 @@ export const NETWERK_NAV_ITEM: NavItem = {
   label: "Netwerk",
   icon: Users,
   activeMatch: (pathname) => pathname.startsWith("/leden") || pathname.startsWith("/bedrijven"),
+  badgeKey: "netwerk",
 };
 
 // Dezelfde primaire set op mobiel én desktop, zodat de twee niet meer
@@ -32,7 +37,7 @@ export const NETWERK_NAV_ITEM: NavItem = {
 // exact dezelfde 3 items als bovenaan de desktop-sidebar.
 export const PRIMARY_NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
-  { href: "/agenda", label: "Agenda", icon: CalendarDays },
+  { href: "/agenda", label: "Agenda", icon: CalendarDays, badgeKey: "agenda" },
   NETWERK_NAV_ITEM,
 ];
 
@@ -43,6 +48,8 @@ export const ZOEKEN_NAV_ITEM: NavItem = { href: "/zoeken", label: "Zoeken", icon
 // hamburgermenu, op desktop een apart, visueel gescheiden "Meer"-blokje
 // onderaan de primaire lijst in de sidebar.
 export const SECONDARY_NAV_ITEMS: NavItem[] = [DOCUMENTEN_NAV_ITEM, ZOEKEN_NAV_ITEM];
+
+export const BEHEER_NAV_ITEM: NavItem = { href: "/beheer", label: "Beheer", icon: LayoutDashboard, badgeKey: "beheer" };
 
 // "Profiel" is bewust geen eigen nav-item: dat, "mijn bedrijfsprofiel" en
 // "Instellingen" zijn bereikbaar via het profielmenu (avatar-kaart in de

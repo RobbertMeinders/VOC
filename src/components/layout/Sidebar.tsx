@@ -5,28 +5,30 @@ import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import { LayoutDashboard } from "lucide-react";
 import { PRIMARY_NAV_ITEMS, SECONDARY_NAV_ITEMS, isNavItemActive, type NavItem } from "./nav-items";
+import { NavBadge } from "./NavBadge";
 import { Logo } from "@/components/ui/Logo";
 import { LogoutButton } from "./LogoutButton";
 import { SidebarProfileMenu } from "./ProfileMenu";
 import { NotificationBellLink } from "@/components/notifications/NotificationBellLink";
 import { isBoard } from "@/lib/auth/roles";
 import type { Profile } from "@/lib/auth/session";
+import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
 export function Sidebar({
   profile,
-  unreadCount,
+  unread,
   avatarUrl,
   companyId,
 }: {
   profile: Profile;
-  unreadCount: number;
+  unread: UnreadNotificationSections;
   avatarUrl: string | null;
   companyId: string | null;
 }) {
   const pathname = usePathname();
 
   function renderItem(item: NavItem) {
-    const { href, label, icon: Icon } = item;
+    const { href, label, icon: Icon, badgeKey } = item;
     const active = isNavItemActive(item, pathname);
     return (
       <Link
@@ -39,6 +41,11 @@ export function Sidebar({
       >
         <Icon size={20} strokeWidth={active ? 2.5 : 2} />
         {label}
+        {badgeKey && (
+          <span className="ml-auto">
+            <NavBadge count={unread[badgeKey]} />
+          </span>
+        )}
       </Link>
     );
   }
@@ -56,7 +63,7 @@ export function Sidebar({
         {SECONDARY_NAV_ITEMS.map(renderItem)}
 
         <div className="mt-3 border-t border-border pt-3">
-          <NotificationBellLink count={unreadCount} />
+          <NotificationBellLink count={unread.total} />
         </div>
 
         {isBoard(profile.role) && (
@@ -71,6 +78,9 @@ export function Sidebar({
           >
             <LayoutDashboard size={20} strokeWidth={pathname.startsWith("/beheer") ? 2.5 : 2} />
             Beheer
+            <span className="ml-auto">
+              <NavBadge count={unread.beheer} />
+            </span>
           </Link>
         )}
       </nav>

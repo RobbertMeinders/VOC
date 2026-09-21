@@ -6,15 +6,18 @@ import { clsx } from "clsx";
 import { PRIMARY_NAV_ITEMS, isNavItemActive } from "./nav-items";
 import { BottomNavProfileMenu } from "./ProfileMenu";
 import type { Profile } from "@/lib/auth/session";
+import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
 export function BottomNav({
   profile,
   avatarUrl,
   companyId,
+  unread,
 }: {
   profile: Profile;
   avatarUrl: string | null;
   companyId: string | null;
+  unread: UnreadNotificationSections;
 }) {
   const pathname = usePathname();
 
@@ -25,18 +28,26 @@ export function BottomNav({
     >
       <ul className="flex items-stretch justify-around">
         {PRIMARY_NAV_ITEMS.map((item) => {
-          const { href, label, icon: Icon } = item;
+          const { href, label, icon: Icon, badgeKey } = item;
           const active = isNavItemActive(item, pathname);
+          const count = badgeKey ? unread[badgeKey] : 0;
           return (
             <li key={href} className="flex-1">
               <Link
                 href={href}
                 className={clsx(
-                  "flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium",
+                  "relative flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium",
                   active ? "text-voc-red" : "text-muted"
                 )}
               >
-                <Icon size={22} strokeWidth={active ? 2.5 : 2} />
+                <span className="relative">
+                  <Icon size={22} strokeWidth={active ? 2.5 : 2} />
+                  {count > 0 && (
+                    <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-voc-red px-1 text-[10px] font-medium text-white">
+                      {count > 9 ? "9+" : count}
+                    </span>
+                  )}
+                </span>
                 {label}
               </Link>
             </li>
