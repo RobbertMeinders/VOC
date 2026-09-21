@@ -224,6 +224,19 @@ Open [http://localhost:3000](http://localhost:3000).
   `vercel.json` en `.env.local.example`). De notificatie-rij bestaat al; het bijbehorende
   notificatiecentrum (badge, lijst) volgt in fase 5.
 
+## Bedrijvenkaart
+
+`/bedrijven` heeft naast de lijst een kaartweergave (Lijst/Kaart-toggle), gebouwd met Leaflet +
+OpenStreetMap-tiles — geen API-key, geen account, geen kosten. Zodra bestuur/beheer een
+bedrijfsadres opslaat, geocodeert `src/lib/geo/geocode.ts` dat adres server-side naar
+lat/lng via Nominatim (OpenStreetMap's gratis geocoding-dienst) en slaat het resultaat op
+(`companies.latitude`/`longitude`, `0018_company_coordinates.sql`) — alleen wanneer het adres
+daadwerkelijk wijzigt, niet bij elke opslag. Een bedrijf zonder (geldig) adres verschijnt gewoon
+niet op de kaart, maar blijft wel in de lijst staan. Nominatim vraagt in hun gebruiksvoorwaarden
+max. 1 aanroep per seconde; bij veelvuldig gebruik (of hogere betrouwbaarheid) is een betaalde
+geocoding-dienst (Mapbox, Google) een alternatief — dan wijzigt alleen `geocode.ts`, niet de
+kaartcomponent zelf.
+
 ## Fases
 
 1. ✅ Fundering — project, Supabase, database, auth, rollen, responsive layout, feed-shell

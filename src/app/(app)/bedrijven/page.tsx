@@ -3,7 +3,7 @@ import { Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { CompanyFilters } from "@/components/company/CompanyFilters";
-import { CompanyCard } from "@/components/company/CompanyCard";
+import { BedrijvenView } from "@/components/company/BedrijvenView";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 
 export const metadata: Metadata = { title: "Bedrijven" };
@@ -18,7 +18,7 @@ export default async function BedrijvenPage({
 
   const { data: companies } = await supabase
     .from("companies")
-    .select("id, name, industry, city, logo_url, tagline")
+    .select("id, name, industry, city, logo_url, tagline, latitude, longitude")
     .order("name");
 
   const branches = Array.from(
@@ -46,6 +46,8 @@ export default async function BedrijvenPage({
     city: c.city,
     logoUrl: c.logo_url ? (logoUrls.get(c.logo_url) ?? null) : null,
     tagline: c.tagline,
+    latitude: c.latitude,
+    longitude: c.longitude,
   }));
 
   return (
@@ -55,11 +57,7 @@ export default async function BedrijvenPage({
       <CompanyFilters branches={branches} />
 
       {items.length > 0 ? (
-        <div className="grid gap-3 sm:grid-cols-2">
-          {items.map((company) => (
-            <CompanyCard key={company.id} company={company} />
-          ))}
-        </div>
+        <BedrijvenView items={items} />
       ) : (
         <ComingSoon
           icon={Building2}

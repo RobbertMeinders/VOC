@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireBoard, requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
+import { geocodeAddress } from "@/lib/geo/geocode";
 
 export type UpdateCompanyState = { error?: string; success?: boolean };
 
@@ -39,6 +40,23 @@ export async function updateCompanyAction(
     logoPath = result.path;
   }
 
+  // Alleen opnieuw geocoderen (Nominatim-aanroep) als het adres echt
+  // wijzigde — niet bij elke opslag, ook al betreft die alleen bijv. de
+  // tagline.
+  const { data: existing } = await supabase
+    .from("companies")
+    .select("address, postal_code, city")
+    .eq("id", companyId)
+    .maybeSingle();
+
+  const addressChanged =
+    !existing ||
+    existing.address !== (address || null) ||
+    existing.postal_code !== (postalCode || null) ||
+    existing.city !== (city || null);
+
+  const coordinates = addressChanged ? await geocodeAddress({ address, postalCode: postalCode, city }) : undefined;
+
   const { error } = await supabase
     .from("companies")
     .update({
@@ -53,6 +71,9 @@ export async function updateCompanyAction(
       phone: phone || null,
       email: email || null,
       ...(logoPath ? { logo_url: logoPath } : {}),
+      ...(coordinates !== undefined
+        ? { latitude: coordinates?.latitude ?? null, longitude: coordinates?.longitude ?? null }
+        : {}),
     })
     .eq("id", companyId);
 

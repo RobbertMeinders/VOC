@@ -52,6 +52,8 @@ export interface Database {
           postal_code: string | null;
           phone: string | null;
           email: string | null;
+          latitude: number | null;
+          longitude: number | null;
           created_at: string;
           updated_at: string;
         };
