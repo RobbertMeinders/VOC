@@ -55,9 +55,9 @@ function MenuPanel({
             key={href}
             href={href}
             onClick={onClose}
-            className="flex items-center gap-3 px-3 py-2.5 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            className="flex items-center gap-3 px-4 py-3.5 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
           >
-            <Icon size={16} />
+            <Icon size={20} />
             <span className="flex-1">{label}</span>
             {label === "Beheer" && beheerBadge ? <NavBadge count={beheerBadge} /> : null}
           </Link>
@@ -65,9 +65,9 @@ function MenuPanel({
         <form action={signOutAction} className="border-t border-border">
           <button
             type="submit"
-            className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
           >
-            <LogOut size={16} />
+            <LogOut size={20} />
             Uitloggen
           </button>
         </form>

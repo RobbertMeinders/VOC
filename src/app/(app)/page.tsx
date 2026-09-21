@@ -296,14 +296,14 @@ export default async function HomePage() {
       </section>
 
       {/* Documenten, compact */}
-      {(recentDocuments ?? []).length > 0 && (
-        <section>
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">Documenten</h2>
-            <Link href="/documenten" className="text-xs font-medium text-voc-red hover:underline">
-              Alle documenten
-            </Link>
-          </div>
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-foreground">Documenten</h2>
+          <Link href="/documenten" className="text-xs font-medium text-voc-red hover:underline">
+            Alle documenten
+          </Link>
+        </div>
+        {(recentDocuments ?? []).length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {(recentDocuments ?? []).map((doc) => (
               <Link
@@ -316,10 +316,18 @@ export default async function HomePage() {
               </Link>
             ))}
           </div>
-        </section>
-      )}
+        ) : (
+          <Link
+            href="/documenten"
+            className="flex items-center gap-2 rounded-2xl border border-border bg-surface p-4 text-sm text-muted shadow-sm hover:border-voc-red"
+          >
+            <FileText size={16} className="text-voc-red" />
+            Naar de documenten
+          </Link>
+        )}
+      </section>
 
-      <div className="flex items-center gap-3 border-t border-border pt-4">
+      <div className="flex flex-col items-center gap-2 border-t border-border pt-4 text-center">
         <p className="text-xs text-muted">Volg de VOC:</p>
         <VocSocialLinks />
       </div>

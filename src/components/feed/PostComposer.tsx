@@ -114,7 +114,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
           <textarea
             ref={textareaRef}
             name="content"
-            rows={2}
+            rows={3}
             required
             value={content}
             placeholder="Wat wil je delen met het netwerk? Typ @ om een lid of bedrijf te taggen"
@@ -134,12 +134,12 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
         </div>
       </div>
 
-      <div className="ml-[52px] mt-2">
+      <div className="mt-2 sm:ml-[52px]">
         <PostTypePicker />
       </div>
 
       {fileName && (
-        <div className="ml-[52px] mt-2 flex items-center gap-2 rounded-lg bg-black/[.04] px-3 py-1.5 text-xs text-muted dark:bg-white/[.06]">
+        <div className="mt-2 flex items-center gap-2 rounded-lg bg-black/[.04] px-3 py-1.5 text-xs text-muted dark:bg-white/[.06] sm:ml-[52px]">
           <FileText size={14} />
           <span className="flex-1 truncate">{fileName}</span>
           <button
@@ -156,12 +156,12 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
       )}
 
       {state.error && (
-        <p role="alert" className="ml-[52px] mt-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+        <p role="alert" className="mt-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red sm:ml-[52px]">
           {state.error}
         </p>
       )}
 
-      <div className="ml-[52px] mt-3 flex items-center justify-between">
+      <div className="mt-3 flex items-center justify-between sm:ml-[52px]">
         <label className="flex cursor-pointer items-center gap-1.5 rounded-full px-2.5 py-1.5 text-xs font-medium text-muted hover:bg-black/[.04] dark:hover:bg-white/[.06]">
           <ImageIcon size={16} />
           Foto of PDF
