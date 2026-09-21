@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/Button";
 import { createPostAction, type CreatePostState } from "@/app/(app)/actions";
 import { compressInputFile } from "@/lib/image/compress";
 import { autoGrowTextarea } from "@/lib/dom/autoGrow";
+import { PostTypePicker } from "./PostTypePicker";
 import type { FeedAuthor, FeedPost } from "@/lib/feed/types";
 
 const initialState: CreatePostState = {};
@@ -68,6 +69,10 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
           className="flex-1 resize-none overflow-y-auto rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
           style={{ maxHeight: TEXTAREA_MAX_HEIGHT }}
         />
+      </div>
+
+      <div className="ml-[52px] mt-2">
+        <PostTypePicker />
       </div>
 
       {fileName && (

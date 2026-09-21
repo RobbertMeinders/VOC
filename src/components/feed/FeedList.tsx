@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { MessageSquare } from "lucide-react";
+import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/client";
 import { getCommentAction, getPostAction } from "@/app/(app)/actions";
 import { PostComposer } from "./PostComposer";
 import { PostCard } from "./PostCard";
-import type { FeedAuthor, FeedPost } from "@/lib/feed/types";
+import { POST_TYPES, POST_TYPE_LABELS } from "@/lib/feed/postType";
+import type { FeedAuthor, FeedPost, FeedPostType } from "@/lib/feed/types";
+
+type Filter = "alle" | FeedPostType;
 
 export function FeedList({
   initialPosts,
@@ -20,6 +24,8 @@ export function FeedList({
   canEditOthers: boolean;
 }) {
   const [posts, setPosts] = useState(initialPosts);
+  const [filter, setFilter] = useState<Filter>("alle");
+  const visiblePosts = filter === "alle" ? posts : posts.filter((p) => p.type === filter);
 
   function upsertPost(post: FeedPost) {
     setPosts((prev) => (prev.some((p) => p.id === post.id) ? prev : [post, ...prev]));
@@ -80,9 +86,35 @@ export function FeedList({
     <div className="flex flex-col gap-4">
       <PostComposer author={currentAuthor} onCreated={upsertPost} />
 
-      {posts.length > 0 ? (
+      <div className="flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          onClick={() => setFilter("alle")}
+          className={clsx(
+            "rounded-full px-2.5 py-1 text-xs font-medium",
+            filter === "alle" ? "bg-voc-red text-white" : "bg-black/[.06] text-muted hover:bg-black/[.1] dark:bg-white/[.08]"
+          )}
+        >
+          Alles
+        </button>
+        {POST_TYPES.map((type) => (
+          <button
+            key={type}
+            type="button"
+            onClick={() => setFilter(type)}
+            className={clsx(
+              "rounded-full px-2.5 py-1 text-xs font-medium",
+              filter === type ? "bg-voc-red text-white" : "bg-black/[.06] text-muted hover:bg-black/[.1] dark:bg-white/[.08]"
+            )}
+          >
+            {POST_TYPE_LABELS[type]}
+          </button>
+        ))}
+      </div>
+
+      {visiblePosts.length > 0 ? (
         <div className="flex flex-col gap-4">
-          {posts.map((post) => (
+          {visiblePosts.map((post) => (
             <PostCard
               key={post.id}
               post={post}
@@ -98,9 +130,13 @@ export function FeedList({
       ) : (
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border py-16 text-center">
           <MessageSquare size={28} className="text-muted" />
-          <p className="text-sm font-medium text-foreground">Nog geen berichten</p>
+          <p className="text-sm font-medium text-foreground">
+            {posts.length === 0 ? "Nog geen berichten" : `Geen berichten met label "${POST_TYPE_LABELS[filter as FeedPostType]}"`}
+          </p>
           <p className="max-w-xs text-sm text-muted">
-            Zodra leden updates delen met het netwerk, verschijnen ze hier in de community-feed.
+            {posts.length === 0
+              ? "Zodra leden updates delen met het netwerk, verschijnen ze hier in de community-feed."
+              : "Probeer een ander label, of bekijk alle berichten."}
           </p>
         </div>
       )}

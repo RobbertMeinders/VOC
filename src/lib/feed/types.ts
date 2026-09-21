@@ -20,9 +20,12 @@ export type FeedComment = {
   author: FeedAuthor;
 };
 
+export type FeedPostType = "vraag" | "aanbod" | "nieuws" | "overig";
+
 export type FeedPost = {
   id: string;
   content: string | null;
+  type: FeedPostType | null;
   createdAt: string;
   updatedAt: string;
   author: FeedAuthor;

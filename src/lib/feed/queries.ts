@@ -3,10 +3,10 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/types/database";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
-import type { FeedAttachment, FeedAuthor, FeedComment, FeedPost } from "./types";
+import type { FeedAttachment, FeedAuthor, FeedComment, FeedPost, FeedPostType } from "./types";
 
 const POST_SELECT = `
-  id, author_id, content, created_at, updated_at,
+  id, author_id, content, type, created_at, updated_at,
   author:profiles!feed_posts_author_id_fkey(id, first_name, last_name, avatar_url),
   attachments:feed_attachments(id, type, storage_path, file_name),
   comments:feed_comments(
@@ -23,6 +23,7 @@ type RawPost = {
   id: string;
   author_id: string;
   content: string | null;
+  type: FeedPostType | null;
   created_at: string;
   updated_at: string;
   author: RawAuthor;
@@ -84,6 +85,7 @@ function buildPost(post: RawPost, viewerId: string, avatarUrls: Map<string, stri
   return {
     id: post.id,
     content: post.content,
+    type: post.type,
     createdAt: post.created_at,
     updatedAt: post.updated_at,
     author: buildAuthor(post.author, avatarUrls),

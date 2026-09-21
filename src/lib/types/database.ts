@@ -7,6 +7,7 @@ export type InvitationStatus = "pending" | "accepted" | "revoked" | "expired";
 export type FeedAttachmentType = "image" | "pdf";
 export type ActivitySource = "voc" | "lid";
 export type ActivityStatus = "pending" | "approved" | "rejected";
+export type FeedPostType = "vraag" | "aanbod" | "nieuws" | "overig";
 
 export interface Database {
   public: {
@@ -172,6 +173,7 @@ export interface Database {
           content: string | null;
           created_at: string;
           updated_at: string;
+          type: FeedPostType | null;
         };
         Insert: Partial<Database["public"]["Tables"]["feed_posts"]["Row"]> & {
           author_id: string;

@@ -11,6 +11,8 @@ import { CommentForm } from "./CommentForm";
 import { DeleteButton } from "./DeleteButton";
 import { deleteCommentAction, deletePostAction, updatePostAction, type UpdatePostState } from "@/app/(app)/actions";
 import { autoGrowTextarea } from "@/lib/dom/autoGrow";
+import { PostTypePicker } from "./PostTypePicker";
+import { POST_TYPE_BADGE_CLASS, POST_TYPE_LABELS } from "@/lib/feed/postType";
 import type { FeedPost } from "@/lib/feed/types";
 
 function formatDate(iso: string) {
@@ -66,6 +68,9 @@ function EditPostForm({
         onInput={(e) => autoGrowTextarea(e.currentTarget, 240)}
         className="w-full resize-none overflow-y-auto rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
       />
+      <div className="mt-2">
+        <PostTypePicker defaultValue={post.type} />
+      </div>
       {state.error && (
         <p role="alert" className="mt-1.5 text-xs text-voc-red">
           {state.error}
@@ -146,7 +151,16 @@ export function PostCard({
       {editing ? (
         <EditPostForm post={post} onSaved={(updated) => { onUpdated(updated); setEditing(false); }} onCancel={() => setEditing(false)} />
       ) : (
-        post.content && <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{post.content}</p>
+        <>
+          {post.type && (
+            <span
+              className={`mt-2 inline-block rounded-full px-2 py-0.5 text-xs font-medium ${POST_TYPE_BADGE_CLASS[post.type]}`}
+            >
+              {POST_TYPE_LABELS[post.type]}
+            </span>
+          )}
+          {post.content && <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{post.content}</p>}
+        </>
       )}
 
       {post.attachments.map((attachment) =>

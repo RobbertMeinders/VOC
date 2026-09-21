@@ -4,7 +4,14 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/auth/roles";
 import { fetchCommentById, fetchPostById } from "@/lib/feed/queries";
-import type { FeedComment, FeedPost } from "@/lib/feed/types";
+import type { FeedComment, FeedPost, FeedPostType } from "@/lib/feed/types";
+
+const VALID_POST_TYPES: FeedPostType[] = ["vraag", "aanbod", "nieuws", "overig"];
+
+function parsePostType(formData: FormData): FeedPostType | null {
+  const value = String(formData.get("type") ?? "");
+  return (VALID_POST_TYPES as string[]).includes(value) ? (value as FeedPostType) : null;
+}
 
 const ALLOWED_ATTACHMENT_TYPES: Record<string, "image" | "pdf"> = {
   "image/png": "image",
@@ -28,7 +35,7 @@ export async function createPostAction(_prevState: CreatePostState, formData: Fo
 
   const { data: newPost, error: postError } = await supabase
     .from("feed_posts")
-    .insert({ author_id: profile.id, content })
+    .insert({ author_id: profile.id, content, type: parsePostType(formData) })
     .select("id")
     .single();
 
@@ -84,7 +91,7 @@ export async function updatePostAction(
   }
 
   const supabase = await createClient();
-  let query = supabase.from("feed_posts").update({ content }).eq("id", postId);
+  let query = supabase.from("feed_posts").update({ content, type: parsePostType(formData) }).eq("id", postId);
   if (!isAdmin(profile.role)) {
     query = query.eq("author_id", profile.id);
   }
