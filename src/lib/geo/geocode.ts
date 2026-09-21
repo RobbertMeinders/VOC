@@ -21,20 +21,27 @@ export async function geocodeAddress(parts: {
     const response = await fetch(url, {
       headers: { "User-Agent": "VOC-Ledenportaal-PWA/1.0" },
     });
-    if (!response.ok) return null;
+    if (!response.ok) {
+      console.error(`[geocode] Nominatim gaf status ${response.status} voor "${query}"`);
+      return null;
+    }
 
     const results = (await response.json()) as { lat: string; lon: string }[];
     const first = results[0];
-    if (!first) return null;
+    if (!first) {
+      console.error(`[geocode] Geen resultaat van Nominatim voor "${query}"`);
+      return null;
+    }
 
     const latitude = Number.parseFloat(first.lat);
     const longitude = Number.parseFloat(first.lon);
     if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
 
     return { latitude, longitude };
-  } catch {
+  } catch (cause) {
     // Geocoding is best-effort: een bedrijf zonder coördinaten blijft
     // gewoon in de lijst staan, verschijnt alleen niet op de kaart.
+    console.error(`[geocode] Aanroep naar Nominatim mislukt voor "${query}":`, cause);
     return null;
   }
 }

@@ -40,12 +40,15 @@ export async function updateCompanyAction(
     logoPath = result.path;
   }
 
-  // Alleen opnieuw geocoderen (Nominatim-aanroep) als het adres echt
-  // wijzigde — niet bij elke opslag, ook al betreft die alleen bijv. de
-  // tagline.
+  // Opnieuw geocoderen (Nominatim-aanroep) als het adres wijzigde, of als
+  // er nog helemaal geen coördinaten bekend zijn — dat laatste vangt zowel
+  // bedrijven die vóór deze functie al een adres hadden ingevuld, als een
+  // eerdere mislukte geocode-poging (bijv. Nominatim tijdelijk niet
+  // bereikbaar). Bij een ongewijzigd adres mét al bekende coördinaten
+  // slaan we de aanroep over.
   const { data: existing } = await supabase
     .from("companies")
-    .select("address, postal_code, city")
+    .select("address, postal_code, city, latitude, longitude")
     .eq("id", companyId)
     .maybeSingle();
 
@@ -55,7 +58,10 @@ export async function updateCompanyAction(
     existing.postal_code !== (postalCode || null) ||
     existing.city !== (city || null);
 
-  const coordinates = addressChanged ? await geocodeAddress({ address, postalCode: postalCode, city }) : undefined;
+  const missingCoordinates = existing?.latitude == null || existing?.longitude == null;
+
+  const coordinates =
+    addressChanged || missingCoordinates ? await geocodeAddress({ address, postalCode, city }) : undefined;
 
   const { error } = await supabase
     .from("companies")
