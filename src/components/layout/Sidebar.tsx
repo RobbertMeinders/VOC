@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import { LayoutDashboard } from "lucide-react";
-import { SIDEBAR_NAV_ITEMS } from "./nav-items";
+import { PRIMARY_NAV_ITEMS, SECONDARY_NAV_ITEMS } from "./nav-items";
 import { Logo } from "@/components/ui/Logo";
 import { LogoutButton } from "./LogoutButton";
 import { SidebarProfileMenu } from "./ProfileMenu";
@@ -25,6 +25,27 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
 
+  function isActive(href: string) {
+    return href === "/" ? pathname === "/" : pathname.startsWith(href);
+  }
+
+  function renderItem({ href, label, icon: Icon }: (typeof PRIMARY_NAV_ITEMS)[number]) {
+    const active = isActive(href);
+    return (
+      <Link
+        key={href}
+        href={href}
+        className={clsx(
+          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+          active ? "bg-voc-red-light text-voc-red" : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+        )}
+      >
+        <Icon size={20} strokeWidth={active ? 2.5 : 2} />
+        {label}
+      </Link>
+    );
+  }
+
   return (
     <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-surface px-4 py-6 md:flex">
       <div className="mb-8 px-2">
@@ -32,26 +53,14 @@ export function Sidebar({
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">
-        {SIDEBAR_NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active = href === "/" ? pathname === "/" : pathname.startsWith(href);
-          return (
-            <Link
-              key={href}
-              href={href}
-              className={clsx(
-                "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-                active
-                  ? "bg-voc-red-light text-voc-red"
-                  : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-              )}
-            >
-              <Icon size={20} strokeWidth={active ? 2.5 : 2} />
-              {label}
-            </Link>
-          );
-        })}
+        {PRIMARY_NAV_ITEMS.map(renderItem)}
 
-        <NotificationBellLink count={unreadCount} />
+        <p className="mb-1 mt-3 px-3 text-xs font-semibold uppercase tracking-wide text-muted">Meer</p>
+        {SECONDARY_NAV_ITEMS.map(renderItem)}
+
+        <div className="mt-3 border-t border-border pt-3">
+          <NotificationBellLink count={unreadCount} />
+        </div>
 
         {isBoard(profile.role) && (
           <Link

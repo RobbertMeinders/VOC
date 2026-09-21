@@ -7,28 +7,24 @@ export type NavItem = {
   icon: LucideIcon;
 };
 
-// Mobile bottom bar: 3 plain nav items + the profile-menu trigger (see
-// BottomNav.tsx), which replaces what used to be a 4th "Profiel" link.
+// Dezelfde primaire set op mobiel én desktop, zodat de twee niet meer
+// uiteenlopen: bottom-nav (mobiel, + de profielmenu-knop als 4e slot) toont
+// exact dezelfde 3 items als bovenaan de desktop-sidebar.
 export const PRIMARY_NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Home", icon: Home },
   { href: "/agenda", label: "Agenda", icon: CalendarDays },
   { href: "/leden", label: "Leden", icon: Users },
 ];
 
-// Bedrijven and Documenten don't fit the four-item mobile bottom bar, so
-// they're reached via the desktop sidebar and the mobile hamburger menu.
 export const BEDRIJVEN_NAV_ITEM: NavItem = { href: "/bedrijven", label: "Bedrijven", icon: Building2 };
 export const DOCUMENTEN_NAV_ITEM: NavItem = { href: "/documenten", label: "Documenten", icon: FileText };
 export const ZOEKEN_NAV_ITEM: NavItem = { href: "/zoeken", label: "Zoeken", icon: Search };
 
-// "Profiel" is bewust geen eigen nav-item meer: dat, "mijn bedrijfsprofiel"
-// en "Instellingen" zijn nu allemaal bereikbaar via het profielmenu
-// (avatar-kaart in de sidebar / profielknop in de bottom nav).
-export const SIDEBAR_NAV_ITEMS: NavItem[] = [
-  { href: "/", label: "Home", icon: Home },
-  { href: "/agenda", label: "Agenda", icon: CalendarDays },
-  { href: "/leden", label: "Leden", icon: Users },
-  BEDRIJVEN_NAV_ITEM,
-  DOCUMENTEN_NAV_ITEM,
-  ZOEKEN_NAV_ITEM,
-];
+// Secundaire set, óók consistent op beide platformen: op mobiel het
+// hamburgermenu, op desktop een apart, visueel gescheiden "Meer"-blokje
+// onderaan de primaire lijst in de sidebar.
+export const SECONDARY_NAV_ITEMS: NavItem[] = [BEDRIJVEN_NAV_ITEM, DOCUMENTEN_NAV_ITEM, ZOEKEN_NAV_ITEM];
+
+// "Profiel" is bewust geen eigen nav-item: dat, "mijn bedrijfsprofiel" en
+// "Instellingen" zijn bereikbaar via het profielmenu (avatar-kaart in de
+// sidebar / profielknop in de bottom nav).
