@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState, type DragEvent } from "react";
 import { useFormStatus } from "react-dom";
+import { clsx } from "clsx";
 import { FileText, Image as ImageIcon, X } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
@@ -14,6 +15,7 @@ import type { FeedAuthor, FeedPost } from "@/lib/feed/types";
 const initialState: CreatePostState = {};
 
 const TEXTAREA_MAX_HEIGHT = 160; // ~7 lines, then it scrolls instead of growing further
+const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp", "application/pdf"];
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -47,6 +49,7 @@ export function PostComposer({ author, onCreated }: { author: FeedAuthor; onCrea
 function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated: (post: FeedPost) => void }) {
   const [state, formAction] = useActionState(createPostAction, initialState);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -56,8 +59,50 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
+  async function acceptDroppedFile(file: File) {
+    const input = fileInputRef.current;
+    if (!input) return;
+    const transfer = new DataTransfer();
+    transfer.items.add(file);
+    input.files = transfer.files;
+    const compressed = await compressInputFile(input);
+    setFileName(compressed?.name ?? null);
+  }
+
+  function handleDragOver(e: DragEvent<HTMLFormElement>) {
+    if (!e.dataTransfer.types.includes("Files")) return;
+    e.preventDefault();
+    setDragActive(true);
+  }
+
+  function handleDragLeave(e: DragEvent<HTMLFormElement>) {
+    if (e.currentTarget.contains(e.relatedTarget as Node)) return;
+    setDragActive(false);
+  }
+
+  function handleDrop(e: DragEvent<HTMLFormElement>) {
+    if (!e.dataTransfer.files.length) return;
+    e.preventDefault();
+    setDragActive(false);
+    const file = e.dataTransfer.files[0];
+    if (!ACCEPTED_TYPES.includes(file.type)) return;
+    void acceptDroppedFile(file);
+  }
+
   return (
-    <form action={formAction} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+    <form
+      action={formAction}
+      onDragOver={handleDragOver}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+      className={clsx(
+        "rounded-2xl border p-4 shadow-sm transition-colors",
+        dragActive ? "border-voc-red border-dashed bg-voc-red-light" : "border-border bg-surface"
+      )}
+    >
+      {dragActive && (
+        <p className="mb-2 text-center text-xs font-medium text-voc-red">Zet bestand hier neer om toe te voegen</p>
+      )}
       <div className="flex items-start gap-3">
         <Avatar firstName={author.first_name} lastName={author.last_name} avatarUrl={author.avatarUrl} size={40} />
         <textarea
@@ -106,7 +151,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
             ref={fileInputRef}
             type="file"
             name="attachment"
-            accept="image/png,image/jpeg,image/webp,application/pdf"
+            accept={ACCEPTED_TYPES.join(",")}
             className="sr-only"
             onChange={async (e) => {
               const input = e.target;
