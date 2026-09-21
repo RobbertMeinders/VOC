@@ -3,14 +3,10 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
-import { LayoutDashboard } from "lucide-react";
-import { PRIMARY_NAV_ITEMS, SECONDARY_NAV_ITEMS, isNavItemActive, type NavItem } from "./nav-items";
+import { DESKTOP_NAV_ITEMS, LEDEN_NAV_ITEM, BEDRIJVEN_NAV_ITEM, isNavItemActive, type NavItem } from "./nav-items";
 import { NavBadge } from "./NavBadge";
 import { Logo } from "@/components/ui/Logo";
-import { LogoutButton } from "./LogoutButton";
 import { SidebarProfileMenu } from "./ProfileMenu";
-import { NotificationBellLink } from "@/components/notifications/NotificationBellLink";
-import { isBoard } from "@/lib/auth/roles";
 import type { Profile } from "@/lib/auth/session";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
@@ -19,15 +15,17 @@ export function Sidebar({
   unread,
   avatarUrl,
   companyId,
+  companyName,
 }: {
   profile: Profile;
   unread: UnreadNotificationSections;
   avatarUrl: string | null;
   companyId: string | null;
+  companyName: string | null;
 }) {
   const pathname = usePathname();
 
-  function renderItem(item: NavItem) {
+  function renderItem(item: NavItem, indented = false) {
     const { href, label, icon: Icon, badgeKey } = item;
     const active = isNavItemActive(item, pathname);
     return (
@@ -35,11 +33,12 @@ export function Sidebar({
         key={href}
         href={href}
         className={clsx(
-          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
+          "flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-colors",
+          indented ? "px-3 pl-10" : "px-3",
           active ? "bg-voc-red-light text-voc-red" : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
-        <Icon size={20} strokeWidth={active ? 2.5 : 2} />
+        <Icon size={indented ? 16 : 20} strokeWidth={active ? 2.5 : 2} />
         {label}
         {badgeKey && (
           <span className="ml-auto">
@@ -57,37 +56,32 @@ export function Sidebar({
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">
-        {PRIMARY_NAV_ITEMS.map(renderItem)}
-
-        <p className="mb-1 mt-3 px-3 text-xs font-semibold uppercase tracking-wide text-muted">Meer</p>
-        {SECONDARY_NAV_ITEMS.map(renderItem)}
-
-        <div className="mt-3 border-t border-border pt-3">
-          <NotificationBellLink count={unread.total} />
-        </div>
-
-        {isBoard(profile.role) && (
-          <Link
-            href="/beheer"
-            className={clsx(
-              "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-              pathname.startsWith("/beheer")
-                ? "bg-voc-red-light text-voc-red"
-                : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-            )}
-          >
-            <LayoutDashboard size={20} strokeWidth={pathname.startsWith("/beheer") ? 2.5 : 2} />
-            Beheer
-            <span className="ml-auto">
-              <NavBadge count={unread.beheer} />
-            </span>
-          </Link>
-        )}
+        {DESKTOP_NAV_ITEMS.map((item) => {
+          if (item.label !== "Netwerk") return renderItem(item);
+          // Netwerk is de enige sidebar-ingang die op desktop uitklapt: de
+          // subitems staan altijd zichtbaar (geen collapse-state nodig),
+          // zodat meteen duidelijk is dat "Netwerk" uit Leden + Bedrijven
+          // bestaat i.p.v. een los klikbaar item te zijn.
+          return (
+            <div key="netwerk-group">
+              {renderItem(item)}
+              <div className="flex flex-col gap-1">
+                {renderItem(LEDEN_NAV_ITEM, true)}
+                {renderItem(BEDRIJVEN_NAV_ITEM, true)}
+              </div>
+            </div>
+          );
+        })}
       </nav>
 
-      <div className="flex items-center gap-3 border-t border-border pt-4">
-        <SidebarProfileMenu profile={profile} avatarUrl={avatarUrl} companyId={companyId} />
-        <LogoutButton />
+      <div className="border-t border-border pt-4">
+        <SidebarProfileMenu
+          profile={profile}
+          avatarUrl={avatarUrl}
+          companyId={companyId}
+          companyName={companyName}
+          beheerBadge={unread.beheer}
+        />
       </div>
     </aside>
   );

@@ -1,33 +1,297 @@
 import type { Metadata } from "next";
+import Link from "next/link";
+import Image from "next/image";
+import { ArrowRight, CalendarDays, FileText, Inbox, MapPin, Users } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { getSignedStorageUrl } from "@/lib/supabase/storage";
+import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { fetchFeedPosts } from "@/lib/feed/queries";
-import { isAdmin, isBoard } from "@/lib/auth/roles";
-import { FeedList } from "@/components/feed/FeedList";
+import { isBoard } from "@/lib/auth/roles";
+import { formatActivityDate } from "@/lib/format/date";
+import { Avatar } from "@/components/ui/Avatar";
+import { MentionedText } from "@/components/feed/MentionedText";
+import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Home" };
 
-export default async function FeedPage() {
+type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
+
+function EmptyHint({ text }: { text: string }) {
+  return <p className="text-sm text-muted">{text}</p>;
+}
+
+export default async function HomePage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [posts, avatarUrl] = await Promise.all([
-    fetchFeedPosts(supabase, profile.id),
-    getSignedStorageUrl("avatars", profile.avatar_url),
+  const [
+    { data: activities },
+    posts,
+    { data: recentMembers },
+    { data: recentCompanies },
+    { data: recentDocuments },
+    stats,
+  ] = await Promise.all([
+    supabase
+      .from("activities")
+      .select("*")
+      .eq("status", "approved")
+      .gte("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: true })
+      .limit(3)
+      .returns<ActivityRow[]>(),
+    fetchFeedPosts(supabase, profile.id, 3),
+    supabase
+      .from("profiles")
+      .select("id, first_name, last_name, avatar_url")
+      .eq("is_active", true)
+      .order("created_at", { ascending: false })
+      .limit(3),
+    supabase.from("companies").select("id, name, logo_url").order("created_at", { ascending: false }).limit(3),
+    supabase
+      .from("documents")
+      .select("id, title, category")
+      .order("created_at", { ascending: false })
+      .limit(4),
+    isBoard(profile.role)
+      ? Promise.all([
+          supabase.from("access_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
+          supabase.from("activities").select("id", { count: "exact", head: true }).eq("status", "pending"),
+        ])
+      : Promise.resolve(null),
   ]);
 
+  const [nextActivity, ...upcomingRest] = activities ?? [];
+
+  const [memberAvatarUrls, companyLogoUrls] = await Promise.all([
+    getSignedStorageUrls(supabase, "avatars", (recentMembers ?? []).map((m) => m.avatar_url)),
+    getSignedStorageUrls(supabase, "company-logos", (recentCompanies ?? []).map((c) => c.logo_url)),
+  ]);
+  const nextActivityImageUrl = nextActivity ? await getSignedStorageUrl("activity-images", nextActivity.image_url) : null;
+
+  const pendingRequests = stats ? (stats[0].count ?? 0) : 0;
+  const pendingActivities = stats ? (stats[1].count ?? 0) : 0;
+  const hasBoardActions = isBoard(profile.role) && (pendingRequests > 0 || pendingActivities > 0);
+
   return (
-    <FeedList
-      initialPosts={posts}
-      currentAuthor={{
-        id: profile.id,
-        first_name: profile.first_name,
-        last_name: profile.last_name,
-        avatarUrl,
-      }}
-      canModerate={isBoard(profile.role)}
-      canEditOthers={isAdmin(profile.role)}
-    />
+    <div className="flex flex-col gap-6">
+      <div>
+        <h1 className="text-xl font-semibold text-foreground">Welkom terug</h1>
+        <p className="mt-0.5 text-sm text-muted">Dit gebeurt er binnen de VOC-community.</p>
+      </div>
+
+      {hasBoardActions && (
+        <Link
+          href="/beheer"
+          className="flex items-center gap-3 rounded-2xl border border-voc-red/30 bg-voc-red-light p-4 text-sm font-medium text-voc-red shadow-sm hover:border-voc-red"
+        >
+          <Inbox size={18} />
+          <span className="flex-1">
+            {pendingRequests > 0 && `${pendingRequests} aanvra${pendingRequests === 1 ? "ag" : "gen"} wachten op beoordeling`}
+            {pendingRequests > 0 && pendingActivities > 0 && " · "}
+            {pendingActivities > 0 && `${pendingActivities} activiteit${pendingActivities === 1 ? "" : "en"} ter goedkeuring`}
+          </span>
+          <ArrowRight size={16} />
+        </Link>
+      )}
+
+      {/* Eerstvolgende activiteit, prominent */}
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-foreground">Eerstvolgende activiteit</h2>
+          <Link href="/agenda" className="text-xs font-medium text-voc-red hover:underline">
+            Hele agenda
+          </Link>
+        </div>
+        {nextActivity ? (
+          <Link
+            href={`/agenda/${nextActivity.id}`}
+            className="flex gap-4 rounded-2xl border border-border bg-surface p-5 shadow-sm hover:border-voc-red"
+          >
+            {nextActivityImageUrl ? (
+              <Image
+                src={nextActivityImageUrl}
+                alt={nextActivity.title}
+                width={96}
+                height={96}
+                className="h-24 w-24 shrink-0 rounded-xl object-cover"
+              />
+            ) : (
+              <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red">
+                <CalendarDays size={30} />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-2 text-lg font-semibold leading-snug text-foreground">{nextActivity.title}</p>
+              <p className="mt-1 text-sm text-muted">{formatActivityDate(nextActivity.starts_at)}</p>
+              {nextActivity.location && (
+                <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted">
+                  <MapPin size={14} />
+                  {nextActivity.location}
+                </p>
+              )}
+            </div>
+          </Link>
+        ) : (
+          <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+            <EmptyHint text="Er staat nog geen activiteit gepland." />
+          </div>
+        )}
+
+        {upcomingRest.length > 0 && (
+          <div className="mt-2 flex flex-col gap-2">
+            {upcomingRest.map((activity) => (
+              <Link
+                key={activity.id}
+                href={`/agenda/${activity.id}`}
+                className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 text-sm shadow-sm hover:border-voc-red"
+              >
+                <CalendarDays size={16} className="shrink-0 text-voc-red" />
+                <span className="min-w-0 flex-1 truncate font-medium text-foreground">{activity.title}</span>
+                <span className="shrink-0 text-xs text-muted">{formatActivityDate(activity.starts_at)}</span>
+              </Link>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {/* Recente community-posts */}
+      <section>
+        <div className="mb-2 flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-foreground">Recent in de community</h2>
+          <Link href="/community" className="text-xs font-medium text-voc-red hover:underline">
+            Naar community
+          </Link>
+        </div>
+        {posts.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            {posts.map((post) => (
+              <Link
+                key={post.id}
+                href="/community"
+                className="flex items-start gap-3 rounded-xl border border-border bg-surface p-3 shadow-sm hover:border-voc-red"
+              >
+                <Avatar
+                  firstName={post.author.first_name}
+                  lastName={post.author.last_name}
+                  avatarUrl={post.author.avatarUrl}
+                  size={32}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-foreground">
+                    {post.author.first_name} {post.author.last_name}
+                  </p>
+                  {post.content && (
+                    <p className="line-clamp-2 text-sm text-muted">
+                      <MentionedText text={post.content} />
+                    </p>
+                  )}
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+            <EmptyHint text="Nog geen berichten in de community." />
+          </div>
+        )}
+      </section>
+
+      {/* Nieuwe leden/bedrijven */}
+      <section className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-foreground">Nieuwe leden</h2>
+            <Link href="/leden" className="text-xs font-medium text-voc-red hover:underline">
+              Alle leden
+            </Link>
+          </div>
+          <div className="flex flex-col gap-2">
+            {(recentMembers ?? []).length > 0 ? (
+              (recentMembers ?? []).map((member) => (
+                <Link
+                  key={member.id}
+                  href={`/leden/${member.id}`}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-surface p-2.5 shadow-sm hover:border-voc-red"
+                >
+                  <Avatar
+                    firstName={member.first_name}
+                    lastName={member.last_name}
+                    avatarUrl={member.avatar_url ? (memberAvatarUrls.get(member.avatar_url) ?? null) : null}
+                    size={32}
+                  />
+                  <span className="truncate text-sm font-medium text-foreground">
+                    {member.first_name} {member.last_name}
+                  </span>
+                </Link>
+              ))
+            ) : (
+              <EmptyHint text="Nog geen leden." />
+            )}
+          </div>
+        </div>
+
+        <div>
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-foreground">Nieuwe bedrijven</h2>
+            <Link href="/bedrijven" className="text-xs font-medium text-voc-red hover:underline">
+              Alle bedrijven
+            </Link>
+          </div>
+          <div className="flex flex-col gap-2">
+            {(recentCompanies ?? []).length > 0 ? (
+              (recentCompanies ?? []).map((company) => (
+                <Link
+                  key={company.id}
+                  href={`/bedrijven/${company.id}`}
+                  className="flex items-center gap-3 rounded-xl border border-border bg-surface p-2.5 shadow-sm hover:border-voc-red"
+                >
+                  {company.logo_url && companyLogoUrls.get(company.logo_url) ? (
+                    <Image
+                      src={companyLogoUrls.get(company.logo_url)!}
+                      alt={company.name}
+                      width={32}
+                      height={32}
+                      className="h-8 w-8 shrink-0 rounded-lg object-contain"
+                    />
+                  ) : (
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red">
+                      <Users size={16} />
+                    </div>
+                  )}
+                  <span className="truncate text-sm font-medium text-foreground">{company.name}</span>
+                </Link>
+              ))
+            ) : (
+              <EmptyHint text="Nog geen bedrijven." />
+            )}
+          </div>
+        </div>
+      </section>
+
+      {/* Documenten, compact */}
+      {(recentDocuments ?? []).length > 0 && (
+        <section>
+          <div className="mb-2 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-foreground">Documenten</h2>
+            <Link href="/documenten" className="text-xs font-medium text-voc-red hover:underline">
+              Alle documenten
+            </Link>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {(recentDocuments ?? []).map((doc) => (
+              <Link
+                key={doc.id}
+                href="/documenten"
+                className="flex items-center gap-2 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground shadow-sm hover:border-voc-red"
+              >
+                <FileText size={13} className="text-voc-red" />
+                <span className="max-w-[160px] truncate">{doc.title}</span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
+    </div>
   );
 }

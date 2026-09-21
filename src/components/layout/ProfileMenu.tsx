@@ -2,33 +2,39 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { Building2, Settings, User as UserIcon } from "lucide-react";
+import { Building2, LayoutDashboard, LogOut, Settings, User as UserIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
-import { ROLE_LABELS } from "@/lib/auth/roles";
+import { NavBadge } from "./NavBadge";
+import { signOutAction } from "@/lib/auth/actions";
+import { isBoard } from "@/lib/auth/roles";
 import type { Profile } from "@/lib/auth/session";
 
 type ProfileMenuProps = {
   profile: Profile;
   avatarUrl: string | null;
   companyId: string | null;
+  companyName?: string | null;
+  beheerBadge?: number;
 };
 
-function menuItems(companyId: string | null) {
+function menuItems(profile: Profile, companyId: string | null) {
   return [
     { href: "/profiel", label: "Mijn profiel", icon: UserIcon },
     ...(companyId ? [{ href: `/bedrijven/${companyId}`, label: "Mijn bedrijfsprofiel", icon: Building2 }] : []),
     { href: "/instellingen", label: "Instellingen", icon: Settings },
+    ...(isBoard(profile.role) ? [{ href: "/beheer", label: "Beheer", icon: LayoutDashboard }] : []),
   ];
 }
 
 function MenuPanel({
   items,
+  beheerBadge,
   onClose,
   className,
 }: {
   items: ReturnType<typeof menuItems>;
+  beheerBadge?: number;
   onClose: () => void;
   className?: string;
 }) {
@@ -49,17 +55,27 @@ function MenuPanel({
             className="flex items-center gap-3 px-3 py-2.5 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
           >
             <Icon size={16} />
-            {label}
+            <span className="flex-1">{label}</span>
+            {label === "Beheer" && beheerBadge ? <NavBadge count={beheerBadge} /> : null}
           </Link>
         ))}
+        <form action={signOutAction} className="border-t border-border">
+          <button
+            type="submit"
+            className="flex w-full items-center gap-3 px-3 py-2.5 text-left text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+          >
+            <LogOut size={16} />
+            Uitloggen
+          </button>
+        </form>
       </div>
     </>
   );
 }
 
-export function SidebarProfileMenu({ profile, avatarUrl, companyId }: ProfileMenuProps) {
+export function SidebarProfileMenu({ profile, avatarUrl, companyId, companyName, beheerBadge }: ProfileMenuProps) {
   const [open, setOpen] = useState(false);
-  const items = menuItems(companyId);
+  const items = menuItems(profile, companyId);
 
   return (
     <div className="relative min-w-0 flex-1">
@@ -73,36 +89,47 @@ export function SidebarProfileMenu({ profile, avatarUrl, companyId }: ProfileMen
           <p className="truncate text-sm font-medium text-foreground">
             {profile.first_name} {profile.last_name}
           </p>
-          <p className="truncate text-xs text-muted">{ROLE_LABELS[profile.role]}</p>
+          {companyName && <p className="truncate text-xs text-muted">{companyName}</p>}
         </div>
       </button>
 
-      {open && <MenuPanel items={items} onClose={() => setOpen(false)} className="bottom-full left-0 mb-2" />}
+      {open && (
+        <MenuPanel
+          items={items}
+          beheerBadge={beheerBadge}
+          onClose={() => setOpen(false)}
+          className="bottom-full left-0 mb-2"
+        />
+      )}
     </div>
   );
 }
 
-export function BottomNavProfileMenu({ profile, avatarUrl, companyId }: ProfileMenuProps) {
+// Rechtsboven op mobiel: enkel het profielicoon (naam/bedrijf staat al op
+// het profiel zelf) dat hetzelfde accountmenu opent als de sidebar-kaart.
+export function HeaderProfileMenu({ profile, avatarUrl, companyId, beheerBadge }: ProfileMenuProps) {
   const [open, setOpen] = useState(false);
-  const pathname = usePathname();
-  const items = menuItems(companyId);
-  const active = pathname.startsWith("/profiel") || pathname.startsWith("/instellingen");
+  const items = menuItems(profile, companyId);
 
   return (
-    <div className="relative flex-1">
+    <div className="relative">
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className={clsx(
-          "flex h-14 w-full flex-col items-center justify-center gap-0.5 text-xs font-medium",
-          active ? "text-voc-red" : "text-muted"
-        )}
+        aria-label="Account"
+        className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-black/[.04] dark:hover:bg-white/[.08]"
       >
-        <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={22} />
-        Profiel
+        <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={28} />
       </button>
 
-      {open && <MenuPanel items={items} onClose={() => setOpen(false)} className="bottom-full right-0 mb-2" />}
+      {open && (
+        <MenuPanel
+          items={items}
+          beheerBadge={beheerBadge}
+          onClose={() => setOpen(false)}
+          className="right-0 top-full mt-2"
+        />
+      )}
     </div>
   );
 }

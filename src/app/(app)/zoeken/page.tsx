@@ -187,7 +187,7 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
                 {matchedPosts.map((post) => (
                   <Link
                     key={post.id}
-                    href="/"
+                    href="/community"
                     className="block rounded-2xl border border-border bg-surface p-4 shadow-sm hover:border-voc-red"
                   >
                     <p className="text-sm font-medium text-foreground">

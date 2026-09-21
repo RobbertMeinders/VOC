@@ -11,7 +11,13 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const [{ data: unreadNotifications }, avatarUrl, { data: membership }] = await Promise.all([
     supabase.from("notifications").select("id, link").eq("profile_id", profile.id).eq("is_read", false),
     getSignedStorageUrl("avatars", profile.avatar_url),
-    supabase.from("company_members").select("company_id").eq("profile_id", profile.id).limit(1).maybeSingle(),
+    supabase
+      .from("company_members")
+      .select("company_id, company:companies(name)")
+      .eq("profile_id", profile.id)
+      .limit(1)
+      .maybeSingle()
+      .returns<{ company_id: string; company: { name: string } | null }>(),
   ]);
 
   return (
@@ -20,6 +26,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       unreadNotifications={unreadNotifications ?? []}
       avatarUrl={avatarUrl}
       companyId={membership?.company_id ?? null}
+      companyName={membership?.company?.name ?? null}
     >
       {children}
     </AppShell>

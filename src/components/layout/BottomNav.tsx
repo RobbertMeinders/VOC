@@ -3,22 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
-import { PRIMARY_NAV_ITEMS, isNavItemActive } from "./nav-items";
-import { BottomNavProfileMenu } from "./ProfileMenu";
-import type { Profile } from "@/lib/auth/session";
+import { MOBILE_PRIMARY_NAV_ITEMS, isNavItemActive } from "./nav-items";
+import { NetworkChooser } from "./NetworkChooser";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
-export function BottomNav({
-  profile,
-  avatarUrl,
-  companyId,
-  unread,
-}: {
-  profile: Profile;
-  avatarUrl: string | null;
-  companyId: string | null;
-  unread: UnreadNotificationSections;
-}) {
+export function BottomNav({ unread }: { unread: UnreadNotificationSections }) {
   const pathname = usePathname();
 
   return (
@@ -27,10 +16,19 @@ export function BottomNav({
       aria-label="Hoofdnavigatie"
     >
       <ul className="flex items-stretch justify-around">
-        {PRIMARY_NAV_ITEMS.map((item) => {
+        {MOBILE_PRIMARY_NAV_ITEMS.map((item) => {
           const { href, label, icon: Icon, badgeKey } = item;
-          const active = isNavItemActive(item, pathname);
           const count = badgeKey ? unread[badgeKey] : 0;
+
+          if (item.label === "Netwerk") {
+            return (
+              <li key={href} className="flex-1">
+                <NetworkChooser badgeCount={count} />
+              </li>
+            );
+          }
+
+          const active = isNavItemActive(item, pathname);
           return (
             <li key={href} className="flex-1">
               <Link
@@ -53,9 +51,6 @@ export function BottomNav({
             </li>
           );
         })}
-        <li className="flex-1">
-          <BottomNavProfileMenu profile={profile} avatarUrl={avatarUrl} companyId={companyId} />
-        </li>
       </ul>
     </nav>
   );
