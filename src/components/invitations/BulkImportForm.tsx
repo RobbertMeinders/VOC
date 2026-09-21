@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
+import Link from "next/link";
 import { Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -128,9 +129,9 @@ export function BulkImportForm() {
             <p className="text-sm text-green-600">
               {result.imported} uitnodiging{result.imported === 1 ? "" : "en"} aangemaakt (nog geen e-mail
               verstuurd) — te vinden bij{" "}
-              <a href="/beheer/uitnodigingen" className="underline">
+              <Link href="/beheer/uitnodigingen" className="underline">
                 Uitnodigingen
-              </a>
+              </Link>
               .
             </p>
           )}

@@ -74,7 +74,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
           className="flex items-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
         >
           <CalendarPlus size={16} />
-          {isBoard(profile.role) ? "Nieuwe activiteit" : "Activiteit voorstellen"}
+          {isBoard(profile.role) ? "Nieuwe activiteit" : "Agenda activiteit toevoegen"}
         </Link>
       </div>
 

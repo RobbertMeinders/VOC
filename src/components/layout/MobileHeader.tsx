@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
-import { Search } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { SearchOverlay } from "@/components/search/SearchOverlay";
 import { HeaderProfileMenu } from "./ProfileMenu";
 import type { Profile } from "@/lib/auth/session";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
@@ -24,13 +23,7 @@ export function MobileHeader({
       <div className="flex h-14 items-center justify-between px-4">
         <Logo />
         <div className="flex items-center gap-1">
-          <Link
-            href="/zoeken"
-            aria-label="Zoeken"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.08]"
-          >
-            <Search size={18} />
-          </Link>
+          <SearchOverlay variant="mobile" />
           <NotificationCenter count={unread.total} variant="mobile" />
           <HeaderProfileMenu profile={profile} avatarUrl={avatarUrl} companyId={companyId} beheerBadge={unread.beheer} />
         </div>

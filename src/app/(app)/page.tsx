@@ -1,21 +1,40 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, CalendarDays, FileText, Inbox, MapPin, Users } from "lucide-react";
+import { ArrowRight, CalendarDays, FileText, Inbox, MapPin } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { fetchFeedPosts } from "@/lib/feed/queries";
 import { isBoard } from "@/lib/auth/roles";
-import { formatActivityDate } from "@/lib/format/date";
+import { formatActivityDate, formatActivityDateShort } from "@/lib/format/date";
+import { POST_TYPE_BADGE_CLASS, POST_TYPE_LABELS } from "@/lib/feed/postType";
 import { Avatar } from "@/components/ui/Avatar";
 import { VocSocialLinks } from "@/components/ui/VocSocialLinks";
 import { MentionedText } from "@/components/feed/MentionedText";
+import { MemberRow, type MemberListItem } from "@/components/members/MemberRow";
+import { CompanyCard, type CompanyListItem } from "@/components/company/CompanyCard";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Home" };
 
 type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
+type ProfileRow = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  avatar_url: string | null;
+  job_title: string | null;
+  company_members: { is_primary: boolean; company: { id: string; name: string; industry: string | null } | null }[];
+};
+type CompanyRow = {
+  id: string;
+  name: string;
+  industry: string | null;
+  city: string | null;
+  logo_url: string | null;
+  tagline: string | null;
+};
 
 function EmptyHint({ text }: { text: string }) {
   return <p className="text-sm text-muted">{text}</p>;
@@ -28,8 +47,8 @@ export default async function HomePage() {
   const [
     { data: activities },
     posts,
-    { data: recentMembers },
-    { data: recentCompanies },
+    { data: recentProfiles },
+    { data: recentCompanyRows },
     { data: recentDocuments },
     stats,
   ] = await Promise.all([
@@ -44,11 +63,19 @@ export default async function HomePage() {
     fetchFeedPosts(supabase, profile.id, 3),
     supabase
       .from("profiles")
-      .select("id, first_name, last_name, avatar_url")
+      .select(
+        "id, first_name, last_name, avatar_url, job_title, company_members(is_primary, company:companies(id, name, industry))"
+      )
       .eq("is_active", true)
       .order("created_at", { ascending: false })
-      .limit(3),
-    supabase.from("companies").select("id, name, logo_url").order("created_at", { ascending: false }).limit(3),
+      .limit(3)
+      .returns<ProfileRow[]>(),
+    supabase
+      .from("companies")
+      .select("id, name, industry, city, logo_url, tagline")
+      .order("created_at", { ascending: false })
+      .limit(3)
+      .returns<CompanyRow[]>(),
     supabase
       .from("documents")
       .select("id, title, category")
@@ -65,10 +92,31 @@ export default async function HomePage() {
   const [nextActivity, ...upcomingRest] = activities ?? [];
 
   const [memberAvatarUrls, companyLogoUrls] = await Promise.all([
-    getSignedStorageUrls(supabase, "avatars", (recentMembers ?? []).map((m) => m.avatar_url)),
-    getSignedStorageUrls(supabase, "company-logos", (recentCompanies ?? []).map((c) => c.logo_url)),
+    getSignedStorageUrls(supabase, "avatars", (recentProfiles ?? []).map((p) => p.avatar_url)),
+    getSignedStorageUrls(supabase, "company-logos", (recentCompanyRows ?? []).map((c) => c.logo_url)),
   ]);
   const nextActivityImageUrl = nextActivity ? await getSignedStorageUrl("activity-images", nextActivity.image_url) : null;
+
+  const recentMembers: MemberListItem[] = (recentProfiles ?? []).map((p) => {
+    const membership = p.company_members.find((m) => m.is_primary) ?? p.company_members[0];
+    return {
+      id: p.id,
+      first_name: p.first_name,
+      last_name: p.last_name,
+      avatarUrl: p.avatar_url ? (memberAvatarUrls.get(p.avatar_url) ?? null) : null,
+      jobTitle: p.job_title,
+      company: membership?.company ?? null,
+    };
+  });
+
+  const recentCompanies: CompanyListItem[] = (recentCompanyRows ?? []).map((c) => ({
+    id: c.id,
+    name: c.name,
+    industry: c.industry,
+    city: c.city,
+    tagline: c.tagline,
+    logoUrl: c.logo_url ? (companyLogoUrls.get(c.logo_url) ?? null) : null,
+  }));
 
   const pendingRequests = stats ? (stats[0].count ?? 0) : 0;
   const pendingActivities = stats ? (stats[1].count ?? 0) : 0;
@@ -176,17 +224,31 @@ export default async function HomePage() {
                   firstName={post.author.first_name}
                   lastName={post.author.last_name}
                   avatarUrl={post.author.avatarUrl}
-                  size={32}
+                  size={40}
                 />
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-foreground">
-                    {post.author.first_name} {post.author.last_name}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <p className="truncate text-sm font-medium text-foreground">
+                      {post.author.first_name} {post.author.last_name}
+                    </p>
+                    {post.type && (
+                      <span
+                        className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium ${POST_TYPE_BADGE_CLASS[post.type]}`}
+                      >
+                        {POST_TYPE_LABELS[post.type]}
+                      </span>
+                    )}
+                  </div>
                   {post.content && (
-                    <p className="line-clamp-2 text-sm text-muted">
+                    <p className="mt-0.5 line-clamp-2 text-sm text-muted">
                       <MentionedText text={post.content} />
                     </p>
                   )}
+                  <div className="mt-1 flex items-center gap-3 text-xs text-muted">
+                    <span>{formatActivityDateShort(post.createdAt)}</span>
+                    {post.likesCount > 0 && <span>{post.likesCount} vind-ik-leuks</span>}
+                    {post.comments.length > 0 && <span>{post.comments.length} reacties</span>}
+                  </div>
                 </div>
               </Link>
             ))}
@@ -208,24 +270,8 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="flex flex-col gap-2">
-            {(recentMembers ?? []).length > 0 ? (
-              (recentMembers ?? []).map((member) => (
-                <Link
-                  key={member.id}
-                  href={`/leden/${member.id}`}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-surface p-2.5 shadow-sm hover:border-voc-red"
-                >
-                  <Avatar
-                    firstName={member.first_name}
-                    lastName={member.last_name}
-                    avatarUrl={member.avatar_url ? (memberAvatarUrls.get(member.avatar_url) ?? null) : null}
-                    size={32}
-                  />
-                  <span className="truncate text-sm font-medium text-foreground">
-                    {member.first_name} {member.last_name}
-                  </span>
-                </Link>
-              ))
+            {recentMembers.length > 0 ? (
+              recentMembers.map((member) => <MemberRow key={member.id} member={member} />)
             ) : (
               <EmptyHint text="Nog geen leden." />
             )}
@@ -240,29 +286,8 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="flex flex-col gap-2">
-            {(recentCompanies ?? []).length > 0 ? (
-              (recentCompanies ?? []).map((company) => (
-                <Link
-                  key={company.id}
-                  href={`/bedrijven/${company.id}`}
-                  className="flex items-center gap-3 rounded-xl border border-border bg-surface p-2.5 shadow-sm hover:border-voc-red"
-                >
-                  {company.logo_url && companyLogoUrls.get(company.logo_url) ? (
-                    <Image
-                      src={companyLogoUrls.get(company.logo_url)!}
-                      alt={company.name}
-                      width={32}
-                      height={32}
-                      className="h-8 w-8 shrink-0 rounded-lg object-contain"
-                    />
-                  ) : (
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red">
-                      <Users size={16} />
-                    </div>
-                  )}
-                  <span className="truncate text-sm font-medium text-foreground">{company.name}</span>
-                </Link>
-              ))
+            {recentCompanies.length > 0 ? (
+              recentCompanies.map((company) => <CompanyCard key={company.id} company={company} />)
             ) : (
               <EmptyHint text="Nog geen bedrijven." />
             )}

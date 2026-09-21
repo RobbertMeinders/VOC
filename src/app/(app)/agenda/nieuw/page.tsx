@@ -13,7 +13,7 @@ export default async function NewActivityPage() {
   return (
     <div>
       <h1 className="mb-1 text-xl font-semibold text-foreground">
-        {board ? "Nieuwe activiteit" : "Activiteit voorstellen"}
+        {board ? "Nieuwe activiteit" : "Agenda activiteit toevoegen"}
       </h1>
       {!board && (
         <p className="mb-4 text-sm text-muted">

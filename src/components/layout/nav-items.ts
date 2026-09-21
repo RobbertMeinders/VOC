@@ -53,15 +53,15 @@ export const MOBILE_PRIMARY_NAV_ITEMS: NavItem[] = [
   NETWERK_NAV_ITEM,
 ];
 
-// Desktop sidebar: platte lijst, Netwerk krijgt in Sidebar.tsx zelf zijn
-// altijd-zichtbare Leden/Bedrijven-subitems.
+// Desktop sidebar: platte lijst. Netwerk opent in Sidebar.tsx een popover
+// (Leden/Bedrijven) i.p.v. een eigen route te hebben; Zoeken zit niet in
+// deze lijst maar als overlay-icoon naast het logo (net als op mobiel).
 export const DESKTOP_NAV_ITEMS: NavItem[] = [
   HOME_NAV_ITEM,
   COMMUNITY_NAV_ITEM,
   AGENDA_NAV_ITEM,
   NETWERK_NAV_ITEM,
   DOCUMENTEN_NAV_ITEM,
-  ZOEKEN_NAV_ITEM,
   NOTIFICATIES_NAV_ITEM,
 ];
 

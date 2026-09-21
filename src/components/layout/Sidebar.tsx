@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
-import { DESKTOP_NAV_ITEMS, LEDEN_NAV_ITEM, BEDRIJVEN_NAV_ITEM, isNavItemActive, type NavItem } from "./nav-items";
+import { DESKTOP_NAV_ITEMS, isNavItemActive, type NavItem } from "./nav-items";
 import { NavBadge } from "./NavBadge";
 import { Logo } from "@/components/ui/Logo";
 import { SidebarProfileMenu } from "./ProfileMenu";
+import { NetworkChooser } from "./NetworkChooser";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
+import { SearchOverlay } from "@/components/search/SearchOverlay";
+import { VocSocialLinks } from "@/components/ui/VocSocialLinks";
 import type { Profile } from "@/lib/auth/session";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
@@ -52,8 +55,9 @@ export function Sidebar({
 
   return (
     <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-surface px-4 py-6 md:flex">
-      <div className="mb-8 px-2">
+      <div className="mb-8 flex items-center justify-between px-2">
         <Logo />
+        <SearchOverlay variant="sidebar" />
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">
@@ -64,22 +68,18 @@ export function Sidebar({
             // bereikbaar via "Alles bekijken" in het paneel).
             return <NotificationCenter key={item.href} count={unread.total} variant="sidebar" />;
           }
-          if (item.label !== "Netwerk") return renderItem(item);
-          // Netwerk is de enige sidebar-ingang die op desktop uitklapt: de
-          // subitems staan altijd zichtbaar (geen collapse-state nodig),
-          // zodat meteen duidelijk is dat "Netwerk" uit Leden + Bedrijven
-          // bestaat i.p.v. een los klikbaar item te zijn.
-          return (
-            <div key="netwerk-group">
-              {renderItem(item)}
-              <div className="flex flex-col gap-1">
-                {renderItem(LEDEN_NAV_ITEM, true)}
-                {renderItem(BEDRIJVEN_NAV_ITEM, true)}
-              </div>
-            </div>
-          );
+          if (item.label === "Netwerk") {
+            // Klik opent een popover (Leden/Bedrijven) net als het
+            // accountmenu, i.p.v. een altijd-uitgeklapt submenu.
+            return <NetworkChooser key={item.href} badgeCount={unread.netwerk} variant="sidebar" />;
+          }
+          return renderItem(item);
         })}
       </nav>
+
+      <div className="flex items-center justify-center gap-2 py-3">
+        <VocSocialLinks />
+      </div>
 
       <div className="border-t border-border pt-4">
         <SidebarProfileMenu
