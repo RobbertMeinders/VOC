@@ -21,6 +21,7 @@ const ALLOWED_ATTACHMENT_TYPES: Record<string, "image" | "pdf"> = {
   "application/pdf": "pdf",
 };
 const MAX_ATTACHMENT_BYTES = 15 * 1024 * 1024;
+const MAX_ATTACHMENTS = 10;
 
 export type CreatePostState = { error?: string; success?: boolean; post?: FeedPost };
 
@@ -30,6 +31,19 @@ export async function createPostAction(_prevState: CreatePostState, formData: Fo
 
   if (!content) {
     return { error: "Schrijf een bericht voordat je het plaatst." };
+  }
+
+  const files = formData.getAll("attachments").filter((f): f is File => f instanceof File && f.size > 0);
+  if (files.length > MAX_ATTACHMENTS) {
+    return { error: `Je kunt maximaal ${MAX_ATTACHMENTS} bestanden toevoegen.` };
+  }
+  for (const file of files) {
+    if (!ALLOWED_ATTACHMENT_TYPES[file.type]) {
+      return { error: "Alleen afbeeldingen (PNG/JPEG/WebP) of PDF's zijn toegestaan als bijlage." };
+    }
+    if (file.size > MAX_ATTACHMENT_BYTES) {
+      return { error: "Elke bijlage mag maximaal 15 MB zijn." };
+    }
   }
 
   const supabase = await createClient();
@@ -44,33 +58,24 @@ export async function createPostAction(_prevState: CreatePostState, formData: Fo
     return { error: "Plaatsen is niet gelukt. Probeer het opnieuw." };
   }
 
-  const file = formData.get("attachment");
-  if (file instanceof File && file.size > 0) {
-    const attachmentType = ALLOWED_ATTACHMENT_TYPES[file.type];
-    if (!attachmentType) {
-      return { error: "Alleen afbeeldingen (PNG/JPEG/WebP) of PDF's zijn toegestaan als bijlage." };
-    }
-    if (file.size > MAX_ATTACHMENT_BYTES) {
-      return { error: "De bijlage mag maximaal 15 MB zijn." };
-    }
+  const attachmentRows: { post_id: string; type: "image" | "pdf"; storage_path: string; file_name: string }[] = [];
 
+  for (const [index, file] of files.entries()) {
+    const attachmentType = ALLOWED_ATTACHMENT_TYPES[file.type];
     const extension = file.name.split(".").pop() || (attachmentType === "pdf" ? "pdf" : "jpg");
-    const path = `${profile.id}/${newPost.id}.${extension}`;
+    const path = `${profile.id}/${newPost.id}-${index}.${extension}`;
 
     const { error: uploadError } = await supabase.storage.from("feed-media").upload(path, file, {
       contentType: file.type,
     });
 
-    if (uploadError) {
-      return { error: `Bericht geplaatst, maar de bijlage kon niet worden geüpload: ${uploadError.message}` };
+    if (!uploadError) {
+      attachmentRows.push({ post_id: newPost.id, type: attachmentType, storage_path: path, file_name: file.name });
     }
+  }
 
-    await supabase.from("feed_attachments").insert({
-      post_id: newPost.id,
-      type: attachmentType,
-      storage_path: path,
-      file_name: file.name,
-    });
+  if (attachmentRows.length > 0) {
+    await supabase.from("feed_attachments").insert(attachmentRows);
   }
 
   const post = await fetchPostById(supabase, newPost.id, profile.id);

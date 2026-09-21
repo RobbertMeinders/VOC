@@ -2,13 +2,13 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
-import Image from "next/image";
 import Link from "next/link";
 import { FileText, MessageCircle, ThumbsUp } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
 import { ExpandableText } from "@/components/ui/ExpandableText";
 import { ActionMenu } from "@/components/ui/ActionMenu";
+import { AttachmentCarousel } from "./AttachmentCarousel";
 import { LikeButton } from "./LikeButton";
 import { CommentForm } from "./CommentForm";
 import { LikersOverlay } from "./LikersOverlay";
@@ -424,22 +424,13 @@ export function PostCard({
         </>
       )}
 
-      {post.attachments.map((attachment) =>
-        attachment.type === "image" && attachment.url ? (
-          <Image
-            key={attachment.id}
-            src={attachment.url}
-            alt={attachment.fileName}
-            width={0}
-            height={0}
-            sizes="(min-width: 640px) 600px, 100vw"
-            className="mt-3 max-h-[520px] w-full rounded-xl object-contain"
-            style={{ width: "100%", height: "auto" }}
-          />
-        ) : attachment.url ? (
+      <AttachmentCarousel images={post.attachments.filter((a) => a.type === "image")} />
+      {post.attachments
+        .filter((a) => a.type !== "image" && a.url)
+        .map((attachment) => (
           <a
             key={attachment.id}
-            href={attachment.url}
+            href={attachment.url!}
             target="_blank"
             rel="noopener noreferrer"
             className="mt-3 flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-foreground hover:border-voc-red"
@@ -447,8 +438,7 @@ export function PostCard({
             <FileText size={16} className="text-voc-red" />
             <span className="truncate">{attachment.fileName}</span>
           </a>
-        ) : null
-      )}
+        ))}
 
       <div className="mt-2 flex items-center justify-between">
         <div className="flex min-w-0 items-center gap-2">
