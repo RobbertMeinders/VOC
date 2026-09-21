@@ -30,12 +30,12 @@ export function CompanyCard({ company }: { company: CompanyListItem }) {
           <Building2 size={30} />
         </div>
       )}
-      <div className="min-w-0">
-        <p className="truncate text-sm font-medium text-foreground">{company.name}</p>
+      <div className="min-w-0 flex-1">
+        <p className="line-clamp-2 text-sm font-medium leading-snug text-foreground">{company.name}</p>
         {company.tagline ? (
-          <p className="truncate text-xs text-muted">{company.tagline}</p>
+          <p className="mt-0.5 line-clamp-2 text-xs text-muted">{company.tagline}</p>
         ) : (
-          <p className="truncate text-xs text-muted">
+          <p className="mt-0.5 truncate text-xs text-muted">
             {company.industry && <span>{company.industry}</span>}
             {company.industry && company.city && <span> — </span>}
             {company.city && <span>{company.city}</span>}

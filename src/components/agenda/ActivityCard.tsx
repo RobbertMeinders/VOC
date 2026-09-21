@@ -22,24 +22,24 @@ export function ActivityCard({
   return (
     <Link
       href={`/agenda/${activity.id}`}
-      className="flex gap-4 rounded-2xl border border-border bg-surface p-4 shadow-sm hover:border-voc-red"
+      className="flex gap-4 rounded-2xl border border-border bg-surface p-5 shadow-sm hover:border-voc-red"
     >
       {imageUrl ? (
         <Image
           src={imageUrl}
           alt={activity.title}
-          width={96}
-          height={96}
-          className="h-24 w-24 shrink-0 rounded-xl object-cover"
+          width={112}
+          height={112}
+          className="h-28 w-28 shrink-0 rounded-xl object-cover"
         />
       ) : (
-        <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red">
-          <CalendarDays size={30} />
+        <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red">
+          <CalendarDays size={34} />
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-base font-semibold text-foreground">{activity.title}</p>
-        <p className="mt-0.5 text-sm text-muted">{formatActivityDate(activity.starts_at)}</p>
+        <p className="line-clamp-2 text-lg font-semibold leading-snug text-foreground">{activity.title}</p>
+        <p className="mt-1 text-sm text-muted">{formatActivityDate(activity.starts_at)}</p>
         {activity.location && (
           <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted">
             <MapPin size={14} />
