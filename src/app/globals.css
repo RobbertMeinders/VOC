@@ -89,3 +89,30 @@ body {
     font-size: 16px !important;
   }
 }
+
+/* Subtiele open-animatie voor overlays: de achtergrond dimt in, het paneel
+   schaalt/fade't licht op. Elke overlay in de app kan deze twee klassen
+   hergebruiken i.p.v. zelf iets te verzinnen. */
+@keyframes voc-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes voc-scale-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+}
+.animate-fade-in {
+  animation: voc-fade-in 0.15s ease-out;
+}
+.animate-scale-in {
+  animation: voc-scale-in 0.15s ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-scale-in {
+    animation: none;
+  }
+}
