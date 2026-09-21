@@ -7,6 +7,7 @@ import { DESKTOP_NAV_ITEMS, LEDEN_NAV_ITEM, BEDRIJVEN_NAV_ITEM, isNavItemActive,
 import { NavBadge } from "./NavBadge";
 import { Logo } from "@/components/ui/Logo";
 import { SidebarProfileMenu } from "./ProfileMenu";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import type { Profile } from "@/lib/auth/session";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
@@ -57,6 +58,12 @@ export function Sidebar({
 
       <nav className="flex flex-1 flex-col gap-1">
         {DESKTOP_NAV_ITEMS.map((item) => {
+          if (item.label === "Notificaties") {
+            // Popover i.p.v. directe navigatie: een snelle blik zonder de
+            // huidige pagina te verlaten (/notificaties blijft gewoon
+            // bereikbaar via "Alles bekijken" in het paneel).
+            return <NotificationCenter key={item.href} count={unread.total} variant="sidebar" />;
+          }
           if (item.label !== "Netwerk") return renderItem(item);
           // Netwerk is de enige sidebar-ingang die op desktop uitklapt: de
           // subitems staan altijd zichtbaar (geen collapse-state nodig),

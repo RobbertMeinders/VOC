@@ -3,6 +3,25 @@
 import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import type { Database } from "@/lib/types/database";
+
+export type RecentNotification = Database["public"]["Tables"]["notifications"]["Row"];
+
+// Voor het notificatie-popover/drawer (NotificationCenter): een korte,
+// on-demand lijst zodat je meldingen kunt bekijken zonder de huidige pagina
+// te verlaten — los van de (realtime bijgehouden) ongelezen-tellers.
+export async function getRecentNotificationsAction(limit = 8): Promise<RecentNotification[]> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("notifications")
+    .select("*")
+    .eq("profile_id", profile.id)
+    .order("created_at", { ascending: false })
+    .limit(limit)
+    .returns<RecentNotification[]>();
+  return data ?? [];
+}
 
 export async function markNotificationReadAction(notificationId: string) {
   const profile = await requireProfile();

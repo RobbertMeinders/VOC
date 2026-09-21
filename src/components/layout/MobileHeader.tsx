@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { Logo } from "@/components/ui/Logo";
-import { NotificationBellIcon } from "@/components/notifications/NotificationBellIcon";
+import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { HeaderProfileMenu } from "./ProfileMenu";
 import type { Profile } from "@/lib/auth/session";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
@@ -31,7 +31,7 @@ export function MobileHeader({
           >
             <Search size={18} />
           </Link>
-          <NotificationBellIcon count={unread.total} />
+          <NotificationCenter count={unread.total} variant="mobile" />
           <HeaderProfileMenu profile={profile} avatarUrl={avatarUrl} companyId={companyId} beheerBadge={unread.beheer} />
         </div>
       </div>

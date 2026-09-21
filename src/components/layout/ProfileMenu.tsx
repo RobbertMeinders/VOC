@@ -8,6 +8,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { NavBadge } from "./NavBadge";
 import { signOutAction } from "@/lib/auth/actions";
 import { isBoard } from "@/lib/auth/roles";
+import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import type { Profile } from "@/lib/auth/session";
 
 type ProfileMenuProps = {
@@ -38,6 +39,8 @@ function MenuPanel({
   onClose: () => void;
   className?: string;
 }) {
+  useEscapeKey(true, onClose);
+
   return (
     <>
       <div className="fixed inset-0 z-20" onClick={onClose} />
