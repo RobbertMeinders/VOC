@@ -121,8 +121,8 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
         </button>
         {open && (
           <>
-            <div className="fixed inset-0 z-40 bg-black/40" onClick={close} />
-            <div className="fixed inset-x-0 bottom-0 z-50 max-h-[75dvh] overflow-hidden rounded-t-2xl bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg">
+            <div className="fixed inset-0 z-40 bg-black/40 animate-fade-in" onClick={close} />
+            <div className="animate-scale-in fixed inset-x-0 bottom-0 z-50 max-h-[75dvh] overflow-hidden rounded-t-2xl bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg">
               <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-black/15 dark:bg-white/20" />
               {panelContent}
             </div>
@@ -153,7 +153,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={close} />
-          <div className="absolute left-0 top-full z-50 mt-1 w-80 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+          <div className="animate-scale-in absolute left-0 top-full z-50 mt-1 w-80 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
             {panelContent}
           </div>
         </>

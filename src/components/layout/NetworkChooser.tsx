@@ -57,7 +57,7 @@ export function NetworkChooser({
             <div className="fixed inset-0 z-40" onClick={close} />
             {/* Opent naar rechts i.p.v. eronder — anders schuift het paneel
                 over Documenten/Notificaties eronder in de sidebar heen. */}
-            <div className="absolute left-full top-0 z-50 ml-2 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+            <div className="animate-scale-in absolute left-full top-0 z-50 ml-2 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
               {OPTIONS.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
@@ -100,22 +100,24 @@ export function NetworkChooser({
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={close} />
-          <div className="absolute bottom-full left-1/2 z-50 mb-2 w-48 -translate-x-1/2 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
-            <p className="flex items-center gap-1.5 border-b border-border px-3 py-2 text-xs font-semibold text-muted">
-              <ChevronUp size={12} />
-              Netwerk
-            </p>
-            {OPTIONS.map(({ href, label, icon: Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                onClick={close}
-                className="flex items-center gap-3 px-4 py-3.5 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-              >
-                <Icon size={20} />
-                {label}
-              </Link>
-            ))}
+          <div className="absolute bottom-full left-1/2 z-50 mb-2 w-48 -translate-x-1/2">
+            <div className="animate-scale-in overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+              <p className="flex items-center gap-1.5 border-b border-border px-3 py-2 text-xs font-semibold text-muted">
+                <ChevronUp size={12} />
+                Netwerk
+              </p>
+              {OPTIONS.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={close}
+                  className="flex items-center gap-3 px-4 py-3.5 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                >
+                  <Icon size={20} />
+                  {label}
+                </Link>
+              ))}
+            </div>
           </div>
         </>
       )}
