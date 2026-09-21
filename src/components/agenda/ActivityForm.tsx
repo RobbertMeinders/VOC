@@ -61,11 +61,13 @@ export function ActivityForm({
   action,
   submitLabel,
   imageUrl,
+  canUploadImage = true,
 }: {
   activity?: Activity;
   action: (prevState: ActivityFormState, formData: FormData) => Promise<ActivityFormState>;
   submitLabel: string;
   imageUrl?: string | null;
+  canUploadImage?: boolean;
 }) {
   const [state, formAction] = useActionState(action, initialState);
   const [preview, setPreview] = useState<string | null>(null);
@@ -167,26 +169,28 @@ export function ActivityForm({
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="image" className="text-sm font-medium text-foreground">
-          Afbeelding
-        </label>
-        {shownImage && (
-          <Image src={shownImage} alt="" width={160} height={100} className="h-[100px] w-[160px] rounded-lg object-cover" />
-        )}
-        <input
-          id="image"
-          name="image"
-          type="file"
-          accept="image/png,image/jpeg,image/webp"
-          onChange={async (e) => {
-            const input = e.target;
-            const compressed = await compressInputFile(input);
-            if (compressed) setPreview(URL.createObjectURL(compressed));
-          }}
-          className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
-        />
-      </div>
+      {canUploadImage && (
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="image" className="text-sm font-medium text-foreground">
+            Afbeelding
+          </label>
+          {shownImage && (
+            <Image src={shownImage} alt="" width={160} height={100} className="h-[100px] w-[160px] rounded-lg object-cover" />
+          )}
+          <input
+            id="image"
+            name="image"
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            onChange={async (e) => {
+              const input = e.target;
+              const compressed = await compressInputFile(input);
+              if (compressed) setPreview(URL.createObjectURL(compressed));
+            }}
+            className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
+          />
+        </div>
+      )}
 
       {state.error && (
         <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">

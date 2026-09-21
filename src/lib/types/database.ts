@@ -5,6 +5,8 @@
 export type UserRole = "lid" | "bestuurslid" | "beheerder";
 export type InvitationStatus = "pending" | "accepted" | "revoked" | "expired";
 export type FeedAttachmentType = "image" | "pdf";
+export type ActivitySource = "voc" | "lid";
+export type ActivityStatus = "pending" | "approved" | "rejected";
 
 export interface Database {
   public: {
@@ -122,6 +124,8 @@ export interface Database {
           created_by: string | null;
           created_at: string;
           updated_at: string;
+          source: ActivitySource;
+          status: ActivityStatus;
         };
         Insert: Partial<Database["public"]["Tables"]["activities"]["Row"]> & {
           title: string;

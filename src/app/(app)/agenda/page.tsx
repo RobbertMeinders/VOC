@@ -53,15 +53,13 @@ export default async function AgendaPage() {
     <div>
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-foreground">Agenda</h1>
-        {isBoard(profile.role) && (
-          <Link
-            href="/agenda/nieuw"
-            className="flex items-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
-          >
-            <CalendarPlus size={16} />
-            Nieuwe activiteit
-          </Link>
-        )}
+        <Link
+          href="/agenda/nieuw"
+          className="flex items-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
+        >
+          <CalendarPlus size={16} />
+          {isBoard(profile.role) ? "Nieuwe activiteit" : "Activiteit voorstellen"}
+        </Link>
       </div>
 
       {upcoming.length > 0 ? (

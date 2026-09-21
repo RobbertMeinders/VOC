@@ -100,7 +100,10 @@ export async function createActivityAction(
   formData: FormData
 ): Promise<ActivityFormState> {
   try {
-    const profile = await requireBoard();
+    // Elk actief lid mag indienen — de normalize_activity_submission-trigger
+    // (migratie 0015) bepaalt op basis van de echte rol of dit een meteen
+    // goedgekeurde VOC-activiteit wordt of een pending community-inzending.
+    const profile = await requireProfile();
     const { title, startsAt, ...rest } = parseActivityForm(formData);
 
     if (!title || !startsAt) {
@@ -184,7 +187,10 @@ export async function updateActivityAction(
 
 export async function deleteActivityAction(activityId: string) {
   try {
-    await requireBoard();
+    // requireProfile (niet requireBoard): RLS staat een lid ook toe zijn
+    // eigen, nog-niet-beoordeelde inzending in te trekken
+    // (activities_self_delete_pending) — bestuur kan altijd verwijderen.
+    await requireProfile();
     const supabase = await createClient();
     await supabase.from("activities").delete().eq("id", activityId);
     revalidatePath("/agenda");
@@ -194,4 +200,14 @@ export async function deleteActivityAction(activityId: string) {
     console.error("[agenda] deleteActivityAction failed:", cause);
     throw cause;
   }
+}
+
+export async function decideActivitySubmissionAction(activityId: string, decision: "approved" | "rejected") {
+  await requireBoard();
+  const supabase = await createClient();
+
+  await supabase.from("activities").update({ status: decision }).eq("id", activityId);
+
+  revalidatePath(`/agenda/${activityId}`);
+  revalidatePath("/agenda");
 }

@@ -267,12 +267,23 @@ Op het Hobby-plan **weigert Vercel de deployment volledig** als dat zo is (in pl
 minder vaak uit te voeren) — en dat gebeurt zonder zichtbare melding in de deployment-lijst zelf, wel
 zichtbaar bij een handmatige "Create Deployment". Zie de cron-schema's verderop in dit document.
 
+## Community-agenda
+
+Niet alleen bestuur/beheer kan een activiteit aanmaken — elk actief lid kan er een voorstellen via
+"Activiteit voorstellen" op `/agenda`. Wie de activiteit indient bepaalt (via een database-trigger,
+niet clientinvoer) hoe 'm binnenkomt: een bestuurslid maakt meteen een goedgekeurde, officiële
+"VOC"-activiteit aan; ieder ander lid dient een "community"-activiteit in met status `pending`, pas
+zichtbaar voor anderen (behalve bestuur/beheer en de indiener zelf) nadat bestuur/beheer 'm
+goedkeurt op de activiteitpagina zelf. Zie `0015_community_activities.sql`. Community-activiteiten
+tonen een badge en blijven ook na goedkeuring visueel onderscheiden van officiële VOC-activiteiten.
+
 ## WordPress-embed (agenda)
 
 `/embed/agenda` is een publieke, responsive pagina zonder navigatie of ingelogde sessie — bedoeld om
-in een Elementor/WordPress-iframe op de publieke VOC-site te laden. Toon alleen aankomende
-activiteiten (titel, datum, locatie, korte omschrijving, afbeelding); wie zich heeft aangemeld blijft
-verborgen. Voorbeeld-iframe:
+in een Elementor/WordPress-iframe op de publieke VOC-site te laden. Toont alleen goedgekeurde,
+officiële VOC-activiteiten (titel, datum, locatie, korte omschrijving, afbeelding) — community-
+activiteiten van leden blijven binnen de app; wie zich heeft aangemeld blijft verborgen.
+Voorbeeld-iframe:
 
 ```html
 <iframe src="https://<jouw-portaal-domein>/embed/agenda" style="width:100%;border:0;height:600px"></iframe>

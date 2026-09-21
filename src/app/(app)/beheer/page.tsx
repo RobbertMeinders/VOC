@@ -20,19 +20,30 @@ export default async function BeheerPage() {
   await requireBoard();
   const supabase = await createClient();
 
-  const [{ count: memberCount }, { count: pendingInvitations }, { count: pendingRequests }, { count: upcomingActivities }] =
-    await Promise.all([
-      supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
-      supabase.from("invitations").select("id", { count: "exact", head: true }).eq("status", "pending"),
-      supabase.from("access_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
-      supabase.from("activities").select("id", { count: "exact", head: true }).gte("starts_at", new Date().toISOString()),
-    ]);
+  const [
+    { count: memberCount },
+    { count: pendingInvitations },
+    { count: pendingRequests },
+    { count: upcomingActivities },
+    { count: pendingActivities },
+  ] = await Promise.all([
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
+    supabase.from("invitations").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("access_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    supabase
+      .from("activities")
+      .select("id", { count: "exact", head: true })
+      .eq("status", "approved")
+      .gte("starts_at", new Date().toISOString()),
+    supabase.from("activities").select("id", { count: "exact", head: true }).eq("status", "pending"),
+  ]);
 
   const stats = [
     { label: "Actieve leden", value: memberCount ?? 0 },
     { label: "Openstaande uitnodigingen", value: pendingInvitations ?? 0 },
     { label: "Openstaande aanvragen", value: pendingRequests ?? 0 },
     { label: "Aankomende activiteiten", value: upcomingActivities ?? 0 },
+    { label: "Activiteiten ter goedkeuring", value: pendingActivities ?? 0 },
   ];
 
   return (

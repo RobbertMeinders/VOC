@@ -10,7 +10,7 @@ import { isBoard } from "@/lib/auth/roles";
 import { formatActivityDate, formatActivityTimeOnly } from "@/lib/format/date";
 import { RegisterButton } from "@/components/agenda/RegisterButton";
 import { DeleteButton } from "@/components/feed/DeleteButton";
-import { deleteActivityAction } from "@/app/(app)/agenda/actions";
+import { deleteActivityAction, decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -63,6 +63,25 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
           />
         )}
         <div className="p-6">
+          {(activity.source === "lid" || activity.status !== "approved") && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {activity.source === "lid" && (
+                <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-xs font-medium text-muted dark:bg-white/[.08]">
+                  Community
+                </span>
+              )}
+              {activity.status === "pending" && (
+                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+                  Ter goedkeuring
+                </span>
+              )}
+              {activity.status === "rejected" && (
+                <span className="rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red">
+                  Afgewezen
+                </span>
+              )}
+            </div>
+          )}
           <h1 className="text-xl font-semibold text-foreground">{activity.title}</h1>
           <div className="mt-3 flex flex-col gap-2 text-sm text-muted">
             <span className="flex items-center gap-2">
@@ -103,6 +122,28 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
         </div>
       </div>
 
+      {isBoard(profile.role) && activity.status === "pending" && (
+        <div className="flex items-center gap-2 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+          <p className="mr-auto text-sm text-muted">Deze activiteit wacht nog op een besluit.</p>
+          <form action={decideActivitySubmissionAction.bind(null, activity.id, "approved")}>
+            <button
+              type="submit"
+              className="rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
+            >
+              Goedkeuren
+            </button>
+          </form>
+          <form action={decideActivitySubmissionAction.bind(null, activity.id, "rejected")}>
+            <button
+              type="submit"
+              className="rounded-full border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            >
+              Afwijzen
+            </button>
+          </form>
+        </div>
+      )}
+
       {isBoard(profile.role) && (
         <div className="flex items-center gap-2">
           <Link
@@ -118,6 +159,14 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
             className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red hover:border-voc-red"
           />
         </div>
+      )}
+
+      {!isBoard(profile.role) && activity.created_by === profile.id && activity.status === "pending" && (
+        <DeleteButton
+          onDelete={deleteActivityAction.bind(null, activity.id)}
+          confirmMessage="Weet je zeker dat je deze inzending wilt intrekken?"
+          className="flex items-center gap-1.5 self-start rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red hover:border-voc-red"
+        />
       )}
     </div>
   );
