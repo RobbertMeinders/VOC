@@ -13,7 +13,7 @@ import type { Profile } from "@/lib/auth/session";
 
 const BEHEER_NAV_ITEM: NavItem = { href: "/beheer", label: "Beheer", icon: LayoutDashboard };
 
-export function MobileHeader({ profile, unreadNotifications }: { profile: Profile; unreadNotifications: number }) {
+export function MobileHeader({ profile, unreadCount }: { profile: Profile; unreadCount: number }) {
   const pathname = usePathname();
 
   return (
@@ -21,7 +21,7 @@ export function MobileHeader({ profile, unreadNotifications }: { profile: Profil
       <div className="flex h-14 items-center justify-between px-4">
         <Logo />
         <div className="flex items-center gap-1">
-          <NotificationBellIcon profileId={profile.id} initialUnreadCount={unreadNotifications} />
+          <NotificationBellIcon count={unreadCount} />
           {/* Keyed by pathname so the panel remounts (and its open state
               resets to closed) on every navigation, instead of closing it
               from an effect — a direct setState in an effect body cascades

@@ -4,17 +4,9 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Bell } from "lucide-react";
 import { clsx } from "clsx";
-import { useUnreadNotificationCount } from "@/lib/notifications/useUnreadCount";
 
-export function NotificationBellLink({
-  profileId,
-  initialUnreadCount,
-}: {
-  profileId: string;
-  initialUnreadCount: number;
-}) {
+export function NotificationBellLink({ count }: { count: number }) {
   const pathname = usePathname();
-  const count = useUnreadNotificationCount(profileId, initialUnreadCount);
   const active = pathname.startsWith("/notificaties");
 
   return (

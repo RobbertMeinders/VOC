@@ -12,7 +12,7 @@ import { NotificationBellLink } from "@/components/notifications/NotificationBel
 import { isBoard, ROLE_LABELS } from "@/lib/auth/roles";
 import type { Profile } from "@/lib/auth/session";
 
-export function Sidebar({ profile, unreadNotifications }: { profile: Profile; unreadNotifications: number }) {
+export function Sidebar({ profile, unreadCount }: { profile: Profile; unreadCount: number }) {
   const pathname = usePathname();
 
   return (
@@ -41,7 +41,7 @@ export function Sidebar({ profile, unreadNotifications }: { profile: Profile; un
           );
         })}
 
-        <NotificationBellLink profileId={profile.id} initialUnreadCount={unreadNotifications} />
+        <NotificationBellLink count={unreadCount} />
 
         {isBoard(profile.role) && (
           <Link

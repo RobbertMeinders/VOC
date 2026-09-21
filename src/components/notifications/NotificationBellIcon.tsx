@@ -2,17 +2,8 @@
 
 import Link from "next/link";
 import { Bell } from "lucide-react";
-import { useUnreadNotificationCount } from "@/lib/notifications/useUnreadCount";
 
-export function NotificationBellIcon({
-  profileId,
-  initialUnreadCount,
-}: {
-  profileId: string;
-  initialUnreadCount: number;
-}) {
-  const count = useUnreadNotificationCount(profileId, initialUnreadCount);
-
+export function NotificationBellIcon({ count }: { count: number }) {
   return (
     <Link
       href="/notificaties"
