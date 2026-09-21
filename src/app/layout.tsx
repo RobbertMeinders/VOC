@@ -32,6 +32,11 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  // Zonder dit blijft de layout-viewport op Android/Chrome even groot als het
+  // toetsenbord opent — een `fixed`/gecentreerde overlay (zoeken, nieuw
+  // bericht) komt dan half achter het toetsenbord te zitten i.p.v. dat de
+  // pagina meekrimpt.
+  interactiveWidget: "resizes-content",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

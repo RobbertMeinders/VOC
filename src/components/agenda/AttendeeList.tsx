@@ -5,6 +5,7 @@ import Link from "next/link";
 import { X } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
+import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 
 export type Attendee = {
   id: string;
@@ -33,6 +34,7 @@ function AttendeeRow({ attendee, onClick }: { attendee: Attendee; onClick?: () =
 export function AttendeeList({ attendees, waitlistCount }: { attendees: Attendee[]; waitlistCount: number }) {
   const [showAll, setShowAll] = useState(false);
   useEscapeKey(showAll, () => setShowAll(false));
+  useBodyScrollLock(showAll);
 
   if (attendees.length === 0 && waitlistCount === 0) return null;
 
@@ -68,23 +70,25 @@ export function AttendeeList({ attendees, waitlistCount }: { attendees: Attendee
 
       {showAll && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/40" onClick={() => setShowAll(false)} />
-          <div className="fixed inset-x-4 top-1/2 z-50 max-h-[70vh] -translate-y-1/2 overflow-hidden rounded-2xl border border-border bg-surface shadow-lg sm:inset-x-auto sm:left-1/2 sm:w-80 sm:-translate-x-1/2">
-            <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <p className="text-sm font-semibold text-foreground">Wie gaat er ook ({attendees.length})</p>
-              <button
-                type="button"
-                onClick={() => setShowAll(false)}
-                aria-label="Sluiten"
-                className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
-              >
-                <X size={16} />
-              </button>
-            </div>
-            <div className="max-h-[55vh] overflow-y-auto p-2">
-              {attendees.map((attendee) => (
-                <AttendeeRow key={attendee.id} attendee={attendee} onClick={() => setShowAll(false)} />
-              ))}
+          <div className="fixed inset-0 z-40 bg-black/40 animate-fade-in" onClick={() => setShowAll(false)} />
+          <div className="fixed inset-x-4 top-1/2 z-50 -translate-y-1/2 sm:inset-x-auto sm:left-1/2 sm:w-80 sm:-translate-x-1/2">
+            <div className="animate-scale-in max-h-[70vh] overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <p className="text-sm font-semibold text-foreground">Wie gaat er ook ({attendees.length})</p>
+                <button
+                  type="button"
+                  onClick={() => setShowAll(false)}
+                  aria-label="Sluiten"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div className="max-h-[55vh] overflow-y-auto p-2">
+                {attendees.map((attendee) => (
+                  <AttendeeRow key={attendee.id} attendee={attendee} onClick={() => setShowAll(false)} />
+                ))}
+              </div>
             </div>
           </div>
         </>

@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Download, Eye, FileText, X } from "lucide-react";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { deleteDocumentAction } from "@/app/(app)/documenten/actions";
+import { useEscapeKey } from "@/lib/dom/useEscapeKey";
+import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import type { Database } from "@/lib/types/database";
 
 type Document = Database["public"]["Tables"]["documents"]["Row"];
@@ -30,14 +32,8 @@ export function DocumentRow({
   const [previewOpen, setPreviewOpen] = useState(false);
   const previewable = url && isPreviewable(document.mime_type);
 
-  useEffect(() => {
-    if (!previewOpen) return;
-    function handleKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setPreviewOpen(false);
-    }
-    window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
-  }, [previewOpen]);
+  useEscapeKey(previewOpen, () => setPreviewOpen(false));
+  useBodyScrollLock(previewOpen);
 
   return (
     <>
@@ -96,11 +92,11 @@ export function DocumentRow({
 
       {previewOpen && url && (
         <div
-          className="fixed inset-0 z-50 flex flex-col bg-black/60 p-4 sm:p-8"
+          className="fixed inset-0 z-50 flex flex-col bg-black/60 p-4 animate-fade-in sm:p-8"
           onClick={() => setPreviewOpen(false)}
         >
           <div
-            className="mx-auto flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-surface shadow-lg"
+            className="animate-scale-in mx-auto flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-surface shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">

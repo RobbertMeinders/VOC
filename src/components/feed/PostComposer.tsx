@@ -7,6 +7,7 @@ import { FileText, Upload, X } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
+import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { createPostAction, type CreatePostState } from "@/app/(app)/actions";
 import { compressImageFile } from "@/lib/image/compress";
 import { autoGrowTextarea } from "@/lib/dom/autoGrow";
@@ -64,6 +65,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
   const mention = useMentionField(content, setContent);
 
   useEscapeKey(open, () => setOpen(false));
+  useBodyScrollLock(open);
 
   useEffect(() => {
     if (state.success && state.post) {
