@@ -17,7 +17,11 @@ const MAX_DOCUMENT_BYTES = 25 * 1024 * 1024;
 
 export type DocumentUploadResult = { path: string } | { error: string };
 
-export async function uploadDocument(supabase: SupabaseClient<Database>, file: File): Promise<DocumentUploadResult> {
+export async function uploadDocument(
+  supabase: SupabaseClient<Database>,
+  file: File,
+  bucket: "documents" | "activity-attachments" = "documents"
+): Promise<DocumentUploadResult> {
   const extension = ALLOWED_DOCUMENT_TYPES[file.type];
   if (!extension) {
     return {
@@ -31,7 +35,7 @@ export async function uploadDocument(supabase: SupabaseClient<Database>, file: F
   const path = `${randomFileName()}.${extension}`;
 
   try {
-    const { error } = await supabase.storage.from("documents").upload(path, file, {
+    const { error } = await supabase.storage.from(bucket).upload(path, file, {
       contentType: file.type,
       upsert: false,
     });

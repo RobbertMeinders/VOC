@@ -148,6 +148,23 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["activity_registrations"]["Row"]>;
         Relationships: [];
       };
+      activity_attachments: {
+        Row: {
+          id: string;
+          activity_id: string;
+          storage_path: string;
+          file_name: string;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["activity_attachments"]["Row"]> & {
+          activity_id: string;
+          storage_path: string;
+          file_name: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["activity_attachments"]["Row"]>;
+        Relationships: [];
+      };
       feed_posts: {
         Row: {
           id: string;

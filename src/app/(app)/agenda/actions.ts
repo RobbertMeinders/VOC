@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireBoard, requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
+import { uploadDocument } from "@/lib/supabase/uploadDocument";
 
 export type ActionResult = { error?: string };
 
@@ -210,4 +211,47 @@ export async function decideActivitySubmissionAction(activityId: string, decisio
 
   revalidatePath(`/agenda/${activityId}`);
   revalidatePath("/agenda");
+}
+
+export type AttachmentFormState = { error?: string; success?: boolean };
+
+export async function addActivityAttachmentAction(
+  activityId: string,
+  _prevState: AttachmentFormState,
+  formData: FormData
+): Promise<AttachmentFormState> {
+  const profile = await requireBoard();
+  const file = formData.get("file");
+
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Kies een bestand om toe te voegen." };
+  }
+
+  const supabase = await createClient();
+  const result = await uploadDocument(supabase, file, "activity-attachments");
+  if ("error" in result) {
+    return { error: result.error };
+  }
+
+  const { error } = await supabase.from("activity_attachments").insert({
+    activity_id: activityId,
+    storage_path: result.path,
+    file_name: file.name,
+    created_by: profile.id,
+  });
+
+  if (error) {
+    return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+  }
+
+  revalidatePath(`/agenda/${activityId}`);
+  return { success: true };
+}
+
+export async function deleteActivityAttachmentAction(activityId: string, attachmentId: string, storagePath: string) {
+  await requireBoard();
+  const supabase = await createClient();
+  await supabase.storage.from("activity-attachments").remove([storagePath]);
+  await supabase.from("activity_attachments").delete().eq("id", attachmentId);
+  revalidatePath(`/agenda/${activityId}`);
 }

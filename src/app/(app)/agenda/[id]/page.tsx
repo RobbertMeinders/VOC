@@ -5,15 +5,18 @@ import { notFound } from "next/navigation";
 import { CalendarDays, MapPin, Pencil, Users } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { getSignedStorageUrl } from "@/lib/supabase/storage";
+import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { isBoard } from "@/lib/auth/roles";
 import { formatActivityDate, formatActivityTimeOnly } from "@/lib/format/date";
 import { RegisterButton } from "@/components/agenda/RegisterButton";
 import { DeleteButton } from "@/components/feed/DeleteButton";
+import { ActivityAttachmentRow } from "@/components/agenda/ActivityAttachmentRow";
+import { ActivityAttachmentUploadForm } from "@/components/agenda/ActivityAttachmentUploadForm";
 import { deleteActivityAction, decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
+type Attachment = Database["public"]["Tables"]["activity_attachments"]["Row"];
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -32,7 +35,7 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
     notFound();
   }
 
-  const [imageUrl, { count: registrationCount }, { data: myRegistration }] = await Promise.all([
+  const [imageUrl, { count: registrationCount }, { data: myRegistration }, { data: attachments }] = await Promise.all([
     getSignedStorageUrl("activity-images", activity.image_url),
     supabase.from("activity_registrations").select("id", { count: "exact", head: true }).eq("activity_id", id),
     supabase
@@ -41,7 +44,19 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
       .eq("activity_id", id)
       .eq("profile_id", profile.id)
       .maybeSingle(),
+    supabase
+      .from("activity_attachments")
+      .select("*")
+      .eq("activity_id", id)
+      .order("created_at", { ascending: true })
+      .returns<Attachment[]>(),
   ]);
+
+  const attachmentUrls = await getSignedStorageUrls(
+    supabase,
+    "activity-attachments",
+    (attachments ?? []).map((a) => a.storage_path)
+  );
 
   const isFull = activity.max_participants !== null && (registrationCount ?? 0) >= activity.max_participants;
   const deadlinePassed = activity.registration_deadline
@@ -121,6 +136,25 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
           </div>
         </div>
       </div>
+
+      {((attachments ?? []).length > 0 || isBoard(profile.role)) && (
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Bijlagen</h2>
+          {(attachments ?? []).length > 0 && (
+            <div className="mb-3 flex flex-col gap-2">
+              {(attachments ?? []).map((attachment) => (
+                <ActivityAttachmentRow
+                  key={attachment.id}
+                  attachment={attachment}
+                  url={attachmentUrls.get(attachment.storage_path) ?? null}
+                  canManage={isBoard(profile.role)}
+                />
+              ))}
+            </div>
+          )}
+          {isBoard(profile.role) && <ActivityAttachmentUploadForm activityId={activity.id} />}
+        </div>
+      )}
 
       {isBoard(profile.role) && activity.status === "pending" && (
         <div className="flex items-center gap-2 rounded-2xl border border-border bg-surface p-4 shadow-sm">
