@@ -1,5 +1,62 @@
-// Minimal push-notification service worker. It intentionally does nothing
-// else (no offline caching) — that's Fase 8's job.
+// Push notifications (Fase 5) plus a minimal offline shell (Fase 8). The app
+// itself needs a live Supabase connection for basically everything, so there's
+// no point trying to cache real data — this only makes sure the app installs
+// as a PWA cleanly and shows something better than the browser's own "no
+// internet" page when a navigation fails offline.
+
+const CACHE_NAME = "voc-shell-v1";
+const OFFLINE_URL = "/offline";
+const PRECACHE_URLS = [OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png"];
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(
+    caches
+      .open(CACHE_NAME)
+      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(() => self.skipWaiting())
+  );
+});
+
+self.addEventListener("activate", (event) => {
+  event.waitUntil(
+    caches
+      .keys()
+      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then(() => self.clients.claim())
+  );
+});
+
+self.addEventListener("fetch", (event) => {
+  const { request } = event;
+  if (request.method !== "GET") return;
+
+  // Navigations (clicking a link, typing a URL): try the network first —
+  // this is a live app, cached HTML would show stale/wrong auth state — and
+  // only fall back to the offline page when there's genuinely no network.
+  if (request.mode === "navigate") {
+    event.respondWith(
+      fetch(request).catch(() => caches.match(OFFLINE_URL).then((cached) => cached ?? Response.error()))
+    );
+    return;
+  }
+
+  // Next's content-hashed static assets never change under the same URL, so
+  // cache-first is safe and skips the network entirely on repeat visits.
+  const url = new URL(request.url);
+  if (url.origin === self.location.origin && url.pathname.startsWith("/_next/static/")) {
+    event.respondWith(
+      caches.match(request).then(
+        (cached) =>
+          cached ??
+          fetch(request).then((response) => {
+            const copy = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+            return response;
+          })
+      )
+    );
+  }
+});
 
 self.addEventListener("push", (event) => {
   if (!event.data) return;

@@ -246,7 +246,7 @@ kaartcomponent zelf.
 5. ✅ Notificaties: in-app + push, voorkeuren
 6. ✅ Documenten: categorieën, upload/download, rechten
 7. ✅ Beheeromgeving: bestuursdashboard voor leden, bedrijven, activiteiten, moderatie
-8. PWA-afwerking: installability, offline, performance, toegankelijkheid, Capacitor-voorbereiding
+8. ✅ PWA-afwerking: installability, offline, performance, Capacitor-voorbereiding
 
 ## Bedrijfskoppeling vereist goedkeuring
 
@@ -385,10 +385,27 @@ aanvraag naar `/account-gedeactiveerd` gestuurd. Moderatie (berichten/reacties v
 de vorige update ook bewerken voor een beheerder) zat al in de feed zelf (fase 3) en is bewust niet
 verdubbeld in een apart moderatiescherm.
 
+## PWA (fase 8)
+
+Het portaal is een installeerbare PWA: `src/app/manifest.ts` (geserveerd als
+`/manifest.webmanifest`) levert naam, thema-kleur en app-iconen (`public/icons/`, plus een apart
+`apple-icon.png` voor iOS), en `public/sw.js` wordt bij elke paginalaad geregistreerd
+(`ServiceWorkerRegister`, los van de service-worker-registratie die al gebeurde bij het aanzetten
+van push-meldingen). De service worker doet twee dingen: Next's content-hashed `/_next/static/`
+bestanden cache-first serveren (sneller op een herhaald bezoek), en een navigatie die door
+netwerkverlies faalt opvangen met een gecachete `/offline`-pagina — de rest van de app heeft sowieso
+een live Supabase-verbinding nodig, dus verdere offline-data-toegang is bewust buiten scope
+gehouden.
+
 ## Capacitor (toekomst)
 
 De architectuur houdt hier nu al rekening mee: alle dataverkeer loopt via Supabase's JS-client
 (geen Next.js-specifieke API-routes die de app dichttimmeren op web), en de UI is al gebouwd voor
-een "echte app"-gevoel op mobiel (bottom navigation, touch-vriendelijke targets). Wanneer we
-Capacitor toevoegen, wrapt dat de bestaande web-app zonder herstructurering van de databaselaag of
-autorisatie.
+een "echte app"-gevoel op mobiel (bottom navigation, touch-vriendelijke targets, PWA-manifest en
+-iconen). Omdat dit een server-gerenderde Next.js-app is (server actions, RLS via een ingelogde
+sessie) — geen statische export — is de aangewezen route voor Capacitor niet een lokale
+`output: "export"`-build, maar Capacitor's `server.url`-optie: de native shell wijst dan naar de
+gedeployde portaal-URL en wrapt 'm in een WebView, zonder herstructurering van de databaselaag of
+autorisatie. Dat komt neer op een dun `capacitor.config.ts` (`server: { url: "https://<domein>" }`)
+plus de iOS/Android-projectmappen zelf, pas zinvol zodra er ook echt in Xcode/Android Studio
+gebouwd wordt.

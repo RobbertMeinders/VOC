@@ -2,6 +2,12 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import { THEME_INIT_SCRIPT } from "@/lib/theme/constants";
+import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
+
+// Speeds up the first avatar/logo/attachment image on any page — a plain
+// string builder, not requireEnv(), so a missing env var never breaks the
+// whole app's static prerendering over one <link> tag.
+const supabaseStorageOrigin = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 const inter = Inter({
   variable: "--font-inter",
@@ -14,21 +20,31 @@ export const metadata: Metadata = {
     template: "%s | VOC Ledenportaal",
   },
   description: "Het besloten ledenportaal van de Veendammer OndernemersCompagnie.",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "VOC Ledenportaal",
+  },
 };
 
 export const viewport: Viewport = {
   themeColor: "#e8000f",
   width: "device-width",
   initialScale: 1,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="nl" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
+        {supabaseStorageOrigin && <link rel="preconnect" href={supabaseStorageOrigin} crossOrigin="anonymous" />}
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
-      <body className="min-h-full bg-background text-foreground">{children}</body>
+      <body className="min-h-full bg-background text-foreground">
+        <ServiceWorkerRegister />
+        {children}
+      </body>
     </html>
   );
 }
