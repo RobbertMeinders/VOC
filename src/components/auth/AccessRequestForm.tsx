@@ -43,6 +43,26 @@ export function AccessRequestForm() {
         </label>
         <Input id="email" name="email" type="email" required autoComplete="email" placeholder="naam@bedrijf.nl" />
       </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="phone" className="text-sm font-medium text-foreground">
+            Telefoonnummer
+          </label>
+          <Input id="phone" name="phone" type="tel" autoComplete="tel" />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="job_title" className="text-sm font-medium text-foreground">
+            Functie
+          </label>
+          <Input id="job_title" name="job_title" autoComplete="organization-title" />
+        </div>
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="company_name" className="text-sm font-medium text-foreground">
+          Bedrijf
+        </label>
+        <Input id="company_name" name="company_name" autoComplete="organization" />
+      </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="message" className="text-sm font-medium text-foreground">
           Toelichting (optioneel)
@@ -52,7 +72,7 @@ export function AccessRequestForm() {
           name="message"
           rows={3}
           className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-          placeholder="Bijvoorbeeld: bij welk bedrijf je werkt"
+          placeholder="Bijvoorbeeld: waarom je graag lid wilt worden"
         />
       </div>
       {state.error && (

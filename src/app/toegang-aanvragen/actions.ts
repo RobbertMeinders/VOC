@@ -10,6 +10,9 @@ export async function submitAccessRequestAction(
 ): Promise<AccessRequestState> {
   const name = String(formData.get("name") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
+  const phone = String(formData.get("phone") ?? "").trim();
+  const companyName = String(formData.get("company_name") ?? "").trim();
+  const jobTitle = String(formData.get("job_title") ?? "").trim();
   const message = String(formData.get("message") ?? "").trim();
 
   if (!name || !email) {
@@ -20,6 +23,9 @@ export async function submitAccessRequestAction(
   const { error } = await supabase.from("access_requests").insert({
     name,
     email,
+    phone: phone || null,
+    company_name: companyName || null,
+    job_title: jobTitle || null,
     message: message || null,
   });
 

@@ -313,16 +313,21 @@ openstaande uitnodiging voor dat e-mailadres worden overgeslagen (met reden geto
 Board verstuurt de e-mail per lid op het moment dat het uitkomt, via de "Verstuur e-mail"-knop op
 `/beheer/uitnodigingen`.
 
-## WordPress-embed (agenda)
+## WordPress-embed (agenda & aanmelden)
 
-`/embed/agenda` is een publieke, responsive pagina zonder navigatie of ingelogde sessie — bedoeld om
-in een Elementor/WordPress-iframe op de publieke VOC-site te laden. Toont alleen goedgekeurde,
-officiële VOC-activiteiten (titel, datum, locatie, korte omschrijving, afbeelding) — community-
-activiteiten van leden blijven binnen de app; wie zich heeft aangemeld blijft verborgen.
-Voorbeeld-iframe:
+`/embed/agenda` en `/embed/aanmelden` zijn publieke, responsive pagina's zonder navigatie of
+ingelogde sessie — bedoeld om in een Elementor/WordPress-iframe op de publieke VOC-site te laden.
+`/embed/agenda` toont alleen goedgekeurde, officiële VOC-activiteiten (titel, datum, locatie, korte
+omschrijving, afbeelding) — community-activiteiten van leden blijven binnen de app; wie zich heeft
+aangemeld blijft verborgen. `/embed/aanmelden` is het eigen aanmeldformulier (naam, e-mail,
+telefoon, functie, bedrijf, toelichting) dat het externe WordPress-formulier vervangt: een inzending
+komt net als via `/toegang-aanvragen` in `access_requests` terecht (zie
+`0022_richer_access_requests.sql`), bestuur/beheer krijgt er meteen een notificatie van, en
+beoordeelt de aanvraag op `/beheer/aanvragen`. Voorbeeld-iframe:
 
 ```html
 <iframe src="https://<jouw-portaal-domein>/embed/agenda" style="width:100%;border:0;height:600px"></iframe>
+<iframe src="https://<jouw-portaal-domein>/embed/aanmelden" style="width:100%;border:0;height:640px"></iframe>
 ```
 
 ## Herinneringen (agenda)

@@ -10,11 +10,16 @@ export function AccessRequestRow({ request }: { request: AccessRequest }) {
   return (
     <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border py-3 last:border-0">
       <div>
-        <p className="text-sm font-medium text-foreground">{request.name}</p>
+        <p className="text-sm font-medium text-foreground">
+          {request.name}
+          {request.job_title && <span className="font-normal text-muted"> — {request.job_title}</span>}
+        </p>
         <p className="text-xs text-muted">
           <a href={`mailto:${request.email}`} className="hover:underline">
             {request.email}
           </a>
+          {request.phone && ` · ${request.phone}`}
+          {request.company_name && ` · ${request.company_name}`}
           {" · "}
           {new Date(request.created_at).toLocaleDateString("nl-NL")}
         </p>

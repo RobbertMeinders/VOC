@@ -303,6 +303,9 @@ export interface Database {
           name: string;
           email: string;
           message: string | null;
+          phone: string | null;
+          company_name: string | null;
+          job_title: string | null;
           status: "pending" | "handled";
           created_at: string;
         };
