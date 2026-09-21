@@ -330,6 +330,16 @@ beoordeelt de aanvraag op `/beheer/aanvragen`. Voorbeeld-iframe:
 <iframe src="https://<jouw-portaal-domein>/embed/aanmelden" style="width:100%;border:0;height:640px"></iframe>
 ```
 
+## Wachtlijst & .ics-export (agenda)
+
+Is een activiteit vol (`max_participants` bereikt), dan wijst aanmelden niet meer af maar zet de
+aanmelding op een wachtlijst (`activity_registrations.is_waitlisted`). Meldt een bevestigde deelnemer
+zich af (of verwijdert bestuur iemand), dan promoveert een database-trigger automatisch de
+langst-wachtende van de wachtlijst en stuurt die een notificatie — zie `0023_agenda_waitlist.sql`.
+De activiteitpagina toont wie er (bevestigd) ook naar toe gaat en hoeveel mensen op de wachtlijst
+staan, en heeft een "Toevoegen aan agenda (.ics)"-link (`/agenda/[id]/ics`) die het evenement als
+standaard iCalendar-bestand aanbiedt, te importeren in Google/Outlook/Apple Calendar.
+
 ## Herinneringen (agenda)
 
 `/api/cron/agenda-reminders` wordt dagelijks om 07:00 UTC aangeroepen door Vercel Cron (zie

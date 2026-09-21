@@ -30,19 +30,23 @@ function parseIsoOrNull(value: string): string | null {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
-export async function registerForActivityAction(activityId: string): Promise<ActionResult> {
+export type RegisterResult = ActionResult & { waitlisted?: boolean };
+
+export async function registerForActivityAction(activityId: string): Promise<RegisterResult> {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("activity_registrations")
-    .insert({ activity_id: activityId, profile_id: profile.id });
+    .insert({ activity_id: activityId, profile_id: profile.id })
+    .select("is_waitlisted")
+    .single();
 
   if (error) {
     // The enforce_activity_registration_rules trigger raises a friendly Dutch
-    // message for the deadline/capacity cases; a unique-violation means the
-    // member is already registered (e.g. a second tab). Everything else
-    // falls back to a generic message.
+    // message for the deadline case; a unique-violation means the member is
+    // already registered (e.g. a second tab). Everything else falls back to
+    // a generic message.
     if (error.code === "23505") {
       return { error: "Je bent al aangemeld." };
     }
@@ -51,7 +55,7 @@ export async function registerForActivityAction(activityId: string): Promise<Act
 
   revalidatePath(`/agenda/${activityId}`);
   revalidatePath("/agenda");
-  return {};
+  return { waitlisted: data.is_waitlisted };
 }
 
 export async function unregisterFromActivityAction(activityId: string): Promise<ActionResult> {

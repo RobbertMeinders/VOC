@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { CalendarDays, MapPin, Pencil, Users } from "lucide-react";
+import { CalendarDays, Download, MapPin, Pencil, Users } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { isBoard } from "@/lib/auth/roles";
 import { formatActivityDate, formatActivityTimeOnly } from "@/lib/format/date";
 import { RegisterButton } from "@/components/agenda/RegisterButton";
+import { AttendeeList } from "@/components/agenda/AttendeeList";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { ActivityAttachmentRow } from "@/components/agenda/ActivityAttachmentRow";
 import { ActivityAttachmentUploadForm } from "@/components/agenda/ActivityAttachmentUploadForm";
@@ -35,12 +36,22 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
     notFound();
   }
 
-  const [imageUrl, { count: registrationCount }, { data: myRegistration }, { data: attachments }] = await Promise.all([
+  type RegistrationRow = {
+    is_waitlisted: boolean;
+    profile: { id: string; first_name: string; last_name: string; avatar_url: string | null } | null;
+  };
+
+  const [imageUrl, { data: registrations }, { data: myRegistration }, { data: attachments }] = await Promise.all([
     getSignedStorageUrl("activity-images", activity.image_url),
-    supabase.from("activity_registrations").select("id", { count: "exact", head: true }).eq("activity_id", id),
     supabase
       .from("activity_registrations")
-      .select("id")
+      .select("is_waitlisted, profile:profiles(id, first_name, last_name, avatar_url)")
+      .eq("activity_id", id)
+      .order("created_at", { ascending: true })
+      .returns<RegistrationRow[]>(),
+    supabase
+      .from("activity_registrations")
+      .select("id, is_waitlisted")
       .eq("activity_id", id)
       .eq("profile_id", profile.id)
       .maybeSingle(),
@@ -58,7 +69,25 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
     (attachments ?? []).map((a) => a.storage_path)
   );
 
-  const isFull = activity.max_participants !== null && (registrationCount ?? 0) >= activity.max_participants;
+  const confirmedRegistrations = (registrations ?? []).filter((r) => !r.is_waitlisted);
+  const waitlistedRegistrations = (registrations ?? []).filter((r) => r.is_waitlisted);
+  const confirmedCount = confirmedRegistrations.length;
+
+  const attendeeAvatarUrls = await getSignedStorageUrls(
+    supabase,
+    "avatars",
+    confirmedRegistrations.map((r) => r.profile?.avatar_url ?? null)
+  );
+  const attendees = confirmedRegistrations
+    .filter((r): r is RegistrationRow & { profile: NonNullable<RegistrationRow["profile"]> } => r.profile !== null)
+    .map((r) => ({
+      id: r.profile.id,
+      first_name: r.profile.first_name,
+      last_name: r.profile.last_name,
+      avatarUrl: r.profile.avatar_url ? (attendeeAvatarUrls.get(r.profile.avatar_url) ?? null) : null,
+    }));
+
+  const isFull = activity.max_participants !== null && confirmedCount >= activity.max_participants;
   const deadlinePassed = activity.registration_deadline
     ? new Date(activity.registration_deadline) < new Date()
     : false;
@@ -112,8 +141,9 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
             )}
             <span className="flex items-center gap-2">
               <Users size={16} />
-              {registrationCount ?? 0} aangemeld
+              {confirmedCount} aangemeld
               {activity.max_participants ? ` (max. ${activity.max_participants})` : ""}
+              {waitlistedRegistrations.length > 0 && ` · ${waitlistedRegistrations.length} op wachtlijst`}
             </span>
           </div>
 
@@ -125,6 +155,7 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
             <RegisterButton
               activityId={activity.id}
               initialRegistered={Boolean(myRegistration)}
+              initialWaitlisted={Boolean(myRegistration?.is_waitlisted)}
               isFull={isFull}
               deadlinePassed={deadlinePassed}
             />
@@ -133,9 +164,18 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
                 Aanmelden kan tot {formatActivityDate(activity.registration_deadline)}.
               </p>
             )}
+            <a
+              href={`/agenda/${activity.id}/ics`}
+              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-voc-red"
+            >
+              <Download size={13} />
+              Toevoegen aan agenda (.ics)
+            </a>
           </div>
         </div>
       </div>
+
+      <AttendeeList attendees={attendees} waitlistCount={waitlistedRegistrations.length} />
 
       {((attachments ?? []).length > 0 || isBoard(profile.role)) && (
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">

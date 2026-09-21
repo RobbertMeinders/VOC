@@ -11,11 +11,13 @@ export function ActivityCard({
   imageUrl,
   registrationCount,
   isRegistered,
+  isWaitlisted,
 }: {
   activity: Activity;
   imageUrl: string | null;
   registrationCount: number;
   isRegistered: boolean;
+  isWaitlisted?: boolean;
 }) {
   const isFull = activity.max_participants !== null && registrationCount >= activity.max_participants;
 
@@ -57,9 +59,14 @@ export function ActivityCard({
               Ter goedkeuring
             </span>
           )}
-          {isRegistered && (
+          {isRegistered && !isWaitlisted && (
             <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-500/10 dark:text-green-400">
               Je bent aangemeld
+            </span>
+          )}
+          {isWaitlisted && (
+            <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+              Op de wachtlijst
             </span>
           )}
           <span className="flex items-center gap-1 text-xs text-muted">

@@ -20,13 +20,14 @@ export default async function AgendaPage() {
 
   const [{ data: activities }, { data: allRegistrations }, { data: myRegistrations }] = await Promise.all([
     supabase.from("activities").select("*").order("starts_at", { ascending: true }).returns<ActivityRow[]>(),
-    supabase.from("activity_registrations").select("activity_id"),
-    supabase.from("activity_registrations").select("activity_id").eq("profile_id", profile.id),
+    supabase.from("activity_registrations").select("activity_id, is_waitlisted"),
+    supabase.from("activity_registrations").select("activity_id, is_waitlisted").eq("profile_id", profile.id),
   ]);
 
-  const registeredIds = new Set((myRegistrations ?? []).map((r) => r.activity_id));
+  const myRegistrationByActivity = new Map((myRegistrations ?? []).map((r) => [r.activity_id, r.is_waitlisted]));
   const registrationCounts = new Map<string, number>();
   for (const registration of allRegistrations ?? []) {
+    if (registration.is_waitlisted) continue;
     registrationCounts.set(registration.activity_id, (registrationCounts.get(registration.activity_id) ?? 0) + 1);
   }
   const imageUrls = await getSignedStorageUrls(
@@ -38,13 +39,15 @@ export default async function AgendaPage() {
   const { upcoming, past } = splitUpcomingAndPast(activities ?? []);
 
   function renderCard(activity: ActivityRow) {
+    const myStatus = myRegistrationByActivity.get(activity.id);
     return (
       <ActivityCard
         key={activity.id}
         activity={activity}
         imageUrl={activity.image_url ? (imageUrls.get(activity.image_url) ?? null) : null}
         registrationCount={registrationCounts.get(activity.id) ?? 0}
-        isRegistered={registeredIds.has(activity.id)}
+        isRegistered={myStatus !== undefined}
+        isWaitlisted={myStatus === true}
       />
     );
   }
