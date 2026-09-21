@@ -12,7 +12,6 @@ import { RegisterButton } from "@/components/agenda/RegisterButton";
 import { AttendeeList } from "@/components/agenda/AttendeeList";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { ActivityAttachmentRow } from "@/components/agenda/ActivityAttachmentRow";
-import { ActivityAttachmentUploadForm } from "@/components/agenda/ActivityAttachmentUploadForm";
 import { deleteActivityAction, decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
 import type { Database } from "@/lib/types/database";
 
@@ -34,6 +33,24 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
   const { data: activity } = await supabase.from("activities").select("*").eq("id", id).maybeSingle<Activity>();
   if (!activity) {
     notFound();
+  }
+
+  let submitterLabel: string | null = null;
+  if (activity.source === "lid" && activity.created_by) {
+    const { data: submitter } = await supabase
+      .from("profiles")
+      .select("first_name, last_name, company_members(is_primary, company:companies(name))")
+      .eq("id", activity.created_by)
+      .maybeSingle<{
+        first_name: string;
+        last_name: string;
+        company_members: { is_primary: boolean; company: { name: string } | null }[];
+      }>();
+    if (submitter) {
+      const membership = submitter.company_members.find((m) => m.is_primary) ?? submitter.company_members[0];
+      const name = `${submitter.first_name} ${submitter.last_name}`;
+      submitterLabel = membership?.company ? `${name} · ${membership.company.name}` : name;
+    }
   }
 
   type RegistrationRow = {
@@ -127,6 +144,7 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
             </div>
           )}
           <h1 className="text-xl font-semibold text-foreground">{activity.title}</h1>
+          {submitterLabel && <p className="mt-1 text-xs text-muted">Ingebracht door {submitterLabel}</p>}
           <div className="mt-3 flex flex-col gap-2 text-sm text-muted">
             <span className="flex items-center gap-2">
               <CalendarDays size={16} />
@@ -152,13 +170,24 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
           )}
 
           <div className="mt-5">
-            <RegisterButton
-              activityId={activity.id}
-              initialRegistered={Boolean(myRegistration)}
-              initialWaitlisted={Boolean(myRegistration?.is_waitlisted)}
-              isFull={isFull}
-              deadlinePassed={deadlinePassed}
-            />
+            {activity.external_registration_url ? (
+              <a
+                href={activity.external_registration_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red-dark"
+              >
+                Aanmelden via externe website
+              </a>
+            ) : (
+              <RegisterButton
+                activityId={activity.id}
+                initialRegistered={Boolean(myRegistration)}
+                initialWaitlisted={Boolean(myRegistration?.is_waitlisted)}
+                isFull={isFull}
+                deadlinePassed={deadlinePassed}
+              />
+            )}
             {activity.registration_deadline && !deadlinePassed && (
               <p className="mt-2 text-xs text-muted">
                 Aanmelden kan tot {formatActivityDate(activity.registration_deadline)}.
@@ -177,22 +206,19 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
 
       <AttendeeList attendees={attendees} waitlistCount={waitlistedRegistrations.length} />
 
-      {((attachments ?? []).length > 0 || isBoard(profile.role)) && (
+      {(attachments ?? []).length > 0 && (
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Bijlagen</h2>
-          {(attachments ?? []).length > 0 && (
-            <div className="mb-3 flex flex-col gap-2">
-              {(attachments ?? []).map((attachment) => (
-                <ActivityAttachmentRow
-                  key={attachment.id}
-                  attachment={attachment}
-                  url={attachmentUrls.get(attachment.storage_path) ?? null}
-                  canManage={isBoard(profile.role)}
-                />
-              ))}
-            </div>
-          )}
-          {isBoard(profile.role) && <ActivityAttachmentUploadForm activityId={activity.id} />}
+          <div className="flex flex-col gap-2">
+            {(attachments ?? []).map((attachment) => (
+              <ActivityAttachmentRow
+                key={attachment.id}
+                attachment={attachment}
+                url={attachmentUrls.get(attachment.storage_path) ?? null}
+                canManage={false}
+              />
+            ))}
+          </div>
         </div>
       )}
 

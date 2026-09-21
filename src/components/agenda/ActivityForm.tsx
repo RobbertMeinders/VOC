@@ -78,7 +78,8 @@ export function ActivityForm({
   const [state, formAction] = useActionState(action, initialState);
   const [preview, setPreview] = useState<string | null>(null);
   const shownImage = preview ?? imageUrl;
-  const [source, setSource] = useState<"voc" | "lid">((activity?.source as "voc" | "lid") ?? "voc");
+  const [source, setSource] = useState<"voc" | "lid">((activity?.source as "voc" | "lid") ?? (showTypePicker ? "voc" : "lid"));
+  const [externalRegistration, setExternalRegistration] = useState(Boolean(activity?.external_registration_url));
 
   const [startsAt, setStartsAt] = useState(toLocalInputValue(activity?.starts_at ?? null));
   const [endTime, setEndTime] = useState(toLocalTimeValue(activity?.ends_at ?? null));
@@ -158,6 +159,7 @@ export function ActivityForm({
             type="datetime-local"
             value={startsAt}
             onChange={(e) => setStartsAt(e.target.value)}
+            max="2099-12-31T23:59"
             required
           />
           <input type="hidden" name="starts_at" value={startsAtIso} />
@@ -188,6 +190,7 @@ export function ActivityForm({
             type="datetime-local"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
+            max="2099-12-31T23:59"
           />
           <input type="hidden" name="registration_deadline" value={deadlineIso} />
         </div>
@@ -205,6 +208,33 @@ export function ActivityForm({
           />
         </div>
       </div>
+
+      {source === "lid" && (
+        <div className="flex flex-col gap-1.5">
+          <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+            <input
+              type="checkbox"
+              name="external_registration"
+              checked={externalRegistration}
+              onChange={(e) => setExternalRegistration(e.target.checked)}
+              className="rounded"
+            />
+            Aanmelden via externe website
+          </label>
+          {externalRegistration && (
+            <Input
+              name="external_registration_url"
+              type="url"
+              defaultValue={activity?.external_registration_url ?? ""}
+              placeholder="https://"
+              required
+            />
+          )}
+          {!externalRegistration && (
+            <p className="text-xs text-muted">Zonder vinkje gebruikt deze activiteit de gewone VOC-aanmeldfunctie.</p>
+          )}
+        </div>
+      )}
 
       {canUploadImage && (
         <div className="flex flex-col gap-1.5">
@@ -228,6 +258,20 @@ export function ActivityForm({
           />
         </div>
       )}
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="attachments" className="text-sm font-medium text-foreground">
+          Bijlagen (optioneel)
+        </label>
+        <input
+          id="attachments"
+          name="attachments"
+          type="file"
+          multiple
+          accept="application/pdf,image/png,image/jpeg,.doc,.docx,.ppt,.pptx"
+          className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
+        />
+      </div>
 
       {state.error && (
         <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">

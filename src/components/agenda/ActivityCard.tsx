@@ -13,27 +13,31 @@ export function ActivityCard({
   registrationCount,
   isRegistered,
   isWaitlisted,
+  submitterLabel,
 }: {
   activity: Activity;
   imageUrl: string | null;
   registrationCount: number;
   isRegistered: boolean;
   isWaitlisted?: boolean;
+  submitterLabel?: string | null;
 }) {
   const isFull = activity.max_participants !== null && registrationCount >= activity.max_participants;
   // Een officiële Activiteit mag wat prominenter ogen dan een Ingebracht
   // evenement (compacter/neutraler) — vandaar de accentrand hier i.p.v. een
-  // apart badge dat elke kaart evenveel gewicht zou geven.
+  // apart badge dat elke kaart evenveel gewicht zou geven. Ingebracht krijgt
+  // dezelfde rand, maar in grijs i.p.v. rood.
   const isOfficial = activity.source === "voc";
+  const isSubmitted = activity.source === "lid";
 
   return (
     <Link
       href={`/agenda/${activity.id}`}
       className={clsx(
         "flex gap-4 rounded-2xl border border-border bg-surface p-5 shadow-sm hover:border-voc-red",
-        isOfficial && "border-l-4"
+        (isOfficial || isSubmitted) && "border-l-4"
       )}
-      style={isOfficial ? { borderLeftColor: "var(--voc-red)" } : undefined}
+      style={isOfficial ? { borderLeftColor: "var(--voc-red)" } : isSubmitted ? { borderLeftColor: "var(--muted)" } : undefined}
     >
       {imageUrl ? (
         <Image
@@ -57,8 +61,9 @@ export function ActivityCard({
             {activity.location}
           </p>
         )}
+        {isSubmitted && submitterLabel && <p className="mt-0.5 truncate text-xs text-muted">Ingebracht door {submitterLabel}</p>}
         <div className="mt-2 flex flex-wrap items-center gap-2">
-          {activity.source === "lid" && (
+          {isSubmitted && !submitterLabel && (
             <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-xs font-medium text-muted dark:bg-white/[.08]">
               Ingebracht
             </span>

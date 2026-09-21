@@ -55,7 +55,9 @@ export function NetworkChooser({
         {open && (
           <>
             <div className="fixed inset-0 z-40" onClick={close} />
-            <div className="absolute left-0 top-full z-50 mt-1 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+            {/* Opent naar rechts i.p.v. eronder — anders schuift het paneel
+                over Documenten/Notificaties eronder in de sidebar heen. */}
+            <div className="absolute left-full top-0 z-50 ml-2 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
               {OPTIONS.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}

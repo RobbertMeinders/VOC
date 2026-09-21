@@ -88,6 +88,8 @@ function parseActivityForm(formData: FormData) {
   const deadlineRaw = String(formData.get("registration_deadline") ?? "").trim();
   const maxParticipantsRaw = String(formData.get("max_participants") ?? "").trim();
   const maxParticipantsNumber = maxParticipantsRaw ? Number(maxParticipantsRaw) : NaN;
+  const externalRegistrationChecked = formData.get("external_registration") === "on";
+  const externalRegistrationUrl = String(formData.get("external_registration_url") ?? "").trim();
 
   return {
     title,
@@ -97,7 +99,34 @@ function parseActivityForm(formData: FormData) {
     ends_at: parseIsoOrNull(endsAtRaw),
     registration_deadline: parseIsoOrNull(deadlineRaw),
     max_participants: Number.isFinite(maxParticipantsNumber) && maxParticipantsNumber > 0 ? maxParticipantsNumber : null,
+    external_registration_url: externalRegistrationChecked && externalRegistrationUrl ? externalRegistrationUrl : null,
   };
+}
+
+const ATTACHMENT_MAX_BYTES = 15 * 1024 * 1024;
+
+// Gedeeld door create/update: bijlagen horen nu bij het aanmaken/wijzigen
+// van de activiteit zelf, niet meer bij een los formulier op de eventpagina
+// (zie ActivityAttachmentUploadForm, die alleen nog op de bewerkpagina
+// achteraf iets toevoegt).
+async function uploadActivityAttachments(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  activityId: string,
+  createdBy: string,
+  formData: FormData
+) {
+  const files = formData.getAll("attachments").filter((f): f is File => f instanceof File && f.size > 0);
+  for (const file of files) {
+    if (file.size > ATTACHMENT_MAX_BYTES) continue;
+    const result = await uploadDocument(supabase, file, "activity-attachments");
+    if ("error" in result) continue;
+    await supabase.from("activity_attachments").insert({
+      activity_id: activityId,
+      storage_path: result.path,
+      file_name: file.name,
+      created_by: createdBy,
+    });
+  }
 }
 
 export async function createActivityAction(
@@ -139,6 +168,8 @@ export async function createActivityAction(
       }
     }
 
+    await uploadActivityAttachments(supabase, activity.id, profile.id, formData);
+
     revalidatePath("/agenda");
     redirect(`/agenda/${activity.id}`);
   } catch (cause) {
@@ -154,7 +185,7 @@ export async function updateActivityAction(
   formData: FormData
 ): Promise<ActivityFormState> {
   try {
-    await requireBoard();
+    const board = await requireBoard();
     const { title, startsAt, ...rest } = parseActivityForm(formData);
 
     if (!title || !startsAt) {
@@ -170,6 +201,8 @@ export async function updateActivityAction(
       if ("error" in result) return { error: result.error };
       imagePath = result.path;
     }
+
+    await uploadActivityAttachments(supabase, activityId, board.id, formData);
 
     const { error } = await supabase
       .from("activities")
@@ -254,6 +287,7 @@ export async function addActivityAttachmentAction(
   }
 
   revalidatePath(`/agenda/${activityId}`);
+  revalidatePath(`/agenda/${activityId}/bewerken`);
   return { success: true };
 }
 
@@ -263,4 +297,5 @@ export async function deleteActivityAttachmentAction(activityId: string, attachm
   await supabase.storage.from("activity-attachments").remove([storagePath]);
   await supabase.from("activity_attachments").delete().eq("id", attachmentId);
   revalidatePath(`/agenda/${activityId}`);
+  revalidatePath(`/agenda/${activityId}/bewerken`);
 }

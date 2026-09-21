@@ -142,6 +142,7 @@ export interface Database {
           updated_at: string;
           source: ActivitySource;
           status: ActivityStatus;
+          external_registration_url: string | null;
         };
         Insert: Partial<Database["public"]["Tables"]["activities"]["Row"]> & {
           title: string;

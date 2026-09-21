@@ -24,7 +24,7 @@ export default async function NewActivityPage() {
         <ActivityForm
           action={createActivityAction}
           submitLabel={board ? "Activiteit aanmaken" : "Indienen ter goedkeuring"}
-          canUploadImage={board}
+          canUploadImage
           showTypePicker={board}
         />
       </div>
