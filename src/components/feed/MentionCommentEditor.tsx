@@ -125,7 +125,7 @@ export function MentionCommentEditor({
         onPaste={handlePaste}
         onBlur={() => window.setTimeout(() => setOpen(false), 120)}
         suppressContentEditableWarning
-        className="mention-editor h-9 w-full overflow-x-auto whitespace-nowrap rounded-full border border-border bg-background px-3.5 py-1.5 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        className="mention-editor min-h-9 w-full break-words rounded-2xl border border-border bg-background px-3.5 py-1.5 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
       />
       <input ref={hiddenInputRef} type="hidden" name={name} />
       {open && <MentionDropdown results={results} onSelect={handleSelect} />}

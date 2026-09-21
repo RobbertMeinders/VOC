@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, CalendarDays, FileText, Inbox, MapPin } from "lucide-react";
@@ -38,6 +39,20 @@ type CompanyRow = {
 
 function EmptyHint({ text }: { text: string }) {
   return <p className="text-sm text-muted">{text}</p>;
+}
+
+// Neutrale, rustige knop onder een sectie i.p.v. een felrode tekstlink
+// rechtsboven de kop — minder nadrukkelijk, en een duidelijker tikdoel.
+function SectionButton({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <Link
+      href={href}
+      className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium text-foreground shadow-sm hover:border-voc-red hover:text-voc-red"
+    >
+      {children}
+      <ArrowRight size={14} />
+    </Link>
+  );
 }
 
 export default async function HomePage() {
@@ -146,12 +161,7 @@ export default async function HomePage() {
 
       {/* Eerstvolgende activiteit, prominent */}
       <section>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-foreground">Eerstvolgende activiteit</h2>
-          <Link href="/agenda" className="text-xs font-medium text-voc-red hover:underline">
-            Hele agenda
-          </Link>
-        </div>
+        <h2 className="mb-2 text-sm font-semibold text-foreground">Eerstvolgende activiteit</h2>
         {nextActivity ? (
           <Link
             href={`/agenda/${nextActivity.id}`}
@@ -202,16 +212,12 @@ export default async function HomePage() {
             ))}
           </div>
         )}
+        <SectionButton href="/agenda">Hele agenda</SectionButton>
       </section>
 
       {/* Recente community-posts */}
       <section>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-foreground">Recent in de community</h2>
-          <Link href="/community" className="text-xs font-medium text-voc-red hover:underline">
-            Naar community
-          </Link>
-        </div>
+        <h2 className="mb-2 text-sm font-semibold text-foreground">Recent in de community</h2>
         {posts.length > 0 ? (
           <div className="flex flex-col gap-2">
             {posts.map((post) => (
@@ -258,17 +264,13 @@ export default async function HomePage() {
             <EmptyHint text="Nog geen berichten in de community." />
           </div>
         )}
+        <SectionButton href="/community">Naar community</SectionButton>
       </section>
 
       {/* Nieuwe leden/bedrijven */}
       <section className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">Nieuwe leden</h2>
-            <Link href="/leden" className="text-xs font-medium text-voc-red hover:underline">
-              Alle leden
-            </Link>
-          </div>
+        <div className="min-w-0">
+          <h2 className="mb-2 text-sm font-semibold text-foreground">Nieuwe leden</h2>
           <div className="flex flex-col gap-2">
             {recentMembers.length > 0 ? (
               recentMembers.map((member) => <MemberRow key={member.id} member={member} />)
@@ -276,15 +278,11 @@ export default async function HomePage() {
               <EmptyHint text="Nog geen leden." />
             )}
           </div>
+          <SectionButton href="/leden">Alle leden</SectionButton>
         </div>
 
-        <div>
-          <div className="mb-2 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">Nieuwe bedrijven</h2>
-            <Link href="/bedrijven" className="text-xs font-medium text-voc-red hover:underline">
-              Alle bedrijven
-            </Link>
-          </div>
+        <div className="min-w-0">
+          <h2 className="mb-2 text-sm font-semibold text-foreground">Nieuwe bedrijven</h2>
           <div className="flex flex-col gap-2">
             {recentCompanies.length > 0 ? (
               recentCompanies.map((company) => <CompanyCard key={company.id} company={company} />)
@@ -292,17 +290,13 @@ export default async function HomePage() {
               <EmptyHint text="Nog geen bedrijven." />
             )}
           </div>
+          <SectionButton href="/bedrijven">Alle bedrijven</SectionButton>
         </div>
       </section>
 
       {/* Documenten, compact */}
       <section>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-foreground">Documenten</h2>
-          <Link href="/documenten" className="text-xs font-medium text-voc-red hover:underline">
-            Alle documenten
-          </Link>
-        </div>
+        <h2 className="mb-2 text-sm font-semibold text-foreground">Documenten</h2>
         {(recentDocuments ?? []).length > 0 ? (
           <div className="flex flex-wrap gap-2">
             {(recentDocuments ?? []).map((doc) => (
@@ -317,14 +311,9 @@ export default async function HomePage() {
             ))}
           </div>
         ) : (
-          <Link
-            href="/documenten"
-            className="flex items-center gap-2 rounded-2xl border border-border bg-surface p-4 text-sm text-muted shadow-sm hover:border-voc-red"
-          >
-            <FileText size={16} className="text-voc-red" />
-            Naar de documenten
-          </Link>
+          <EmptyHint text="Nog geen documenten." />
         )}
+        <SectionButton href="/documenten">Alle documenten</SectionButton>
       </section>
 
       <div className="flex flex-col items-center gap-2 border-t border-border pt-4 text-center">
