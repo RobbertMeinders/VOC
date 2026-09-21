@@ -4,6 +4,7 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/auth/roles";
 import { fetchCommentById, fetchPostById } from "@/lib/feed/queries";
+import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import type { FeedComment, FeedPost, FeedPostType } from "@/lib/feed/types";
 
 const VALID_POST_TYPES: FeedPostType[] = ["vraag", "aanbod", "nieuws", "overig"];
@@ -173,12 +174,13 @@ export async function getCommentAction(commentId: string): Promise<FeedComment |
   return fetchCommentById(supabase, commentId);
 }
 
-export type MentionSuggestion = { id: string; name: string };
+export type MentionSuggestion = { id: string; name: string; imageUrl: string | null };
 export type MentionSearchResult = { profiles: MentionSuggestion[]; companies: MentionSuggestion[] };
 
 // Client-side-style filter over the (small) member/company lists, same
 // approach as /zoeken — cheap enough at this org's size, and avoids a
-// separate ilike query per keystroke.
+// separate ilike query per keystroke. Only id/name(+image path) are
+// fetched, so the payload stays small even as membership grows.
 export async function searchMentionsAction(query: string): Promise<MentionSearchResult> {
   await requireProfile();
   const q = query.trim().toLowerCase();
@@ -186,19 +188,30 @@ export async function searchMentionsAction(query: string): Promise<MentionSearch
 
   const supabase = await createClient();
   const [{ data: profileRows }, { data: companyRows }] = await Promise.all([
-    supabase.from("profiles").select("id, first_name, last_name").eq("is_active", true),
-    supabase.from("companies").select("id, name"),
+    supabase.from("profiles").select("id, first_name, last_name, avatar_url").eq("is_active", true),
+    supabase.from("companies").select("id, name, logo_url"),
   ]);
 
-  const profiles = (profileRows ?? [])
-    .map((p) => ({ id: p.id, name: `${p.first_name} ${p.last_name}` }))
-    .filter((p) => p.name.toLowerCase().includes(q))
+  const matchedProfiles = (profileRows ?? [])
+    .filter((p) => `${p.first_name} ${p.last_name}`.toLowerCase().includes(q))
     .slice(0, 5);
+  const matchedCompanies = (companyRows ?? []).filter((c) => c.name.toLowerCase().includes(q)).slice(0, 5);
 
-  const companies = (companyRows ?? [])
-    .map((c) => ({ id: c.id, name: c.name }))
-    .filter((c) => c.name.toLowerCase().includes(q))
-    .slice(0, 5);
+  const [avatarUrls, logoUrls] = await Promise.all([
+    getSignedStorageUrls(supabase, "avatars", matchedProfiles.map((p) => p.avatar_url)),
+    getSignedStorageUrls(supabase, "company-logos", matchedCompanies.map((c) => c.logo_url)),
+  ]);
+
+  const profiles = matchedProfiles.map((p) => ({
+    id: p.id,
+    name: `${p.first_name} ${p.last_name}`,
+    imageUrl: p.avatar_url ? (avatarUrls.get(p.avatar_url) ?? null) : null,
+  }));
+  const companies = matchedCompanies.map((c) => ({
+    id: c.id,
+    name: c.name,
+    imageUrl: c.logo_url ? (logoUrls.get(c.logo_url) ?? null) : null,
+  }));
 
   return { profiles, companies };
 }

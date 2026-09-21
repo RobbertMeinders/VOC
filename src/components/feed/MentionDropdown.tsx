@@ -1,7 +1,28 @@
 "use client";
 
+import Image from "next/image";
 import { Building2, User } from "lucide-react";
 import type { MentionKind, MentionResults } from "@/lib/feed/useMentionField";
+
+function SuggestionImage({ imageUrl, kind }: { imageUrl: string | null; kind: MentionKind }) {
+  if (imageUrl) {
+    return (
+      <Image
+        src={imageUrl}
+        alt=""
+        width={22}
+        height={22}
+        className={kind === "profiel" ? "h-[22px] w-[22px] shrink-0 rounded-full object-cover" : "h-[22px] w-[22px] shrink-0 rounded object-contain"}
+      />
+    );
+  }
+  const Icon = kind === "profiel" ? User : Building2;
+  return (
+    <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-voc-red-light text-voc-red">
+      <Icon size={12} />
+    </span>
+  );
+}
 
 export function MentionDropdown({
   results,
@@ -20,7 +41,7 @@ export function MentionDropdown({
           onClick={() => onSelect(profile.name, "profiel", profile.id)}
           className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         >
-          <User size={14} className="shrink-0 text-muted" />
+          <SuggestionImage imageUrl={profile.imageUrl} kind="profiel" />
           <span className="truncate">{profile.name}</span>
         </button>
       ))}
@@ -32,7 +53,7 @@ export function MentionDropdown({
           onClick={() => onSelect(company.name, "bedrijf", company.id)}
           className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         >
-          <Building2 size={14} className="shrink-0 text-muted" />
+          <SuggestionImage imageUrl={company.imageUrl} kind="bedrijf" />
           <span className="truncate">{company.name}</span>
         </button>
       ))}

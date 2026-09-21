@@ -4,8 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Send } from "lucide-react";
 import { createCommentAction, type CreateCommentState } from "@/app/(app)/actions";
-import { useMentionField } from "@/lib/feed/useMentionField";
-import { MentionDropdown } from "./MentionDropdown";
+import { MentionCommentEditor } from "./MentionCommentEditor";
 
 const initialState: CreateCommentState = {};
 
@@ -23,38 +22,34 @@ function SubmitButton() {
   );
 }
 
+/**
+ * Wrapper that remounts the actual form (via `key`) after every successful
+ * comment — same reset pattern as PostComposer — since the contenteditable
+ * field manages its own DOM state, not React state that could just be
+ * cleared with setState.
+ */
 export function CommentForm({ postId }: { postId: string }) {
+  const [formKey, setFormKey] = useState(0);
+  return <CommentFormInner key={formKey} postId={postId} onPosted={() => setFormKey((k) => k + 1)} />;
+}
+
+function CommentFormInner({ postId, onPosted }: { postId: string; onPosted: () => void }) {
   const createWithPostId = createCommentAction.bind(null, postId);
   const [state, formAction] = useActionState(createWithPostId, initialState);
-  const [content, setContent] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-  const mention = useMentionField(content, setContent);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (state.success) {
-      Promise.resolve().then(() => setContent(""));
-    }
+    if (state.success) onPosted();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
   return (
-    <form action={formAction} className="flex items-center gap-2">
-      <div className="relative flex-1">
-        <input
-          ref={inputRef}
-          name="content"
-          required
-          value={content}
-          placeholder="Schrijf een reactie… (typ @ om iemand te taggen)"
-          onChange={(e) => mention.handleInput(e.currentTarget)}
-          className="h-9 w-full rounded-full border border-border bg-background px-3.5 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-        />
-        {mention.open && (
-          <MentionDropdown
-            results={mention.results}
-            onSelect={(name, kind, id) => inputRef.current && mention.select(inputRef.current, name, kind, id)}
-          />
-        )}
-      </div>
+    <form ref={formRef} action={formAction} className="flex items-center gap-2">
+      <MentionCommentEditor
+        name="content"
+        placeholder="Schrijf een reactie… (typ @ om iemand te taggen)"
+        onEnter={() => formRef.current?.requestSubmit()}
+      />
       <SubmitButton />
     </form>
   );

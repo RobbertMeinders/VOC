@@ -67,3 +67,10 @@ body {
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Placeholder voor de contenteditable @mention-editor (reacties) */
+.mention-editor:empty:before {
+  content: attr(data-placeholder);
+  color: var(--muted);
+  pointer-events: none;
+}
