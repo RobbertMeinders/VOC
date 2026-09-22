@@ -47,26 +47,26 @@ export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
     <>
       <div className="mt-3 overflow-hidden rounded-xl">
         {visible.length === 1 && (
-          <div className="relative h-56 w-full">
+          <div className="relative h-80 w-full">
             <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} className="absolute inset-0" />
           </div>
         )}
         {visible.length === 2 && (
-          <div className="grid h-56 grid-cols-2 gap-0.5">
+          <div className="grid h-80 grid-cols-2 gap-0.5">
             {visible.map((image, i) => (
               <Cell key={image.id} image={image} onClick={() => setLightboxIndex(i)} className="relative h-full w-full" />
             ))}
           </div>
         )}
         {visible.length === 3 && (
-          <div className="grid h-56 grid-cols-2 grid-rows-2 gap-0.5">
+          <div className="grid h-80 grid-cols-2 grid-rows-2 gap-0.5">
             <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} className="relative row-span-2 h-full w-full" />
             <Cell image={visible[1]} onClick={() => setLightboxIndex(1)} className="relative h-full w-full" />
             <Cell image={visible[2]} onClick={() => setLightboxIndex(2)} className="relative h-full w-full" />
           </div>
         )}
         {visible.length === 4 && (
-          <div className="grid h-56 grid-cols-2 grid-rows-2 gap-0.5">
+          <div className="grid h-80 grid-cols-2 grid-rows-2 gap-0.5">
             {visible.map((image, i) => (
               <Cell
                 key={image.id}

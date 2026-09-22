@@ -129,7 +129,7 @@ export default async function HomePage() {
         )}
         <Link
           href="/agenda"
-          className="mt-3 flex h-10 w-full items-center justify-center rounded-full bg-black/[.06] px-4 text-sm font-medium text-foreground transition-all duration-150 hover:bg-black/[.1] active:scale-95 dark:bg-white/[.08] dark:hover:bg-white/[.12]"
+          className="mt-3 flex h-10 w-full items-center justify-center rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-all duration-150 hover:bg-black/[.03] active:scale-95 dark:hover:bg-white/[.06]"
         >
           Hele agenda
         </Link>
