@@ -84,10 +84,10 @@ export async function MemberProfileContent({ id }: { id: string }) {
     <div className="flex flex-col gap-4">
       <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">
-          <div className="flex items-center gap-4">
+          <div className="flex min-w-0 items-center gap-4">
             <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={avatarUrl} size={64} />
-            <div>
-              <p className="text-lg font-semibold text-foreground">
+            <div className="min-w-0">
+              <p className="break-words text-lg font-semibold text-foreground">
                 {member.first_name} {member.last_name}
               </p>
               {member.job_title && <p className="text-sm text-muted">{member.job_title}</p>}

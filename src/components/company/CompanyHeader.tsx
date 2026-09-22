@@ -19,10 +19,10 @@ export function CompanyHeader({
   return (
     <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
       <div className="flex items-start justify-between gap-4">
-        <div className="flex items-start gap-4">
+        <div className="flex min-w-0 items-start gap-4">
           <CompanyLogo logoUrl={logoUrl} name={company.name} size={64} />
           <div className="min-w-0 flex-1">
-            <h1 className="break-words text-xl font-semibold text-foreground">{company.name}</h1>
+            <h1 className="break-words text-lg font-semibold text-foreground sm:text-xl">{company.name}</h1>
             {company.tagline ? (
               <p className="break-words text-sm font-medium text-muted">{company.tagline}</p>
             ) : (
