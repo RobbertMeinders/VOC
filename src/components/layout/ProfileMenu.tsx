@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Building2, LayoutDashboard, LogOut, Settings, User as UserIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
@@ -126,25 +127,43 @@ export function SidebarProfileMenu({
   );
 }
 
-// Rechtsboven op mobiel: enkel het profielicoon (naam/bedrijf staat al op
-// het profiel zelf) dat het volledige accountmenu opent — op mobiel is er
-// geen ruimte voor permanent zichtbare account-links zoals op desktop.
-export function HeaderProfileMenu({ profile, avatarUrl, companyId, beheerBadge }: ProfileMenuProps) {
+// Vijfde item in de mobiele bottom-nav (Home/Community/Agenda/Netwerk/
+// Profiel): enkel het profielicoon (naam/bedrijf staat al op het profiel
+// zelf) dat het volledige accountmenu opent — op mobiel is er geen ruimte
+// voor permanent zichtbare account-links zoals op desktop. Het paneel opent
+// omhoog i.p.v. omlaag, want de knop staat nu onderaan het scherm.
+export function MobileProfileMenu({ profile, avatarUrl, companyId, beheerBadge }: ProfileMenuProps) {
   const { open, toggle, close } = useOverlay("profile");
   const items = menuItems(profile, companyId);
+  const pathname = usePathname();
+  const active =
+    pathname.startsWith(`/leden/${profile.id}`) ||
+    pathname.startsWith("/profiel") ||
+    pathname.startsWith("/instellingen") ||
+    pathname.startsWith("/beheer") ||
+    (companyId ? pathname.startsWith(`/bedrijven/${companyId}`) : false);
 
   return (
-    <div className="relative">
+    <div className="relative flex-1">
       <button
         type="button"
         onClick={toggle}
-        aria-label="Account"
-        className="flex h-9 w-9 items-center justify-center rounded-full hover:bg-black/[.04] dark:hover:bg-white/[.08]"
+        className={clsx(
+          "flex h-14 w-full flex-col items-center justify-center gap-0.5 text-xs font-medium",
+          active || open ? "text-voc-red" : "text-muted"
+        )}
       >
-        <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={28} />
+        <Avatar
+          firstName={profile.first_name}
+          lastName={profile.last_name}
+          avatarUrl={avatarUrl}
+          size={22}
+          className={clsx(active && "ring-2 ring-voc-red")}
+        />
+        Profiel
       </button>
 
-      {open && <MenuPanel items={items} beheerBadge={beheerBadge} onClose={close} className="right-0 top-full mt-2" />}
+      {open && <MenuPanel items={items} beheerBadge={beheerBadge} onClose={close} className="right-0 bottom-full mb-2" />}
     </div>
   );
 }

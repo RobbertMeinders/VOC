@@ -91,6 +91,11 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
           binnenkomt en de kaart+ledenlijst het scherm al vullen. */}
       {canSeeRequests && <CompanyMembershipRequests companyId={id} requests={pendingRequests} />}
 
+      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij dit bedrijf</h2>
+        <CompanyMemberList members={members} />
+      </div>
+
       {company.latitude !== null && company.longitude !== null && (
         <CompanyLocationMap
           company={{
@@ -105,11 +110,6 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
           }}
         />
       )}
-
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij dit bedrijf</h2>
-        <CompanyMemberList members={members} />
-      </div>
     </div>
   );
 }

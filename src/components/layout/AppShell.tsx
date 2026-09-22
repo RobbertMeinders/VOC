@@ -33,11 +33,11 @@ export function AppShell({
     <OverlayProvider>
       <div className="min-h-dvh bg-background">
         <Sidebar profile={profile} unread={unread} avatarUrl={avatarUrl} companyId={companyId} companyName={companyName} />
-        <MobileHeader profile={profile} avatarUrl={avatarUrl} companyId={companyId} unread={unread} />
+        <MobileHeader unread={unread} />
         <main className="pb-20 md:ml-64 md:pb-0">
           <div className="mx-auto w-full max-w-2xl px-4 py-6 md:max-w-6xl md:px-8 md:py-10">{children}</div>
         </main>
-        <BottomNav unread={unread} />
+        <BottomNav profile={profile} avatarUrl={avatarUrl} companyId={companyId} unread={unread} />
       </div>
     </OverlayProvider>
   );

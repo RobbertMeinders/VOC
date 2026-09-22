@@ -71,7 +71,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
           <X size={16} />
         </button>
       </div>
-      <div className="max-h-80 overflow-y-auto">
+      <div className={variant === "mobile" ? "flex-1 overflow-y-auto" : "max-h-80 overflow-y-auto"}>
         {loading && <p className="px-4 py-6 text-center text-sm text-muted">Laden…</p>}
         {!loading && notifications?.length === 0 && (
           <p className="px-4 py-6 text-center text-sm text-muted">Geen notificaties.</p>
@@ -120,13 +120,9 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
           )}
         </button>
         {open && (
-          <>
-            <div className="fixed inset-0 z-40 bg-black/40 animate-fade-in" onClick={close} />
-            <div className="animate-scale-in fixed inset-x-0 bottom-0 z-50 max-h-[75dvh] overflow-hidden rounded-t-2xl bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg">
-              <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-black/15 dark:bg-white/20" />
-              {panelContent}
-            </div>
-          </>
+          <div className="animate-fade-in fixed inset-0 z-50 flex flex-col bg-surface pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]">
+            {panelContent}
+          </div>
         )}
       </>
     );

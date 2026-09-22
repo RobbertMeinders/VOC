@@ -5,9 +5,21 @@ import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import { MOBILE_PRIMARY_NAV_ITEMS, isNavItemActive } from "./nav-items";
 import { NetworkChooser } from "./NetworkChooser";
+import { MobileProfileMenu } from "./ProfileMenu";
+import type { Profile } from "@/lib/auth/session";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
-export function BottomNav({ unread }: { unread: UnreadNotificationSections }) {
+export function BottomNav({
+  profile,
+  avatarUrl,
+  companyId,
+  unread,
+}: {
+  profile: Profile;
+  avatarUrl: string | null;
+  companyId: string | null;
+  unread: UnreadNotificationSections;
+}) {
   const pathname = usePathname();
 
   return (
@@ -51,6 +63,9 @@ export function BottomNav({ unread }: { unread: UnreadNotificationSections }) {
             </li>
           );
         })}
+        <li className="flex-1">
+          <MobileProfileMenu profile={profile} avatarUrl={avatarUrl} companyId={companyId} beheerBadge={unread.beheer} />
+        </li>
       </ul>
     </nav>
   );
