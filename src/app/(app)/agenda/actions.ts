@@ -115,17 +115,21 @@ async function uploadActivityAttachments(
   createdBy: string,
   formData: FormData
 ) {
-  const files = formData.getAll("attachments").filter((f): f is File => f instanceof File && f.size > 0);
-  for (const file of files) {
-    if (file.size > ATTACHMENT_MAX_BYTES) continue;
-    const result = await uploadDocument(supabase, file, "activity-attachments");
-    if ("error" in result) continue;
-    await supabase.from("activity_attachments").insert({
-      activity_id: activityId,
-      storage_path: result.path,
-      file_name: file.name,
-      created_by: createdBy,
-    });
+  const files = formData
+    .getAll("attachments")
+    .filter((f): f is File => f instanceof File && f.size > 0 && f.size <= ATTACHMENT_MAX_BYTES);
+  if (files.length === 0) return;
+
+  // Uploads parallelliseren i.p.v. één voor één wachten — en pas daarna in
+  // één keer alle geslaagde rijen batch-inserten, i.p.v. een aparte insert
+  // per bestand.
+  const results = await Promise.all(files.map((file) => uploadDocument(supabase, file, "activity-attachments")));
+  const rows = results
+    .map((result, i) => (("error" in result) ? null : { activity_id: activityId, storage_path: result.path, file_name: files[i].name, created_by: createdBy }))
+    .filter((row): row is NonNullable<typeof row> => row !== null);
+
+  if (rows.length > 0) {
+    await supabase.from("activity_attachments").insert(rows);
   }
 }
 

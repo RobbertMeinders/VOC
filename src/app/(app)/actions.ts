@@ -67,21 +67,22 @@ export async function createPostAction(_prevState: CreatePostState, formData: Fo
     return { error: "Plaatsen is niet gelukt. Probeer het opnieuw." };
   }
 
-  const attachmentRows: { post_id: string; type: "image" | "pdf"; storage_path: string; file_name: string }[] = [];
-
-  for (const [index, file] of files.entries()) {
-    const attachmentType = ALLOWED_ATTACHMENT_TYPES[file.type];
-    const extension = file.name.split(".").pop() || (attachmentType === "pdf" ? "pdf" : "jpg");
-    const path = `${profile.id}/${newPost.id}-${index}.${extension}`;
-
-    const { error: uploadError } = await supabase.storage.from("feed-media").upload(path, file, {
-      contentType: file.type,
-    });
-
-    if (!uploadError) {
-      attachmentRows.push({ post_id: newPost.id, type: attachmentType, storage_path: path, file_name: file.name });
-    }
-  }
+  // Uploads parallelliseren i.p.v. één voor één wachten — bij het maximum
+  // van 10 bijlagen scheelde dat tot 10 sequentiële Storage-round-trips.
+  const uploads = await Promise.all(
+    files.map(async (file, index) => {
+      const attachmentType = ALLOWED_ATTACHMENT_TYPES[file.type];
+      const extension = file.name.split(".").pop() || (attachmentType === "pdf" ? "pdf" : "jpg");
+      const path = `${profile.id}/${newPost.id}-${index}.${extension}`;
+      const { error: uploadError } = await supabase.storage.from("feed-media").upload(path, file, {
+        contentType: file.type,
+      });
+      return uploadError
+        ? null
+        : { post_id: newPost.id, type: attachmentType, storage_path: path, file_name: file.name };
+    })
+  );
+  const attachmentRows = uploads.filter((row): row is NonNullable<typeof row> => row !== null);
 
   if (attachmentRows.length > 0) {
     await supabase.from("feed_attachments").insert(attachmentRows);
