@@ -9,7 +9,9 @@ const MAX_DIMENSION = 1920;
 const JPEG_QUALITY = 0.82;
 
 export async function compressImageFile(file: File): Promise<File> {
-  if (!file.type.startsWith("image/") || file.type === "image/gif") {
+  // GIF (animatie) en SVG (vector) mogen niet door canvas gerasterd worden —
+  // dat verliest precies waarom je dat formaat koos.
+  if (!file.type.startsWith("image/") || file.type === "image/gif" || file.type === "image/svg+xml") {
     return file;
   }
 

@@ -53,7 +53,7 @@ export function ProfileForm({
             id="avatar"
             name="avatar"
             type="file"
-            accept="image/png,image/jpeg,image/webp"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml,image/avif"
             className="sr-only"
             onChange={async (e) => {
               const input = e.target;

@@ -21,6 +21,13 @@ const nextConfig: NextConfig = {
     // means a re-optimized image is actually reused instead of the default
     // 60s minimum throwing most of that away.
     minimumCacheTTL: 1800,
+    // Profiel-/bedrijfslogo's mogen nu ook SVG zijn (zie uploadImage) — de
+    // optimizer weigert SVG's standaard (kunnen scripts bevatten); de CSP +
+    // attachment-disposition hieronder zijn Next.js' eigen aanbevolen manier
+    // om dat toch veilig toe te staan (geen scriptuitvoering, geen inline-render).
+    dangerouslyAllowSVG: true,
+    contentDispositionType: "attachment",
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 };
 

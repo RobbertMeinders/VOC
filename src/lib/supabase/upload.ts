@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/types/database";
 import { randomFileName } from "./randomFileName";
 
-const ALLOWED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp"]);
+const ALLOWED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/svg+xml", "image/avif"]);
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
 export type ImageUploadResult = { path: string } | { error: string };
@@ -21,13 +21,24 @@ export async function uploadImage(
   file: File
 ): Promise<ImageUploadResult> {
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
-    return { error: `Alleen PNG, JPEG of WebP-afbeeldingen zijn toegestaan (kreeg: ${file.type || "onbekend"}).` };
+    return {
+      error: `Alleen PNG, JPEG, WebP, SVG of AVIF-afbeeldingen zijn toegestaan (kreeg: ${file.type || "onbekend"}).`,
+    };
   }
   if (file.size > MAX_IMAGE_BYTES) {
     return { error: "De afbeelding mag maximaal 5 MB zijn." };
   }
 
-  const extension = file.type === "image/png" ? "png" : file.type === "image/webp" ? "webp" : "jpg";
+  const extension =
+    file.type === "image/png"
+      ? "png"
+      : file.type === "image/webp"
+        ? "webp"
+        : file.type === "image/svg+xml"
+          ? "svg"
+          : file.type === "image/avif"
+            ? "avif"
+            : "jpg";
   const path = `${folder}/${randomFileName()}.${extension}`;
 
   try {
