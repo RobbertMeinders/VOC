@@ -15,6 +15,12 @@ const nextConfig: NextConfig = {
       // Supabase Storage (avatars, company logos, feed media)
       { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/**" },
     ],
+    // Signed storage URLs are now cached server-side for 30 min (see
+    // src/lib/supabase/storage.ts) instead of getting a fresh, unique token
+    // on every request — matching the optimizer's own cache TTL to that
+    // means a re-optimized image is actually reused instead of the default
+    // 60s minimum throwing most of that away.
+    minimumCacheTTL: 1800,
   },
 };
 
