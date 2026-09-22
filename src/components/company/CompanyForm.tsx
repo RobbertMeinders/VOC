@@ -2,10 +2,10 @@
 
 import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
-import Image from "next/image";
-import { Building2, Camera } from "lucide-react";
+import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { CompanyLogo } from "./CompanyLogo";
 import { updateCompanyAction, type UpdateCompanyState } from "@/app/(app)/bedrijven/[id]/actions";
 import { compressInputFile } from "@/lib/image/compress";
 import { INDUSTRIES } from "@/lib/constants/industries";
@@ -34,13 +34,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
     <form action={formAction} className="flex flex-col gap-5">
       <div className="flex items-center gap-4">
         <div className="relative">
-          {shownLogo ? (
-            <Image src={shownLogo} alt={company.name} width={72} height={72} className="h-[72px] w-[72px] rounded-xl object-cover" />
-          ) : (
-            <div className="flex h-[72px] w-[72px] items-center justify-center rounded-xl bg-voc-red-light text-voc-red">
-              <Building2 size={28} />
-            </div>
-          )}
+          <CompanyLogo logoUrl={shownLogo} name={company.name} size={72} />
           <label
             htmlFor="logo"
             className="absolute -bottom-1 -right-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-voc-red text-white shadow-sm hover:bg-voc-red-dark"

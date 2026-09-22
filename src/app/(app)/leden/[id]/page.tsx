@@ -1,25 +1,28 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
 import { notFound } from "next/navigation";
-import { Building2, Clock, Mail, Pencil, Phone } from "lucide-react";
+import { CalendarDays, Clock, Mail, Pencil, Phone } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
-import { formatLastActive } from "@/lib/format/date";
+import { formatActivityDateShort, formatLastActive } from "@/lib/format/date";
 import { Avatar } from "@/components/ui/Avatar";
 import { ExpandableText } from "@/components/ui/ExpandableText";
 import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
+import { CompanyLogo } from "@/components/company/CompanyLogo";
+import { MemberPostList } from "@/components/members/MemberPostList";
 import { isAdmin, isBoard } from "@/lib/auth/roles";
 import { RoleEditor } from "@/components/members/RoleEditor";
 import { AdminEditProfile } from "@/components/members/AdminEditProfile";
 import { MemberActiveToggle } from "@/components/members/MemberActiveToggle";
+import { fetchFeedPostsByAuthor } from "@/lib/feed/queries";
 import type { Database } from "@/lib/types/database";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type Membership = {
   company: { id: string; name: string; city: string | null; industry: string | null; logo_url: string | null } | null;
 };
+type AttendedActivity = { id: string; title: string; starts_at: string };
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -41,7 +44,7 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
     notFound();
   }
 
-  const [avatarUrl, { data: membership }] = await Promise.all([
+  const [avatarUrl, { data: membership }, { data: attendedRows }, posts] = await Promise.all([
     getSignedStorageUrl("avatars", member.avatar_url),
     supabase
       .from("company_members")
@@ -50,11 +53,23 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
       .limit(1)
       .maybeSingle()
       .returns<Membership>(),
+    supabase
+      .from("activity_registrations")
+      .select("activity:activities(id, title, starts_at)")
+      .eq("profile_id", id)
+      .eq("attended", true)
+      .returns<{ activity: AttendedActivity | null }[]>(),
+    fetchFeedPostsByAuthor(supabase, viewer.id, id),
   ]);
 
   const logoUrl = membership?.company?.logo_url
     ? await getSignedStorageUrl("company-logos", membership.company.logo_url)
     : null;
+
+  const attendedActivities = (attendedRows ?? [])
+    .map((r) => r.activity)
+    .filter((a): a is AttendedActivity => a !== null)
+    .sort((a, b) => b.starts_at.localeCompare(a.starts_at));
 
   return (
     <div className="flex flex-col gap-4">
@@ -101,35 +116,6 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
           />
         )}
 
-        {membership?.company && (
-          <Link
-            href={`/bedrijven/${membership.company.id}`}
-            className="mt-4 flex items-center gap-3 rounded-xl border border-border p-3 hover:border-voc-red"
-          >
-            {logoUrl ? (
-              <Image
-                src={logoUrl}
-                alt={membership.company.name}
-                width={44}
-                height={44}
-                className="h-11 w-11 shrink-0 rounded-lg object-cover"
-              />
-            ) : (
-              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red">
-                <Building2 size={18} />
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-foreground">{membership.company.name}</p>
-              <p className="truncate text-xs text-muted">
-                {membership.company.industry && <span>{membership.company.industry}</span>}
-                {membership.company.industry && membership.company.city && <span> — </span>}
-                {membership.company.city && <span>{membership.company.city}</span>}
-              </p>
-            </div>
-          </Link>
-        )}
-
         <div className="mt-4 flex flex-col gap-1 border-t border-border pt-4">
           {member.show_email || canSeePrivate ? (
             <a
@@ -156,6 +142,58 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
           )}
         </div>
         <EntitySocialLinks linkedinUrl={member.linkedin_url} className="mt-3 px-3" />
+      </div>
+
+      {/* Los blok net als "Werkzaam bij dit bedrijf" op de bedrijfspagina,
+          i.p.v. genest in de profielkaart hierboven. */}
+      {membership?.company && (
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij</h2>
+          <Link
+            href={`/bedrijven/${membership.company.id}`}
+            className="flex items-center gap-3 rounded-xl border border-border p-3 hover:border-voc-red"
+          >
+            <CompanyLogo logoUrl={logoUrl} name={membership.company.name} size={44} />
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium text-foreground">{membership.company.name}</p>
+              <p className="truncate text-xs text-muted">
+                {membership.company.industry && <span>{membership.company.industry}</span>}
+                {membership.company.industry && membership.company.city && <span> — </span>}
+                {membership.company.city && <span>{membership.company.city}</span>}
+              </p>
+            </div>
+          </Link>
+        </div>
+      )}
+
+      {attendedActivities.length > 0 && (
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Bijgewoonde evenementen</h2>
+          <ul className="flex flex-col gap-2">
+            {attendedActivities.map((activity) => (
+              <li key={activity.id}>
+                <Link
+                  href={`/agenda/${activity.id}`}
+                  className="flex items-center gap-3 rounded-lg px-1 py-1.5 text-sm hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                >
+                  <CalendarDays size={16} className="shrink-0 text-muted" />
+                  <span className="min-w-0 flex-1 truncate text-foreground">{activity.title}</span>
+                  <span className="shrink-0 text-xs text-muted">{formatActivityDateShort(activity.starts_at)}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <h2 className="mb-3 text-sm font-semibold text-foreground">Berichten</h2>
+        <MemberPostList
+          initialPosts={posts}
+          currentUserId={viewer.id}
+          canModerate={isBoard(viewer.role)}
+          canEditOthers={isAdmin(viewer.role)}
+        />
       </div>
 
       {isAdmin(viewer.role) && (

@@ -1,6 +1,5 @@
 import Link from "next/link";
-import Image from "next/image";
-import { Building2 } from "lucide-react";
+import { CompanyLogo } from "./CompanyLogo";
 
 export type CompanyListItem = {
   id: string;
@@ -17,19 +16,7 @@ export function CompanyCard({ company }: { company: CompanyListItem }) {
       href={`/bedrijven/${company.id}`}
       className="flex min-w-0 items-center gap-4 rounded-2xl border border-border bg-surface p-4 shadow-sm hover:border-voc-red"
     >
-      {company.logoUrl ? (
-        <Image
-          src={company.logoUrl}
-          alt={company.name}
-          width={80}
-          height={80}
-          className="h-20 w-20 shrink-0 rounded-xl object-cover"
-        />
-      ) : (
-        <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red">
-          <Building2 size={30} />
-        </div>
-      )}
+      <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={80} />
       <div className="min-w-0 flex-1">
         <p className="line-clamp-2 text-sm font-medium leading-snug text-foreground">{company.name}</p>
         {company.tagline ? (

@@ -139,6 +139,28 @@ export async function fetchFeedPosts(supabase: SupabaseClient<Database>, viewerI
   return hydrateAll(supabase, data ?? [], viewerId);
 }
 
+// Eigen berichten op het ledenprofiel — zelfde weergave/select als de
+// community-feed, maar begrensd tot wat deze auteur zelf heeft geplaatst
+// (geen reacties of likes van/op anderen).
+export async function fetchFeedPostsByAuthor(
+  supabase: SupabaseClient<Database>,
+  viewerId: string,
+  authorId: string,
+  limit = 20
+): Promise<FeedPost[]> {
+  const { data } = await supabase
+    .from("feed_posts")
+    .select(POST_SELECT)
+    .eq("author_id", authorId)
+    .order("created_at", { ascending: false })
+    .order("created_at", { ascending: true, referencedTable: "feed_comments" })
+    .order("created_at", { ascending: false, referencedTable: "feed_likes" })
+    .limit(limit)
+    .returns<RawPost[]>();
+
+  return hydrateAll(supabase, data ?? [], viewerId);
+}
+
 export async function fetchPostById(supabase: SupabaseClient<Database>, postId: string, viewerId: string): Promise<FeedPost | null> {
   const { data } = await supabase
     .from("feed_posts")

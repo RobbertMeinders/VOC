@@ -158,6 +158,7 @@ export interface Database {
           activity_id: string;
           profile_id: string;
           is_waitlisted: boolean;
+          attended: boolean;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["activity_registrations"]["Row"]> & {

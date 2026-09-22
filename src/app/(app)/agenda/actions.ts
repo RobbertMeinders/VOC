@@ -255,6 +255,18 @@ export async function decideActivitySubmissionAction(activityId: string, decisio
   revalidatePath("/agenda");
 }
 
+// Onderscheidt "aangemeld" van "echt geweest" — bestuur vinkt na afloop af
+// wie er daadwerkelijk was, wat de basis is voor "Bijgewoonde evenementen"
+// op het ledenprofiel.
+export async function setAttendanceAction(registrationId: string, activityId: string, attended: boolean) {
+  await requireBoard();
+  const supabase = await createClient();
+
+  await supabase.from("activity_registrations").update({ attended }).eq("id", registrationId);
+
+  revalidatePath(`/agenda/${activityId}`);
+}
+
 export type AttachmentFormState = { error?: string; success?: boolean };
 
 export async function addActivityAttachmentAction(

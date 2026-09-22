@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
-import { Building2, Globe, Mail, MapPin, Pencil, Phone } from "lucide-react";
+import { Globe, Mail, MapPin, Pencil, Phone } from "lucide-react";
 import { ExpandableText } from "@/components/ui/ExpandableText";
 import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
+import { CompanyLogo } from "./CompanyLogo";
 import type { Database } from "@/lib/types/database";
 
 type Company = Database["public"]["Tables"]["companies"]["Row"];
@@ -20,13 +20,7 @@ export function CompanyHeader({
     <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-4">
-          {logoUrl ? (
-            <Image src={logoUrl} alt={company.name} width={64} height={64} className="h-16 w-16 rounded-xl object-cover" />
-          ) : (
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red">
-              <Building2 size={28} />
-            </div>
-          )}
+          <CompanyLogo logoUrl={logoUrl} name={company.name} size={64} />
           <div className="min-w-0">
             <h1 className="text-xl font-semibold text-foreground">{company.name}</h1>
             {company.tagline ? (

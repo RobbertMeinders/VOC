@@ -54,7 +54,9 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
   }
 
   type RegistrationRow = {
+    id: string;
     is_waitlisted: boolean;
+    attended: boolean;
     profile: { id: string; first_name: string; last_name: string; avatar_url: string | null } | null;
   };
 
@@ -62,7 +64,7 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
     getSignedStorageUrl("activity-images", activity.image_url),
     supabase
       .from("activity_registrations")
-      .select("is_waitlisted, profile:profiles(id, first_name, last_name, avatar_url)")
+      .select("id, is_waitlisted, attended, profile:profiles(id, first_name, last_name, avatar_url)")
       .eq("activity_id", id)
       .order("created_at", { ascending: true })
       .returns<RegistrationRow[]>(),
@@ -102,6 +104,8 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
       first_name: r.profile.first_name,
       last_name: r.profile.last_name,
       avatarUrl: r.profile.avatar_url ? (attendeeAvatarUrls.get(r.profile.avatar_url) ?? null) : null,
+      registrationId: r.id,
+      attended: r.attended,
     }));
 
   const isFull = activity.max_participants !== null && confirmedCount >= activity.max_participants;
@@ -204,7 +208,12 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
         </div>
       </div>
 
-      <AttendeeList attendees={attendees} waitlistCount={waitlistedRegistrations.length} />
+      <AttendeeList
+        attendees={attendees}
+        waitlistCount={waitlistedRegistrations.length}
+        activityId={id}
+        canManage={isBoard(profile.role)}
+      />
 
       {(attachments ?? []).length > 0 && (
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
