@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState, type DragEvent } from "react";
+import { useActionState, useEffect, useRef, useState, type DragEvent, type FormEvent } from "react";
 import { useFormStatus } from "react-dom";
 import { clsx } from "clsx";
 import { FileText, Upload, X } from "lucide-react";
@@ -22,10 +22,10 @@ const MAX_ATTACHMENTS = 10;
 
 type Preview = { url: string; name: string; isImage: boolean };
 
-function SubmitButton({ disabled }: { disabled: boolean }) {
+function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" size="sm" disabled={pending || disabled}>
+    <Button type="submit" size="sm" disabled={pending}>
       {pending ? "Plaatsen…" : "Plaatsen"}
     </Button>
   );
@@ -57,6 +57,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [postType, setPostType] = useState<FeedPostType | null>(null);
+  const [showTagHint, setShowTagHint] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const previewUrlsRef = useRef<string[]>([]);
 
@@ -134,6 +135,16 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
     void addFiles(Array.from(e.dataTransfer.files));
   }
 
+  // Knop blijft klikbaar zonder label (i.p.v. stil disabled) — anders is
+  // onduidelijk waarom plaatsen niet lukt. Zonder label wordt de action niet
+  // aangeroepen; in plaats daarvan verschijnt een duidelijke melding.
+  function handleSubmit(e: FormEvent<HTMLFormElement>) {
+    if (!postType) {
+      e.preventDefault();
+      setShowTagHint(true);
+    }
+  }
+
   // Compact veld i.p.v. het volledige formulier — pas bij klikken opent het
   // grotere, gedimde overlay eronder. Voorkomt dat de feed standaard met een
   // groot invoerformulier begint.
@@ -169,6 +180,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
 
           <form
             action={formAction}
+            onSubmit={handleSubmit}
             onDragOver={handleDragOver}
             onDragLeave={handleDragLeave}
             onDrop={handleDrop}
@@ -233,8 +245,21 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
             </div>
 
             <div className="mt-3 sm:ml-[52px]">
-              <PostTypePicker required value={postType} onChange={setPostType} />
+              <PostTypePicker
+                required
+                value={postType}
+                onChange={(type) => {
+                  setPostType(type);
+                  if (type) setShowTagHint(false);
+                }}
+              />
             </div>
+
+            {showTagHint && !postType && (
+              <p role="alert" className="mt-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red sm:ml-[52px]">
+                Kies eerst een label (vraag, aanbod, nieuws of overig) voordat je kunt plaatsen.
+              </p>
+            )}
 
             {state.error && (
               <p role="alert" className="mt-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red sm:ml-[52px]">
@@ -243,7 +268,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
             )}
 
             <div className="mt-3 flex items-center justify-end sm:ml-[52px]">
-              <SubmitButton disabled={!postType} />
+              <SubmitButton />
             </div>
           </form>
         </div>
