@@ -21,10 +21,10 @@ export function CompanyHeader({
       <div className="flex items-start justify-between gap-4">
         <div className="flex items-start gap-4">
           <CompanyLogo logoUrl={logoUrl} name={company.name} size={64} />
-          <div className="min-w-0">
-            <h1 className="text-xl font-semibold text-foreground">{company.name}</h1>
+          <div className="min-w-0 flex-1">
+            <h1 className="break-words text-xl font-semibold text-foreground">{company.name}</h1>
             {company.tagline ? (
-              <p className="text-sm font-medium text-muted">{company.tagline}</p>
+              <p className="break-words text-sm font-medium text-muted">{company.tagline}</p>
             ) : (
               company.industry && <p className="text-sm text-muted">{company.industry}</p>
             )}
@@ -45,9 +45,9 @@ export function CompanyHeader({
                   href={company.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 text-voc-red hover:underline"
+                  className="flex items-center gap-1 break-all text-voc-red hover:underline"
                 >
-                  <Globe size={14} />
+                  <Globe size={14} className="shrink-0" />
                   {company.website.replace(/^https?:\/\//, "")}
                 </a>
               )}
@@ -55,13 +55,24 @@ export function CompanyHeader({
           </div>
         </div>
         {editHref && (
-          <Link
-            href={editHref}
-            className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-voc-red hover:text-voc-red"
-          >
-            <Pencil size={14} />
-            Bewerken
-          </Link>
+          <>
+            {/* Op mobiel alleen het potloodje — de volledige "Bewerken"-pil
+                drukte de naam/tagline anders te veel opzij. */}
+            <Link
+              href={editHref}
+              aria-label="Bewerken"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red sm:hidden"
+            >
+              <Pencil size={14} />
+            </Link>
+            <Link
+              href={editHref}
+              className="hidden shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-voc-red hover:text-voc-red sm:flex"
+            >
+              <Pencil size={14} />
+              Bewerken
+            </Link>
+          </>
         )}
       </div>
       {company.description && (

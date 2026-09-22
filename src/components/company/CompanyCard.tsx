@@ -18,7 +18,7 @@ export function CompanyCard({ company }: { company: CompanyListItem }) {
     >
       <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={80} />
       <div className="min-w-0 flex-1">
-        <p className="line-clamp-2 text-sm font-medium leading-snug text-foreground">{company.name}</p>
+        <p className="line-clamp-2 break-words text-sm font-medium leading-snug text-foreground">{company.name}</p>
         {company.tagline ? (
           <p className="mt-0.5 line-clamp-2 text-xs text-muted">{company.tagline}</p>
         ) : (

@@ -96,13 +96,24 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
             </div>
           </div>
           {isOwnProfile && (
-            <Link
-              href="/profiel"
-              className="flex shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-voc-red hover:text-voc-red"
-            >
-              <Pencil size={14} />
-              Profiel aanpassen
-            </Link>
+            <>
+              {/* Op mobiel alleen het potloodje — "Profiel aanpassen" als
+                  volledige pil drukte naam/functie anders te veel opzij. */}
+              <Link
+                href="/profiel"
+                aria-label="Profiel aanpassen"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red sm:hidden"
+              >
+                <Pencil size={14} />
+              </Link>
+              <Link
+                href="/profiel"
+                className="hidden shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-voc-red hover:text-voc-red sm:flex"
+              >
+                <Pencil size={14} />
+                Profiel aanpassen
+              </Link>
+            </>
           )}
         </div>
 
