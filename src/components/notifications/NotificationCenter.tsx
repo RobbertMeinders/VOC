@@ -7,6 +7,7 @@ import { Bell, X } from "lucide-react";
 import { clsx } from "clsx";
 import { formatActivityDateShort } from "@/lib/format/date";
 import { NavBadge } from "@/components/layout/NavBadge";
+import { Skeleton } from "@/components/ui/Skeleton";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useOverlay } from "@/lib/ui/OverlayContext";
 import {
@@ -72,7 +73,14 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
         </button>
       </div>
       <div className={variant === "mobile" ? "flex-1 overflow-y-auto" : "max-h-80 overflow-y-auto"}>
-        {loading && <p className="px-4 py-6 text-center text-sm text-muted">Laden…</p>}
+        {loading &&
+          Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex flex-col gap-1.5 border-b border-border px-4 py-3 last:border-0">
+              <Skeleton className="h-3.5 w-2/3" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-2.5 w-16" />
+            </div>
+          ))}
         {!loading && notifications?.length === 0 && (
           <p className="px-4 py-6 text-center text-sm text-muted">Geen notificaties.</p>
         )}

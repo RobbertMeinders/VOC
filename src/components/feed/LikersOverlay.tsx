@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
+import { Skeleton } from "@/components/ui/Skeleton";
 import type { Liker } from "@/app/(app)/actions";
 
 // Overlay met wie een bericht of reactie geliked heeft — lazy geladen pas
@@ -46,7 +47,13 @@ export function LikersOverlay({
             </button>
           </div>
           <div className="max-h-[55vh] overflow-y-auto">
-            {likers === null && <p className="px-4 py-6 text-center text-sm text-muted">Laden…</p>}
+            {likers === null &&
+              Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex items-center gap-3 px-4 py-2.5">
+                  <Skeleton className="h-8 w-8 shrink-0 rounded-full" />
+                  <Skeleton className="h-4 w-28" />
+                </div>
+              ))}
             {likers !== null && likers.length === 0 && (
               <p className="px-4 py-6 text-center text-sm text-muted">Nog niemand.</p>
             )}
