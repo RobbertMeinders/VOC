@@ -1,9 +1,11 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
 import { X } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
+import { isOverlayRoute } from "@/lib/ui/overlayRoutes";
 import type { ReactNode } from "react";
 
 // Overlay voor een route die via een Next.js intercepting route (@modal,
@@ -18,13 +20,35 @@ import type { ReactNode } from "react";
 // pagina, niet deze overlay.
 export function RouteOverlayPanel({ children }: { children: ReactNode }) {
   const router = useRouter();
+  const pathname = usePathname();
+  const [dismissed, setDismissed] = useState(false);
+  const [lastPathname, setLastPathname] = useState(pathname);
+
+  // Next's @modal-slot hoort zichzelf te resetten (via default.tsx) zodra je
+  // via een menu-link/knop naar een heel andere pagina navigeert, maar dat
+  // reconciliëren gebeurt niet altijd meteen bij client-side navigatie —
+  // deze overlay kon dan "doorzweven" boven de nieuwe pagina. Blijft de
+  // nieuwe pathname wél een overlay-route (bv. /agenda/nieuw -> /agenda/[id]
+  // na het aanmaken van een activiteit), dan is dat een normale interne
+  // overgang en laten we 'm gewoon staan — pas bij een echte navigatie weg
+  // verbergen we het paneel zelf meteen. Aanpassen tijdens render (i.p.v. in
+  // een effect) volgt React's eigen patroon voor "state aanpassen naar
+  // aanleiding van een wijzigende prop", zonder een extra gecascadeerde render.
+  if (pathname !== lastPathname) {
+    setLastPathname(pathname);
+    if (!isOverlayRoute(pathname)) {
+      setDismissed(true);
+    }
+  }
 
   function close() {
     router.back();
   }
 
-  useEscapeKey(true, close);
-  useBodyScrollLock(true);
+  useEscapeKey(!dismissed, close);
+  useBodyScrollLock(!dismissed);
+
+  if (dismissed) return null;
 
   return (
     <div className="animate-fade-in fixed inset-x-0 bottom-14 top-14 z-30 overflow-y-auto bg-background md:inset-y-0 md:bottom-0 md:left-64 md:top-0">
