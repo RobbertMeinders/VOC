@@ -113,14 +113,13 @@ export function Sidebar({
 
       <nav className="mt-2 flex flex-col gap-1 border-t border-border pt-2">{accountItems.map(renderAccountItem)}</nav>
 
-      {/* Social icons horen bij de profielkaart eronder, niet los ertussen —
-          daarom staan ze nu boven diezelfde scheidingslijn i.p.v. in een
-          eigen rijtje ertussenin. */}
       <div className="border-t border-border pt-4">
-        <div className="flex items-center justify-center gap-2 pb-3">
-          <VocSocialLinks />
-        </div>
         <SidebarProfileMenu profile={profile} avatarUrl={avatarUrl} companyName={companyName} />
+      </div>
+
+      {/* Onder de profielfoto zelf i.p.v. ertussenin ergens los te staan. */}
+      <div className="flex items-center justify-center gap-2 pt-3">
+        <VocSocialLinks />
       </div>
     </aside>
   );
