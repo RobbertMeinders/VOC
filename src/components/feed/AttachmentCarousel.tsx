@@ -9,11 +9,13 @@ import type { FeedAttachment } from "@/lib/feed/types";
 function Cell({
   image,
   remainingCount,
+  remainingClassName,
   onClick,
   className,
 }: {
   image: FeedAttachment;
   remainingCount?: number;
+  remainingClassName?: string;
   onClick: () => void;
   className?: string;
 }) {
@@ -22,7 +24,12 @@ function Cell({
     <button type="button" onClick={onClick} className={clsx("overflow-hidden bg-black/[.03] dark:bg-white/[.03]", className)}>
       <Image src={image.url} alt={image.fileName} fill sizes="(min-width: 640px) 600px, 100vw" className="object-cover" />
       {Boolean(remainingCount) && (
-        <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-lg font-semibold text-white">
+        <span
+          className={clsx(
+            "absolute inset-0 flex items-center justify-center bg-black/50 text-lg font-semibold text-white",
+            remainingClassName
+          )}
+        >
           +{remainingCount}
         </span>
       )}
@@ -32,8 +39,11 @@ function Cell({
 
 // Preview in het bericht zelf: bijgesneden (object-cover) op een vaste
 // verhouding, net als Instagram/X. Bij meerdere foto's altijd maximaal 2
-// naast elkaar (1 links, 1 rechts) i.p.v. te proberen 3 of 4 foto's in een
-// grid te persen — de rest zie je via het "+N"-label op de tweede cel.
+// naast elkaar op desktop (1 links, 1 rechts) — op mobiel is er simpelweg
+// te weinig breedte voor 2 kolommen, dus daar altijd 1 foto met een groter
+// "+N"-label. Beide cellen staan in de DOM (nodig om zonder JS/hydratatie-
+// mismatch op viewportbreedte te reageren); de tweede cel is op mobiel
+// alleen CSS-verborgen, dus next/image's lazy loading haalt 'm daar niet op.
 // Klikken opent de volledige foto in een lightbox (ImageLightbox), swipebaar
 // (of met pijltoetsen) tussen alle foto's van dit bericht, niet alleen de
 // zichtbare preview-cellen.
@@ -43,7 +53,8 @@ export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
   if (images.length === 0) return null;
 
   const visible = images.slice(0, 2);
-  const remaining = images.length - visible.length;
+  const mobileRemaining = images.length - 1;
+  const desktopRemaining = images.length - visible.length;
 
   return (
     <>
@@ -53,16 +64,21 @@ export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
             <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} className="absolute inset-0" />
           </div>
         ) : (
-          <div className="grid h-80 grid-cols-2 gap-0.5">
-            {visible.map((image, i) => (
-              <Cell
-                key={image.id}
-                image={image}
-                remainingCount={i === visible.length - 1 ? remaining : undefined}
-                onClick={() => setLightboxIndex(i)}
-                className="relative h-full w-full"
-              />
-            ))}
+          <div className="grid h-80 grid-cols-1 gap-0.5 sm:grid-cols-2">
+            <Cell
+              image={visible[0]}
+              remainingCount={mobileRemaining}
+              remainingClassName="sm:hidden"
+              onClick={() => setLightboxIndex(0)}
+              className="relative h-full w-full"
+            />
+            <Cell
+              image={visible[1]}
+              remainingCount={desktopRemaining}
+              remainingClassName="hidden sm:flex"
+              onClick={() => setLightboxIndex(1)}
+              className="relative hidden h-full w-full sm:block"
+            />
           </div>
         )}
       </div>
