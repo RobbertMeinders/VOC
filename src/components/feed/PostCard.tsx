@@ -239,7 +239,7 @@ function CommentLikeRow({
           onClick={onOpenLikers}
           className={clsx("flex items-center gap-1", count > 0 ? "text-voc-red" : "text-muted hover:text-voc-red")}
         >
-          <ThumbsUp size={13} className={count > 0 ? "fill-voc-red" : ""} />
+          <ThumbsUp key={String(liked)} size={13} className={clsx(count > 0 && "fill-voc-red", liked && "animate-pop")} />
           {count > 0 && <span className="text-xs">{count}</span>}
         </button>
       </div>

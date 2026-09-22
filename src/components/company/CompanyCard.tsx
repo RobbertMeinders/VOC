@@ -14,7 +14,7 @@ export function CompanyCard({ company }: { company: CompanyListItem }) {
   return (
     <Link
       href={`/bedrijven/${company.id}`}
-      className="flex min-w-0 items-center gap-4 rounded-2xl border border-border bg-surface p-4 shadow-sm hover:border-voc-red"
+      className="flex min-w-0 items-center gap-4 rounded-2xl border border-border bg-surface p-4 shadow-sm hover:border-voc-red hover:shadow-md"
     >
       <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={80} />
       <div className="min-w-0 flex-1">

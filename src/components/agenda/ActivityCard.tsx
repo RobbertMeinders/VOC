@@ -34,7 +34,7 @@ export function ActivityCard({
     <Link
       href={`/agenda/${activity.id}`}
       className={clsx(
-        "flex gap-4 rounded-2xl border border-border bg-surface p-5 shadow-sm hover:border-voc-red",
+        "flex gap-4 rounded-2xl border border-border bg-surface p-5 shadow-sm hover:border-voc-red hover:shadow-md",
         (isOfficial || isSubmitted) && "border-l-4"
       )}
       style={isOfficial ? { borderLeftColor: "var(--voc-red)" } : isSubmitted ? { borderLeftColor: "var(--muted)" } : undefined}

@@ -54,7 +54,7 @@ export function LikeButton({
         liked ? "text-voc-red" : "text-muted hover:bg-black/[.04] dark:hover:bg-white/[.06]"
       )}
     >
-      <ThumbsUp size={size === "sm" ? 13 : 16} className={liked ? "fill-voc-red" : ""} />
+      <ThumbsUp key={String(liked)} size={size === "sm" ? 13 : 16} className={clsx(liked && "fill-voc-red animate-pop")} />
       {size === "md" && count > 0 && count}
     </button>
   );
