@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent } from "react";
+import { createPortal } from "react-dom";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
@@ -65,28 +66,34 @@ function SearchPanel({ close }: { close: () => void }) {
     goToFullResults();
   }
 
-  return (
+  // Portal naar document.body: dit paneel wordt op mobiel geopend vanuit de
+  // MobileHeader, die backdrop-blur heeft — een filter/backdrop-filter op een
+  // voorouder maakt die voorouder het containing block voor position:fixed
+  // kinderen, waardoor dit paneel zonder portal in de kleine (56px) header
+  // "opgesloten" zat en achter de rest van de pagina (o.a. feed-foto's) kon
+  // uitkomen i.p.v. er echt overheen.
+  return createPortal(
     <>
       <div className="fixed inset-0 z-40 cursor-pointer bg-black/40 animate-fade-in" onClick={close} />
-      <div className="fixed inset-x-3 top-[env(safe-area-inset-top)] z-50 mt-4 sm:inset-x-0 sm:top-[30vh] sm:mx-auto sm:w-full sm:max-w-lg sm:px-3">
+      <div className="fixed inset-x-3 top-[env(safe-area-inset-top)] z-50 mt-4 sm:inset-x-0 sm:top-[30vh] sm:mx-auto sm:w-full sm:max-w-xl sm:px-3">
         <div className="animate-scale-in overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
-          <form onSubmit={handleSubmit} className="flex items-center gap-2 border-b border-border p-3">
-            <Search size={16} className="shrink-0 text-muted" />
+          <form onSubmit={handleSubmit} className="flex items-center gap-3 border-b border-border p-4">
+            <Search size={20} className="shrink-0 text-muted" />
             <input
               ref={inputRef}
               type="text"
               value={value}
               onChange={(e) => handleChange(e.target.value)}
               placeholder="Zoek leden, bedrijven, activiteiten…"
-              className="min-w-0 flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted"
+              className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted"
             />
             <button
               type="button"
               onClick={close}
               aria-label="Sluiten"
-              className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
             >
-              <X size={16} />
+              <X size={18} />
             </button>
           </form>
 
@@ -147,7 +154,8 @@ function SearchPanel({ close }: { close: () => void }) {
           )}
         </div>
       </div>
-    </>
+    </>,
+    document.body
   );
 }
 
