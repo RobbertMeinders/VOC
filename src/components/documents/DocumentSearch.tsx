@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 
-export function DocumentSearch() {
+export function DocumentSearch({ placeholder = "Zoek op documentnaam…" }: { placeholder?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -25,12 +25,7 @@ export function DocumentSearch() {
   return (
     <div className="relative mb-4">
       <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-      <Input
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        placeholder="Zoek op documentnaam…"
-        className="pl-9"
-      />
+      <Input value={query} onChange={(e) => setQuery(e.target.value)} placeholder={placeholder} className="pl-9" />
     </div>
   );
 }

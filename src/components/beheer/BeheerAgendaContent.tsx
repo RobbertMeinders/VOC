@@ -68,7 +68,7 @@ export async function BeheerAgendaContent() {
                   <Pencil size={14} />
                 </Link>
                 <DeleteButton
-                  onDelete={deleteActivityAction.bind(null, activity.id)}
+                  onDelete={deleteActivityAction.bind(null, activity.id, false)}
                   confirmMessage="Weet je zeker dat je deze activiteit wilt verwijderen? Aanmeldingen worden ook verwijderd."
                   className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-voc-red hover:border-voc-red"
                 />

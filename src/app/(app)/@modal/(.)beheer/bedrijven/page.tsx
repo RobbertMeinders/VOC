@@ -1,10 +1,10 @@
 import { RouteOverlayPanel } from "@/components/ui/RouteOverlayPanel";
 import { BeheerBedrijvenContent } from "@/components/beheer/BeheerBedrijvenContent";
 
-export default function BeheerBedrijvenModal() {
+export default function BeheerBedrijvenModal({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   return (
     <RouteOverlayPanel>
-      <BeheerBedrijvenContent />
+      <BeheerBedrijvenContent searchParams={searchParams} />
     </RouteOverlayPanel>
   );
 }

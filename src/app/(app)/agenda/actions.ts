@@ -228,7 +228,11 @@ export async function updateActivityAction(
   }
 }
 
-export async function deleteActivityAction(activityId: string) {
+// redirectAfter=true (standaard) is voor de detailpagina/-overlay, waar de
+// activiteit na verwijderen niet meer bestaat en je dus weg moet; false is
+// voor een lijstcontext (beheer-overzicht) die na verwijderen gewoon op
+// dezelfde plek moet blijven met de rij eruit.
+export async function deleteActivityAction(activityId: string, redirectAfter = true) {
   try {
     // requireProfile (niet requireBoard): RLS staat een lid ook toe zijn
     // eigen, nog-niet-beoordeelde inzending in te trekken
@@ -237,7 +241,8 @@ export async function deleteActivityAction(activityId: string) {
     const supabase = await createClient();
     await supabase.from("activities").delete().eq("id", activityId);
     revalidatePath("/agenda");
-    redirect("/agenda");
+    revalidatePath("/beheer/agenda");
+    if (redirectAfter) redirect("/agenda");
   } catch (cause) {
     if (isNextRedirectError(cause)) throw cause;
     console.error("[agenda] deleteActivityAction failed:", cause);

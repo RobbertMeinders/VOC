@@ -3,6 +3,6 @@ import { BeheerBedrijvenContent } from "@/components/beheer/BeheerBedrijvenConte
 
 export const metadata: Metadata = { title: "Bedrijven beheren" };
 
-export default function BeheerBedrijvenPage() {
-  return <BeheerBedrijvenContent />;
+export default function BeheerBedrijvenPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+  return <BeheerBedrijvenContent searchParams={searchParams} />;
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
 
 export function DeleteButton({
@@ -15,6 +16,7 @@ export function DeleteButton({
   size?: number;
 }) {
   const [isPending, startTransition] = useTransition();
+  const router = useRouter();
 
   return (
     <button
@@ -24,7 +26,14 @@ export function DeleteButton({
       disabled={isPending}
       onClick={() => {
         if (window.confirm(confirmMessage)) {
-          startTransition(onDelete);
+          startTransition(async () => {
+            await onDelete();
+            // Server Components lijst-pagina's tonen de verwijderde rij pas
+            // weg na een refresh — een server action die zelf redirect()
+            // aanroept (detailpagina's) heeft dit niet nodig, maar dan is
+            // deze refresh onschadelijk: de navigatie is er dan al overheen.
+            router.refresh();
+          });
         }
       }}
       className={className ?? "text-muted hover:text-voc-red disabled:opacity-50"}

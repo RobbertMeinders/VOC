@@ -29,6 +29,12 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
   const [state, formAction] = useActionState(updateWithId, initialState);
   const [preview, setPreview] = useState<string | null>(null);
   const shownLogo = preview ?? logoUrl;
+  // Gecontroleerd i.p.v. defaultValue: React reset een <form> na een
+  // geslaagde action-submit terug naar de oorspronkelijke defaultValue van
+  // elk ongecontroleerd veld — bij een lege branche (defaultValue="") sprong
+  // de keuze zo meteen na het opslaan terug naar "Kies een branche", en een
+  // tweede keer opslaan wiste de zojuist opgeslagen branche dus weer.
+  const [industry, setIndustry] = useState(company.industry ?? "");
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -100,17 +106,18 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           <select
             id="industry"
             name="industry"
-            defaultValue={company.industry ?? ""}
+            value={industry}
+            onChange={(e) => setIndustry(e.target.value)}
             className="h-10 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
           >
             <option value="">Kies een branche</option>
-            {INDUSTRIES.map((industry) => (
-              <option key={industry} value={industry}>
-                {industry}
+            {INDUSTRIES.map((option) => (
+              <option key={option} value={option}>
+                {option}
               </option>
             ))}
-            {company.industry && !(INDUSTRIES as readonly string[]).includes(company.industry) && (
-              <option value={company.industry}>{company.industry}</option>
+            {industry && !(INDUSTRIES as readonly string[]).includes(industry) && (
+              <option value={industry}>{industry}</option>
             )}
           </select>
         </div>

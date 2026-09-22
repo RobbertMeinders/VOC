@@ -1,7 +1,8 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireBoard, requireProfile } from "@/lib/auth/session";
+import { redirect } from "next/navigation";
+import { requireAdmin, requireBoard, requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
 import { geocodeAddress } from "@/lib/geo/geocode";
@@ -100,6 +101,23 @@ export async function updateCompanyAction(
   invalidateQuery("leden-page-data");
   revalidatePath(`/bedrijven/${companyId}`);
   return { success: true };
+}
+
+// Alleen beheerder — RLS (companies_admin_delete) is de echte grens, dit is
+// alleen voor een nette foutmelding. Company_members/-requests hangen via
+// on delete cascade aan companies, dus die ruimt de database vanzelf op.
+// redirectAfter=true (standaard) is voor de bewerkpagina, waar het bedrijf
+// na verwijderen niet meer bestaat; false is voor de beheerlijst, die na
+// verwijderen gewoon op dezelfde plek moet blijven met de rij eruit.
+export async function deleteCompanyAction(companyId: string, redirectAfter = true) {
+  await requireAdmin();
+  const supabase = await createClient();
+  await supabase.from("companies").delete().eq("id", companyId);
+  invalidateQuery("bedrijven-page-data");
+  invalidateQuery("leden-page-data");
+  revalidatePath("/bedrijven");
+  revalidatePath("/beheer/bedrijven");
+  if (redirectAfter) redirect("/bedrijven");
 }
 
 // Goedkeuren/afwijzen mag door een bestaand lid van dit bedrijf of door

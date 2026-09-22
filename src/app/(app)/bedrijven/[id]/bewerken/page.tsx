@@ -3,9 +3,12 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
+import { isAdmin } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { CompanyForm } from "@/components/company/CompanyForm";
+import { DeleteButton } from "@/components/feed/DeleteButton";
+import { deleteCompanyAction } from "@/app/(app)/bedrijven/[id]/actions";
 import type { Database } from "@/lib/types/database";
 
 type Company = Database["public"]["Tables"]["companies"]["Row"];
@@ -19,7 +22,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function EditCompanyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  await requireBoard();
+  const profile = await requireBoard();
   const supabase = await createClient();
 
   const { data: company } = await supabase.from("companies").select("*").eq("id", id).maybeSingle<Company>();
@@ -43,6 +46,20 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
       <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
         <CompanyForm company={company} logoUrl={logoUrl} />
       </div>
+      {isAdmin(profile.role) && (
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+          <h2 className="mb-1 text-sm font-semibold text-foreground">Bedrijf verwijderen</h2>
+          <p className="mb-3 text-xs text-muted">
+            Verwijdert dit bedrijf definitief, inclusief alle koppelingen met leden. Kan niet ongedaan gemaakt worden.
+          </p>
+          <DeleteButton
+            onDelete={deleteCompanyAction.bind(null, company.id)}
+            confirmMessage={`Weet je zeker dat je ${company.name} definitief wilt verwijderen?`}
+            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red hover:border-voc-red"
+            size={14}
+          />
+        </div>
+      )}
     </div>
   );
 }
