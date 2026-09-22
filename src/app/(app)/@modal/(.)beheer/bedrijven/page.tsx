@@ -3,7 +3,7 @@ import { BeheerBedrijvenContent } from "@/components/beheer/BeheerBedrijvenConte
 
 export default function BeheerBedrijvenModal({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   return (
-    <RouteOverlayPanel>
+    <RouteOverlayPanel closeHref="/beheer">
       <BeheerBedrijvenContent searchParams={searchParams} />
     </RouteOverlayPanel>
   );

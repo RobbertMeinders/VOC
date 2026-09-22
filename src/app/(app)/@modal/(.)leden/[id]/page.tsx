@@ -10,7 +10,7 @@ export default async function MemberProfileModal({ params }: { params: Promise<{
   const { id } = await params;
 
   return (
-    <RouteOverlayPanel>
+    <RouteOverlayPanel closeHref="/leden">
       <MemberProfileContent id={id} />
     </RouteOverlayPanel>
   );

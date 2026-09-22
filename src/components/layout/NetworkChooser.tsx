@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Building2, ChevronUp, Users } from "lucide-react";
 import { clsx } from "clsx";
 import { NavBadge } from "./NavBadge";
+import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useOverlay } from "@/lib/ui/OverlayContext";
 
@@ -97,10 +98,16 @@ export function NetworkChooser({
         Netwerk
       </button>
 
+      {/* FloatingPortal: BottomNav (de voorouder hier) heeft backdrop-blur,
+          wat een position:fixed kind zonder portal in BottomNav's eigen
+          stacking context "vangt" — zonder dit kon dit paneel achter een
+          open overlay uitkomen i.p.v. er overheen (zie NotificationCenter).
+          Nu vast gepositioneerd t.o.v. het scherm i.p.v. t.o.v. de knop,
+          wat portalen sowieso al vereist. */}
       {open && (
-        <>
+        <FloatingPortal>
           <div className="fixed inset-0 z-40 cursor-pointer" onClick={close} />
-          <div className="absolute bottom-full left-1/2 z-50 mb-2 w-48 -translate-x-1/2">
+          <div className="fixed inset-x-3 bottom-16 z-50 mx-auto w-48">
             <div className="animate-scale-in origin-bottom overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
               <p className="flex items-center gap-1.5 border-b border-border px-3 py-2 text-xs font-semibold text-muted">
                 <ChevronUp size={12} />
@@ -119,7 +126,7 @@ export function NetworkChooser({
               ))}
             </div>
           </div>
-        </>
+        </FloatingPortal>
       )}
     </div>
   );

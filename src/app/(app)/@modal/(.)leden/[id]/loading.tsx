@@ -3,7 +3,7 @@ import { DetailSkeleton } from "@/components/ui/skeletons/OverlaySkeletons";
 
 export default function MemberOverlayLoading() {
   return (
-    <RouteOverlayPanel>
+    <RouteOverlayPanel closeHref="/leden">
       <DetailSkeleton />
     </RouteOverlayPanel>
   );

@@ -5,7 +5,7 @@ export default async function ActivityEditModal({ params }: { params: Promise<{ 
   const { id } = await params;
 
   return (
-    <RouteOverlayPanel>
+    <RouteOverlayPanel closeHref={`/agenda/${id}`}>
       <ActivityEditContent id={id} />
     </RouteOverlayPanel>
   );

@@ -3,7 +3,7 @@ import DocumentenPage from "@/app/(app)/documenten/page";
 
 export default function BeheerDocumentenModal() {
   return (
-    <RouteOverlayPanel>
+    <RouteOverlayPanel closeHref="/beheer">
       <DocumentenPage searchParams={Promise.resolve({})} />
     </RouteOverlayPanel>
   );

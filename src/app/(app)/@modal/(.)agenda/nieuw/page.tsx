@@ -7,7 +7,7 @@ export default async function NewActivityModal() {
   const profile = await requireProfile();
 
   return (
-    <RouteOverlayPanel>
+    <RouteOverlayPanel closeHref="/agenda">
       <NewActivityFlow board={isBoard(profile.role)} />
     </RouteOverlayPanel>
   );

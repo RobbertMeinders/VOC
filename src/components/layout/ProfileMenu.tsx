@@ -6,6 +6,7 @@ import { Building2, LayoutDashboard, LogOut, Settings, User as UserIcon } from "
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
 import { NavBadge } from "./NavBadge";
+import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { signOutAction } from "@/lib/auth/actions";
 import { isBoard } from "@/lib/auth/roles";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
@@ -35,24 +36,23 @@ function MenuPanel({
   items,
   beheerBadge,
   onClose,
-  className,
 }: {
   items: ReturnType<typeof menuItems>;
   beheerBadge?: number;
   onClose: () => void;
-  className?: string;
 }) {
   useEscapeKey(true, onClose);
 
+  // FloatingPortal: dit paneel opent alleen vanuit BottomNav (mobiel), dat
+  // backdrop-blur heeft — zonder portal "vangt" dat de position:fixed
+  // kinderen in BottomNav's eigen, lagere stacking context, waardoor dit
+  // menu achter een open overlay kon uitkomen i.p.v. er overheen (zie
+  // NotificationCenter voor dezelfde bug). Vast t.o.v. het scherm i.p.v.
+  // t.o.v. de knop, wat portalen sowieso al vereist.
   return (
-    <>
+    <FloatingPortal>
       <div className="fixed inset-0 z-40 cursor-pointer" onClick={onClose} />
-      <div
-        className={clsx(
-          "animate-scale-in origin-bottom absolute z-50 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg",
-          className
-        )}
-      >
+      <div className="animate-scale-in origin-bottom fixed inset-x-3 bottom-16 z-50 mx-auto w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
         {items.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
@@ -75,7 +75,7 @@ function MenuPanel({
           </button>
         </form>
       </div>
-    </>
+    </FloatingPortal>
   );
 }
 
@@ -163,7 +163,7 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, beheerBadge }
         Profiel
       </button>
 
-      {open && <MenuPanel items={items} beheerBadge={beheerBadge} onClose={close} className="right-0 bottom-full mb-2" />}
+      {open && <MenuPanel items={items} beheerBadge={beheerBadge} onClose={close} />}
     </div>
   );
 }

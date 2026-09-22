@@ -3,7 +3,7 @@ import { BeheerAgendaContent } from "@/components/beheer/BeheerAgendaContent";
 
 export default function BeheerAgendaModal() {
   return (
-    <RouteOverlayPanel>
+    <RouteOverlayPanel closeHref="/beheer">
       <BeheerAgendaContent />
     </RouteOverlayPanel>
   );

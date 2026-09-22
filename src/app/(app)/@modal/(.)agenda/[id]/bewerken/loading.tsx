@@ -3,7 +3,7 @@ import { FormLoadingSkeleton } from "@/components/ui/skeletons/OverlaySkeletons"
 
 export default function ActivityEditOverlayLoading() {
   return (
-    <RouteOverlayPanel>
+    <RouteOverlayPanel closeHref="/agenda">
       <FormLoadingSkeleton />
     </RouteOverlayPanel>
   );

@@ -9,6 +9,7 @@ import { formatActivityDateShort } from "@/lib/format/date";
 import { NavBadge } from "@/components/layout/NavBadge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { NotificationList } from "@/components/notifications/NotificationList";
+import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useOverlay } from "@/lib/ui/OverlayContext";
 import {
@@ -140,46 +141,53 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
             i.p.v. dat de knop zelf ook wordt bedekt. Toont hier meteen
             dezelfde NotificationList als de volledige /notificaties-pagina
             (mark-all-read, per notificatie verwijderen, ...) i.p.v. eerst
-            een beperkt lijstje met een aparte "alles bekijken"-link. */}
+            een beperkt lijstje met een aparte "alles bekijken"-link.
+            FloatingPortal: MobileHeader (de voorouder hier) heeft backdrop-
+            blur, dat "vangt" een position:fixed kind anders in zijn eigen,
+            veel lagere stacking context — zonder portal kwam dit paneel dan
+            achter de rest van de pagina (of een open overlay) uit i.p.v. er
+            echt overheen, precies zoals eerder bij de zoekbalk. */}
         {open && (
-          <div className="animate-fade-in fixed inset-x-0 bottom-0 top-14 z-50 flex flex-col bg-surface pb-[env(safe-area-inset-bottom)]">
-            <div className="flex items-center justify-between border-b border-border px-4 py-3">
-              <p className="text-sm font-semibold text-foreground">Notificaties</p>
-              <button
-                type="button"
-                onClick={close}
-                aria-label="Sluiten"
-                className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+          <FloatingPortal>
+            <div className="animate-fade-in fixed inset-x-0 bottom-0 top-14 z-50 flex flex-col bg-surface pb-[env(safe-area-inset-bottom)]">
+              <div className="flex items-center justify-between border-b border-border px-4 py-3">
+                <p className="text-sm font-semibold text-foreground">Notificaties</p>
+                <button
+                  type="button"
+                  onClick={close}
+                  aria-label="Sluiten"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+              <div
+                className="flex-1 overflow-y-auto p-3"
+                onClick={(e) => {
+                  // Event delegation i.p.v. NotificationList (gedeeld met de
+                  // volledige pagina) een eigen onNavigate-prop te geven: elke
+                  // klik op een notificatielink sluit deze overlay, een klik op
+                  // de verwijderknop (geen link) laat 'm gewoon open staan.
+                  if ((e.target as HTMLElement).closest("a")) close();
+                }}
               >
-                <X size={16} />
-              </button>
+                {loading &&
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <div key={i} className="flex flex-col gap-1.5 rounded-xl border border-border p-3">
+                      <Skeleton className="h-3.5 w-2/3" />
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-2.5 w-16" />
+                    </div>
+                  ))}
+                {!loading && notifications?.length === 0 && (
+                  <p className="py-6 text-center text-sm text-muted">Geen notificaties.</p>
+                )}
+                {!loading && notifications && notifications.length > 0 && (
+                  <NotificationList notifications={notifications} />
+                )}
+              </div>
             </div>
-            <div
-              className="flex-1 overflow-y-auto p-3"
-              onClick={(e) => {
-                // Event delegation i.p.v. NotificationList (gedeeld met de
-                // volledige pagina) een eigen onNavigate-prop te geven: elke
-                // klik op een notificatielink sluit deze overlay, een klik op
-                // de verwijderknop (geen link) laat 'm gewoon open staan.
-                if ((e.target as HTMLElement).closest("a")) close();
-              }}
-            >
-              {loading &&
-                Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="flex flex-col gap-1.5 rounded-xl border border-border p-3">
-                    <Skeleton className="h-3.5 w-2/3" />
-                    <Skeleton className="h-3 w-full" />
-                    <Skeleton className="h-2.5 w-16" />
-                  </div>
-                ))}
-              {!loading && notifications?.length === 0 && (
-                <p className="py-6 text-center text-sm text-muted">Geen notificaties.</p>
-              )}
-              {!loading && notifications && notifications.length > 0 && (
-                <NotificationList notifications={notifications} />
-              )}
-            </div>
-          </div>
+          </FloatingPortal>
         )}
       </>
     );

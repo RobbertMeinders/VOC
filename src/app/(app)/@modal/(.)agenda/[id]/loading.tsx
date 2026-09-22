@@ -3,7 +3,7 @@ import { DetailSkeleton } from "@/components/ui/skeletons/OverlaySkeletons";
 
 export default function ActivityOverlayLoading() {
   return (
-    <RouteOverlayPanel>
+    <RouteOverlayPanel closeHref="/agenda">
       <DetailSkeleton />
     </RouteOverlayPanel>
   );

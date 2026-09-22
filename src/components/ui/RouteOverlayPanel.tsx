@@ -13,12 +13,15 @@ import type { ReactNode } from "react";
 // helemaal naartoe te navigeren: leden-/bedrijfsprofiel, activiteitdetail en
 // -formulier. Bewust GEEN donkere achtergrond en GEEN overlap met de
 // sidebar/bottom-nav — dit moet aanvoelen als "gewoon een pagina", alleen
-// zonder dat je de lijst erachter kwijtraakt. Sluiten (kruisje of Esc) doet
-// altijd router.back(), zodat je terugkomt op exact de plek (en scrollpositie)
-// van waaruit je de overlay opende — rechtstreeks naar de URL gaan (delen,
-// een notificatie, een ververste pagina) toont gewoon de normale volledige
-// pagina, niet deze overlay.
-export function RouteOverlayPanel({ children }: { children: ReactNode }) {
+// zonder dat je de lijst erachter kwijtraakt.
+//
+// Sluiten (kruisje of Esc) gaat naar een vaste `closeHref` (elke @modal-
+// page.tsx geeft zijn eigen "ouder"-lijst mee, bv. /leden of /beheer)
+// i.p.v. router.back(): met browser-history kon sluiten op een onverwachte
+// plek uitkomen zodra je tussendoor ook via het menu/bottom-nav had
+// genavigeerd (die history-entries tellen óók mee voor back()) — een vaste
+// bestemming is voorspelbaar, ongeacht hoe je er kwam.
+export function RouteOverlayPanel({ children, closeHref }: { children: ReactNode; closeHref: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const [dismissed, setDismissed] = useState(false);
@@ -42,7 +45,7 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
   }
 
   function close() {
-    router.back();
+    router.push(closeHref);
   }
 
   useEscapeKey(!dismissed, close);

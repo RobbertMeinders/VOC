@@ -3,7 +3,7 @@ import { DetailSkeleton } from "@/components/ui/skeletons/OverlaySkeletons";
 
 export default function CompanyOverlayLoading() {
   return (
-    <RouteOverlayPanel>
+    <RouteOverlayPanel closeHref="/bedrijven">
       <DetailSkeleton />
     </RouteOverlayPanel>
   );

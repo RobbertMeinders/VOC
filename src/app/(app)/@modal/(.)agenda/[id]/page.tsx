@@ -5,7 +5,7 @@ export default async function ActivityDetailModal({ params }: { params: Promise<
   const { id } = await params;
 
   return (
-    <RouteOverlayPanel>
+    <RouteOverlayPanel closeHref="/agenda">
       <ActivityDetailContent id={id} />
     </RouteOverlayPanel>
   );

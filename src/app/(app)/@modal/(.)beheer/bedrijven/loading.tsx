@@ -3,7 +3,7 @@ import { ListLoadingSkeleton } from "@/components/ui/skeletons/OverlaySkeletons"
 
 export default function BeheerBedrijvenOverlayLoading() {
   return (
-    <RouteOverlayPanel>
+    <RouteOverlayPanel closeHref="/beheer">
       <ListLoadingSkeleton />
     </RouteOverlayPanel>
   );

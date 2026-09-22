@@ -3,7 +3,7 @@ import { BeheerLedenContent } from "@/components/beheer/BeheerLedenContent";
 
 export default function BeheerLedenModal() {
   return (
-    <RouteOverlayPanel>
+    <RouteOverlayPanel closeHref="/beheer">
       <BeheerLedenContent />
     </RouteOverlayPanel>
   );

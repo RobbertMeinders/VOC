@@ -5,7 +5,7 @@ export default async function CompanyProfileModal({ params }: { params: Promise<
   const { id } = await params;
 
   return (
-    <RouteOverlayPanel>
+    <RouteOverlayPanel closeHref="/bedrijven">
       <CompanyProfileContent id={id} />
     </RouteOverlayPanel>
   );
