@@ -326,6 +326,15 @@ export async function loadMoreFeedPostsAction(offset: number): Promise<FeedPost[
   return fetchFeedPosts(supabase, profile.id, FEED_PAGE_SIZE, offset);
 }
 
+// Client-heartbeat (zie OnlineHeartbeat) — houdt last_active_at actueel
+// zolang het tabblad open/zichtbaar is, i.p.v. alleen bij login, zodat
+// beheer een echte "nu online"-teller kan tonen (zie beheer/page.tsx).
+export async function heartbeatAction() {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+  await supabase.from("profiles").update({ last_active_at: new Date().toISOString() }).eq("id", profile.id);
+}
+
 export type ReportPostState = { error?: string; success?: boolean };
 
 export async function reportPostAction(

@@ -7,6 +7,7 @@ import { OverlayProvider } from "@/lib/ui/OverlayContext";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { MobileHeader } from "./MobileHeader";
+import { OnlineHeartbeat } from "./OnlineHeartbeat";
 
 export function AppShell({
   profile,
@@ -34,6 +35,7 @@ export function AppShell({
   return (
     <OverlayProvider>
       <div className="min-h-dvh bg-background">
+        <OnlineHeartbeat />
         <Sidebar profile={profile} unread={unread} avatarUrl={avatarUrl} companyId={companyId} companyName={companyName} />
         <MobileHeader unread={unread} />
         <main className="pb-20 md:ml-64 md:pb-0">

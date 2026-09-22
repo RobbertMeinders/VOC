@@ -6,6 +6,11 @@ import { createClient } from "@/lib/supabase/server";
 
 export const metadata: Metadata = { title: "Beheer" };
 
+// Iemand telt als "online" zolang OnlineHeartbeat zijn tabblad recent nog
+// heeft geping (elke 2 min bij een zichtbaar tabblad) — 5 min marge dekt
+// een gemiste heartbeat door een korte netwerkhik of tabwissel.
+const ONLINE_WINDOW_MS = 5 * 60 * 1000;
+
 const CARDS = [
   { href: "/beheer/uitnodigingen", label: "Uitnodigingen", icon: UserPlus, description: "Nodig nieuwe leden uit" },
   {
@@ -35,6 +40,7 @@ export default async function BeheerPage() {
     { count: upcomingActivities },
     { count: pendingActivities },
     { count: openReports },
+    { count: onlineCount },
   ] = await Promise.all([
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
     supabase.from("companies").select("id", { count: "exact", head: true }),
@@ -47,11 +53,17 @@ export default async function BeheerPage() {
       .gte("starts_at", new Date().toISOString()),
     supabase.from("activities").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("feed_post_reports").select("id", { count: "exact", head: true }).eq("status", "open"),
+    supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("is_active", true)
+      .gte("last_active_at", new Date(new Date().getTime() - ONLINE_WINDOW_MS).toISOString()),
   ]);
 
   const stats = [
     { label: "Actieve leden", value: memberCount ?? 0 },
     { label: "Aantal bedrijven", value: companyCount ?? 0 },
+    { label: "Leden nu online", value: onlineCount ?? 0 },
     { label: "Openstaande uitnodigingen", value: pendingInvitations ?? 0 },
     { label: "Openstaande aanvragen", value: pendingRequests ?? 0 },
     { label: "Aankomende activiteiten", value: upcomingActivities ?? 0 },

@@ -34,10 +34,10 @@ export function formatActivityTimeOnly(iso: string): string {
   }).format(new Date(iso));
 }
 
-// Board-only "laatst actief" display (see profiles.last_active_at, set only
-// on a real login — never on background requests). Used server-side only
-// (member detail page), so there's no client/server hydration-mismatch
-// concern from calling Date.now() here.
+// Board-only "laatst actief" display (see profiles.last_active_at, kept
+// current by a client heartbeat — OnlineHeartbeat — while a tab is open,
+// not just at login). Used server-side only (member detail page), so
+// there's no client/server hydration-mismatch concern from Date.now() here.
 export function formatLastActive(iso: string | null): string {
   if (!iso) return "Nog nooit ingelogd";
 
