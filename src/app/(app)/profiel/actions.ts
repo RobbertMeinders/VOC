@@ -97,6 +97,11 @@ export async function updateAttendedActivitiesVisibilityAction(visible: boolean)
     .eq("id", profile.id);
 
   if (error) {
+    // Loggen i.p.v. alleen de generieke melding teruggeven — als deze kolom
+    // (migratie 0035) nog niet op de database staat, faalt de update met
+    // "column does not exist", wat hier zichtbaar wordt i.p.v. alleen een
+    // schakelaar die terugklapt zonder duidelijke reden.
+    console.error("[profiel] updateAttendedActivitiesVisibilityAction failed:", error);
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
   revalidatePath(`/leden/${profile.id}`);

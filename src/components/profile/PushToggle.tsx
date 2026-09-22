@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Bell, BellOff } from "lucide-react";
+import { Switch } from "@/components/ui/Switch";
 import { subscribeToPushAction, unsubscribeFromPushAction } from "@/app/(app)/profiel/actions";
 import { getExistingPushSubscription, subscribeToPush } from "@/lib/push/subscribe";
 
@@ -52,17 +52,9 @@ export function PushToggle() {
   }
 
   return (
-    <div className="flex flex-col gap-1.5">
-      <button
-        type="button"
-        onClick={handleToggle}
-        disabled={pending}
-        className="flex items-center gap-2 self-start rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red disabled:opacity-60"
-      >
-        {subscribed ? <BellOff size={16} /> : <Bell size={16} />}
-        {pending ? "Bezig…" : subscribed ? "Pushmeldingen uitzetten" : "Pushmeldingen aanzetten"}
-      </button>
-      {error && <p className="text-xs text-voc-red">{error}</p>}
+    <div className="flex flex-col items-end gap-1">
+      <Switch checked={subscribed} onChange={handleToggle} disabled={pending} label="Pushmeldingen" />
+      {error && <p className="text-right text-xs text-voc-red">{error}</p>}
     </div>
   );
 }

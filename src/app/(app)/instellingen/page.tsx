@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { PushToggle } from "@/components/profile/PushToggle";
 import { ThemeToggle } from "@/components/profile/ThemeToggle";
 import { AttendedActivitiesToggle } from "@/components/profile/AttendedActivitiesToggle";
+import { SettingRow } from "@/components/ui/SettingRow";
 
 export const metadata: Metadata = { title: "Instellingen" };
 
@@ -21,29 +22,28 @@ export default async function InstellingenPage() {
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-semibold text-foreground">Instellingen</h1>
 
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-        <p className="mb-2 text-sm font-medium text-foreground">Thema</p>
+      <SettingRow label="Thema" description="Licht, donker of volgens de instelling van je apparaat.">
         <ThemeToggle />
-      </div>
+      </SettingRow>
 
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-        <p className="mb-2 text-sm font-medium text-foreground">Pushmeldingen</p>
+      <SettingRow label="Pushmeldingen" description="Ontvang een melding op dit apparaat bij nieuwe activiteit.">
         <PushToggle />
-      </div>
+      </SettingRow>
 
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <p className="text-sm font-medium text-foreground">Bijgewoonde evenementen tonen</p>
-            <p className="mt-0.5 text-xs text-muted">Zichtbaar voor andere leden op je profiel.</p>
-            <p className="mt-0.5 text-xs text-muted">
+      <SettingRow
+        label="Bijgewoonde evenementen tonen"
+        description={
+          <>
+            <p>Zichtbaar voor andere leden op je profiel.</p>
+            <p className="mt-0.5">
               Let op: jijzelf en bestuur/beheer zien dit onderdeel altijd op je profiel, ongeacht deze instelling —
               deze schakelaar verbergt het alleen voor overige leden.
             </p>
-          </div>
-          <AttendedActivitiesToggle initialVisible={data?.show_attended_activities ?? true} />
-        </div>
-      </div>
+          </>
+        }
+      >
+        <AttendedActivitiesToggle initialVisible={data?.show_attended_activities ?? true} />
+      </SettingRow>
     </div>
   );
 }
