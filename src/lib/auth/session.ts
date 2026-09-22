@@ -1,5 +1,6 @@
 import "server-only";
 
+import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { Database } from "@/lib/types/database";
@@ -10,8 +11,14 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
  * Returns the signed-in member's profile row, or `null` when there is no
  * session. Prefer this over reading `auth.getUser()` directly — it also
  * carries the role and active flag every authorization check needs.
+ *
+ * Wrapped in React's `cache()` because both the (app) layout and almost
+ * every page call `requireProfile()` independently — without this, that's
+ * two full round-trips (auth.getUser() + a profiles select) on every single
+ * navigation instead of one; `cache()` dedupes repeat calls within the same
+ * request/render pass, same as Next.js does automatically for `fetch()`.
  */
-export async function getCurrentProfile(): Promise<Profile | null> {
+export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   const supabase = await createClient();
 
   const {
@@ -23,7 +30,7 @@ export async function getCurrentProfile(): Promise<Profile | null> {
   const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
 
   return profile ?? null;
-}
+});
 
 /**
  * Server Component / Server Action guard: redirects to /login when there is
