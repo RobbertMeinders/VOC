@@ -1,10 +1,15 @@
 "use client";
 
-import { clsx } from "clsx";
-
 // Eén iOS-stijl schakelaar, gedeeld door elke aan/uit-instelling
 // (pushmeldingen, bijgewoonde evenementen tonen, ...) i.p.v. dat elke
 // instelling zijn eigen knop-stijl uitvindt.
+//
+// Kleur én knop-positie zijn bewust inline styles i.p.v. Tailwind's
+// bracket-syntax (was `translate-x-[22px]`/`bg-black/[.12]`) — meldingen
+// dat de schakelaars "niet klopten" bleven terugkomen, en inline styles
+// laten geen ruimte voor een niet-gegenereerde/gepurgede utility-class als
+// mogelijke oorzaak. Ook een duidelijk zichtbare rand op de uit-stand, i.p.v.
+// een track die bijna niet afstak tegen de achtergrond.
 export function Switch({
   checked,
   onChange,
@@ -24,16 +29,18 @@ export function Switch({
       aria-label={label}
       disabled={disabled}
       onClick={onChange}
-      className={clsx(
-        "relative h-6 w-11 shrink-0 rounded-full transition-colors disabled:opacity-60",
-        checked ? "bg-voc-red" : "bg-black/[.12] dark:bg-white/[.16]"
-      )}
+      style={{
+        backgroundColor: checked ? "var(--voc-red)" : "transparent",
+        borderColor: checked ? "var(--voc-red)" : "var(--border)",
+      }}
+      className="relative h-6 w-11 shrink-0 rounded-full border-2 transition-colors disabled:opacity-60"
     >
       <span
-        className={clsx(
-          "absolute top-0.5 h-5 w-5 rounded-full bg-white shadow transition-transform",
-          checked ? "translate-x-[22px]" : "translate-x-0.5"
-        )}
+        style={{
+          transform: checked ? "translateX(20px)" : "translateX(0)",
+          backgroundColor: checked ? "#ffffff" : "var(--muted)",
+        }}
+        className="absolute left-0.5 top-0.5 h-4 w-4 rounded-full shadow transition-transform"
       />
     </button>
   );
