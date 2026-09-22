@@ -5,6 +5,7 @@ import { requireBoard } from "@/lib/auth/session";
 import { isAdmin } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
+import { cachedQuery } from "@/lib/cache/queryCache";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { DocumentSearch } from "@/components/documents/DocumentSearch";
@@ -20,11 +21,13 @@ export async function BeheerBedrijvenContent({ searchParams }: { searchParams?: 
   const { q } = (await searchParams) ?? {};
   const supabase = await createClient();
 
-  const { data: allCompanies } = await supabase
-    .from("companies")
-    .select("id, name, industry, city, logo_url")
-    .order("name")
-    .returns<CompanyRow[]>();
+  // requireBoard hierboven is de echte grens — elk bestuurslid ziet toch al
+  // dezelfde, ongefilterde lijst (companies_members_select kent zelfs geen
+  // rolvariatie), dus delen tussen viewers is veilig. Zoeken (q) filtert
+  // hierna alsnog in JS, dus de cache zelf blijft per q ongewijzigd.
+  const { data: allCompanies } = await cachedQuery("beheer-bedrijven-page-data", 300_000, () =>
+    supabase.from("companies").select("id, name, industry, city, logo_url").order("name").returns<CompanyRow[]>()
+  );
 
   const query = (q ?? "").trim().toLowerCase();
   const companies = query

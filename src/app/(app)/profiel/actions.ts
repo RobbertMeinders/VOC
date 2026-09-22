@@ -58,6 +58,7 @@ export async function updateProfileAction(
 
   // Naam/functie/avatar staan ook in de ledenlijst.
   invalidateQuery("leden-page-data");
+  invalidateQuery("beheer-leden-page-data");
   revalidatePath("/profiel");
   return { success: true };
 }
@@ -197,6 +198,7 @@ export async function updateMyCompanyAction(
     // Nieuw bedrijf + koppeling staan meteen in de bedrijven- en ledenlijst.
     invalidateQuery("bedrijven-page-data");
     invalidateQuery("leden-page-data");
+    invalidateQuery("beheer-bedrijven-page-data");
     revalidatePath("/profiel");
     return { success: true };
   }

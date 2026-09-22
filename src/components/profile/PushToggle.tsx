@@ -5,12 +5,17 @@ import { Switch } from "@/components/ui/Switch";
 import { subscribeToPushAction, unsubscribeFromPushAction } from "@/app/(app)/profiel/actions";
 import { getExistingPushSubscription, subscribeToPush } from "@/lib/push/subscribe";
 
+// NEXT_PUBLIC_-variabelen worden op build-tijd ingebakken in de client-
+// bundle, dus dit is hier direct uit te lezen — geen los verzoek nodig.
+const PUSH_CONFIGURED = Boolean(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY);
+
 export function PushToggle() {
   const [subscribed, setSubscribed] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (!PUSH_CONFIGURED) return;
     getExistingPushSubscription().then((sub) => setSubscribed(Boolean(sub)));
   }, []);
 
@@ -49,6 +54,19 @@ export function PushToggle() {
     } finally {
       setPending(false);
     }
+  }
+
+  // Zonder VAPID-sleutel op deze omgeving kan een subscribe-poging nooit
+  // slagen — een interactieve schakelaar tonen die elke keer faalt is
+  // misleidend (leek net op "aan, maar kapot" i.p.v. duidelijk "nog niet
+  // beschikbaar"). Vaste, uitgelegde staat i.p.v. een levende schakelaar.
+  if (!PUSH_CONFIGURED) {
+    return (
+      <div className="flex flex-col items-end gap-1">
+        <Switch checked={false} onChange={() => {}} disabled label="Pushmeldingen (niet beschikbaar)" />
+        <p className="text-right text-xs text-muted">Nog niet beschikbaar op deze omgeving.</p>
+      </div>
+    );
   }
 
   return (

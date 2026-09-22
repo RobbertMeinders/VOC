@@ -99,6 +99,7 @@ export async function updateCompanyAction(
   // ledenlijst (die het bedrijf van elk lid meestuurt) — beide invalideren.
   invalidateQuery("bedrijven-page-data");
   invalidateQuery("leden-page-data");
+  invalidateQuery("beheer-bedrijven-page-data");
   revalidatePath(`/bedrijven/${companyId}`);
   return { success: true };
 }
@@ -115,6 +116,7 @@ export async function deleteCompanyAction(companyId: string, redirectAfter = tru
   await supabase.from("companies").delete().eq("id", companyId);
   invalidateQuery("bedrijven-page-data");
   invalidateQuery("leden-page-data");
+  invalidateQuery("beheer-bedrijven-page-data");
   revalidatePath("/bedrijven");
   revalidatePath("/beheer/bedrijven");
   if (redirectAfter) redirect("/bedrijven");

@@ -146,10 +146,13 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
             blur, dat "vangt" een position:fixed kind anders in zijn eigen,
             veel lagere stacking context — zonder portal kwam dit paneel dan
             achter de rest van de pagina (of een open overlay) uit i.p.v. er
-            echt overheen, precies zoals eerder bij de zoekbalk. */}
+            echt overheen, precies zoals eerder bij de zoekbalk. Portalen
+            haalt dit paneel wel los van MobileHeader's eigen md:hidden, dus
+            die klasse staat hier expliciet opnieuw op — anders bleef dit
+            paneel ook op desktop-breedte zichtbaar zodra open true was. */}
         {open && (
           <FloatingPortal>
-            <div className="animate-fade-in fixed inset-x-0 bottom-0 top-14 z-50 flex flex-col bg-surface pb-[env(safe-area-inset-bottom)]">
+            <div className="animate-fade-in fixed inset-x-0 bottom-0 top-14 z-50 flex flex-col bg-surface pb-[env(safe-area-inset-bottom)] md:hidden">
               <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <p className="text-sm font-semibold text-foreground">Notificaties</p>
                 <button

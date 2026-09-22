@@ -7,7 +7,11 @@ import { clsx } from "clsx";
 import { NavBadge } from "./NavBadge";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
+import { useFixedAnchor } from "@/lib/dom/useFixedAnchor";
 import { useOverlay } from "@/lib/ui/OverlayContext";
+
+const PANEL_WIDTH = 192; // w-48
+const EDGE_MARGIN = 16;
 
 const OPTIONS = [
   { href: "/bedrijven", label: "Bedrijven", icon: Building2 },
@@ -29,6 +33,7 @@ export function NetworkChooser({
   const { open, toggle, close } = useOverlay("netwerk");
   const pathname = usePathname();
   const active = pathname.startsWith("/leden") || pathname.startsWith("/bedrijven");
+  const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(variant === "mobile" && open);
 
   useEscapeKey(open, close);
 
@@ -80,6 +85,7 @@ export function NetworkChooser({
   return (
     <div className="relative flex-1">
       <button
+        ref={anchorRef}
         type="button"
         onClick={toggle}
         className={clsx(
@@ -102,12 +108,24 @@ export function NetworkChooser({
           wat een position:fixed kind zonder portal in BottomNav's eigen
           stacking context "vangt" — zonder dit kon dit paneel achter een
           open overlay uitkomen i.p.v. er overheen (zie NotificationCenter).
-          Nu vast gepositioneerd t.o.v. het scherm i.p.v. t.o.v. de knop,
-          wat portalen sowieso al vereist. */}
-      {open && (
+          md:hidden staat hier expliciet op, want portalen haalt dit paneel
+          los van BottomNav's eigen md:hidden. Positie komt van
+          useFixedAnchor (de knop zelf), i.p.v. los in het midden van het
+          scherm — dat laatste is niet waar de knop staat. */}
+      {open && rect && (
         <FloatingPortal>
-          <div className="fixed inset-0 z-40 cursor-pointer" onClick={close} />
-          <div className="fixed inset-x-3 bottom-16 z-50 mx-auto w-48">
+          <div className="fixed inset-0 z-40 cursor-pointer md:hidden" onClick={close} />
+          <div
+            className="fixed z-50 w-48 md:hidden"
+            style={{
+              left: Math.min(
+                Math.max(rect.left + rect.width / 2, EDGE_MARGIN + PANEL_WIDTH / 2),
+                window.innerWidth - EDGE_MARGIN - PANEL_WIDTH / 2
+              ),
+              bottom: window.innerHeight - rect.top + 8,
+              transform: "translateX(-50%)",
+            }}
+          >
             <div className="animate-scale-in origin-bottom overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
               <p className="flex items-center gap-1.5 border-b border-border px-3 py-2 text-xs font-semibold text-muted">
                 <ChevronUp size={12} />

@@ -1,6 +1,7 @@
 import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
+import { cachedQuery } from "@/lib/cache/queryCache";
 import { Avatar } from "@/components/ui/Avatar";
 import { RoleEditor } from "@/components/members/RoleEditor";
 import { MemberActiveToggle } from "@/components/members/MemberActiveToggle";
@@ -18,11 +19,12 @@ export async function BeheerLedenContent() {
   const viewer = await requireAdmin();
   const supabase = await createClient();
 
-  const { data: profiles } = await supabase
-    .from("profiles")
-    .select("*")
-    .order("last_name")
-    .returns<ProfileRow[]>();
+  // requireAdmin hierboven is de echte grens — elke beheerder die hier komt
+  // ziet toch al dezelfde, ongefilterde lijst, dus delen tussen beheerders
+  // is veilig (zelfde redenering als leden-page-data op /leden).
+  const { data: profiles } = await cachedQuery("beheer-leden-page-data", 300_000, () =>
+    supabase.from("profiles").select("*").order("last_name").returns<ProfileRow[]>()
+  );
 
   const avatarUrls = await getSignedStorageUrls(
     supabase,

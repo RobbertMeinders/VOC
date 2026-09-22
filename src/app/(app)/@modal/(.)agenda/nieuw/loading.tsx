@@ -1,10 +1,10 @@
 import { RouteOverlayPanel } from "@/components/ui/RouteOverlayPanel";
-import { FormLoadingSkeleton } from "@/components/ui/skeletons/OverlaySkeletons";
+import { OverlayLoading } from "@/components/ui/OverlayLoading";
 
 export default function NewActivityOverlayLoading() {
   return (
     <RouteOverlayPanel closeHref="/agenda">
-      <FormLoadingSkeleton />
+      <OverlayLoading />
     </RouteOverlayPanel>
   );
 }

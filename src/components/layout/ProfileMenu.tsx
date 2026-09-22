@@ -10,8 +10,12 @@ import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { signOutAction } from "@/lib/auth/actions";
 import { isBoard } from "@/lib/auth/roles";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
+import { useFixedAnchor, type AnchorRect } from "@/lib/dom/useFixedAnchor";
 import { useOverlay } from "@/lib/ui/OverlayContext";
 import type { Profile } from "@/lib/auth/session";
+
+const PANEL_WIDTH = 224; // w-56
+const EDGE_MARGIN = 16;
 
 type ProfileMenuProps = {
   profile: Profile;
@@ -36,10 +40,12 @@ function MenuPanel({
   items,
   beheerBadge,
   onClose,
+  rect,
 }: {
   items: ReturnType<typeof menuItems>;
   beheerBadge?: number;
   onClose: () => void;
+  rect: AnchorRect;
 }) {
   useEscapeKey(true, onClose);
 
@@ -47,12 +53,23 @@ function MenuPanel({
   // backdrop-blur heeft — zonder portal "vangt" dat de position:fixed
   // kinderen in BottomNav's eigen, lagere stacking context, waardoor dit
   // menu achter een open overlay kon uitkomen i.p.v. er overheen (zie
-  // NotificationCenter voor dezelfde bug). Vast t.o.v. het scherm i.p.v.
-  // t.o.v. de knop, wat portalen sowieso al vereist.
+  // NotificationCenter voor dezelfde bug). md:hidden staat hier expliciet
+  // op, want portalen haalt dit paneel los van BottomNav's eigen md:hidden.
+  // Positie komt van useFixedAnchor (de profielknop), i.p.v. los ergens op
+  // het scherm.
   return (
     <FloatingPortal>
-      <div className="fixed inset-0 z-40 cursor-pointer" onClick={onClose} />
-      <div className="animate-scale-in origin-bottom fixed inset-x-3 bottom-16 z-50 mx-auto w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+      <div className="fixed inset-0 z-40 cursor-pointer md:hidden" onClick={onClose} />
+      <div
+        className="animate-scale-in origin-bottom fixed z-50 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg md:hidden"
+        style={{
+          right: Math.max(window.innerWidth - rect.right, EDGE_MARGIN),
+          left: "auto",
+          maxWidth: `calc(100vw - ${EDGE_MARGIN * 2}px)`,
+          width: PANEL_WIDTH,
+          bottom: window.innerHeight - rect.top + 8,
+        }}
+      >
         {items.map(({ href, label, icon: Icon }) => (
           <Link
             key={href}
@@ -136,6 +153,7 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, beheerBadge }
   const { open, toggle, close } = useOverlay("profile");
   const items = menuItems(profile, companyId);
   const pathname = usePathname();
+  const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(open);
   const active =
     pathname.startsWith(`/leden/${profile.id}`) ||
     pathname.startsWith("/profiel") ||
@@ -146,6 +164,7 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, beheerBadge }
   return (
     <div className="relative flex-1">
       <button
+        ref={anchorRef}
         type="button"
         onClick={toggle}
         className={clsx(
@@ -163,7 +182,7 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, beheerBadge }
         Profiel
       </button>
 
-      {open && <MenuPanel items={items} beheerBadge={beheerBadge} onClose={close} />}
+      {open && rect && <MenuPanel items={items} beheerBadge={beheerBadge} onClose={close} rect={rect} />}
     </div>
   );
 }

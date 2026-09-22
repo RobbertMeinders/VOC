@@ -83,6 +83,7 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
       companyByName.set(created.name.toLowerCase(), created.id);
     }
     invalidateQuery("bedrijven-page-data");
+    invalidateQuery("beheer-bedrijven-page-data");
   }
 
   const seenInBatch = new Set<string>();

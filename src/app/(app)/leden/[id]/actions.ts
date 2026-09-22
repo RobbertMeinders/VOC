@@ -34,6 +34,7 @@ export async function updateMemberRoleAction(
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
 
+  invalidateQuery("beheer-leden-page-data");
   revalidatePath(`/leden/${memberId}`);
   return { success: true };
 }
@@ -56,6 +57,7 @@ export async function updateMemberActiveAction(memberId: string, isActive: boole
 
   // Deactivering haalt het lid direct uit de (RLS-gefilterde) ledenlijst.
   invalidateQuery("leden-page-data");
+  invalidateQuery("beheer-leden-page-data");
   revalidatePath(`/leden/${memberId}`);
   return { success: true };
 }
@@ -111,6 +113,7 @@ export async function updateMemberProfileAction(
 
   // Naam/functie/avatar staan ook in de ledenlijst.
   invalidateQuery("leden-page-data");
+  invalidateQuery("beheer-leden-page-data");
   revalidatePath(`/leden/${memberId}`);
   return { success: true };
 }
