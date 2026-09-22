@@ -3,6 +3,7 @@ import { UserPlus } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { AccessRequestRow, type AccessRequest } from "@/components/invitations/AccessRequestRow";
 
 export const metadata: Metadata = { title: "Toegangsaanvragen" };
@@ -20,6 +21,7 @@ export default async function AanvragenPage() {
 
   return (
     <div>
+      <Breadcrumbs items={[{ label: "Beheer", href: "/beheer" }, { label: "Toegangsaanvragen" }]} />
       <h1 className="mb-1 text-xl font-semibold text-foreground">Toegangsaanvragen</h1>
       <p className="mb-6 text-sm text-muted">
         Mensen die via het inlogscherm om toegang hebben gevraagd. Beoordeel en nodig ze zo nodig

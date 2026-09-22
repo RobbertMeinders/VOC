@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { EmailTemplateForm } from "@/components/beheer/EmailTemplateForm";
 import type { Database } from "@/lib/types/database";
 
@@ -20,6 +21,7 @@ export default async function EmailTemplatesPage() {
 
   return (
     <div className="flex flex-col gap-4">
+      <Breadcrumbs items={[{ label: "Beheer", href: "/beheer" }, { label: "E-mailtemplates" }]} />
       <div>
         <h1 className="text-xl font-semibold text-foreground">E-mailtemplates</h1>
         <p className="text-sm text-muted">

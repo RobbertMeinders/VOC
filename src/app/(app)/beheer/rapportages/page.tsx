@@ -3,6 +3,7 @@ import { Flag } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
 import { ReportRow, type ReportRowData } from "@/components/moderation/ReportRow";
 
 export const metadata: Metadata = { title: "Rapportages" };
@@ -46,6 +47,7 @@ export default async function RapportagesPage() {
 
   return (
     <div>
+      <Breadcrumbs items={[{ label: "Beheer", href: "/beheer" }, { label: "Rapportages" }]} />
       <h1 className="mb-1 text-xl font-semibold text-foreground">Rapportages</h1>
       <p className="mb-6 text-sm text-muted">Door leden gerapporteerde berichten uit de community-feed.</p>
 
