@@ -35,9 +35,10 @@ export default async function InstellingenPage() {
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-sm font-medium text-foreground">Bijgewoonde evenementen tonen</p>
+            <p className="mt-0.5 text-xs text-muted">Zichtbaar voor andere leden op je profiel.</p>
             <p className="mt-0.5 text-xs text-muted">
-              Aan: je bijgewoonde evenementen zijn zichtbaar op je profiel voor andere leden. Uit: dit
-              onderdeel wordt niet aan andere leden getoond.
+              Let op: jijzelf en bestuur/beheer zien dit onderdeel altijd op je profiel, ongeacht deze instelling —
+              deze schakelaar verbergt het alleen voor overige leden.
             </p>
           </div>
           <AttendedActivitiesToggle initialVisible={data?.show_attended_activities ?? true} />
