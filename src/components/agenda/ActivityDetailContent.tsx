@@ -36,68 +36,76 @@ export async function ActivityDetailContent({ id }: { id: string }) {
     notFound();
   }
 
-  let submitterLabel: string | null = null;
-  if (activity.source === "lid" && activity.created_by) {
-    const { data: submitter } = await supabase
-      .from("profiles")
-      .select("first_name, last_name, company_members(is_primary, company:companies(name))")
-      .eq("id", activity.created_by)
-      .maybeSingle<{
-        first_name: string;
-        last_name: string;
-        company_members: { is_primary: boolean; company: { name: string } | null }[];
-      }>();
-    if (submitter) {
-      const membership = submitter.company_members.find((m) => m.is_primary) ?? submitter.company_members[0];
-      const name = `${submitter.first_name} ${submitter.last_name}`;
-      submitterLabel = membership?.company ? `${name} · ${membership.company.name}` : name;
-    }
-  }
-
   type RegistrationRow = {
     id: string;
     is_waitlisted: boolean;
     attended: boolean;
     profile: { id: string; first_name: string; last_name: string; avatar_url: string | null } | null;
   };
+  type SubmitterRow = {
+    first_name: string;
+    last_name: string;
+    company_members: { is_primary: boolean; company: { name: string } | null }[];
+  };
 
-  const [imageUrl, { data: registrations }, { data: myRegistration }, { data: attachments }] = await Promise.all([
-    getSignedStorageUrl("activity-images", activity.image_url),
-    supabase
-      .from("activity_registrations")
-      .select("id, is_waitlisted, attended, profile:profiles(id, first_name, last_name, avatar_url)")
-      .eq("activity_id", id)
-      .order("created_at", { ascending: true })
-      .returns<RegistrationRow[]>(),
-    supabase
-      .from("activity_registrations")
-      .select("id, is_waitlisted")
-      .eq("activity_id", id)
-      .eq("profile_id", profile.id)
-      .maybeSingle(),
-    supabase
-      .from("activity_attachments")
-      .select("*")
-      .eq("activity_id", id)
-      .order("created_at", { ascending: true })
-      .returns<Attachment[]>(),
-  ]);
+  // Alle onafhankelijke queries (incl. de indiener, voorheen pas hierna en
+  // apart gewacht) samen in één Promise.all i.p.v. na elkaar — dat scheelt
+  // een volledige netwerk-rondgang bij het openen van deze pagina/overlay.
+  const [imageUrl, { data: registrations }, { data: myRegistration }, { data: attachments }, { data: submitter }] =
+    await Promise.all([
+      getSignedStorageUrl("activity-images", activity.image_url),
+      supabase
+        .from("activity_registrations")
+        .select("id, is_waitlisted, attended, profile:profiles(id, first_name, last_name, avatar_url)")
+        .eq("activity_id", id)
+        .order("created_at", { ascending: true })
+        .returns<RegistrationRow[]>(),
+      supabase
+        .from("activity_registrations")
+        .select("id, is_waitlisted")
+        .eq("activity_id", id)
+        .eq("profile_id", profile.id)
+        .maybeSingle(),
+      supabase
+        .from("activity_attachments")
+        .select("*")
+        .eq("activity_id", id)
+        .order("created_at", { ascending: true })
+        .returns<Attachment[]>(),
+      activity.source === "lid" && activity.created_by
+        ? supabase
+            .from("profiles")
+            .select("first_name, last_name, company_members(is_primary, company:companies(name))")
+            .eq("id", activity.created_by)
+            .maybeSingle<SubmitterRow>()
+        : Promise.resolve({ data: null as SubmitterRow | null }),
+    ]);
 
-  const attachmentUrls = await getSignedStorageUrls(
-    supabase,
-    "activity-attachments",
-    (attachments ?? []).map((a) => a.storage_path)
-  );
+  let submitterLabel: string | null = null;
+  if (submitter) {
+    const membership = submitter.company_members.find((m) => m.is_primary) ?? submitter.company_members[0];
+    const name = `${submitter.first_name} ${submitter.last_name}`;
+    submitterLabel = membership?.company ? `${name} · ${membership.company.name}` : name;
+  }
 
   const confirmedRegistrations = (registrations ?? []).filter((r) => !r.is_waitlisted);
   const waitlistedRegistrations = (registrations ?? []).filter((r) => r.is_waitlisted);
   const confirmedCount = confirmedRegistrations.length;
 
-  const attendeeAvatarUrls = await getSignedStorageUrls(
-    supabase,
-    "avatars",
-    confirmedRegistrations.map((r) => r.profile?.avatar_url ?? null)
-  );
+  // De twee signed-URL-batches zijn onafhankelijk van elkaar (bijlagen vs.
+  // aanwezigen-avatars) — ook hier parallel i.p.v. na elkaar.
+  const [attachmentUrls, attendeeAvatarUrls] = await Promise.all([
+    getSignedStorageUrls(
+      supabase,
+      "activity-attachments",
+      (attachments ?? []).map((a) => a.storage_path)
+    ),
+    getSignedStorageUrls(
+      supabase,
+      "avatars",
+      confirmedRegistrations.map((r) => r.profile?.avatar_url ?? null)
+    ),
+  ]);
   const attendees = confirmedRegistrations
     .filter((r): r is RegistrationRow & { profile: NonNullable<RegistrationRow["profile"]> } => r.profile !== null)
     .map((r) => ({
