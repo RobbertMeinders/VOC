@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { BackLink } from "@/components/ui/BackLink";
 import DocumentenPage from "@/app/(app)/documenten/page";
 
 export const metadata: Metadata = { title: "Documenten beheren" };
@@ -10,7 +10,7 @@ export const metadata: Metadata = { title: "Documenten beheren" };
 export default function BeheerDocumentenPage() {
   return (
     <div>
-      <Breadcrumbs items={[{ label: "Beheer", href: "/beheer" }, { label: "Documenten" }]} />
+      <BackLink href="/beheer" label="Terug naar Beheer" />
       <DocumentenPage searchParams={Promise.resolve({})} />
     </div>
   );

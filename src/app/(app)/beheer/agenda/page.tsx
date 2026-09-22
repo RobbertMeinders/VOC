@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { BackLink } from "@/components/ui/BackLink";
 import { BeheerAgendaContent } from "@/components/beheer/BeheerAgendaContent";
 
 export const metadata: Metadata = { title: "Agenda beheren" };
@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Agenda beheren" };
 export default function BeheerAgendaPage() {
   return (
     <div>
-      <Breadcrumbs items={[{ label: "Beheer", href: "/beheer" }, { label: "Activiteiten" }]} />
+      <BackLink href="/beheer" label="Terug naar Beheer" />
       <BeheerAgendaContent />
     </div>
   );

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { BackLink } from "@/components/ui/BackLink";
 import { ActivityEditContent } from "@/components/agenda/ActivityEditContent";
 
 export const metadata: Metadata = { title: "Activiteit bewerken" };
@@ -9,7 +9,7 @@ export default async function EditActivityPage({ params }: { params: Promise<{ i
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: "Agenda", href: "/agenda" }, { label: "Bewerken" }]} />
+      <BackLink href={`/agenda/${id}`} label="Terug naar activiteit" />
       <ActivityEditContent id={id} />
     </div>
   );

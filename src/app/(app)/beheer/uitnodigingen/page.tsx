@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { BackLink } from "@/components/ui/BackLink";
 import { InviteForm } from "@/components/invitations/InviteForm";
 import { InvitationList, type Invitation } from "@/components/invitations/InvitationList";
 
@@ -20,7 +20,7 @@ export default async function UitnodigingenPage() {
 
   return (
     <div>
-      <Breadcrumbs items={[{ label: "Beheer", href: "/beheer" }, { label: "Uitnodigingen" }]} />
+      <BackLink href="/beheer" label="Terug naar Beheer" />
       <h1 className="mb-1 text-xl font-semibold text-foreground">Uitnodigingen</h1>
       <p className="mb-6 text-sm text-muted">
         Nodig nieuwe leden uit voor het ledenportaal. Vul een e-mailadres in om de uitnodiging

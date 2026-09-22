@@ -5,7 +5,7 @@ import { isAdmin } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { CompanyForm } from "@/components/company/CompanyForm";
-import { Breadcrumbs } from "@/components/ui/Breadcrumbs";
+import { BackLink } from "@/components/ui/BackLink";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { deleteCompanyAction } from "@/app/(app)/bedrijven/[id]/actions";
 import type { Database } from "@/lib/types/database";
@@ -34,9 +34,7 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
 
   return (
     <div className="flex flex-col gap-4">
-      <Breadcrumbs
-        items={[{ label: "Bedrijven", href: "/bedrijven" }, { label: company.name, href: `/bedrijven/${id}` }, { label: "Bewerken" }]}
-      />
+      <BackLink href={`/bedrijven/${id}`} label={`Terug naar ${company.name}`} />
       <div>
         <h1 className="text-xl font-semibold text-foreground">Bedrijfsgegevens bewerken</h1>
         <p className="mt-0.5 text-sm text-muted">Alleen zichtbaar voor bestuur en beheer.</p>
