@@ -151,8 +151,8 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
               {member.phone}
             </a>
           )}
+          <EntitySocialLinks linkedinUrl={member.linkedin_url} />
         </div>
-        <EntitySocialLinks linkedinUrl={member.linkedin_url} className="mt-3 px-3" />
       </div>
 
       {/* Los blok net als "Werkzaam bij dit bedrijf" op de bedrijfspagina,

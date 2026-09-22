@@ -84,14 +84,7 @@ export function CompanyHeader({
           collapseLabel="Minder weergeven"
         />
       )}
-      <EntitySocialLinks
-        linkedinUrl={company.linkedin_url}
-        instagramUrl={company.instagram_url}
-        facebookUrl={company.facebook_url}
-        className="mt-4"
-      />
-
-      {(company.address || company.phone || company.email) && (
+      {(company.address || company.phone || company.email || company.linkedin_url || company.instagram_url || company.facebook_url) && (
         <div className="mt-4 flex flex-col gap-1.5 border-t border-border pt-4 text-sm text-muted">
           {company.address && (
             <p className="flex items-start gap-1">
@@ -115,6 +108,12 @@ export function CompanyHeader({
               {company.email}
             </a>
           )}
+          <EntitySocialLinks
+            variant="compact"
+            linkedinUrl={company.linkedin_url}
+            instagramUrl={company.instagram_url}
+            facebookUrl={company.facebook_url}
+          />
         </div>
       )}
     </div>
