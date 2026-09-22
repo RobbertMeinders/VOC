@@ -15,20 +15,22 @@ function ActivityCardSkeleton() {
 
 export default function AgendaLoading() {
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <Skeleton className="h-6 w-24" />
-        <Skeleton className="h-9 w-9 rounded-full" />
-      </div>
-      <div className="flex gap-1.5">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-8 w-24 rounded-full" />
-        ))}
-      </div>
-      <div className="flex flex-col gap-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <ActivityCardSkeleton key={i} />
-        ))}
+    <div className="mx-auto w-full md:max-w-3xl">
+      <div className="flex flex-col gap-4">
+        <div className="flex items-center justify-between">
+          <Skeleton className="h-6 w-24" />
+          <Skeleton className="h-9 w-9 rounded-full" />
+        </div>
+        <div className="flex gap-1.5">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-8 w-24 rounded-full" />
+          ))}
+        </div>
+        <div className="flex flex-col gap-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <ActivityCardSkeleton key={i} />
+          ))}
+        </div>
       </div>
     </div>
   );

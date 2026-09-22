@@ -18,16 +18,18 @@ function PostCardSkeleton() {
 
 export default function CommunityLoading() {
   return (
-    <div className="flex flex-col gap-4">
-      <Skeleton className="h-14 w-full rounded-2xl" />
-      <div className="flex gap-1.5">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <Skeleton key={i} className="h-6 w-16 rounded-full" />
+    <div className="mx-auto w-full md:max-w-3xl">
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-14 w-full rounded-2xl" />
+        <div className="flex gap-1.5">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-6 w-16 rounded-full" />
+          ))}
+        </div>
+        {Array.from({ length: 3 }).map((_, i) => (
+          <PostCardSkeleton key={i} />
         ))}
       </div>
-      {Array.from({ length: 3 }).map((_, i) => (
-        <PostCardSkeleton key={i} />
-      ))}
     </div>
   );
 }
