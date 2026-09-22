@@ -83,7 +83,7 @@ export default async function CompanyPage({ params }: { params: Promise<{ id: st
     : [];
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="mx-auto flex w-full flex-col gap-6 md:max-w-3xl">
       <CompanyHeader company={company} logoUrl={logoUrl} editHref={isBoard(profile.role) ? `/bedrijven/${id}/bewerken` : undefined} />
 
       {/* Direct onder de header, boven de kaart en ledenlijst — anders is

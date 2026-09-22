@@ -27,7 +27,7 @@ function ShortcutButton({
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-colors hover:border-voc-red hover:text-voc-red"
+      className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-voc-red hover:text-voc-red hover:shadow-md"
     >
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red">
         <Icon size={20} />
@@ -73,8 +73,10 @@ export default async function HomePage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="text-xl font-semibold text-foreground">Welkom terug</h1>
-        <p className="mt-0.5 text-sm text-muted">Dit gebeurt er binnen de VOC-community.</p>
+        <h1 className="text-xl font-semibold text-foreground">Welkom terug, {profile.first_name}</h1>
+        <p className="mt-0.5 text-sm text-muted">
+          Het laatste nieuws en de eerstvolgende activiteit van het ledenportaal, overzichtelijk bij elkaar.
+        </p>
       </div>
 
       <section>

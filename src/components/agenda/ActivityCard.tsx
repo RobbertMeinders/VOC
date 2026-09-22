@@ -30,11 +30,17 @@ export function ActivityCard({
   const isOfficial = activity.source === "voc";
   const isSubmitted = activity.source === "lid";
 
+  // Ingebracht is bewust compacter dan een officiële VOC-activiteit (kleinere
+  // afbeelding, minder padding) — dat geeft naast de grijze i.p.v. rode rand
+  // een tweede, meteen zichtbaar verschil tussen de twee soorten.
+  const imageSize = isSubmitted ? 80 : 112;
+
   return (
     <Link
       href={`/agenda/${activity.id}`}
       className={clsx(
-        "flex gap-4 rounded-2xl border border-border bg-surface p-5 shadow-sm hover:border-voc-red hover:shadow-md",
+        "flex gap-4 rounded-2xl border border-border bg-surface shadow-sm hover:border-voc-red hover:shadow-md",
+        isSubmitted ? "p-4" : "p-5",
         (isOfficial || isSubmitted) && "border-l-4"
       )}
       style={isOfficial ? { borderLeftColor: "var(--voc-red)" } : isSubmitted ? { borderLeftColor: "var(--muted)" } : undefined}
@@ -43,17 +49,23 @@ export function ActivityCard({
         <Image
           src={imageUrl}
           alt={activity.title}
-          width={112}
-          height={112}
-          className="h-28 w-28 shrink-0 rounded-xl object-cover"
+          width={imageSize}
+          height={imageSize}
+          className="shrink-0 rounded-xl object-cover"
+          style={{ height: imageSize, width: imageSize }}
         />
       ) : (
-        <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red">
-          <CalendarDays size={34} />
+        <div
+          className="flex shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red"
+          style={{ height: imageSize, width: imageSize }}
+        >
+          <CalendarDays size={isSubmitted ? 26 : 34} />
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <p className="line-clamp-2 text-lg font-semibold leading-snug text-foreground">{activity.title}</p>
+        <p className={clsx("line-clamp-2 font-semibold leading-snug text-foreground", isSubmitted ? "text-base" : "text-lg")}>
+          {activity.title}
+        </p>
         <p className="mt-1 text-sm text-muted">{formatActivityDate(activity.starts_at)}</p>
         {activity.location && (
           <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted">

@@ -157,7 +157,7 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, beheerBadge }
           firstName={profile.first_name}
           lastName={profile.last_name}
           avatarUrl={avatarUrl}
-          size={22}
+          size={26}
           className={clsx(active && "ring-2 ring-voc-red")}
         />
         Profiel

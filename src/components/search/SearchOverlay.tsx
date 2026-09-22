@@ -68,7 +68,7 @@ function SearchPanel({ close }: { close: () => void }) {
   return (
     <>
       <div className="fixed inset-0 z-40 cursor-pointer bg-black/40 animate-fade-in" onClick={close} />
-      <div className="fixed inset-x-3 top-[env(safe-area-inset-top)] z-50 mt-4 sm:inset-x-0 sm:top-20 sm:mx-auto sm:w-full sm:max-w-lg sm:px-3">
+      <div className="fixed inset-x-3 top-[env(safe-area-inset-top)] z-50 mt-4 sm:inset-x-0 sm:top-[30vh] sm:mx-auto sm:w-full sm:max-w-lg sm:px-3">
         <div className="animate-scale-in overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
           <form onSubmit={handleSubmit} className="flex items-center gap-2 border-b border-border p-3">
             <Search size={16} className="shrink-0 text-muted" />

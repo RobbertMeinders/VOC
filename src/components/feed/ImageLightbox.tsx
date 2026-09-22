@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type TouchEvent } from "react";
+import { useEffect, useRef, useState, type TouchEvent } from "react";
 import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
@@ -31,6 +31,17 @@ export function ImageLightbox({
   function goTo(next: number) {
     setIndex((next + images.length) % images.length);
   }
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "ArrowLeft") goTo(index - 1);
+      else if (e.key === "ArrowRight") goTo(index + 1);
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [index, images.length]);
 
   function handleTouchStart(e: TouchEvent) {
     touchStartX.current = e.touches[0].clientX;

@@ -108,6 +108,8 @@ export function CompanyHeader({
               {company.email}
             </a>
           )}
+          {(company.linkedin_url || company.instagram_url || company.facebook_url) &&
+            (company.address || company.phone || company.email) && <div className="my-1 border-t border-border" />}
           <EntitySocialLinks
             variant="compact"
             linkedinUrl={company.linkedin_url}

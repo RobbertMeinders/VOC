@@ -14,7 +14,7 @@ import { autoGrowTextarea } from "@/lib/dom/autoGrow";
 import { useMentionField } from "@/lib/feed/useMentionField";
 import { MentionDropdown } from "./MentionDropdown";
 import { PostTypePicker } from "./PostTypePicker";
-import type { FeedAuthor, FeedPost } from "@/lib/feed/types";
+import type { FeedAuthor, FeedPost, FeedPostType } from "@/lib/feed/types";
 
 const initialState: CreatePostState = {};
 
@@ -24,10 +24,10 @@ const MAX_ATTACHMENTS = 10;
 
 type Preview = { url: string; name: string; isImage: boolean };
 
-function SubmitButton() {
+function SubmitButton({ disabled }: { disabled: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" size="sm" disabled={pending}>
+    <Button type="submit" size="sm" disabled={pending || disabled}>
       {pending ? "Plaatsen…" : "Plaatsen"}
     </Button>
   );
@@ -59,6 +59,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [dragActive, setDragActive] = useState(false);
   const [content, setContent] = useState("");
+  const [postType, setPostType] = useState<FeedPostType | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const previewUrlsRef = useRef<string[]>([]);
@@ -256,7 +257,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
             </div>
 
             <div className="mt-3 sm:ml-[52px]">
-              <PostTypePicker />
+              <PostTypePicker required value={postType} onChange={setPostType} />
             </div>
 
             {state.error && (
@@ -266,7 +267,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
             )}
 
             <div className="mt-3 flex items-center justify-end sm:ml-[52px]">
-              <SubmitButton />
+              <SubmitButton disabled={!postType} />
             </div>
           </form>
         </div>

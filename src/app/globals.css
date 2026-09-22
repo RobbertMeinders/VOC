@@ -1,5 +1,23 @@
 @import "tailwindcss";
 
+/* Zonder dit volgt Tailwinds `dark:`-variant altijd prefers-color-scheme,
+   los van de expliciete data-theme-toggle hieronder (ThemeToggle.tsx). Wie
+   bijvoorbeeld het licht thema kiest terwijl het OS op donker staat, kreeg
+   daardoor overal de dónkere hover-kleuren te zien (bijna onzichtbaar op een
+   lichte achtergrond) — dit koppelt `dark:` aan exact dezelfde logica als de
+   CSS-variabelen verderop in dit bestand: data-theme="dark" expliciet, óf
+   geen voorkeur (geen data-theme="light") mét een OS-voorkeur voor donker. */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:not(:where([data-theme="light"], [data-theme="light"] *)) {
+      @slot;
+    }
+  }
+}
+
 :root {
   --background: #f7f7f8;
   --surface: #ffffff;

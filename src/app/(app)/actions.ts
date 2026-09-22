@@ -33,6 +33,11 @@ export async function createPostAction(_prevState: CreatePostState, formData: Fo
     return { error: "Schrijf een bericht voordat je het plaatst." };
   }
 
+  const postType = parsePostType(formData);
+  if (!postType) {
+    return { error: "Kies een label (vraag, aanbod, nieuws of overig) voordat je het bericht plaatst." };
+  }
+
   const files = formData.getAll("attachments").filter((f): f is File => f instanceof File && f.size > 0);
   if (files.length > MAX_ATTACHMENTS) {
     return { error: `Je kunt maximaal ${MAX_ATTACHMENTS} bestanden toevoegen.` };
@@ -50,7 +55,7 @@ export async function createPostAction(_prevState: CreatePostState, formData: Fo
 
   const { data: newPost, error: postError } = await supabase
     .from("feed_posts")
-    .insert({ author_id: profile.id, content, type: parsePostType(formData) })
+    .insert({ author_id: profile.id, content, type: postType })
     .select("id")
     .single();
 

@@ -118,7 +118,10 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
           type="button"
           onClick={handleOpen}
           aria-label="Notificaties"
-          className="relative flex h-9 w-9 items-center justify-center rounded-full text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.08]"
+          className={clsx(
+            "relative flex h-9 w-9 items-center justify-center rounded-full text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.08]",
+            open && "bg-voc-red-light text-voc-red"
+          )}
         >
           <Bell size={20} />
           {count > 0 && (
@@ -127,8 +130,11 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
             </span>
           )}
         </button>
+        {/* Onder de header i.p.v. er overheen — zo blijft de belknop zelf
+            zichtbaar/klikbaar en sluit nogmaals erop klikken de overlay weer,
+            i.p.v. dat de knop zelf ook wordt bedekt. */}
         {open && (
-          <div className="animate-fade-in fixed inset-0 z-50 flex flex-col bg-surface pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]">
+          <div className="animate-fade-in fixed inset-x-0 bottom-0 top-14 z-50 flex flex-col bg-surface pb-[env(safe-area-inset-bottom)]">
             {panelContent}
           </div>
         )}

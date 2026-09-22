@@ -31,42 +31,29 @@ function Cell({
 }
 
 // Preview in het bericht zelf: bijgesneden (object-cover) op een vaste
-// verhouding, net als Instagram/X — dat laat je meteen 1-4 foto's zien
-// zonder dat de kaart torenhoog wordt. Klikken opent de volledige foto in
-// een lightbox (ImageLightbox), swipebaar tussen alle foto's van dit
-// bericht, niet alleen de zichtbare preview-cellen.
+// verhouding, net als Instagram/X. Bij meerdere foto's altijd maximaal 2
+// naast elkaar (1 links, 1 rechts) i.p.v. te proberen 3 of 4 foto's in een
+// grid te persen — de rest zie je via het "+N"-label op de tweede cel.
+// Klikken opent de volledige foto in een lightbox (ImageLightbox), swipebaar
+// (of met pijltoetsen) tussen alle foto's van dit bericht, niet alleen de
+// zichtbare preview-cellen.
 export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   if (images.length === 0) return null;
 
-  const visible = images.slice(0, 4);
+  const visible = images.slice(0, 2);
   const remaining = images.length - visible.length;
 
   return (
     <>
       <div className="mt-3 overflow-hidden rounded-xl">
-        {visible.length === 1 && (
+        {visible.length === 1 ? (
           <div className="relative h-80 w-full">
             <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} className="absolute inset-0" />
           </div>
-        )}
-        {visible.length === 2 && (
+        ) : (
           <div className="grid h-80 grid-cols-2 gap-0.5">
-            {visible.map((image, i) => (
-              <Cell key={image.id} image={image} onClick={() => setLightboxIndex(i)} className="relative h-full w-full" />
-            ))}
-          </div>
-        )}
-        {visible.length === 3 && (
-          <div className="grid h-80 grid-cols-2 grid-rows-2 gap-0.5">
-            <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} className="relative row-span-2 h-full w-full" />
-            <Cell image={visible[1]} onClick={() => setLightboxIndex(1)} className="relative h-full w-full" />
-            <Cell image={visible[2]} onClick={() => setLightboxIndex(2)} className="relative h-full w-full" />
-          </div>
-        )}
-        {visible.length === 4 && (
-          <div className="grid h-80 grid-cols-2 grid-rows-2 gap-0.5">
             {visible.map((image, i) => (
               <Cell
                 key={image.id}

@@ -19,18 +19,20 @@ export default async function CommunityPage() {
   ]);
 
   return (
-    <Suspense>
-      <FeedList
-        initialPosts={posts}
-        currentAuthor={{
-          id: profile.id,
-          first_name: profile.first_name,
-          last_name: profile.last_name,
-          avatarUrl,
-        }}
-        canModerate={isBoard(profile.role)}
-        canEditOthers={isAdmin(profile.role)}
-      />
-    </Suspense>
+    <div className="mx-auto w-full md:max-w-3xl">
+      <Suspense>
+        <FeedList
+          initialPosts={posts}
+          currentAuthor={{
+            id: profile.id,
+            first_name: profile.first_name,
+            last_name: profile.last_name,
+            avatarUrl,
+          }}
+          canModerate={isBoard(profile.role)}
+          canEditOthers={isAdmin(profile.role)}
+        />
+      </Suspense>
+    </div>
   );
 }

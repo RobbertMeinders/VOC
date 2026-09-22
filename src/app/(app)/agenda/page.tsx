@@ -94,7 +94,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
   }
 
   return (
-    <div>
+    <div className="mx-auto w-full md:max-w-3xl">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-foreground">Agenda</h1>
         <Link
