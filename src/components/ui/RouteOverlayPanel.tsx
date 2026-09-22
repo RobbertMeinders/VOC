@@ -5,7 +5,7 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
-import { isOverlayRoute } from "@/lib/ui/overlayRoutes";
+import { getOverlayCloseHref, isOverlayRoute } from "@/lib/ui/overlayRoutes";
 import type { ReactNode } from "react";
 
 // Overlay voor een route die via een Next.js intercepting route (@modal,
@@ -15,13 +15,13 @@ import type { ReactNode } from "react";
 // sidebar/bottom-nav — dit moet aanvoelen als "gewoon een pagina", alleen
 // zonder dat je de lijst erachter kwijtraakt.
 //
-// Sluiten (kruisje of Esc) gaat naar een vaste `closeHref` (elke @modal-
-// page.tsx geeft zijn eigen "ouder"-lijst mee, bv. /leden of /beheer)
-// i.p.v. router.back(): met browser-history kon sluiten op een onverwachte
-// plek uitkomen zodra je tussendoor ook via het menu/bottom-nav had
-// genavigeerd (die history-entries tellen óók mee voor back()) — een vaste
-// bestemming is voorspelbaar, ongeacht hoe je er kwam.
-export function RouteOverlayPanel({ children, closeHref }: { children: ReactNode; closeHref: string }) {
+// Zit in layout.tsx van elk @modal-segment (i.p.v. in elke losse page.tsx
+// en loading.tsx) zodat dit paneel gemonteerd blijft terwijl Suspense
+// alleen de inhoud (spinner -> data) erbinnen wisselt — anders monteren
+// page.tsx en loading.tsx elk hun eigen paneel-instantie, met een gaatje
+// ertussen waarin geen van beide bestaat en de pagina erachter even
+// doorschemert.
+export function RouteOverlayPanel({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [dismissed, setDismissed] = useState(false);
@@ -45,7 +45,7 @@ export function RouteOverlayPanel({ children, closeHref }: { children: ReactNode
   }
 
   function close() {
-    router.push(closeHref);
+    router.push(getOverlayCloseHref(pathname) ?? "/");
   }
 
   useEscapeKey(!dismissed, close);

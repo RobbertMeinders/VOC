@@ -1,4 +1,3 @@
-import { RouteOverlayPanel } from "@/components/ui/RouteOverlayPanel";
 import { MemberProfileContent } from "@/components/members/MemberProfileContent";
 
 // Intercepting route: wanneer je vanuit de app (bv. de ledenlijst, een
@@ -9,9 +8,5 @@ import { MemberProfileContent } from "@/components/members/MemberProfileContent"
 export default async function MemberProfileModal({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  return (
-    <RouteOverlayPanel closeHref="/leden">
-      <MemberProfileContent id={id} />
-    </RouteOverlayPanel>
-  );
+  return <MemberProfileContent id={id} />;
 }

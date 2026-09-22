@@ -6,7 +6,7 @@ import { Loader2 } from "lucide-react";
 // de uiteindelijke inhoud en zo meer verwarde dan hielp).
 export function OverlayLoading() {
   return (
-    <div className="flex items-center justify-center py-24 text-muted">
+    <div className="flex min-h-[60vh] items-center justify-center text-muted">
       <Loader2 size={28} className="animate-spin" />
     </div>
   );

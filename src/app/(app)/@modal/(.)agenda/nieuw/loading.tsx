@@ -1,10 +1,5 @@
-import { RouteOverlayPanel } from "@/components/ui/RouteOverlayPanel";
 import { OverlayLoading } from "@/components/ui/OverlayLoading";
 
 export default function NewActivityOverlayLoading() {
-  return (
-    <RouteOverlayPanel closeHref="/agenda">
-      <OverlayLoading />
-    </RouteOverlayPanel>
-  );
+  return <OverlayLoading />;
 }
