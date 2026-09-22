@@ -8,6 +8,8 @@ export type FeedAttachmentType = "image" | "pdf";
 export type ActivitySource = "voc" | "lid";
 export type ActivityStatus = "pending" | "approved" | "rejected";
 export type FeedPostType = "vraag" | "aanbod" | "nieuws" | "overig";
+export type FeedReportReason = "ongepast" | "spam" | "misleidend" | "anders";
+export type FeedReportStatus = "open" | "afgehandeld";
 
 export interface Database {
   public: {
@@ -144,6 +146,7 @@ export interface Database {
           source: ActivitySource;
           status: ActivityStatus;
           external_registration_url: string | null;
+          rejection_reason: string | null;
         };
         Insert: Partial<Database["public"]["Tables"]["activities"]["Row"]> & {
           title: string;
@@ -216,6 +219,24 @@ export interface Database {
           file_name: string;
         };
         Update: Partial<Database["public"]["Tables"]["feed_attachments"]["Row"]>;
+        Relationships: [];
+      };
+      feed_post_reports: {
+        Row: {
+          id: string;
+          post_id: string;
+          reporter_id: string;
+          reason: FeedReportReason;
+          details: string | null;
+          status: FeedReportStatus;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["feed_post_reports"]["Row"]> & {
+          post_id: string;
+          reporter_id: string;
+          reason: FeedReportReason;
+        };
+        Update: Partial<Database["public"]["Tables"]["feed_post_reports"]["Row"]>;
         Relationships: [];
       };
       feed_comments: {

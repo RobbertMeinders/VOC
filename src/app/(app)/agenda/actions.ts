@@ -245,11 +245,18 @@ export async function deleteActivityAction(activityId: string) {
   }
 }
 
-export async function decideActivitySubmissionAction(activityId: string, decision: "approved" | "rejected") {
+export async function decideActivitySubmissionAction(
+  activityId: string,
+  decision: "approved" | "rejected",
+  rejectionReason?: string
+) {
   await requireBoard();
   const supabase = await createClient();
 
-  await supabase.from("activities").update({ status: decision }).eq("id", activityId);
+  await supabase
+    .from("activities")
+    .update({ status: decision, rejection_reason: decision === "rejected" ? (rejectionReason ?? null) : null })
+    .eq("id", activityId);
 
   revalidatePath(`/agenda/${activityId}`);
   revalidatePath("/agenda");

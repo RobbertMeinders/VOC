@@ -12,6 +12,7 @@ import { AttachmentCarousel } from "./AttachmentCarousel";
 import { LikeButton } from "./LikeButton";
 import { CommentForm } from "./CommentForm";
 import { LikersOverlay } from "./LikersOverlay";
+import { ReportPostOverlay } from "./ReportPostOverlay";
 import { MentionEditor } from "./MentionEditor";
 import {
   deleteCommentAction,
@@ -328,6 +329,7 @@ export function PostCard({
   const [commentsOpen, setCommentsOpen] = useState(true);
   const [showAllComments, setShowAllComments] = useState(forceCommentsOpen);
   const [showLikers, setShowLikers] = useState(false);
+  const [reporting, setReporting] = useState(false);
   const isOwnPost = post.author.id === currentUserId;
   const canEditPost = isOwnPost || canEditOthers;
   const canDeletePost = canModerate || isOwnPost;
@@ -352,7 +354,7 @@ export function PostCard({
             </p>
           </div>
         </Link>
-        {(canEditPost || canDeletePost) && !editing && (
+        {(canEditPost || canDeletePost || !isOwnPost) && !editing && (
           <ActionMenu
             items={[
               ...(canEditPost ? [{ label: "Bewerken", onClick: () => setEditing(true) }] : []),
@@ -369,10 +371,13 @@ export function PostCard({
                     },
                   ]
                 : []),
+              ...(!isOwnPost ? [{ label: "Rapporteren", onClick: () => setReporting(true) }] : []),
             ]}
           />
         )}
       </div>
+
+      {reporting && <ReportPostOverlay postId={post.id} onClose={() => setReporting(false)} />}
 
       {editing ? (
         <EditPostForm post={post} onSaved={(updated) => { onUpdated(updated); setEditing(false); }} onCancel={() => setEditing(false)} />

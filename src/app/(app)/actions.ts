@@ -6,6 +6,9 @@ import { isAdmin } from "@/lib/auth/roles";
 import { fetchCommentById, fetchPostById } from "@/lib/feed/queries";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import type { FeedComment, FeedPost, FeedPostType } from "@/lib/feed/types";
+import type { FeedReportReason } from "@/lib/types/database";
+
+const VALID_REPORT_REASONS: FeedReportReason[] = ["ongepast", "spam", "misleidend", "anders"];
 
 const VALID_POST_TYPES: FeedPostType[] = ["vraag", "aanbod", "nieuws", "overig"];
 
@@ -314,4 +317,35 @@ export async function searchMentionsAction(query: string): Promise<MentionSearch
   }));
 
   return { profiles, companies };
+}
+
+export type ReportPostState = { error?: string; success?: boolean };
+
+export async function reportPostAction(
+  postId: string,
+  reason: string,
+  details: string
+): Promise<ReportPostState> {
+  const profile = await requireProfile();
+
+  if (!(VALID_REPORT_REASONS as string[]).includes(reason)) {
+    return { error: "Kies een geldige reden." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.from("feed_post_reports").insert({
+    post_id: postId,
+    reporter_id: profile.id,
+    reason: reason as FeedReportReason,
+    details: details.trim() || null,
+  });
+
+  if (error) {
+    if (error.code === "23505") {
+      return { error: "Je hebt dit bericht al gerapporteerd." };
+    }
+    return { error: "Rapporteren is niet gelukt. Probeer het opnieuw." };
+  }
+
+  return { success: true };
 }

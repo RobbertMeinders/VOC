@@ -12,6 +12,7 @@ import { RegisterButton } from "@/components/agenda/RegisterButton";
 import { AttendeeList } from "@/components/agenda/AttendeeList";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { ActivityAttachmentRow } from "@/components/agenda/ActivityAttachmentRow";
+import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
 import { deleteActivityAction, decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
 import type { Database } from "@/lib/types/database";
 
@@ -147,6 +148,11 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
               )}
             </div>
           )}
+          {activity.status === "rejected" && activity.rejection_reason && (
+            <p className="mb-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+              {activity.rejection_reason}
+            </p>
+          )}
           <h1 className="text-xl font-semibold text-foreground">{activity.title}</h1>
           {submitterLabel && <p className="mt-1 text-xs text-muted">Ingebracht door {submitterLabel}</p>}
           <div className="mt-3 flex flex-col gap-2 text-sm text-muted">
@@ -232,9 +238,9 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
       )}
 
       {isBoard(profile.role) && activity.status === "pending" && (
-        <div className="flex items-center gap-2 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-surface p-4 shadow-sm">
           <p className="mr-auto text-sm text-muted">Deze activiteit wacht nog op een besluit.</p>
-          <form action={decideActivitySubmissionAction.bind(null, activity.id, "approved")}>
+          <form action={decideActivitySubmissionAction.bind(null, activity.id, "approved", undefined)}>
             <button
               type="submit"
               className="rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
@@ -242,14 +248,12 @@ export default async function ActivityPage({ params }: { params: Promise<{ id: s
               Goedkeuren
             </button>
           </form>
-          <form action={decideActivitySubmissionAction.bind(null, activity.id, "rejected")}>
-            <button
-              type="submit"
-              className="rounded-full border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-            >
-              Afwijzen
-            </button>
-          </form>
+          <RejectActivityForm
+            onReject={async (reason) => {
+              "use server";
+              await decideActivitySubmissionAction(activity.id, "rejected", reason);
+            }}
+          />
         </div>
       )}
 

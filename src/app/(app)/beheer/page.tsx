@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Building2, CalendarDays, FileText, Inbox, Mail, Upload, UserPlus, Users } from "lucide-react";
+import { Building2, CalendarDays, FileText, Flag, Inbox, Mail, Upload, UserPlus, Users } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 
@@ -15,6 +15,7 @@ const CARDS = [
     description: "Bestaande ledengegevens in bulk toevoegen",
   },
   { href: "/beheer/aanvragen", label: "Toegangsaanvragen", icon: Inbox, description: "Beoordeel aanvragen van buitenaf" },
+  { href: "/beheer/rapportages", label: "Rapportages", icon: Flag, description: "Gerapporteerde berichten uit de feed" },
   { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail, description: "Inhoud van uitnodigings- en resetmails" },
   { href: "/leden", label: "Leden", icon: Users, description: "Profielen, rollen, activeren/deactiveren" },
   { href: "/bedrijven", label: "Bedrijven", icon: Building2, description: "Bedrijfsprofielen beheren" },
@@ -28,12 +29,15 @@ export default async function BeheerPage() {
 
   const [
     { count: memberCount },
+    { count: companyCount },
     { count: pendingInvitations },
     { count: pendingRequests },
     { count: upcomingActivities },
     { count: pendingActivities },
+    { count: openReports },
   ] = await Promise.all([
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
+    supabase.from("companies").select("id", { count: "exact", head: true }),
     supabase.from("invitations").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase.from("access_requests").select("id", { count: "exact", head: true }).eq("status", "pending"),
     supabase
@@ -42,14 +46,17 @@ export default async function BeheerPage() {
       .eq("status", "approved")
       .gte("starts_at", new Date().toISOString()),
     supabase.from("activities").select("id", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("feed_post_reports").select("id", { count: "exact", head: true }).eq("status", "open"),
   ]);
 
   const stats = [
     { label: "Actieve leden", value: memberCount ?? 0 },
+    { label: "Aantal bedrijven", value: companyCount ?? 0 },
     { label: "Openstaande uitnodigingen", value: pendingInvitations ?? 0 },
     { label: "Openstaande aanvragen", value: pendingRequests ?? 0 },
     { label: "Aankomende activiteiten", value: upcomingActivities ?? 0 },
     { label: "Activiteiten ter goedkeuring", value: pendingActivities ?? 0 },
+    { label: "Openstaande rapportages", value: openReports ?? 0 },
   ];
 
   return (
