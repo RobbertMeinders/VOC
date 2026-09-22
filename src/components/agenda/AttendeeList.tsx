@@ -123,7 +123,7 @@ export function AttendeeList({
 
       {showAll && (
         <>
-          <div className="fixed inset-0 z-40 bg-black/40 animate-fade-in" onClick={() => setShowAll(false)} />
+          <div className="fixed inset-0 z-40 cursor-pointer bg-black/40 animate-fade-in" onClick={() => setShowAll(false)} />
           <div className="fixed inset-x-4 top-1/2 z-50 -translate-y-1/2 sm:inset-x-auto sm:left-1/2 sm:w-80 sm:-translate-x-1/2">
             <div className="animate-scale-in max-h-[70vh] overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
               <div className="flex items-center justify-between border-b border-border px-4 py-3">

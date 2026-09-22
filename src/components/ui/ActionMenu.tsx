@@ -34,7 +34,7 @@ export function ActionMenu({ items }: { items: ActionMenuItem[] }) {
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-30" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 z-30 cursor-pointer" onClick={() => setOpen(false)} />
           <div className="animate-scale-in absolute right-0 top-full z-40 mt-1 w-40 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
             {items.map((item) => (
               <button

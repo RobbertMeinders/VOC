@@ -160,7 +160,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
 
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/60 animate-fade-in" onClick={() => setOpen(false)} />
+      <div className="fixed inset-0 z-40 cursor-pointer bg-black/60 animate-fade-in" onClick={() => setOpen(false)} />
       <div className="fixed inset-x-3 top-1/2 z-50 -translate-y-1/2 sm:inset-x-0 sm:mx-auto sm:w-full sm:max-w-xl sm:px-3">
         <div className="animate-scale-in max-h-[85vh] overflow-y-auto rounded-2xl border border-border bg-surface shadow-lg">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">

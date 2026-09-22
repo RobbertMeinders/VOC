@@ -47,7 +47,8 @@ export function ImageLightbox({
 
   return (
     <div
-      className="animate-fade-in fixed inset-0 z-[60] flex flex-col bg-black/95"
+      className="animate-fade-in fixed inset-0 z-[60] flex cursor-pointer flex-col bg-black/95"
+      onClick={onClose}
       onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
@@ -68,6 +69,8 @@ export function ImageLightbox({
       </div>
 
       <div className="relative flex flex-1 items-center justify-center overflow-hidden px-2 pb-4">
+        {/* stopPropagation: klikken op de foto zelf mag 'm niet sluiten —
+            alleen het donkerder geworden gebied eromheen sluit de lightbox. */}
         <Image
           key={current.id}
           src={current.url}
@@ -75,7 +78,8 @@ export function ImageLightbox({
           width={0}
           height={0}
           sizes="100vw"
-          className="animate-fade-in max-h-full max-w-full object-contain"
+          onClick={(e) => e.stopPropagation()}
+          className="animate-fade-in max-h-full max-w-full cursor-auto object-contain"
           style={{ width: "auto", height: "auto" }}
         />
 
@@ -83,7 +87,10 @@ export function ImageLightbox({
           <>
             <button
               type="button"
-              onClick={() => goTo(index - 1)}
+              onClick={(e) => {
+                e.stopPropagation();
+                goTo(index - 1);
+              }}
               aria-label="Vorige foto"
               className="absolute left-2 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:flex"
             >
@@ -91,7 +98,10 @@ export function ImageLightbox({
             </button>
             <button
               type="button"
-              onClick={() => goTo(index + 1)}
+              onClick={(e) => {
+                e.stopPropagation();
+                goTo(index + 1);
+              }}
               aria-label="Volgende foto"
               className="absolute right-2 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:flex"
             >

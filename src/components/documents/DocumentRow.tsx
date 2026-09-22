@@ -92,11 +92,11 @@ export function DocumentRow({
 
       {previewOpen && url && (
         <div
-          className="fixed inset-0 z-50 flex flex-col bg-black/60 p-4 animate-fade-in sm:p-8"
+          className="fixed inset-0 z-50 flex cursor-pointer flex-col bg-black/60 p-4 animate-fade-in sm:p-8"
           onClick={() => setPreviewOpen(false)}
         >
           <div
-            className="animate-scale-in mx-auto flex h-full w-full max-w-3xl flex-col overflow-hidden rounded-2xl bg-surface shadow-lg"
+            className="animate-scale-in mx-auto flex h-full w-full max-w-3xl cursor-auto flex-col overflow-hidden rounded-2xl bg-surface shadow-lg"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between border-b border-border px-4 py-3">

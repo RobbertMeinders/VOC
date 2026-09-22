@@ -147,6 +147,13 @@ a {
   transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease,
     box-shadow 0.15s ease, transform 0.15s ease;
 }
+
+/* Browsers geven een <button> standaard geen wijzende cursor (alleen <a>
+   krijgt die automatisch) — overal waar je kunt klikken hoort dat wel
+   duidelijk te zijn. */
+button:not(:disabled) {
+  cursor: pointer;
+}
 @media (prefers-reduced-motion: reduce) {
   button,
   a {

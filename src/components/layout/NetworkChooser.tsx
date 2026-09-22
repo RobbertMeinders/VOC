@@ -54,7 +54,7 @@ export function NetworkChooser({
         </button>
         {open && (
           <>
-            <div className="fixed inset-0 z-40" onClick={close} />
+            <div className="fixed inset-0 z-40 cursor-pointer" onClick={close} />
             {/* Opent naar rechts i.p.v. eronder — anders schuift het paneel
                 over Documenten/Notificaties eronder in de sidebar heen. */}
             <div className="animate-scale-in absolute left-full top-0 z-50 ml-2 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
@@ -99,7 +99,7 @@ export function NetworkChooser({
 
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={close} />
+          <div className="fixed inset-0 z-40 cursor-pointer" onClick={close} />
           <div className="absolute bottom-full left-1/2 z-50 mb-2 w-48 -translate-x-1/2">
             <div className="animate-scale-in overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
               <p className="flex items-center gap-1.5 border-b border-border px-3 py-2 text-xs font-semibold text-muted">

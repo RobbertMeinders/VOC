@@ -41,7 +41,7 @@ function ShortcutButton({
 }
 
 export default async function HomePage() {
-  await requireProfile();
+  const profile = await requireProfile();
   const supabase = await createClient();
 
   const [{ data: activities }, { count: companyCount }] = await Promise.all([
@@ -57,7 +57,18 @@ export default async function HomePage() {
   ]);
 
   const nextActivity = activities?.[0] ?? null;
-  const nextActivityImageUrl = nextActivity ? await getSignedStorageUrl("activity-images", nextActivity.image_url) : null;
+
+  const [nextActivityImageUrl, myRegistration] = await Promise.all([
+    nextActivity ? getSignedStorageUrl("activity-images", nextActivity.image_url) : Promise.resolve(null),
+    nextActivity
+      ? supabase
+          .from("activity_registrations")
+          .select("is_waitlisted")
+          .eq("activity_id", nextActivity.id)
+          .eq("profile_id", profile.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -67,12 +78,7 @@ export default async function HomePage() {
       </div>
 
       <section>
-        <div className="mb-2 flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-foreground">Eerstvolgende activiteit</h2>
-          <Link href="/agenda" className="text-xs font-medium text-muted hover:text-voc-red">
-            Hele agenda
-          </Link>
-        </div>
+        <h2 className="mb-2 text-sm font-semibold text-foreground">Eerstvolgende activiteit</h2>
         {nextActivity ? (
           <Link
             href={`/agenda/${nextActivity.id}`}
@@ -103,6 +109,17 @@ export default async function HomePage() {
                   {nextActivity.location}
                 </p>
               )}
+              {myRegistration.data && (
+                <span
+                  className={
+                    myRegistration.data.is_waitlisted
+                      ? "mt-2 inline-block rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                      : "mt-2 inline-block rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-500/10 dark:text-green-400"
+                  }
+                >
+                  {myRegistration.data.is_waitlisted ? "Op de wachtlijst" : "Je bent aangemeld"}
+                </span>
+              )}
             </div>
           </Link>
         ) : (
@@ -110,6 +127,12 @@ export default async function HomePage() {
             <p className="text-sm text-muted">Er staat nog geen activiteit gepland.</p>
           </div>
         )}
+        <Link
+          href="/agenda"
+          className="mt-3 flex h-10 w-full items-center justify-center rounded-full bg-black/[.06] px-4 text-sm font-medium text-foreground transition-all duration-150 hover:bg-black/[.1] active:scale-95 dark:bg-white/[.08] dark:hover:bg-white/[.12]"
+        >
+          Hele agenda
+        </Link>
       </section>
 
       <section>

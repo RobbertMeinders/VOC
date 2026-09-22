@@ -156,7 +156,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-40" onClick={close} />
+          <div className="fixed inset-0 z-40 cursor-pointer" onClick={close} />
           <div className="animate-scale-in absolute left-0 top-full z-50 mt-1 w-80 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
             {panelContent}
           </div>
