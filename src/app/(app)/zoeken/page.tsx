@@ -44,7 +44,7 @@ type FeedPostRow = {
 export default async function ZoekenPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const profile = await requireProfile();
   const { q } = await searchParams;
-  const query = (q ?? "").trim().toLowerCase();
+  const query = (q ?? "").trim();
   const supabase = await createClient();
 
   if (!query) {
@@ -57,6 +57,15 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
     );
   }
 
+  // Begrensde ilike-queries per tabel i.p.v. alle rijen ophalen en
+  // client-side filteren — bij een groeiend ledenbestand/documentenarchief
+  // werd dat laatste bij elke zoekopdracht een steeds zwaardere volledige
+  // tabel-scan over het netwerk.
+  const like = `%${query}%`;
+  // PostgREST's .or() splitst op komma's, dus die halen we uit de zoekterm
+  // voor de meerdere-kolommen-varianten hieronder.
+  const orLike = `%${query.replace(/,/g, " ")}%`;
+
   const [{ data: profileRows }, { data: companyRows }, { data: documentRows }, { data: activityRows }, { data: postRows }] =
     await Promise.all([
       supabase
@@ -64,36 +73,35 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
         .select(
           "id, first_name, last_name, avatar_url, job_title, company_members(is_primary, company:companies(id, name, industry))"
         )
+        .or(`first_name.ilike.${orLike},last_name.ilike.${orLike}`)
         .returns<ProfileRow[]>(),
-      supabase.from("companies").select("id, name, industry, city, logo_url, tagline").returns<CompanyRow[]>(),
-      supabase.from("documents").select("*").returns<DocumentRowData[]>(),
-      supabase.from("activities").select("*").returns<ActivityRow[]>(),
+      supabase
+        .from("companies")
+        .select("id, name, industry, city, logo_url, tagline")
+        .or(`name.ilike.${orLike},city.ilike.${orLike},tagline.ilike.${orLike}`)
+        .returns<CompanyRow[]>(),
+      supabase
+        .from("documents")
+        .select("*")
+        .or(`title.ilike.${orLike},description.ilike.${orLike},category.ilike.${orLike}`)
+        .returns<DocumentRowData[]>(),
+      supabase
+        .from("activities")
+        .select("*")
+        .or(`title.ilike.${orLike},location.ilike.${orLike},description.ilike.${orLike}`)
+        .returns<ActivityRow[]>(),
       supabase
         .from("feed_posts")
         .select("id, content, created_at, author:profiles!feed_posts_author_id_fkey(id, first_name, last_name)")
+        .ilike("content", like)
         .returns<FeedPostRow[]>(),
     ]);
 
-  const matchedProfiles = (profileRows ?? []).filter((p) => `${p.first_name} ${p.last_name}`.toLowerCase().includes(query));
-  const matchedCompanies = (companyRows ?? []).filter(
-    (c) =>
-      c.name.toLowerCase().includes(query) ||
-      (c.city ?? "").toLowerCase().includes(query) ||
-      (c.tagline ?? "").toLowerCase().includes(query)
-  );
-  const matchedDocuments = (documentRows ?? []).filter(
-    (d) =>
-      d.title.toLowerCase().includes(query) ||
-      (d.description ?? "").toLowerCase().includes(query) ||
-      (d.category ?? "").toLowerCase().includes(query)
-  );
-  const matchedActivities = (activityRows ?? []).filter(
-    (a) =>
-      a.title.toLowerCase().includes(query) ||
-      (a.location ?? "").toLowerCase().includes(query) ||
-      (a.description ?? "").toLowerCase().includes(query)
-  );
-  const matchedPosts = (postRows ?? []).filter((p) => (p.content ?? "").toLowerCase().includes(query));
+  const matchedProfiles = profileRows ?? [];
+  const matchedCompanies = companyRows ?? [];
+  const matchedDocuments = documentRows ?? [];
+  const matchedActivities = activityRows ?? [];
+  const matchedPosts = postRows ?? [];
 
   const [avatarUrls, logoUrls, documentUrls, activityImageUrls, { data: allRegistrations }, { data: myRegistrations }] =
     await Promise.all([
