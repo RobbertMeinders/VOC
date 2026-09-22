@@ -76,9 +76,14 @@ export async function getSignedStorageUrl(bucket: Bucket, path: string | null, e
  * Batch-resolves many storage paths (dedupes repeats, e.g. the same author's
  * avatar appearing on several posts) — each path is cached individually (see
  * `cachedCreateSignedUrl`), so a path already signed for some other page is
- * reused here too instead of re-signed. Returns a lookup you can index with
- * the original path; a path that failed to sign (or wasn't asked for) is
- * simply absent from the map.
+ * reused here too instead of re-signed. Cache misses go out as a *single*
+ * bulk `createSignedUrls` call instead of one Storage API round-trip per
+ * path: a busy feed page can easily reference 30+ distinct avatars/
+ * attachments, and firing that many parallel requests to Storage (even
+ * cache-warm, that's still 30+ open connections) is far slower than one
+ * request carrying all 30 paths. Returns a lookup you can index with the
+ * original path; a path that failed to sign (or wasn't asked for) is simply
+ * absent from the map.
  */
 export async function getSignedStorageUrls(
   supabase: SupabaseClient<Database>,
@@ -90,12 +95,25 @@ export async function getSignedStorageUrls(
   const map = new Map<string, string>();
   if (uniquePaths.length === 0) return map;
 
+  const now = Date.now();
+  const missing: string[] = [];
+  for (const path of uniquePaths) {
+    const cached = signedUrlCache.get(cacheKey(bucket, path, expiresIn));
+    if (cached && cached.expiresAt > now) {
+      map.set(path, cached.url);
+    } else {
+      missing.push(path);
+    }
+  }
+  if (missing.length === 0) return map;
+
   try {
-    const results = await Promise.all(
-      uniquePaths.map(async (path) => [path, await cachedCreateSignedUrl(supabase, bucket, path, expiresIn)] as const)
-    );
-    for (const [path, url] of results) {
-      if (url) map.set(path, url);
+    const { data } = await supabase.storage.from(bucket).createSignedUrls(missing, expiresIn);
+    for (const item of data ?? []) {
+      if (item.path && item.signedUrl) {
+        map.set(item.path, item.signedUrl);
+        signedUrlCache.set(cacheKey(bucket, item.path, expiresIn), { url: item.signedUrl, expiresAt: now + CACHE_TTL_MS });
+      }
     }
   } catch {
     // Same reasoning as getSignedStorageUrl: fail soft, not the whole page.

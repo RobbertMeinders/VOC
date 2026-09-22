@@ -1,8 +1,10 @@
 import "server-only";
 
 import { cache } from "react";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { VERIFIED_USER_ID_HEADER } from "@/lib/supabase/session-persistence";
 import type { Database } from "@/lib/types/database";
 
 export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
@@ -14,20 +16,28 @@ export type Profile = Database["public"]["Tables"]["profiles"]["Row"];
  *
  * Wrapped in React's `cache()` because both the (app) layout and almost
  * every page call `requireProfile()` independently — without this, that's
- * two full round-trips (auth.getUser() + a profiles select) on every single
- * navigation instead of one; `cache()` dedupes repeat calls within the same
- * request/render pass, same as Next.js does automatically for `fetch()`.
+ * an extra profiles select on every single navigation instead of one;
+ * `cache()` dedupes repeat calls within the same request/render pass, same
+ * as Next.js does automatically for `fetch()`.
  */
 export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  // middleware.ts already called auth.getUser() for this exact request and
+  // forwards the verified id via header — reuse it instead of paying for a
+  // second round trip to Supabase's Auth server here. Falls back to calling
+  // auth.getUser() directly for any render path middleware doesn't cover.
+  let userId = (await headers()).get(VERIFIED_USER_ID_HEADER);
+  if (!userId) {
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    userId = user?.id ?? null;
+  }
 
-  if (!user) return null;
+  if (!userId) return null;
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single();
+  const { data: profile } = await supabase.from("profiles").select("*").eq("id", userId).single();
 
   return profile ?? null;
 });
