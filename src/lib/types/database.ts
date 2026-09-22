@@ -27,6 +27,7 @@ export interface Database {
           is_active: boolean;
           show_email: boolean;
           show_phone: boolean;
+          show_attended_activities: boolean;
           last_active_at: string | null;
           linkedin_url: string | null;
           instagram_url: string | null;

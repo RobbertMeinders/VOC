@@ -3,7 +3,8 @@
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/auth/roles";
-import { fetchCommentById, fetchPostById } from "@/lib/feed/queries";
+import { fetchCommentById, fetchFeedPosts, fetchPostById } from "@/lib/feed/queries";
+import { FEED_PAGE_SIZE } from "@/lib/feed/pagination";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import type { FeedComment, FeedPost, FeedPostType } from "@/lib/feed/types";
 import type { FeedReportReason } from "@/lib/types/database";
@@ -317,6 +318,12 @@ export async function searchMentionsAction(query: string): Promise<MentionSearch
   }));
 
   return { profiles, companies };
+}
+
+export async function loadMoreFeedPostsAction(offset: number): Promise<FeedPost[]> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+  return fetchFeedPosts(supabase, profile.id, FEED_PAGE_SIZE, offset);
 }
 
 export type ReportPostState = { error?: string; success?: boolean };

@@ -126,14 +126,19 @@ async function hydrateAll(supabase: SupabaseClient<Database>, posts: RawPost[], 
   return posts.map((post) => buildPost(post, viewerId, avatarUrls, mediaUrls));
 }
 
-export async function fetchFeedPosts(supabase: SupabaseClient<Database>, viewerId: string, limit = 20): Promise<FeedPost[]> {
+export async function fetchFeedPosts(
+  supabase: SupabaseClient<Database>,
+  viewerId: string,
+  limit = 20,
+  offset = 0
+): Promise<FeedPost[]> {
   const { data } = await supabase
     .from("feed_posts")
     .select(POST_SELECT)
     .order("created_at", { ascending: false })
     .order("created_at", { ascending: true, referencedTable: "feed_comments" })
     .order("created_at", { ascending: false, referencedTable: "feed_likes" })
-    .limit(limit)
+    .range(offset, offset + limit - 1)
     .returns<RawPost[]>();
 
   return hydrateAll(supabase, data ?? [], viewerId);
@@ -146,7 +151,8 @@ export async function fetchFeedPostsByAuthor(
   supabase: SupabaseClient<Database>,
   viewerId: string,
   authorId: string,
-  limit = 20
+  limit = 20,
+  offset = 0
 ): Promise<FeedPost[]> {
   const { data } = await supabase
     .from("feed_posts")
@@ -155,7 +161,7 @@ export async function fetchFeedPostsByAuthor(
     .order("created_at", { ascending: false })
     .order("created_at", { ascending: true, referencedTable: "feed_comments" })
     .order("created_at", { ascending: false, referencedTable: "feed_likes" })
-    .limit(limit)
+    .range(offset, offset + limit - 1)
     .returns<RawPost[]>();
 
   return hydrateAll(supabase, data ?? [], viewerId);

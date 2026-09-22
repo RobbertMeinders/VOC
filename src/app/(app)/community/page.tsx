@@ -4,6 +4,7 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { fetchFeedPosts } from "@/lib/feed/queries";
+import { FEED_PAGE_SIZE } from "@/lib/feed/pagination";
 import { isAdmin, isBoard } from "@/lib/auth/roles";
 import { FeedList } from "@/components/feed/FeedList";
 
@@ -14,7 +15,7 @@ export default async function CommunityPage() {
   const supabase = await createClient();
 
   const [posts, avatarUrl] = await Promise.all([
-    fetchFeedPosts(supabase, profile.id),
+    fetchFeedPosts(supabase, profile.id, FEED_PAGE_SIZE),
     getSignedStorageUrl("avatars", profile.avatar_url),
   ]);
 

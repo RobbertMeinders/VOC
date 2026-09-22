@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import { MessageSquare } from "lucide-react";
 import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/client";
-import { getCommentAction, getPostAction } from "@/app/(app)/actions";
+import { getCommentAction, getPostAction, loadMoreFeedPostsAction } from "@/app/(app)/actions";
+import { FEED_PAGE_SIZE } from "@/lib/feed/pagination";
+import { useInfiniteScroll } from "@/lib/dom/useInfiniteScroll";
 import { PostComposer } from "./PostComposer";
 import { PostCard } from "./PostCard";
 import { POST_TYPES, POST_TYPE_LABELS } from "@/lib/feed/postType";
@@ -26,9 +28,24 @@ export function FeedList({
 }) {
   const [posts, setPosts] = useState(initialPosts);
   const [filter, setFilter] = useState<Filter>("alle");
+  // Server geeft de eerste FEED_PAGE_SIZE berichten mee — minder dan dat
+  // betekent dat er al bij de eerste render niets meer te laden viel.
+  const [hasMore, setHasMore] = useState(initialPosts.length >= FEED_PAGE_SIZE);
+  const [isLoadingMore, startLoadingMore] = useTransition();
   const searchParams = useSearchParams();
   const highlightId = searchParams.get("highlight");
   const visiblePosts = filter === "alle" ? posts : posts.filter((p) => p.type === filter);
+
+  function loadMore() {
+    if (isLoadingMore) return;
+    startLoadingMore(async () => {
+      const next = await loadMoreFeedPostsAction(posts.length);
+      setPosts((prev) => [...prev, ...next.filter((p) => !prev.some((existing) => existing.id === p.id))]);
+      if (next.length < FEED_PAGE_SIZE) setHasMore(false);
+    });
+  }
+
+  const sentinelRef = useInfiniteScroll(loadMore, hasMore && filter === "alle");
 
   function upsertPost(post: FeedPost) {
     setPosts((prev) => (prev.some((p) => p.id === post.id) ? prev : [post, ...prev]));
@@ -156,6 +173,11 @@ export function FeedList({
               forceCommentsOpen={highlightId ? post.comments.some((c) => c.id === highlightId) : false}
             />
           ))}
+          {filter === "alle" && hasMore && (
+            <div ref={sentinelRef} className="py-4 text-center text-xs text-muted">
+              {isLoadingMore ? "Meer berichten laden…" : ""}
+            </div>
+          )}
         </div>
       ) : (
         <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border py-16 text-center">

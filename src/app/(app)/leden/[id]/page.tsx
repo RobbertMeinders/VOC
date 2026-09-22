@@ -1,21 +1,23 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, Clock, Mail, Pencil, Phone } from "lucide-react";
+import { Clock, Mail, Pencil, Phone } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
-import { formatActivityDateShort, formatLastActive } from "@/lib/format/date";
+import { formatLastActive } from "@/lib/format/date";
 import { Avatar } from "@/components/ui/Avatar";
 import { ExpandableText } from "@/components/ui/ExpandableText";
 import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { MemberPostList } from "@/components/members/MemberPostList";
+import { AttendedActivitiesSection } from "@/components/members/AttendedActivitiesSection";
 import { isAdmin, isBoard } from "@/lib/auth/roles";
 import { RoleEditor } from "@/components/members/RoleEditor";
 import { AdminEditProfile } from "@/components/members/AdminEditProfile";
 import { MemberActiveToggle } from "@/components/members/MemberActiveToggle";
 import { fetchFeedPostsByAuthor } from "@/lib/feed/queries";
+import { MEMBER_PROFILE_LIST_PREVIEW } from "@/lib/feed/pagination";
 import type { Database } from "@/lib/types/database";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
@@ -58,18 +60,25 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
       .select("activity:activities(id, title, starts_at)")
       .eq("profile_id", id)
       .eq("attended", true)
+      .order("created_at", { ascending: false })
+      .range(0, MEMBER_PROFILE_LIST_PREVIEW)
       .returns<{ activity: AttendedActivity | null }[]>(),
-    fetchFeedPostsByAuthor(supabase, viewer.id, id),
+    fetchFeedPostsByAuthor(supabase, viewer.id, id, MEMBER_PROFILE_LIST_PREVIEW + 1),
   ]);
 
   const logoUrl = membership?.company?.logo_url
     ? await getSignedStorageUrl("company-logos", membership.company.logo_url)
     : null;
 
-  const attendedActivities = (attendedRows ?? [])
-    .map((r) => r.activity)
-    .filter((a): a is AttendedActivity => a !== null)
-    .sort((a, b) => b.starts_at.localeCompare(a.starts_at));
+  // Instelling (zie /instellingen): een lid kan deze sectie voor andere
+  // leden verbergen — zichzelf en bestuur/beheer zien 'm altijd.
+  const canSeeAttended = member.show_attended_activities || canSeePrivate;
+  const attendedActivities = canSeeAttended
+    ? (attendedRows ?? [])
+        .map((r) => r.activity)
+        .filter((a): a is AttendedActivity => a !== null)
+        .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
+    : [];
 
   return (
     <div className="mx-auto flex w-full flex-col gap-4 md:max-w-3xl">
@@ -180,26 +189,14 @@ export default async function MemberProfilePage({ params }: { params: Promise<{ 
       {attendedActivities.length > 0 && (
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Bijgewoonde evenementen</h2>
-          <ul className="flex flex-col gap-2">
-            {attendedActivities.map((activity) => (
-              <li key={activity.id}>
-                <Link
-                  href={`/agenda/${activity.id}`}
-                  className="flex items-center gap-3 rounded-lg px-1 py-1.5 text-sm hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-                >
-                  <CalendarDays size={16} className="shrink-0 text-muted" />
-                  <span className="min-w-0 flex-1 truncate text-foreground">{activity.title}</span>
-                  <span className="shrink-0 text-xs text-muted">{formatActivityDateShort(activity.starts_at)}</span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <AttendedActivitiesSection memberId={id} activities={attendedActivities} />
         </div>
       )}
 
       <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
         <h2 className="mb-3 text-sm font-semibold text-foreground">Berichten</h2>
         <MemberPostList
+          memberId={id}
           initialPosts={posts}
           currentUserId={viewer.id}
           canModerate={isBoard(viewer.role)}

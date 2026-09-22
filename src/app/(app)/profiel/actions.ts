@@ -87,6 +87,22 @@ export async function subscribeToPushAction(subscription: {
   return {};
 }
 
+export async function updateAttendedActivitiesVisibilityAction(visible: boolean): Promise<{ error?: string }> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ show_attended_activities: visible })
+    .eq("id", profile.id);
+
+  if (error) {
+    return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
+  }
+  revalidatePath(`/leden/${profile.id}`);
+  return {};
+}
+
 export async function unsubscribeFromPushAction(endpoint: string): Promise<void> {
   const profile = await requireProfile();
   const supabase = await createClient();
