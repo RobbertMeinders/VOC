@@ -63,6 +63,7 @@ export function ActivityForm({
   imageUrl,
   canUploadImage = true,
   showTypePicker = false,
+  initialSource,
 }: {
   activity?: Activity;
   action: (prevState: ActivityFormState, formData: FormData) => Promise<ActivityFormState>;
@@ -74,11 +75,17 @@ export function ActivityForm({
   // — een gewoon lid kan hoe dan ook alleen Ingebracht indienen, dat forceert
   // de normalize_activity_submission-trigger server-side (0024).
   showTypePicker?: boolean;
+  // Bij een nieuwe activiteit staat de keuze al vast via een aparte stap
+  // vóór dit formulier (NewActivityFlow) — dan geen showTypePicker (niet
+  // nogmaals vragen), maar de gekozen waarde moet wel meegestuurd worden.
+  initialSource?: "voc" | "lid";
 }) {
   const [state, formAction] = useActionState(action, initialState);
   const [preview, setPreview] = useState<string | null>(null);
   const shownImage = preview ?? imageUrl;
-  const [source, setSource] = useState<"voc" | "lid">((activity?.source as "voc" | "lid") ?? (showTypePicker ? "voc" : "lid"));
+  const [source, setSource] = useState<"voc" | "lid">(
+    initialSource ?? (activity?.source as "voc" | "lid") ?? (showTypePicker ? "voc" : "lid")
+  );
   const [externalRegistration, setExternalRegistration] = useState(Boolean(activity?.external_registration_url));
 
   const [startsAt, setStartsAt] = useState(toLocalInputValue(activity?.starts_at ?? null));
@@ -92,10 +99,10 @@ export function ActivityForm({
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
+      <input type="hidden" name="source" value={source} />
       {showTypePicker && (
         <div className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-foreground">Type</span>
-          <input type="hidden" name="source" value={source} />
           <div className="flex gap-1.5">
             <button
               type="button"

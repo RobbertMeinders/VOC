@@ -15,6 +15,7 @@ export function AppShell({
   companyId,
   companyName,
   children,
+  modal,
 }: {
   profile: Profile;
   unreadNotifications: UnreadNotification[];
@@ -22,6 +23,7 @@ export function AppShell({
   companyId: string | null;
   companyName: string | null;
   children: ReactNode;
+  modal?: ReactNode;
 }) {
   // Eén realtime-subscription hier, en de aantallen als prop doorgeven aan de
   // sidebar- en mobiele-header-bel: allebei staan ze altijd in de DOM (alleen
@@ -38,6 +40,7 @@ export function AppShell({
           <div className="mx-auto w-full max-w-2xl px-4 py-6 md:max-w-6xl md:px-8 md:py-10">{children}</div>
         </main>
         <BottomNav profile={profile} avatarUrl={avatarUrl} companyId={companyId} unread={unread} />
+        {modal}
       </div>
     </OverlayProvider>
   );

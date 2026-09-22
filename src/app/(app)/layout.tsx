@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { AppShell } from "@/components/layout/AppShell";
 
-export default async function AppLayout({ children }: { children: ReactNode }) {
+export default async function AppLayout({ children, modal }: { children: ReactNode; modal: ReactNode }) {
   const profile = await requireProfile();
   const supabase = await createClient();
 
@@ -27,6 +27,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       avatarUrl={avatarUrl}
       companyId={membership?.company_id ?? null}
       companyName={membership?.company?.name ?? null}
+      modal={modal}
     >
       {children}
     </AppShell>
