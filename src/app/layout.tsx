@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { THEME_INIT_SCRIPT } from "@/lib/theme/constants";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
@@ -49,6 +50,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       <body className="min-h-full bg-background text-foreground">
         <ServiceWorkerRegister />
         {children}
+        <SpeedInsights />
       </body>
     </html>
   );
