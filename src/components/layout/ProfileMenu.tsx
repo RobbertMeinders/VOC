@@ -49,7 +49,7 @@ function MenuPanel({
       <div className="fixed inset-0 z-40 cursor-pointer" onClick={onClose} />
       <div
         className={clsx(
-          "animate-scale-in absolute z-50 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg",
+          "animate-scale-in origin-bottom absolute z-50 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg",
           className
         )}
       >
@@ -110,7 +110,7 @@ export function SidebarProfileMenu({
       {open && (
         <>
           <div className="fixed inset-0 z-40 cursor-pointer" onClick={close} />
-          <div className="animate-scale-in absolute bottom-full left-0 z-50 mb-2 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+          <div className="animate-scale-in origin-bottom absolute bottom-full left-0 z-50 mb-2 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
             <form action={signOutAction}>
               <button
                 type="submit"

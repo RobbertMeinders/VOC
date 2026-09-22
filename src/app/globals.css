@@ -119,14 +119,18 @@ body {
 @keyframes voc-scale-in {
   from {
     opacity: 0;
-    transform: translateY(4px) scale(0.98);
+    transform: translateY(6px) scale(0.9);
   }
 }
 .animate-fade-in {
   animation: voc-fade-in 0.15s ease-out;
 }
+/* Iets nadrukkelijker dan een fade — dropdowns/menu's mogen zichtbaar
+   "open vouwen" i.p.v. bijna onmerkbaar verschijnen. Geen vaste
+   transform-origin hier: sommige menu's (bottom-nav) klappen omhoog open,
+   andere omlaag — de aanroeper zet zelf `origin-top`/`origin-bottom`. */
 .animate-scale-in {
-  animation: voc-scale-in 0.15s ease-out;
+  animation: voc-scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in,
