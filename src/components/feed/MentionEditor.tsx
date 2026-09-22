@@ -46,6 +46,7 @@ export function MentionEditor({
   const [results, setResults] = useState<MentionResults>({ profiles: [], companies: [] });
   const queryRangeRef = useRef<{ node: Text; start: number; end: number } | null>(null);
   const requestId = useRef(0);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const root = editorRef.current;
@@ -55,6 +56,12 @@ export function MentionEditor({
     if (autoFocus) root.focus();
     // Alleen bij het mounten — dit veld is daarna uncontrolled (eigen DOM-state).
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
   }, []);
 
   function sync() {
@@ -68,6 +75,7 @@ export function MentionEditor({
     const anchorNode = selection?.anchorNode;
     const anchorOffset = selection?.anchorOffset ?? 0;
     if (!anchorNode || anchorNode.nodeType !== Node.TEXT_NODE || !editorRef.current?.contains(anchorNode)) {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
       setOpen(false);
       queryRangeRef.current = null;
       return;
@@ -76,6 +84,7 @@ export function MentionEditor({
     const textBeforeCaret = (anchorNode.textContent ?? "").slice(0, anchorOffset);
     const match = /(?:^|\s)@([^\s@]{0,40})$/.exec(textBeforeCaret);
     if (!match) {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
       setOpen(false);
       queryRangeRef.current = null;
       return;
@@ -84,10 +93,20 @@ export function MentionEditor({
     const start = anchorOffset - match[1].length - 1;
     queryRangeRef.current = { node: anchorNode as Text, start, end: anchorOffset };
     setOpen(true);
-    const requestNumber = ++requestId.current;
-    void searchMentionsAction(match[1]).then((result) => {
-      if (requestNumber === requestId.current) setResults(result);
-    });
+
+    // Gedebouncet i.p.v. bij elke toetsaanslag meteen te zoeken — zonder dit
+    // vuurde elk toetsaanslag zowel via het input- als het keyup-event een
+    // eigen serververzoek af (zie handleInput/handleKeyUp), wat de suggesties
+    // merkbaar traag liet aanvoelen. requestId blijft de bescherming tegen
+    // een verouderd antwoord dat een nieuwer overschrijft.
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    const query = match[1];
+    debounceRef.current = setTimeout(() => {
+      const requestNumber = ++requestId.current;
+      void searchMentionsAction(query).then((result) => {
+        if (requestNumber === requestId.current) setResults(result);
+      });
+    }, 150);
   }
 
   function handleInput() {
@@ -115,6 +134,7 @@ export function MentionEditor({
     node.parentNode?.insertBefore(chip, after);
     node.parentNode?.insertBefore(spaceNode, after);
 
+    if (debounceRef.current) clearTimeout(debounceRef.current);
     setOpen(false);
     queryRangeRef.current = null;
     sync();
