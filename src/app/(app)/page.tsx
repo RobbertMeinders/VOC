@@ -112,11 +112,14 @@ export default async function HomePage() {
         )}
       </section>
 
-      <section className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <ShortcutButton href="/leden" icon={Users} label="Leden" />
+      <section>
+        <h2 className="mb-2 text-sm font-semibold text-foreground">Snelle toegang</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <ShortcutButton href="/leden" icon={Users} label="Leden" />
         <ShortcutButton href="/bedrijven" icon={Building2} label="Bedrijven" count={companyCount ?? undefined} />
-        <ShortcutButton href="/documenten" icon={FileText} label="Documenten" />
-        <ShortcutButton href="/community" icon={MessageCircle} label="Community" />
+          <ShortcutButton href="/documenten" icon={FileText} label="Documenten" />
+          <ShortcutButton href="/community" icon={MessageCircle} label="Community" />
+        </div>
       </section>
     </div>
   );
