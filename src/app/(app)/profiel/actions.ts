@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
+import { invalidateQuery } from "@/lib/cache/queryCache";
 
 export type UpdateProfileState = { error?: string; success?: boolean };
 
@@ -55,6 +56,8 @@ export async function updateProfileAction(
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
 
+  // Naam/functie/avatar staan ook in de ledenlijst.
+  invalidateQuery("leden-page-data");
   revalidatePath("/profiel");
   return { success: true };
 }
@@ -170,6 +173,9 @@ export async function updateMyCompanyAction(
       return { error: "Koppelen aan het bedrijf is niet gelukt. Probeer het opnieuw." };
     }
 
+    // Nieuw bedrijf + koppeling staan meteen in de bedrijven- en ledenlijst.
+    invalidateQuery("bedrijven-page-data");
+    invalidateQuery("leden-page-data");
     revalidatePath("/profiel");
     return { success: true };
   }

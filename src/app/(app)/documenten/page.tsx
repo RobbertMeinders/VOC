@@ -4,6 +4,7 @@ import { FileText, Folder } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
+import { cachedQuery } from "@/lib/cache/queryCache";
 import { isBoard } from "@/lib/auth/roles";
 import { DocumentUploadForm } from "@/components/documents/DocumentUploadForm";
 import { DocumentSearch } from "@/components/documents/DocumentSearch";
@@ -22,11 +23,12 @@ export default async function DocumentenPage({ searchParams }: { searchParams: P
   const { q } = await searchParams;
   const supabase = await createClient();
 
-  const { data: allDocuments } = await supabase
-    .from("documents")
-    .select("*")
-    .order("created_at", { ascending: false })
-    .returns<DocumentRowData[]>();
+  // Zichtbaarheid is voor elk actief lid identiek (documents_members_select
+  // kent geen per-gebruiker variatie), dus dit resultaat delen tussen
+  // leden/requests is veilig.
+  const { data: allDocuments } = await cachedQuery("documenten-page-data", 60_000, () =>
+    supabase.from("documents").select("*").order("created_at", { ascending: false }).returns<DocumentRowData[]>()
+  );
 
   const query = (q ?? "").trim().toLowerCase();
   const documents = query

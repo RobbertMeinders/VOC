@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
+import { invalidateQuery } from "@/lib/cache/queryCache";
 import type { UpdateProfileState } from "@/app/(app)/profiel/actions";
 import type { UserRole } from "@/lib/types/database";
 
@@ -53,6 +54,8 @@ export async function updateMemberActiveAction(memberId: string, isActive: boole
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
 
+  // Deactivering haalt het lid direct uit de (RLS-gefilterde) ledenlijst.
+  invalidateQuery("leden-page-data");
   revalidatePath(`/leden/${memberId}`);
   return { success: true };
 }
@@ -106,6 +109,8 @@ export async function updateMemberProfileAction(
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
 
+  // Naam/functie/avatar staan ook in de ledenlijst.
+  invalidateQuery("leden-page-data");
   revalidatePath(`/leden/${memberId}`);
   return { success: true };
 }

@@ -5,6 +5,7 @@ import { requireBoard, requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
 import { geocodeAddress } from "@/lib/geo/geocode";
+import { invalidateQuery } from "@/lib/cache/queryCache";
 
 export type UpdateCompanyState = { error?: string; success?: boolean };
 
@@ -93,6 +94,10 @@ export async function updateCompanyAction(
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
 
+  // Naam/branche/logo van dit bedrijf staan ook in de bedrijven- en
+  // ledenlijst (die het bedrijf van elk lid meestuurt) — beide invalideren.
+  invalidateQuery("bedrijven-page-data");
+  invalidateQuery("leden-page-data");
   revalidatePath(`/bedrijven/${companyId}`);
   return { success: true };
 }
@@ -117,6 +122,11 @@ export async function decideCompanyMembershipRequestAction(
     return { error: "Afhandelen is niet gelukt. Probeer het opnieuw." };
   }
 
+  // Bij goedkeuring maakt een trigger meteen een company_members-rij aan,
+  // wat de ledenlijst raakt.
+  if (decision === "approved") {
+    invalidateQuery("leden-page-data");
+  }
   revalidatePath(`/bedrijven/${companyId}`);
   return {};
 }

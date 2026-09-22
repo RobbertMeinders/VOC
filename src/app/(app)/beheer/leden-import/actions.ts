@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { invalidateQuery } from "@/lib/cache/queryCache";
 import type { ImportRow } from "@/lib/import/parseCsv";
 
 export type BulkImportSkip = { row: number; email: string; reason: string };
@@ -81,6 +82,7 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
     for (const created of createdCompanies ?? []) {
       companyByName.set(created.name.toLowerCase(), created.id);
     }
+    invalidateQuery("bedrijven-page-data");
   }
 
   const seenInBatch = new Set<string>();

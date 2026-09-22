@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
+import { cachedQuery } from "@/lib/cache/queryCache";
 import { CompanyFilters } from "@/components/company/CompanyFilters";
 import { BedrijvenView } from "@/components/company/BedrijvenView";
 import { NetworkTabs } from "@/components/layout/NetworkTabs";
@@ -17,10 +18,12 @@ export default async function BedrijvenPage({
   const { q, branche } = await searchParams;
   const supabase = await createClient();
 
-  const { data: companies } = await supabase
-    .from("companies")
-    .select("id, name, industry, city, logo_url, tagline, latitude, longitude")
-    .order("name");
+  // Zichtbaarheid is voor elk actief lid identiek (companies_members_select
+  // kent geen per-gebruiker variatie), dus dit resultaat delen tussen
+  // leden/requests is veilig.
+  const { data: companies } = await cachedQuery("bedrijven-page-data", 60_000, () =>
+    supabase.from("companies").select("id, name, industry, city, logo_url, tagline, latitude, longitude").order("name")
+  );
 
   const branches = Array.from(
     new Set((companies ?? []).map((c) => c.industry).filter((v): v is string => Boolean(v)))

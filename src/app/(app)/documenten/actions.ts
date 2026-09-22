@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadDocument } from "@/lib/supabase/uploadDocument";
+import { invalidateQuery } from "@/lib/cache/queryCache";
 
 export type DocumentFormState = { error?: string; success?: boolean };
 
@@ -46,6 +47,7 @@ export async function uploadDocumentAction(
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
 
+  invalidateQuery("documenten-page-data");
   revalidatePath("/documenten");
   return { success: true };
 }
@@ -55,5 +57,6 @@ export async function deleteDocumentAction(documentId: string, storagePath: stri
   const supabase = await createClient();
   await supabase.storage.from("documents").remove([storagePath]);
   await supabase.from("documents").delete().eq("id", documentId);
+  invalidateQuery("documenten-page-data");
   revalidatePath("/documenten");
 }

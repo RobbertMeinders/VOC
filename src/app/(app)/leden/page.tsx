@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
+import { cachedQuery } from "@/lib/cache/queryCache";
 import { MemberFilters } from "@/components/members/MemberFilters";
 import { MemberRow, type MemberListItem } from "@/components/members/MemberRow";
 import { NetworkTabs } from "@/components/layout/NetworkTabs";
@@ -26,16 +27,25 @@ export default async function LedenPage({
   const { q, branche } = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: profileRows }, { data: companies }] = await Promise.all([
-    supabase
-      .from("profiles")
-      .select(
-        "id, first_name, last_name, avatar_url, job_title, company_members(is_primary, company:companies(id, name, industry))"
-      )
-      .order("last_name")
-      .returns<ProfileRow[]>(),
-    supabase.from("companies").select("industry"),
-  ]);
+  // Zichtbaarheid is voor elk actief lid identiek (profiles_members_select
+  // kent geen per-gebruiker variatie), dus dit resultaat delen tussen
+  // leden/requests is veilig — scheelt een volledige tabel-scan bij elke
+  // paginaweergave.
+  const [{ data: profileRows }, { data: companies }] = await cachedQuery(
+    "leden-page-data",
+    60_000,
+    () =>
+      Promise.all([
+        supabase
+          .from("profiles")
+          .select(
+            "id, first_name, last_name, avatar_url, job_title, company_members(is_primary, company:companies(id, name, industry))"
+          )
+          .order("last_name")
+          .returns<ProfileRow[]>(),
+        supabase.from("companies").select("industry"),
+      ])
+  );
 
   const branches = Array.from(
     new Set((companies ?? []).map((c) => c.industry).filter((v): v is string => Boolean(v)))
