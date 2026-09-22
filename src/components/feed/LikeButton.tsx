@@ -12,12 +12,14 @@ export function LikeButton({
   initialLiked,
   initialCount,
   toggleAction,
+  onToggled,
   size = "md",
 }: {
   targetId: string;
   initialLiked: boolean;
   initialCount: number;
   toggleAction: (id: string) => Promise<{ liked: boolean }>;
+  onToggled?: () => void;
   size?: "sm" | "md";
 }) {
   const [liked, setLiked] = useState(initialLiked);
@@ -36,6 +38,10 @@ export function LikeButton({
           setLiked(result.liked);
           setCount((c) => c + (result.liked ? 1 : -1));
         }
+        // Het "X en N anderen"-samenvattingsregeltje bij een bericht leest de
+        // server-data van de post, niet deze lokale like-state — zonder deze
+        // callback zag je jezelf daar pas na een refresh bij staan.
+        onToggled?.();
       } catch {
         setLiked(!nextLiked);
         setCount((c) => c + (nextLiked ? -1 : 1));

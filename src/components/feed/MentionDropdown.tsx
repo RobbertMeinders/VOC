@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Building2, User } from "lucide-react";
-import type { MentionKind, MentionResults } from "@/lib/feed/useMentionField";
+import type { MentionKind, MentionResults } from "@/lib/feed/mentionTypes";
 
 function SuggestionImage({ imageUrl, kind }: { imageUrl: string | null; kind: MentionKind }) {
   if (imageUrl) {

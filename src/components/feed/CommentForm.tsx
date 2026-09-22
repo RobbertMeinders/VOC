@@ -4,7 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Send } from "lucide-react";
 import { createCommentAction, type CreateCommentState } from "@/app/(app)/actions";
-import { MentionCommentEditor } from "./MentionCommentEditor";
+import { MentionEditor } from "./MentionEditor";
 
 const initialState: CreateCommentState = {};
 
@@ -45,9 +45,10 @@ function CommentFormInner({ postId, onPosted }: { postId: string; onPosted: () =
 
   return (
     <form ref={formRef} action={formAction} className="flex items-center gap-2">
-      <MentionCommentEditor
+      <MentionEditor
         name="content"
         placeholder="Schrijf een reactie…"
+        singleLine
         onEnter={() => formRef.current?.requestSubmit()}
       />
       <SubmitButton />

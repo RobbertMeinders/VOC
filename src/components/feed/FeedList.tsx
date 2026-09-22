@@ -66,13 +66,14 @@ export function FeedList({
     );
   }
 
-  // Notificatie op een reactie linkt naar /community?highlight=<comment_id> —
-  // spring naar die reactie en geef 'm even een kleurtje, zodat je meteen
-  // ziet waar het om ging (PostCard opent de comments van dat bericht al
-  // via forceCommentsOpen, dus het element staat er al bij de eerste render).
+  // Een notificatie (nieuwe reactie, of @genoemd in een bericht/reactie)
+  // linkt naar /community?highlight=<post_id of comment_id> — spring naar
+  // dat element en geef 'm even een kleurtje, zodat je meteen ziet waar het
+  // om ging (PostCard opent de comments van dat bericht al via
+  // forceCommentsOpen, dus een reactie-element staat er al bij eerste render).
   useEffect(() => {
     if (!highlightId) return;
-    const el = document.getElementById(`comment-${highlightId}`);
+    const el = document.getElementById(`comment-${highlightId}`) ?? document.getElementById(`post-${highlightId}`);
     if (!el) return;
     el.scrollIntoView({ behavior: "smooth", block: "center" });
     el.classList.add("ring-2", "ring-voc-red", "rounded-xl");

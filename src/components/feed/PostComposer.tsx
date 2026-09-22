@@ -10,9 +10,7 @@ import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { createPostAction, type CreatePostState } from "@/app/(app)/actions";
 import { compressImageFile } from "@/lib/image/compress";
-import { autoGrowTextarea } from "@/lib/dom/autoGrow";
-import { useMentionField } from "@/lib/feed/useMentionField";
-import { MentionDropdown } from "./MentionDropdown";
+import { MentionEditor } from "./MentionEditor";
 import { PostTypePicker } from "./PostTypePicker";
 import type { FeedAuthor, FeedPost, FeedPostType } from "@/lib/feed/types";
 
@@ -58,12 +56,9 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
   const [state, formAction] = useActionState(createPostAction, initialState);
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [dragActive, setDragActive] = useState(false);
-  const [content, setContent] = useState("");
   const [postType, setPostType] = useState<FeedPostType | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const previewUrlsRef = useRef<string[]>([]);
-  const mention = useMentionField(content, setContent);
 
   useEscapeKey(open, () => setOpen(false));
   useBodyScrollLock(open);
@@ -74,10 +69,6 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
-
-  useEffect(() => {
-    if (open) textareaRef.current?.focus();
-  }, [open]);
 
   // Object-URLs voor de miniatuurvoorbeelden horen bij dit component-leven,
   // niet bij React state zelf — zonder expliciet opruimen blijven ze na een
@@ -188,28 +179,13 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
             )}
             <div className="flex items-start gap-3">
               <Avatar firstName={author.first_name} lastName={author.last_name} avatarUrl={author.avatarUrl} size={40} />
-              <div className="relative flex-1">
-                <textarea
-                  ref={textareaRef}
-                  name="content"
-                  rows={5}
-                  required
-                  value={content}
-                  placeholder="Wat wil je delen met het netwerk?"
-                  onChange={(e) => {
-                    mention.handleInput(e.currentTarget);
-                    autoGrowTextarea(e.currentTarget, TEXTAREA_MAX_HEIGHT);
-                  }}
-                  className="w-full resize-none overflow-y-auto rounded-xl border border-border bg-background px-4 py-2.5 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-                  style={{ maxHeight: TEXTAREA_MAX_HEIGHT }}
-                />
-                {mention.open && (
-                  <MentionDropdown
-                    results={mention.results}
-                    onSelect={(name, kind, id) => textareaRef.current && mention.select(textareaRef.current, name, kind, id)}
-                  />
-                )}
-              </div>
+              <MentionEditor
+                name="content"
+                placeholder="Wat wil je delen met het netwerk?"
+                minHeightClassName="min-h-24"
+                maxHeight={TEXTAREA_MAX_HEIGHT}
+                autoFocus
+              />
             </div>
 
             <div className="mt-3 sm:ml-[52px]">

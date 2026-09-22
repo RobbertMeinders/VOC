@@ -12,11 +12,12 @@ import { AttachmentCarousel } from "./AttachmentCarousel";
 import { LikeButton } from "./LikeButton";
 import { CommentForm } from "./CommentForm";
 import { LikersOverlay } from "./LikersOverlay";
-import { MentionDropdown } from "./MentionDropdown";
+import { MentionEditor } from "./MentionEditor";
 import {
   deleteCommentAction,
   deletePostAction,
   getCommentLikersAction,
+  getPostAction,
   getPostLikersAction,
   toggleCommentLikeAction,
   toggleLikeAction,
@@ -25,8 +26,6 @@ import {
   type UpdateCommentState,
   type UpdatePostState,
 } from "@/app/(app)/actions";
-import { autoGrowTextarea } from "@/lib/dom/autoGrow";
-import { useMentionField } from "@/lib/feed/useMentionField";
 import { formatRelativeTime } from "@/lib/format/date";
 import { PostTypePicker } from "./PostTypePicker";
 import { POST_TYPE_BADGE_CLASS, POST_TYPE_LABELS } from "@/lib/feed/postType";
@@ -60,9 +59,6 @@ function EditPostForm({
 }) {
   const updateWithId = updatePostAction.bind(null, post.id);
   const [state, formAction] = useActionState(updateWithId, editInitialState);
-  const [content, setContent] = useState(post.content ?? "");
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const mention = useMentionField(content, setContent);
 
   useEffect(() => {
     if (state.success && state.post) {
@@ -73,26 +69,7 @@ function EditPostForm({
 
   return (
     <form action={formAction} className="mt-3">
-      <div className="relative">
-        <textarea
-          ref={textareaRef}
-          name="content"
-          rows={2}
-          required
-          value={content}
-          onChange={(e) => {
-            mention.handleInput(e.currentTarget);
-            autoGrowTextarea(e.currentTarget, 240);
-          }}
-          className="w-full resize-none overflow-y-auto rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-        />
-        {mention.open && (
-          <MentionDropdown
-            results={mention.results}
-            onSelect={(name, kind, id) => textareaRef.current && mention.select(textareaRef.current, name, kind, id)}
-          />
-        )}
-      </div>
+      <MentionEditor name="content" placeholder="" defaultValue={post.content ?? ""} minHeightClassName="min-h-14" maxHeight={240} autoFocus />
       <div className="mt-2">
         <PostTypePicker defaultValue={post.type} />
       </div>
@@ -130,9 +107,7 @@ function EditCommentForm({
 }) {
   const updateWithId = updateCommentAction.bind(null, comment.id);
   const [state, formAction] = useActionState(updateWithId, editCommentInitialState);
-  const [content, setContent] = useState(comment.content);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const mention = useMentionField(content, setContent);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     if (state.success && state.comment) {
@@ -142,27 +117,15 @@ function EditCommentForm({
   }, [state]);
 
   return (
-    <form action={formAction} className="flex-1">
-      <div className="relative">
-        <textarea
-          ref={textareaRef}
-          name="content"
-          rows={2}
-          required
-          value={content}
-          onChange={(e) => {
-            mention.handleInput(e.currentTarget);
-            autoGrowTextarea(e.currentTarget, 160);
-          }}
-          className="w-full resize-none overflow-y-auto rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-        />
-        {mention.open && (
-          <MentionDropdown
-            results={mention.results}
-            onSelect={(name, kind, id) => textareaRef.current && mention.select(textareaRef.current, name, kind, id)}
-          />
-        )}
-      </div>
+    <form ref={formRef} action={formAction} className="flex-1">
+      <MentionEditor
+        name="content"
+        placeholder=""
+        defaultValue={comment.content}
+        singleLine
+        onEnter={() => formRef.current?.requestSubmit()}
+        autoFocus
+      />
       {state.error && (
         <p role="alert" className="mt-1 text-xs text-voc-red">
           {state.error}
@@ -360,7 +323,9 @@ export function PostCard({
   forceCommentsOpen?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
-  const [commentsOpen, setCommentsOpen] = useState(forceCommentsOpen);
+  // Reactieveld en de eerste paar reacties staan standaard al open — dat
+  // scheelt de losse stap van eerst op het praatwolkje moeten klikken.
+  const [commentsOpen, setCommentsOpen] = useState(true);
   const [showAllComments, setShowAllComments] = useState(forceCommentsOpen);
   const [showLikers, setShowLikers] = useState(false);
   const isOwnPost = post.author.id === currentUserId;
@@ -442,7 +407,15 @@ export function PostCard({
 
       <div className="mt-2 flex items-center justify-between">
         <div className="flex min-w-0 items-center gap-2">
-          <LikeButton targetId={post.id} initialLiked={post.likedByMe} initialCount={post.likesCount} toggleAction={toggleLikeAction} />
+          <LikeButton
+            targetId={post.id}
+            initialLiked={post.likedByMe}
+            initialCount={post.likesCount}
+            toggleAction={toggleLikeAction}
+            onToggled={() => {
+              void getPostAction(post.id).then((fresh) => fresh && onUpdated(fresh));
+            }}
+          />
           {summary && (
             <button type="button" onClick={() => setShowLikers(true)} className="truncate text-xs text-muted hover:underline">
               {summary}
