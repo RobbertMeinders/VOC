@@ -17,10 +17,10 @@ const CARDS = [
   { href: "/beheer/aanvragen", label: "Toegangsaanvragen", icon: Inbox, description: "Beoordeel aanvragen van buitenaf" },
   { href: "/beheer/rapportages", label: "Rapportages", icon: Flag, description: "Gerapporteerde berichten uit de feed" },
   { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail, description: "Inhoud van uitnodigings- en resetmails" },
-  { href: "/leden", label: "Leden", icon: Users, description: "Profielen, rollen, activeren/deactiveren" },
-  { href: "/bedrijven", label: "Bedrijven", icon: Building2, description: "Bedrijfsprofielen beheren" },
-  { href: "/documenten", label: "Documenten", icon: FileText, description: "Uploaden en verwijderen" },
-  { href: "/agenda", label: "Activiteiten", icon: CalendarDays, description: "Agenda beheren" },
+  { href: "/beheer/leden", label: "Leden", icon: Users, description: "Profielen, rollen, activeren/deactiveren" },
+  { href: "/beheer/bedrijven", label: "Bedrijven", icon: Building2, description: "Bedrijfsprofielen beheren" },
+  { href: "/beheer/documenten", label: "Documenten", icon: FileText, description: "Uploaden en verwijderen" },
+  { href: "/beheer/agenda", label: "Activiteiten", icon: CalendarDays, description: "Agenda beheren" },
 ];
 
 export default async function BeheerPage() {
