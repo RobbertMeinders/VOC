@@ -46,7 +46,7 @@ export default async function RegisterPage({ params }: { params: Promise<{ token
             <h1 className="mb-1 text-xl font-semibold text-foreground">Welkom bij de VOC</h1>
             <p className="mb-6 text-sm text-muted">
               Je bent uitgenodigd als <span className="font-medium text-foreground">{ROLE_LABELS[invitation.role]}</span>.
-              Maak je account aan om toegang te krijgen tot het ledenportaal.
+              Vul je gegevens aan en activeer je account — een wachtwoord heb je niet nodig.
             </p>
             <RegisterForm
               token={token}

@@ -4,7 +4,7 @@
 // Supabase server client and therefore the only two places a cookie maxAge
 // actually gets applied.
 export const REMEMBER_ME_COOKIE = "voc-remember-me";
-export const REMEMBERED_MAX_AGE = 60 * 60 * 24 * 90; // 90 dagen
+export const REMEMBERED_MAX_AGE = 60 * 60 * 24 * 365; // 12 maanden
 export const DEFAULT_MAX_AGE = 60 * 60 * 24; // 1 dag
 
 // Request header middleware sets to the already-verified user id, so

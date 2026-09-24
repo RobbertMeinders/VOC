@@ -1,6 +1,10 @@
 "use server";
 
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { REMEMBERED_MAX_AGE, REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
 
 export type CompanyOption = { id: string; name: string; city: string | null };
 
@@ -14,7 +18,7 @@ export async function searchCompaniesAction(query: string): Promise<CompanyOptio
   return data;
 }
 
-export type RegisterState = { error?: string; success?: boolean; needsEmailConfirmation?: boolean };
+export type RegisterState = { error?: string };
 
 export async function registerAction(
   token: string,
@@ -22,7 +26,6 @@ export async function registerAction(
   formData: FormData
 ): Promise<RegisterState> {
   const email = String(formData.get("email") ?? "").trim();
-  const password = String(formData.get("password") ?? "");
   const firstName = String(formData.get("first_name") ?? "").trim();
   const lastName = String(formData.get("last_name") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
@@ -34,11 +37,8 @@ export async function registerAction(
   const newCompanyCity = String(formData.get("new_company_city") ?? "").trim();
   const newCompanyWebsite = String(formData.get("new_company_website") ?? "").trim();
 
-  if (!email || !password || !firstName || !lastName) {
+  if (!email || !firstName || !lastName) {
     return { error: "Vul alle verplichte velden in." };
-  }
-  if (password.length < 8) {
-    return { error: "Kies een wachtwoord van minimaal 8 tekens." };
   }
   if (companyMode === "existing" && !companyId) {
     return { error: "Zoek en selecteer je bedrijf, of maak een nieuw bedrijf aan." };
@@ -47,11 +47,16 @@ export async function registerAction(
     return { error: "Vul de bedrijfsnaam in." };
   }
 
-  const supabase = await createClient();
-
-  const { data, error } = await supabase.auth.signUp({
+  // Wachtwoordloos account aanmaken: we genereren zelf een invite-token
+  // (service-role, net als bij wachtwoord-reset) en verifiëren 'm meteen
+  // hierna met de gewone server-client — dat schrijft de sessiecookies
+  // direct weg, dus geen tweede e-mail of extra klik nodig. auth.users
+  // wordt hierbij aangemaakt, wat de bestaande handle_new_user()-trigger
+  // triggert (leest dezelfde metadata als voorheen via signUp).
+  const admin = createAdminClient();
+  const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+    type: "invite",
     email,
-    password,
     options: {
       data: {
         invitation_token: token,
@@ -68,12 +73,36 @@ export async function registerAction(
     },
   });
 
-  if (error) {
-    if (error.message.toLowerCase().includes("already registered")) {
+  if (linkError || !linkData?.properties?.hashed_token) {
+    if (linkError?.message.toLowerCase().includes("already been registered")) {
       return { error: "Er bestaat al een account met dit e-mailadres." };
     }
     return { error: "Registreren is niet gelukt. Controleer de uitnodigingslink en probeer opnieuw." };
   }
 
-  return { success: true, needsEmailConfirmation: !data.session };
+  // Nieuwe accounts blijven meteen ingelogd — er is nog geen moment geweest
+  // om "onthoud mij" te kiezen, en opnieuw moeten inloggen vlak na het
+  // activeren zou de drempel juist weer verhogen.
+  const cookieStore = await cookies();
+  cookieStore.set(REMEMBER_ME_COOKIE, "1", {
+    maxAge: REMEMBERED_MAX_AGE,
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+  });
+
+  const supabase = await createClient();
+  const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+    type: "invite",
+    token_hash: linkData.properties.hashed_token,
+  });
+
+  if (verifyError || !verifyData.user) {
+    return { error: "Registreren is niet gelukt. Controleer de uitnodigingslink en probeer opnieuw." };
+  }
+
+  await supabase.from("profiles").update({ last_active_at: new Date().toISOString() }).eq("id", verifyData.user.id);
+
+  redirect("/");
 }

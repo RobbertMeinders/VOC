@@ -21,7 +21,7 @@ function SubmitButton() {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" className="w-full" disabled={pending}>
-      {pending ? "Account aanmaken…" : "Account aanmaken"}
+      {pending ? "Account activeren…" : "Account activeren"}
     </Button>
   );
 }
@@ -37,16 +37,6 @@ export function RegisterForm({
 }) {
   const registerWithToken = registerAction.bind(null, token);
   const [state, formAction] = useActionState(registerWithToken, initialState);
-
-  if (state.success) {
-    return (
-      <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-500/10 dark:text-green-400">
-        {state.needsEmailConfirmation
-          ? "Bijna klaar! Check je e-mail en klik op de bevestigingslink om je account te activeren."
-          : "Je account is aangemaakt. Je wordt automatisch ingelogd…"}
-      </div>
-    );
-  }
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -89,14 +79,6 @@ export function RegisterForm({
           autoComplete="email"
           defaultValue={prefilledEmail ?? undefined}
         />
-      </div>
-
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="password" className="text-sm font-medium text-foreground">
-          Wachtwoord
-        </label>
-        <Input id="password" name="password" type="password" required autoComplete="new-password" minLength={8} />
-        <p className="text-xs text-muted">Minimaal 8 tekens.</p>
       </div>
 
       <div className="grid grid-cols-2 gap-4">

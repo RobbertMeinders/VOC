@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Download } from "lucide-react";
+import Link from "next/link";
+import { Download, KeyRound } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PushToggle } from "@/components/profile/PushToggle";
@@ -38,6 +39,19 @@ export default async function InstellingenPage() {
 
       <SettingRow label="Thema" description="Licht, donker of volgens de instelling van je apparaat.">
         <ThemeToggle />
+      </SettingRow>
+
+      <SettingRow
+        label="Wachtwoord"
+        description="Inloggen kan ook zonder wachtwoord via een inloglink per e-mail. Wil je toch een wachtwoord instellen of wijzigen, dan kan dat hier."
+      >
+        <Link
+          href="/wachtwoord-vergeten"
+          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red"
+        >
+          <KeyRound size={14} />
+          Instellen
+        </Link>
       </SettingRow>
 
       <SettingGroup label="Pushmeldingen" description="Ontvang een melding op dit apparaat. Per soort melding los aan of uit te zetten.">
