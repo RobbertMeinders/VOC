@@ -41,9 +41,15 @@ async function cachedCreateSignedUrl(
     return cached.url;
   }
 
-  const { data } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn);
   if (data?.signedUrl) {
     signedUrlCache.set(key, { url: data.signedUrl, expiresAt: now + CACHE_TTL_MS });
+  } else {
+    // Supabase's client returns failures here as {data: null, error} — it
+    // does NOT throw for this, so without logging it the caller's try/catch
+    // never sees it and every image silently disappears with zero trace of
+    // why (wrong bucket, expired/missing session, RLS denying the read, …).
+    console.error(`[storage] createSignedUrl failed for ${bucket}/${path}:`, error);
   }
   return data?.signedUrl ?? null;
 }
@@ -64,10 +70,12 @@ export async function getSignedStorageUrl(bucket: Bucket, path: string | null, e
   try {
     const supabase = await createClient();
     return await cachedCreateSignedUrl(supabase, bucket, path, expiresIn);
-  } catch {
+  } catch (cause) {
     // A bucket that doesn't exist yet (a pending migration) or a transient
     // Storage API error shouldn't take the whole page down — just render
-    // without that image.
+    // without that image. Logged so a genuine break (not just "not found
+    // yet") is actually visible instead of every image quietly vanishing.
+    console.error(`[storage] getSignedStorageUrl threw for ${bucket}/${path}:`, cause);
     return null;
   }
 }
@@ -98,8 +106,11 @@ export async function getSignedStorageUrls(
     for (const [path, url] of results) {
       if (url) map.set(path, url);
     }
-  } catch {
-    // Same reasoning as getSignedStorageUrl: fail soft, not the whole page.
+  } catch (cause) {
+    // Same reasoning as getSignedStorageUrl: fail soft, not the whole page —
+    // but still log it, otherwise a genuine break here means every image on
+    // the page vanishes with zero trace of why.
+    console.error(`[storage] getSignedStorageUrls threw for bucket ${bucket}:`, cause);
   }
   return map;
 }

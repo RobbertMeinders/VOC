@@ -11,6 +11,16 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
+    // NOODMAATREGEL: alle afbeeldingen kwamen ineens corrupt binnen — zelfs
+    // een gloednieuwe upload met een gloednieuwe, unieke signed URL (die
+    // onmogelijk door een oude cache getroffen kan zijn). Dat wijst op
+    // Next.js' eigen optimizer-stap (resize/herformattering via sharp/wasm)
+    // die zelf kapotte output produceert, niet op de bron-afbeelding of de
+    // URL. Optimalisatie hier volledig uit i.p.v. per-<Image> `unoptimized`
+    // overal los toevoegen — herstelt in elk geval het tonen van
+    // afbeeldingen terwijl de echte oorzaak van de optimizer-storing verder
+    // wordt uitgezocht. TODO: root cause vinden en optimalisatie terugzetten.
+    unoptimized: true,
     remotePatterns: [
       // Supabase Storage (avatars, company logos, feed media)
       { protocol: "https", hostname: "*.supabase.co", pathname: "/storage/v1/object/**" },
