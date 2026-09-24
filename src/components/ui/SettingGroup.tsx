@@ -16,11 +16,12 @@ export function SettingGroup({ label, description, children }: { label: string; 
   );
 }
 
-// Eén rij binnen een SettingGroup — titel direct gevolgd door de schakelaar,
-// zonder eigen kaart-omranding of scheidingslijn tussen rijen.
+// Eén rij binnen een SettingGroup — titel links, schakelaar rechts
+// uitgelijnd (ook op mobiel, zelfde uitlijning als de rest van de
+// instellingen), zonder eigen kaart-omranding of scheidingslijn tussen rijen.
 export function SettingSubRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center justify-between gap-4">
       <span className="text-sm text-foreground">{label}</span>
       {children}
     </div>
