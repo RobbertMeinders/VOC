@@ -8,6 +8,7 @@ import { AttendedActivitiesToggle } from "@/components/profile/AttendedActivitie
 import { ShowContactToggle } from "@/components/profile/ShowContactToggle";
 import { PushCategoryToggle } from "@/components/profile/PushCategoryToggle";
 import { ShowAddressToggle } from "@/components/company/ShowAddressToggle";
+import { DeleteAccountButton } from "@/components/profile/DeleteAccountButton";
 import { SettingRow } from "@/components/ui/SettingRow";
 import { SettingGroup, SettingSubRow } from "@/components/ui/SettingGroup";
 
@@ -102,6 +103,21 @@ export default async function InstellingenPage() {
           Downloaden
         </a>
       </SettingRow>
+
+      <div className="rounded-2xl border border-voc-red/30 bg-surface p-6 shadow-sm">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-foreground">Account verwijderen</p>
+            <p className="mt-0.5 text-xs text-muted">
+              Je account wordt direct gedeactiveerd; persoonsgegevens worden na 90 dagen automatisch gewist.
+              Geplaatste berichten en reacties blijven staan.
+            </p>
+          </div>
+          <div className="shrink-0">
+            <DeleteAccountButton />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

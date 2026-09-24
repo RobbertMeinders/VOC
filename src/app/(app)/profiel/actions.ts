@@ -1,10 +1,13 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
 import { invalidateQuery } from "@/lib/cache/queryCache";
+import { REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
 
 export type UpdateProfileState = { error?: string; success?: boolean };
 
@@ -283,4 +286,28 @@ export async function updateMyCompanyAction(
 
   revalidatePath("/profiel");
   return { success: true, pending: true };
+}
+
+// Zelfservice-tegenhanger van updateMemberActiveAction (leden/[id]/actions.ts,
+// bestuur/beheer-only): een lid zet hiermee zijn eigen account uit. Zelfde
+// bewaartermijn-mechanisme (deactivated_at start de 90-dagen-aftelling naar
+// anonymize_expired_profiles, 0037_retention_and_push_preferences.sql) —
+// geen directe harde verwijdering, en geen self-service manier om dat te
+// versnellen; alleen het bestuur kan binnen die termijn nog heractiveren.
+export async function deleteMyAccountAction(): Promise<{ error?: string }> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ is_active: false, deactivated_at: new Date().toISOString() })
+    .eq("id", profile.id);
+
+  if (error) {
+    return { error: "Verwijderen is niet gelukt. Probeer het opnieuw." };
+  }
+
+  await supabase.auth.signOut();
+  (await cookies()).delete(REMEMBER_ME_COOKIE);
+  redirect("/login?deleted=1");
 }
