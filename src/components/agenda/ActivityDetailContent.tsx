@@ -14,6 +14,7 @@ import { ActivityAttachmentRow } from "@/components/agenda/ActivityAttachmentRow
 import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
 import { ApproveActivityForm } from "@/components/agenda/ApproveActivityForm";
 import { deleteActivityAction, decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
+import { logEvent } from "@/lib/events/log";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -36,6 +37,8 @@ export async function ActivityDetailContent({ id }: { id: string }) {
   if (!activity) {
     notFound();
   }
+
+  await logEvent("activity_viewed", "activity", activity.id);
 
   type RegistrationRow = {
     id: string;

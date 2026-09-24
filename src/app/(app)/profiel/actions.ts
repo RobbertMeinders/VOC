@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
+import { logPushUnsubscribed } from "@/lib/events/log";
 
 export type UpdateProfileState = { error?: string; success?: boolean };
 
@@ -212,6 +213,7 @@ export async function unsubscribeFromPushAction(endpoint: string): Promise<void>
   const profile = await requireProfile();
   const supabase = await createClient();
   await supabase.from("push_subscriptions").delete().eq("endpoint", endpoint).eq("profile_id", profile.id);
+  await logPushUnsubscribed(endpoint, profile.id);
 }
 
 export type ChangeEmailState = { error?: string; success?: boolean };

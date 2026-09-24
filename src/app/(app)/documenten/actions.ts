@@ -5,6 +5,7 @@ import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadDocument } from "@/lib/supabase/uploadDocument";
 import { invalidateQuery } from "@/lib/cache/queryCache";
+import { logEvent } from "@/lib/events/log";
 
 export type DocumentFormState = { error?: string; success?: boolean };
 
@@ -50,6 +51,10 @@ export async function uploadDocumentAction(
   invalidateQuery("documenten-page-data");
   revalidatePath("/documenten");
   return { success: true };
+}
+
+export async function logDocumentViewAction(documentId: string): Promise<void> {
+  await logEvent("document_viewed", "document", documentId);
 }
 
 export async function deleteDocumentAction(documentId: string, storagePath: string) {

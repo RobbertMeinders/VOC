@@ -412,6 +412,22 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["push_templates"]["Row"]>;
         Relationships: [];
       };
+      events: {
+        Row: {
+          id: string;
+          event_type: string;
+          profile_id: string | null;
+          target_type: string | null;
+          target_id: string | null;
+          metadata: Record<string, unknown>;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["events"]["Row"]> & {
+          event_type: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["events"]["Row"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -466,6 +482,7 @@ export interface Database {
           title: string;
           body: string | null;
           link: string | null;
+          profile_id: string;
           endpoint: string;
           p256dh: string;
           auth: string;
@@ -500,10 +517,22 @@ export interface Database {
       };
       list_push_subscriptions: {
         Args: Record<string, never>;
-        Returns: { profile_id: string; endpoint: string; p256dh: string; auth: string }[];
+        Returns: { profile_id: string; endpoint: string; p256dh: string; auth: string; created_at: string }[];
       };
       record_manual_push_broadcast: {
         Args: { p_reached_profile_ids: string[]; p_dead_endpoints: string[]; p_title: string; p_body: string };
+        Returns: undefined;
+      };
+      log_event: {
+        Args: { p_event_type: string; p_target_type?: string | null; p_target_id?: string | null; p_metadata?: Record<string, unknown> };
+        Returns: undefined;
+      };
+      log_notification_click: {
+        Args: { p_notification_id: string };
+        Returns: undefined;
+      };
+      log_push_unsubscribed: {
+        Args: { p_endpoint: string; p_profile_id?: string | null };
         Returns: undefined;
       };
     };

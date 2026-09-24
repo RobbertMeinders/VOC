@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { createClient } from "@/lib/supabase/server";
 import { renderTemplate } from "@/lib/template/render";
+import { logPushUnsubscribed } from "@/lib/events/log";
 
 // Notificatietypes met een beheerbaar push_templates-record (0039_
 // notification_templates.sql) — mirror van NOTIFICATION_EMAIL_TEMPLATE_KEYS
@@ -63,14 +64,20 @@ export async function GET(request: Request) {
       const content = await renderPushContent(item);
       await webpush.sendNotification(
         { endpoint: item.endpoint, keys: { p256dh: item.p256dh, auth: item.auth } },
-        JSON.stringify({ title: content.title, body: content.body, link: item.link })
+        JSON.stringify({
+          title: content.title,
+          body: content.body,
+          link: item.link,
+          notification_id: item.notification_id,
+        })
       );
     } catch (cause) {
       const statusCode = (cause as { statusCode?: number }).statusCode;
       if (statusCode === 404 || statusCode === 410) {
         // The subscription is gone (browser data cleared, permission
-        // revoked, …) — remove it so we stop trying.
-        await supabase.from("push_subscriptions").delete().eq("endpoint", item.endpoint);
+        // revoked, …) — remove it so we stop trying, and log it for the
+        // "opgezegde pushabonnementen"-statistiek.
+        await logPushUnsubscribed(item.endpoint, item.profile_id);
       }
     }
     pushedIds.push(item.notification_id);

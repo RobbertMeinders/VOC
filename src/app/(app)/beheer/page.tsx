@@ -1,6 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Bell, Building2, CalendarDays, FileText, Flag, Inbox, Mail, Upload, UserPlus, Users } from "lucide-react";
+import {
+  BarChart3,
+  Bell,
+  Building2,
+  CalendarDays,
+  FileText,
+  Flag,
+  Inbox,
+  Mail,
+  Send,
+  Upload,
+  UserPlus,
+  Users,
+} from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 
@@ -21,12 +34,20 @@ const CARDS = [
   },
   { href: "/beheer/aanvragen", label: "Toegangsaanvragen", icon: Inbox, description: "Beoordeel aanvragen van buitenaf" },
   { href: "/beheer/rapportages", label: "Rapportages", icon: Flag, description: "Gerapporteerde berichten uit de feed" },
-  { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail, description: "Inhoud van uitnodigings- en resetmails" },
-  { href: "/beheer/pushbericht", label: "Handmatig pushbericht", icon: Bell, description: "Stuur direct een pushbericht naar alle abonnees" },
   { href: "/beheer/leden", label: "Leden", icon: Users, description: "Profielen, rollen, activeren/deactiveren" },
   { href: "/beheer/bedrijven", label: "Bedrijven", icon: Building2, description: "Bedrijfsprofielen beheren" },
   { href: "/beheer/documenten", label: "Documenten", icon: FileText, description: "Uploaden en verwijderen" },
   { href: "/beheer/agenda", label: "Activiteiten", icon: CalendarDays, description: "Agenda beheren" },
+];
+
+const COMMUNICATIE_CARDS = [
+  { href: "/beheer/notificaties", label: "Notificaties", icon: Bell, description: "Logboek van verzonden notificaties" },
+  { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail, description: "Inhoud van automatische mails/pushmeldingen" },
+  { href: "/beheer/pushbericht", label: "Handmatig pushbericht", icon: Send, description: "Stuur direct een pushbericht naar alle abonnees" },
+];
+
+const STATISTIEKEN_CARDS = [
+  { href: "/beheer/statistieken", label: "Statistieken", icon: BarChart3, description: "Leden, community, activiteiten en notificaties" },
 ];
 
 export default async function BeheerPage() {
@@ -86,23 +107,39 @@ export default async function BeheerPage() {
         ))}
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {CARDS.map(({ href, label, icon: Icon, description }) => (
-          <Link
-            key={href}
-            href={href}
-            className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm hover:border-voc-red"
-          >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red">
-              <Icon size={18} />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-foreground">{label}</p>
-              <p className="text-xs text-muted">{description}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
+      <CardGrid cards={CARDS} />
+
+      <h2 className="mb-3 mt-8 text-sm font-semibold text-foreground">Communicatie</h2>
+      <CardGrid cards={COMMUNICATIE_CARDS} />
+
+      <h2 className="mb-3 mt-8 text-sm font-semibold text-foreground">Statistieken</h2>
+      <CardGrid cards={STATISTIEKEN_CARDS} />
+    </div>
+  );
+}
+
+function CardGrid({
+  cards,
+}: {
+  cards: { href: string; label: string; icon: typeof Bell; description: string }[];
+}) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      {cards.map(({ href, label, icon: Icon, description }) => (
+        <Link
+          key={href}
+          href={href}
+          className="flex items-start gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm hover:border-voc-red"
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red">
+            <Icon size={18} />
+          </div>
+          <div>
+            <p className="text-sm font-medium text-foreground">{label}</p>
+            <p className="text-xs text-muted">{description}</p>
+          </div>
+        </Link>
+      ))}
     </div>
   );
 }

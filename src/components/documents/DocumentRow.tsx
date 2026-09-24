@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Download, Eye, FileText, X } from "lucide-react";
 import { DeleteButton } from "@/components/feed/DeleteButton";
-import { deleteDocumentAction } from "@/app/(app)/documenten/actions";
+import { deleteDocumentAction, logDocumentViewAction } from "@/app/(app)/documenten/actions";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import type { Database } from "@/lib/types/database";
@@ -32,6 +32,12 @@ export function DocumentRow({
   const [previewOpen, setPreviewOpen] = useState(false);
   const previewable = url && isPreviewable(document.mime_type);
 
+  // Fire-and-forget: telt als "bekeken" op zowel bekijken als downloaden,
+  // nooit een reden om de gebruiker te laten wachten of falen.
+  function trackView() {
+    logDocumentViewAction(document.id);
+  }
+
   useEscapeKey(previewOpen, () => setPreviewOpen(false));
   useBodyScrollLock(previewOpen);
 
@@ -40,7 +46,12 @@ export function DocumentRow({
       <div className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-sm">
         <button
           type="button"
-          onClick={() => previewable && setPreviewOpen(true)}
+          onClick={() => {
+            if (previewable) {
+              trackView();
+              setPreviewOpen(true);
+            }
+          }}
           disabled={!previewable}
           className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red disabled:cursor-default"
         >
@@ -49,7 +60,12 @@ export function DocumentRow({
         <div className="min-w-0 flex-1">
           <button
             type="button"
-            onClick={() => previewable && setPreviewOpen(true)}
+            onClick={() => {
+              if (previewable) {
+                trackView();
+                setPreviewOpen(true);
+              }
+            }}
             disabled={!previewable}
             className="truncate text-left text-sm font-medium text-foreground disabled:cursor-default"
           >
@@ -61,7 +77,10 @@ export function DocumentRow({
         {previewable && (
           <button
             type="button"
-            onClick={() => setPreviewOpen(true)}
+            onClick={() => {
+              trackView();
+              setPreviewOpen(true);
+            }}
             title="Bekijken"
             aria-label="Bekijken"
             className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
@@ -75,6 +94,7 @@ export function DocumentRow({
             download={document.file_name}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={trackView}
             title="Downloaden"
             aria-label="Downloaden"
             className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"

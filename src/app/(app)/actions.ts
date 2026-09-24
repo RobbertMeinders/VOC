@@ -6,6 +6,7 @@ import { isAdmin } from "@/lib/auth/roles";
 import { fetchCommentById, fetchFeedPosts, fetchPostById } from "@/lib/feed/queries";
 import { FEED_PAGE_SIZE } from "@/lib/feed/pagination";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
+import { logEvent } from "@/lib/events/log";
 import type { FeedComment, FeedPost, FeedPostType } from "@/lib/feed/types";
 import type { FeedReportReason } from "@/lib/types/database";
 
@@ -325,6 +326,14 @@ export async function loadMoreFeedPostsAction(offset: number): Promise<FeedPost[
   const profile = await requireProfile();
   const supabase = await createClient();
   return fetchFeedPosts(supabase, profile.id, FEED_PAGE_SIZE, offset);
+}
+
+// Alleen aangeroepen als iemand via een ?highlight-link (notificatie of
+// gedeelde link) een specifiek bericht opent — dat is een betekenisvollere
+// "bekeken"-gebeurtenis dan elk bericht dat toevallig voorbijscrolt in de
+// feed loggen (zie FeedList).
+export async function logPostViewAction(postId: string): Promise<void> {
+  await logEvent("post_viewed", "post", postId);
 }
 
 // Client-heartbeat (zie OnlineHeartbeat) — houdt last_active_at actueel

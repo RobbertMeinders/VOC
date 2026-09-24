@@ -73,7 +73,7 @@ self.addEventListener("push", (event) => {
     body: payload.body || "",
     icon: "/icon.png",
     badge: "/icon.png",
-    data: { link: payload.link || "/" },
+    data: { link: payload.link || "/", notificationId: payload.notification_id || null },
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
@@ -82,6 +82,18 @@ self.addEventListener("push", (event) => {
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
   const link = event.notification.data?.link || "/";
+  const notificationId = event.notification.data?.notificationId;
+
+  // Los, best-effort — het profiel wordt server-side afgeleid uit de
+  // notificatie-id zelf (log_notification_click), dus dit hoeft de
+  // focus/openWindow hieronder niet te blokkeren of te laten falen.
+  if (notificationId) {
+    fetch("/api/notifications/click", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ notification_id: notificationId }),
+    }).catch(() => {});
+  }
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {

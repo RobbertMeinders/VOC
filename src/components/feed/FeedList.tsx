@@ -5,7 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { MessageSquare } from "lucide-react";
 import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/client";
-import { getCommentAction, getPostAction, loadMoreFeedPostsAction } from "@/app/(app)/actions";
+import { getCommentAction, getPostAction, loadMoreFeedPostsAction, logPostViewAction } from "@/app/(app)/actions";
 import { FEED_PAGE_SIZE } from "@/lib/feed/pagination";
 import { useInfiniteScroll } from "@/lib/dom/useInfiniteScroll";
 import { PostComposer } from "./PostComposer";
@@ -96,6 +96,15 @@ export function FeedList({
     el.classList.add("ring-2", "ring-voc-red", "rounded-xl");
     const timeout = setTimeout(() => el.classList.remove("ring-2", "ring-voc-red", "rounded-xl"), 3000);
     return () => clearTimeout(timeout);
+  }, [highlightId]);
+
+  useEffect(() => {
+    if (!highlightId) return;
+    // highlightId kan een post- of een comment-id zijn (zie hierboven) —
+    // in beide gevallen telt dat als een view van het bericht zelf.
+    const highlightedPost = posts.find((p) => p.id === highlightId || p.comments.some((c) => c.id === highlightId));
+    if (highlightedPost) logPostViewAction(highlightedPost.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- alleen bij een nieuwe highlightId opnieuw loggen, niet bij elke posts-wijziging
   }, [highlightId]);
 
   useEffect(() => {
