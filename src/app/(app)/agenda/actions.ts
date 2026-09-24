@@ -6,6 +6,7 @@ import { requireBoard, requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
 import { uploadDocument } from "@/lib/supabase/uploadDocument";
+import { invalidateQuery } from "@/lib/cache/queryCache";
 
 export type ActionResult = { error?: string };
 
@@ -53,6 +54,9 @@ export async function registerForActivityAction(activityId: string): Promise<Reg
     return { error: error.message || "Aanmelden is niet gelukt. Probeer het opnieuw." };
   }
 
+  // Anders bleef Statistieken > Activiteiten tot 60s (de cache-TTL) een
+  // aanmeldingenaantal van vóór deze aanmelding tonen.
+  invalidateQuery("statistieken-activiteiten");
   revalidatePath(`/agenda/${activityId}`);
   revalidatePath("/agenda");
   return { waitlisted: data.is_waitlisted };
@@ -72,6 +76,7 @@ export async function unregisterFromActivityAction(activityId: string): Promise<
     return { error: "Afmelden is niet gelukt. Probeer het opnieuw." };
   }
 
+  invalidateQuery("statistieken-activiteiten");
   revalidatePath(`/agenda/${activityId}`);
   revalidatePath("/agenda");
   return {};
@@ -252,6 +257,8 @@ export async function deleteActivityAction(activityId: string, redirectAfter = t
     await requireProfile();
     const supabase = await createClient();
     await supabase.from("activities").delete().eq("id", activityId);
+    // Verwijderen cascadet ook de aanmeldingen van deze activiteit weg.
+    invalidateQuery("statistieken-activiteiten");
     revalidatePath("/agenda");
     revalidatePath("/beheer/agenda");
     if (redirectAfter) redirect("/agenda");
@@ -297,6 +304,7 @@ export async function setAttendanceAction(registrationId: string, activityId: st
 
   await supabase.from("activity_registrations").update({ attended }).eq("id", registrationId);
 
+  invalidateQuery("statistieken-activiteiten");
   revalidatePath(`/agenda/${activityId}`);
 }
 
