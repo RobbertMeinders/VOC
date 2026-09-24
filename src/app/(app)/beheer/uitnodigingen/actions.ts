@@ -53,6 +53,32 @@ export async function revokeInvitationAction(id: string) {
   revalidatePath("/beheer/uitnodigingen");
 }
 
+const EXTENDED_VALIDITY_MS = 14 * 24 * 60 * 60 * 1000;
+
+export async function extendInvitationAction(id: string) {
+  await requireBoard();
+  const supabase = await createClient();
+  await supabase
+    .from("invitations")
+    .update({ expires_at: new Date(Date.now() + EXTENDED_VALIDITY_MS).toISOString() })
+    .eq("id", id)
+    .eq("status", "pending");
+  revalidatePath("/beheer/uitnodigingen");
+}
+
+// Voor bulk-geïmporteerde uitnodigingen (leden-import) die nog niet verstuurd
+// zijn tegen de tijd dat het portaal live gaat — scheelt elke uitnodiging
+// los aanklikken.
+export async function extendAllInvitationsAction() {
+  await requireBoard();
+  const supabase = await createClient();
+  await supabase
+    .from("invitations")
+    .update({ expires_at: new Date(Date.now() + EXTENDED_VALIDITY_MS).toISOString() })
+    .eq("status", "pending");
+  revalidatePath("/beheer/uitnodigingen");
+}
+
 export async function sendInvitationEmailAction(id: string): Promise<{ error?: string }> {
   await requireBoard();
   const supabase = await createClient();

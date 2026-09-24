@@ -1,10 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { Check, Copy, Mail, X } from "lucide-react";
+import { Check, Clock, Copy, Mail, X } from "lucide-react";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import type { Invitation } from "./InvitationList";
-import { revokeInvitationAction, sendInvitationEmailAction } from "@/app/(app)/beheer/uitnodigingen/actions";
+import {
+  extendInvitationAction,
+  revokeInvitationAction,
+  sendInvitationEmailAction,
+} from "@/app/(app)/beheer/uitnodigingen/actions";
 
 export function InvitationRow({ invitation }: { invitation: Invitation }) {
   const [copied, setCopied] = useState(false);
@@ -64,6 +68,16 @@ export function InvitationRow({ invitation }: { invitation: Invitation }) {
           {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
           {copied ? "Gekopieerd" : "Kopieer link"}
         </button>
+        <form action={extendInvitationAction.bind(null, invitation.id)}>
+          <button
+            type="submit"
+            title="Verleng met 14 dagen"
+            aria-label="Uitnodiging verlengen"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+          >
+            <Clock size={16} />
+          </button>
+        </form>
         <form action={revokeInvitationAction.bind(null, invitation.id)}>
           <button
             type="submit"
