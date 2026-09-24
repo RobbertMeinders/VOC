@@ -9,8 +9,22 @@ export function MemberActiveToggle({ memberId, initialActive }: { memberId: stri
   const [error, setError] = useState<string | null>(null);
 
   function handleToggle() {
-    setError(null);
     const next = !active;
+
+    // Alleen bij het deactiveren zelf bevestigen (met de gevolgen erbij) —
+    // heractiveren is altijd veilig/omkeerbaar.
+    if (!next) {
+      const confirmed = window.confirm(
+        "Weet je zeker dat je dit lid wilt deactiveren?\n\n" +
+          "Het account is dan direct niet meer bruikbaar en verdwijnt uit de ledenlijst. " +
+          "Persoonsgegevens (naam, e-mail, telefoon, foto, functie, bio) worden na 90 dagen automatisch " +
+          "verwijderd, tenzij het lid binnen die termijn weer geactiveerd wordt. " +
+          "Geplaatste berichten en reacties blijven staan, wel voortaan onder \"Verwijderd lid\"."
+      );
+      if (!confirmed) return;
+    }
+
+    setError(null);
     startTransition(async () => {
       const result = await updateMemberActiveAction(memberId, next);
       if (result.error) {

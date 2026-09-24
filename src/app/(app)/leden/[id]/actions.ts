@@ -49,7 +49,17 @@ export async function updateMemberActiveAction(memberId: string, isActive: boole
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("profiles").update({ is_active: isActive }).eq("id", memberId);
+  const { error } = await supabase
+    .from("profiles")
+    .update({
+      is_active: isActive,
+      // Start (of stopt, bij heractiveren binnen de 90 dagen) de
+      // bewaartermijn-aftelling voor anonymize_expired_profiles()
+      // (0037_retention_and_push_preferences.sql, dagelijks via
+      // /api/cron/anonymize-members).
+      deactivated_at: isActive ? null : new Date().toISOString(),
+    })
+    .eq("id", memberId);
 
   if (error) {
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };

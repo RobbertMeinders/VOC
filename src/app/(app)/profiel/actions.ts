@@ -140,6 +140,43 @@ export async function updateShowEmailAction(visible: boolean): Promise<{ error?:
   return {};
 }
 
+// Granulaire pushvoorkeuren — los van de globale aan/uit-schakelaar
+// (device-niveau, zie PushToggle): welke soort meldingen wil je er ooit als
+// push bij. get_pending_push_notifications (0037_retention_and_push_
+// preferences.sql) leest deze kolommen; buiten deze drie categorieën
+// pusht alles altijd (moderatie-meldingen voor bestuur/beheer, en de
+// uitkomst van je eigen aanvraag/inzending).
+async function updatePushPreference(column: "push_activities" | "push_feed" | "push_new_members", enabled: boolean) {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const update =
+    column === "push_activities"
+      ? { push_activities: enabled }
+      : column === "push_feed"
+        ? { push_feed: enabled }
+        : { push_new_members: enabled };
+
+  const { error } = await supabase.from("profiles").update(update).eq("id", profile.id);
+
+  if (error) {
+    return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
+  }
+  return {};
+}
+
+export async function updatePushActivitiesAction(enabled: boolean): Promise<{ error?: string }> {
+  return updatePushPreference("push_activities", enabled);
+}
+
+export async function updatePushFeedAction(enabled: boolean): Promise<{ error?: string }> {
+  return updatePushPreference("push_feed", enabled);
+}
+
+export async function updatePushNewMembersAction(enabled: boolean): Promise<{ error?: string }> {
+  return updatePushPreference("push_new_members", enabled);
+}
+
 export async function unsubscribeFromPushAction(endpoint: string): Promise<void> {
   const profile = await requireProfile();
   const supabase = await createClient();

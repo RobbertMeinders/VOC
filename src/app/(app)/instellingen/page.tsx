@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { Download } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PushToggle } from "@/components/profile/PushToggle";
 import { ThemeToggle } from "@/components/profile/ThemeToggle";
 import { AttendedActivitiesToggle } from "@/components/profile/AttendedActivitiesToggle";
 import { ShowContactToggle } from "@/components/profile/ShowContactToggle";
+import { PushCategoryToggle } from "@/components/profile/PushCategoryToggle";
 import { ShowAddressToggle } from "@/components/company/ShowAddressToggle";
 import { SettingRow } from "@/components/ui/SettingRow";
 
@@ -41,6 +43,21 @@ export default async function InstellingenPage() {
       </SettingRow>
 
       <SettingRow
+        label="Activiteiten"
+        description="Nieuwe activiteiten, herinneringen en promotie van de wachtlijst."
+      >
+        <PushCategoryToggle category="activities" initialEnabled={profile.push_activities} />
+      </SettingRow>
+
+      <SettingRow label="Reacties en vermeldingen" description="Reacties op je berichten en @vermeldingen in de feed.">
+        <PushCategoryToggle category="feed" initialEnabled={profile.push_feed} />
+      </SettingRow>
+
+      <SettingRow label="Nieuwe leden" description="Melding zodra een nieuw lid zich aansluit.">
+        <PushCategoryToggle category="new_members" initialEnabled={profile.push_new_members} />
+      </SettingRow>
+
+      <SettingRow
         label="Bijgewoonde evenementen tonen"
         description={
           <>
@@ -71,6 +88,20 @@ export default async function InstellingenPage() {
           <ShowAddressToggle companyId={company.id} initialVisible={company.show_address} />
         </SettingRow>
       )}
+
+      <SettingRow
+        label="Mijn gegevens downloaden"
+        description="Een bestand met je profielgegevens, geplaatste berichten/reacties en activiteit-aanmeldingen."
+      >
+        <a
+          href="/api/profiel/export"
+          download
+          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red"
+        >
+          <Download size={14} />
+          Downloaden
+        </a>
+      </SettingRow>
     </div>
   );
 }

@@ -28,6 +28,11 @@ export interface Database {
           show_email: boolean;
           show_phone: boolean;
           show_attended_activities: boolean;
+          push_activities: boolean;
+          push_feed: boolean;
+          push_new_members: boolean;
+          deactivated_at: string | null;
+          anonymized_at: string | null;
           last_active_at: string | null;
           linkedin_url: string | null;
           instagram_url: string | null;
@@ -407,6 +412,10 @@ export interface Database {
       set_company_show_address: {
         Args: { p_company_id: string; p_visible: boolean };
         Returns: void;
+      };
+      anonymize_expired_profiles: {
+        Args: Record<string, never>;
+        Returns: { profile_id: string }[];
       };
       has_any_profiles: {
         Args: Record<string, never>;
