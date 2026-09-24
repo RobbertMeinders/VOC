@@ -40,22 +40,19 @@ export default async function InstellingenPage() {
       </SettingRow>
 
       <SettingGroup label="Pushmeldingen" description="Ontvang een melding op dit apparaat. Per soort melding los aan of uit te zetten.">
-        <SettingSubRow label="Dit apparaat" description="Algemene aan/uit-schakelaar voor pushmeldingen op dit apparaat.">
+        <SettingSubRow label="Dit apparaat">
           <PushToggle />
         </SettingSubRow>
 
-        <SettingSubRow
-          label="Activiteiten"
-          description="Nieuwe activiteiten (ook om je voor aan te melden), herinneringen en promotie van de wachtlijst."
-        >
+        <SettingSubRow label="Activiteiten">
           <PushCategoryToggle category="activities" initialEnabled={profile.push_activities} />
         </SettingSubRow>
 
-        <SettingSubRow label="Reacties en vermeldingen" description="Reacties op je berichten en @vermeldingen in de feed.">
+        <SettingSubRow label="Reacties en vermeldingen">
           <PushCategoryToggle category="feed" initialEnabled={profile.push_feed} />
         </SettingSubRow>
 
-        <SettingSubRow label="Nieuwe leden" description="Melding zodra een nieuw lid zich aansluit.">
+        <SettingSubRow label="Nieuwe leden">
           <PushCategoryToggle category="new_members" initialEnabled={profile.push_new_members} />
         </SettingSubRow>
       </SettingGroup>
