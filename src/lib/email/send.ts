@@ -51,3 +51,39 @@ export async function sendTemplatedEmail(
 
   return {};
 }
+
+/**
+ * Verstuurt een notificatie (uit de notifications-tabel) als kale e-mail —
+ * gebruikt door /api/cron/send-email-notifications voor het mailkanaal,
+ * los van sendTemplatedEmail omdat een notificatie geen eigen
+ * email_templates-rij heeft (die keys zijn voor de uitnodigings-/
+ * wachtwoordmails). Rechtstreeks Resend i.p.v. board-beheerde content,
+ * zodat elk notificatietype (ook de types zonder speciale styling) gewoon
+ * gemaild kan worden.
+ */
+export async function sendNotificationEmail(
+  to: string,
+  notification: { title: string; body: string | null; link: string | null }
+): Promise<{ error?: string }> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM;
+  if (!apiKey || !from) {
+    return { error: "E-mail versturen is niet geconfigureerd (RESEND_API_KEY / EMAIL_FROM ontbreken)." };
+  }
+
+  const siteUrl = process.env.SITE_URL ?? "";
+  const linkHtml = notification.link
+    ? `<p><a href="${siteUrl}${notification.link}">Bekijk in het ledenportaal</a></p>`
+    : "";
+  const html = `<p>${notification.body ?? ""}</p>${linkHtml}`;
+
+  const resend = new Resend(apiKey);
+  try {
+    const { error } = await resend.emails.send({ from, to, subject: notification.title, html });
+    if (error) return { error: "Versturen van de e-mail is niet gelukt." };
+  } catch {
+    return { error: "Versturen van de e-mail is niet gelukt." };
+  }
+
+  return {};
+}

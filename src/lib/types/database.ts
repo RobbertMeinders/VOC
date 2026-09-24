@@ -31,6 +31,9 @@ export interface Database {
           push_activities: boolean;
           push_feed: boolean;
           push_new_members: boolean;
+          email_activities: boolean;
+          email_feed: boolean;
+          email_new_members: boolean;
           deactivated_at: string | null;
           anonymized_at: string | null;
           last_active_at: string | null;
@@ -323,6 +326,7 @@ export interface Database {
           link: string | null;
           is_read: boolean;
           pushed_at: string | null;
+          emailed_at: string | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["notifications"]["Row"]> & {
@@ -446,6 +450,21 @@ export interface Database {
         }[];
       };
       mark_notifications_pushed: {
+        Args: { p_ids: string[] };
+        Returns: undefined;
+      };
+      get_pending_email_notifications: {
+        Args: { p_limit?: number };
+        Returns: {
+          notification_id: string;
+          type: string;
+          title: string;
+          body: string | null;
+          link: string | null;
+          email: string;
+        }[];
+      };
+      mark_notifications_emailed: {
         Args: { p_ids: string[] };
         Returns: undefined;
       };

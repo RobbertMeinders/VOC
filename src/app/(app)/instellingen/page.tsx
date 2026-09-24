@@ -6,7 +6,7 @@ import { PushToggle } from "@/components/profile/PushToggle";
 import { ThemeToggle } from "@/components/profile/ThemeToggle";
 import { AttendedActivitiesToggle } from "@/components/profile/AttendedActivitiesToggle";
 import { ShowContactToggle } from "@/components/profile/ShowContactToggle";
-import { PushCategoryToggle } from "@/components/profile/PushCategoryToggle";
+import { NotificationCategoryToggle } from "@/components/profile/NotificationCategoryToggle";
 import { ShowAddressToggle } from "@/components/company/ShowAddressToggle";
 import { DeleteAccountButton } from "@/components/profile/DeleteAccountButton";
 import { SettingRow } from "@/components/ui/SettingRow";
@@ -46,15 +46,29 @@ export default async function InstellingenPage() {
         </SettingSubRow>
 
         <SettingSubRow label="Activiteiten">
-          <PushCategoryToggle category="activities" initialEnabled={profile.push_activities} />
+          <NotificationCategoryToggle channel="push" category="activities" initialEnabled={profile.push_activities} />
         </SettingSubRow>
 
         <SettingSubRow label="Reacties en vermeldingen">
-          <PushCategoryToggle category="feed" initialEnabled={profile.push_feed} />
+          <NotificationCategoryToggle channel="push" category="feed" initialEnabled={profile.push_feed} />
         </SettingSubRow>
 
         <SettingSubRow label="Nieuwe leden">
-          <PushCategoryToggle category="new_members" initialEnabled={profile.push_new_members} />
+          <NotificationCategoryToggle channel="push" category="new_members" initialEnabled={profile.push_new_members} />
+        </SettingSubRow>
+      </SettingGroup>
+
+      <SettingGroup label="E-mailmeldingen" description="Ontvang een melding per e-mail. Per soort melding los aan of uit te zetten.">
+        <SettingSubRow label="Activiteiten">
+          <NotificationCategoryToggle channel="email" category="activities" initialEnabled={profile.email_activities} />
+        </SettingSubRow>
+
+        <SettingSubRow label="Reacties en vermeldingen">
+          <NotificationCategoryToggle channel="email" category="feed" initialEnabled={profile.email_feed} />
+        </SettingSubRow>
+
+        <SettingSubRow label="Nieuwe leden">
+          <NotificationCategoryToggle channel="email" category="new_members" initialEnabled={profile.email_new_members} />
         </SettingSubRow>
       </SettingGroup>
 

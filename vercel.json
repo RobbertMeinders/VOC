@@ -11,6 +11,10 @@
     {
       "path": "/api/cron/anonymize-members",
       "schedule": "0 5 * * *"
+    },
+    {
+      "path": "/api/cron/send-email-notifications",
+      "schedule": "0 8 * * *"
     }
   ]
 }

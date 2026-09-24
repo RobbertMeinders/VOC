@@ -6,25 +6,39 @@ import {
   updatePushActivitiesAction,
   updatePushFeedAction,
   updatePushNewMembersAction,
+  updateEmailActivitiesAction,
+  updateEmailFeedAction,
+  updateEmailNewMembersAction,
 } from "@/app/(app)/profiel/actions";
 
+type Category = "activities" | "feed" | "new_members";
+
 const ACTIONS = {
-  activities: updatePushActivitiesAction,
-  feed: updatePushFeedAction,
-  new_members: updatePushNewMembersAction,
+  push: {
+    activities: updatePushActivitiesAction,
+    feed: updatePushFeedAction,
+    new_members: updatePushNewMembersAction,
+  },
+  email: {
+    activities: updateEmailActivitiesAction,
+    feed: updateEmailFeedAction,
+    new_members: updateEmailNewMembersAction,
+  },
 } as const;
 
-const LABELS = {
-  activities: "Pushmeldingen voor activiteiten",
-  feed: "Pushmeldingen voor reacties en vermeldingen",
-  new_members: "Pushmeldingen voor nieuwe leden",
-} as const;
+const LABELS: Record<Category, string> = {
+  activities: "Meldingen voor activiteiten",
+  feed: "Meldingen voor reacties en vermeldingen",
+  new_members: "Meldingen voor nieuwe leden",
+};
 
-export function PushCategoryToggle({
+export function NotificationCategoryToggle({
+  channel,
   category,
   initialEnabled,
 }: {
-  category: keyof typeof ACTIONS;
+  channel: "push" | "email";
+  category: Category;
   initialEnabled: boolean;
 }) {
   const [enabled, setEnabled] = useState(initialEnabled);
@@ -36,7 +50,7 @@ export function PushCategoryToggle({
     setEnabled(next);
     setError(null);
     startTransition(async () => {
-      const result = await ACTIONS[category](next);
+      const result = await ACTIONS[channel][category](next);
       if (result.error) {
         setEnabled(!next);
         setError(result.error);
