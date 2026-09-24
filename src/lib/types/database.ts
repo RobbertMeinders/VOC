@@ -498,6 +498,14 @@ export interface Database {
         Args: { p_key: string };
         Returns: { title: string; body: string }[];
       };
+      list_push_subscriptions: {
+        Args: Record<string, never>;
+        Returns: { profile_id: string; endpoint: string; p256dh: string; auth: string }[];
+      };
+      record_manual_push_broadcast: {
+        Args: { p_reached_profile_ids: string[]; p_dead_endpoints: string[]; p_title: string; p_body: string };
+        Returns: undefined;
+      };
     };
     Enums: {
       user_role: UserRole;

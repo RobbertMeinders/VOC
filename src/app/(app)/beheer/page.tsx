@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Building2, CalendarDays, FileText, Flag, Inbox, Mail, Upload, UserPlus, Users } from "lucide-react";
+import { Bell, Building2, CalendarDays, FileText, Flag, Inbox, Mail, Upload, UserPlus, Users } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 
@@ -22,6 +22,7 @@ const CARDS = [
   { href: "/beheer/aanvragen", label: "Toegangsaanvragen", icon: Inbox, description: "Beoordeel aanvragen van buitenaf" },
   { href: "/beheer/rapportages", label: "Rapportages", icon: Flag, description: "Gerapporteerde berichten uit de feed" },
   { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail, description: "Inhoud van uitnodigings- en resetmails" },
+  { href: "/beheer/pushbericht", label: "Handmatig pushbericht", icon: Bell, description: "Stuur direct een pushbericht naar alle abonnees" },
   { href: "/beheer/leden", label: "Leden", icon: Users, description: "Profielen, rollen, activeren/deactiveren" },
   { href: "/beheer/bedrijven", label: "Bedrijven", icon: Building2, description: "Bedrijfsprofielen beheren" },
   { href: "/beheer/documenten", label: "Documenten", icon: FileText, description: "Uploaden en verwijderen" },
