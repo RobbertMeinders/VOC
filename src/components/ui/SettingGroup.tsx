@@ -11,21 +11,18 @@ export function SettingGroup({ label, description, children }: { label: string; 
         <p className="text-sm font-medium text-foreground">{label}</p>
         {description && <div className="mt-0.5 text-xs text-muted">{description}</div>}
       </div>
-      <div className="mt-4 flex flex-col divide-y divide-border">{children}</div>
+      <div className="mt-4 flex flex-col gap-2.5">{children}</div>
     </div>
   );
 }
 
-// Eén rij binnen een SettingGroup — zelfde label/omschrijving/besturing-
-// indeling als SettingRow, maar zonder eigen kaart-omranding.
-export function SettingSubRow({ label, description, children }: { label: string; description?: ReactNode; children: ReactNode }) {
+// Eén rij binnen een SettingGroup — titel direct gevolgd door de schakelaar,
+// zonder eigen kaart-omranding of scheidingslijn tussen rijen.
+export function SettingSubRow({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="flex flex-col gap-3 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-      <div className="min-w-0">
-        <p className="text-sm text-foreground">{label}</p>
-        {description && <p className="mt-0.5 text-xs text-muted">{description}</p>}
-      </div>
-      <div className="shrink-0">{children}</div>
+    <div className="flex items-center gap-2">
+      <span className="text-sm text-foreground">{label}</span>
+      {children}
     </div>
   );
 }
