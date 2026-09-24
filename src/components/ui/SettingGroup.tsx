@@ -11,7 +11,7 @@ export function SettingGroup({ label, description, children }: { label: string; 
         <p className="text-sm font-medium text-foreground">{label}</p>
         {description && <div className="mt-0.5 text-xs text-muted">{description}</div>}
       </div>
-      <div className="mt-4 flex flex-col gap-2.5">{children}</div>
+      <div className="mt-4 flex flex-col gap-5">{children}</div>
     </div>
   );
 }

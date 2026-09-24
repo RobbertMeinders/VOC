@@ -5,9 +5,11 @@ import { BackLink } from "@/components/ui/BackLink";
 import {
   getActivityStats,
   getCommunityStats,
+  getEmailStats,
   getNotificationBreakdown,
-  getNotificationStats,
   getOverviewStats,
+  getPushStats,
+  type NotificationBreakdownRow,
 } from "@/lib/statistics/queries";
 
 export const metadata: Metadata = { title: "Statistieken" };
@@ -16,7 +18,8 @@ const TABS = [
   { key: "overzicht", label: "Overzicht" },
   { key: "community", label: "Community" },
   { key: "activiteiten", label: "Activiteiten" },
-  { key: "notificaties", label: "Notificaties" },
+  { key: "email", label: "E-mail" },
+  { key: "push", label: "Push" },
 ] as const;
 
 // Voor leesbare labels in de per-melding-tabel — mirror van de types die de
@@ -149,8 +152,79 @@ async function ActiviteitenTab() {
   );
 }
 
-async function NotificatiesTab() {
-  const [stats, breakdown] = await Promise.all([getNotificationStats(), getNotificationBreakdown()]);
+// Gedeeld door EmailTab en PushTab — dezelfde per-melding-tabel, alleen de
+// kolommen voor het relevante kanaal, en alleen rijen die op dat kanaal
+// ook echt iets verstuurd hebben.
+function BreakdownTable({
+  rows,
+  sentLabel,
+  openedLabel,
+  getSent,
+  getOpened,
+}: {
+  rows: NotificationBreakdownRow[];
+  sentLabel: string;
+  openedLabel: string;
+  getSent: (row: NotificationBreakdownRow) => number;
+  getOpened: (row: NotificationBreakdownRow) => number;
+}) {
+  const filtered = rows.filter((row) => getSent(row) > 0);
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
+      <table className="w-full text-left text-sm">
+        <thead>
+          <tr className="border-b border-border text-xs text-muted">
+            <th className="px-4 py-2 font-medium">Per melding (laatste 30 dagen)</th>
+            <th className="px-4 py-2 text-center font-medium">{sentLabel}</th>
+            <th className="px-4 py-2 text-center font-medium">{openedLabel}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map((row) => (
+            <tr key={row.key} className="border-b border-border last:border-0">
+              <td className="max-w-xs px-4 py-2">
+                <p className="truncate text-foreground">{row.title}</p>
+                <p className="text-xs text-muted">{NOTIFICATION_TYPE_LABELS[row.type] ?? row.type}</p>
+              </td>
+              <td className="px-4 py-2 text-center text-muted">{getSent(row)}</td>
+              <td className="px-4 py-2 text-center text-muted">{getOpened(row) || "—"}</td>
+            </tr>
+          ))}
+          {filtered.length === 0 && (
+            <tr>
+              <td colSpan={3} className="px-4 py-6 text-center text-sm text-muted">
+                Nog niks verstuurd in de laatste 30 dagen.
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+async function EmailTab() {
+  const [stats, breakdown] = await Promise.all([getEmailStats(), getNotificationBreakdown()]);
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatCard label="Verzonden e-mails (30d)" value={stats.emailsSent} />
+        <StatCard label="Geopende e-mails (30d)" value={stats.emailsOpened} />
+        <StatCard label="Open rate" value={stats.openRatePercentage === null ? "—" : `${stats.openRatePercentage}%`} />
+      </div>
+      <BreakdownTable
+        rows={breakdown}
+        sentLabel="Verzonden"
+        openedLabel="Geopend"
+        getSent={(row) => row.sentEmail}
+        getOpened={(row) => row.openedEmail}
+      />
+    </div>
+  );
+}
+
+async function PushTab() {
+  const [stats, breakdown] = await Promise.all([getPushStats(), getNotificationBreakdown()]);
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -160,44 +234,14 @@ async function NotificatiesTab() {
         <StatCard label="Opgezegde abonnementen (30d)" value={stats.unsubscribedPushSubscriptions} />
         <StatCard label="Verzonden pushmeldingen (30d)" value={stats.pushesSent} />
         <StatCard label="Geopende pushmeldingen (30d)" value={stats.pushesOpened} />
-        <StatCard label="Verzonden e-mails (30d)" value={stats.emailsSent} />
-        <StatCard label="Geopende e-mails (30d)" value={stats.emailsOpened} />
       </div>
-
-      <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
-        <table className="w-full text-left text-sm">
-          <thead>
-            <tr className="border-b border-border text-xs text-muted">
-              <th className="px-4 py-2 font-medium">Per melding (laatste 30 dagen)</th>
-              <th className="px-4 py-2 text-center font-medium">Push verzonden</th>
-              <th className="px-4 py-2 text-center font-medium">Push geopend</th>
-              <th className="px-4 py-2 text-center font-medium">E-mail verzonden</th>
-              <th className="px-4 py-2 text-center font-medium">E-mail geopend</th>
-            </tr>
-          </thead>
-          <tbody>
-            {breakdown.map((row) => (
-              <tr key={row.key} className="border-b border-border last:border-0">
-                <td className="max-w-xs px-4 py-2">
-                  <p className="truncate text-foreground">{row.title}</p>
-                  <p className="text-xs text-muted">{NOTIFICATION_TYPE_LABELS[row.type] ?? row.type}</p>
-                </td>
-                <td className="px-4 py-2 text-center text-muted">{row.sentPush || "—"}</td>
-                <td className="px-4 py-2 text-center text-muted">{row.openedPush || "—"}</td>
-                <td className="px-4 py-2 text-center text-muted">{row.sentEmail || "—"}</td>
-                <td className="px-4 py-2 text-center text-muted">{row.openedEmail || "—"}</td>
-              </tr>
-            ))}
-            {breakdown.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-4 py-6 text-center text-sm text-muted">
-                  Nog geen notificaties in de laatste 30 dagen.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <BreakdownTable
+        rows={breakdown}
+        sentLabel="Verzonden"
+        openedLabel="Geopend"
+        getSent={(row) => row.sentPush}
+        getOpened={(row) => row.openedPush}
+      />
     </div>
   );
 }
@@ -212,7 +256,7 @@ export default async function StatistiekenPage({ searchParams }: { searchParams:
       <BackLink href="/beheer" label="Terug naar Beheer" />
       <div>
         <h1 className="text-xl font-semibold text-foreground">Statistieken</h1>
-        <p className="text-sm text-muted">Belangrijkste cijfers over leden, community, activiteiten en notificaties.</p>
+        <p className="text-sm text-muted">Belangrijkste cijfers over leden, community, activiteiten, e-mail en push.</p>
       </div>
 
       <div className="flex gap-1.5 overflow-x-auto">
@@ -232,7 +276,8 @@ export default async function StatistiekenPage({ searchParams }: { searchParams:
       {activeTab === "overzicht" && <OverviewTab />}
       {activeTab === "community" && <CommunityTab />}
       {activeTab === "activiteiten" && <ActiviteitenTab />}
-      {activeTab === "notificaties" && <NotificatiesTab />}
+      {activeTab === "email" && <EmailTab />}
+      {activeTab === "push" && <PushTab />}
     </div>
   );
 }

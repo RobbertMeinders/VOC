@@ -22,7 +22,7 @@ function countUniqueProfiles(rows: { profile_id: string | null }[]): number {
 // abonnement(en), nooit de hele tabel. list_push_subscriptions (0041_
 // manual_push_broadcast.sql) is de security-definer RPC die dat al oplost
 // voor het handmatige pushbericht; hier hergebruikt (en gecachet, want
-// zowel Overzicht als Notificaties heeft 'm nodig) voor de tellingen.
+// zowel Overzicht als het Push-tabblad 'm nodig heeft) voor de tellingen.
 async function getAllPushSubscriptions(
   supabase: Awaited<ReturnType<typeof createClient>>
 ): Promise<{ profile_id: string; created_at: string }[]> {
@@ -206,19 +206,17 @@ export async function getActivityStats(): Promise<ActivityStats> {
   });
 }
 
-export type NotificationStats = {
+export type PushStats = {
   activePushSubscriptions: number;
   pushPercentage: number;
   newPushSubscriptions: number;
   unsubscribedPushSubscriptions: number;
   pushesSent: number;
   pushesOpened: number;
-  emailsSent: number;
-  emailsOpened: number;
 };
 
-export async function getNotificationStats(): Promise<NotificationStats> {
-  return cachedQuery("statistieken-notificaties", TTL_MS, async () => {
+export async function getPushStats(): Promise<PushStats> {
+  return cachedQuery("statistieken-push", TTL_MS, async () => {
     const supabase = await createClient();
     const since = windowStart();
 
@@ -228,8 +226,6 @@ export async function getNotificationStats(): Promise<NotificationStats> {
       { count: unsubscribedPushSubscriptions },
       { count: pushesSent },
       { count: pushesOpened },
-      { count: emailsSent },
-      { count: emailsOpened },
     ] = await Promise.all([
       supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
       getAllPushSubscriptions(supabase),
@@ -240,13 +236,6 @@ export async function getNotificationStats(): Promise<NotificationStats> {
         .select("id", { count: "exact", head: true })
         .eq("event_type", "notification_opened")
         .contains("metadata", { channel: "push" })
-        .gte("created_at", since),
-      supabase.from("notifications").select("id", { count: "exact", head: true }).not("emailed_at", "is", null).gte("created_at", since),
-      supabase
-        .from("events")
-        .select("id", { count: "exact", head: true })
-        .eq("event_type", "notification_opened")
-        .contains("metadata", { channel: "email" })
         .gte("created_at", since),
     ]);
 
@@ -260,8 +249,37 @@ export async function getNotificationStats(): Promise<NotificationStats> {
       unsubscribedPushSubscriptions: unsubscribedPushSubscriptions ?? 0,
       pushesSent: pushesSent ?? 0,
       pushesOpened: pushesOpened ?? 0,
+    };
+  });
+}
+
+export type EmailStats = {
+  emailsSent: number;
+  emailsOpened: number;
+  openRatePercentage: number | null;
+};
+
+// Geen "actieve abonnementen" zoals bij push — e-mail gaat naar het
+// profiel-e-mailadres van elk lid, dat is geen aparte opt-in-registratie.
+export async function getEmailStats(): Promise<EmailStats> {
+  return cachedQuery("statistieken-email", TTL_MS, async () => {
+    const supabase = await createClient();
+    const since = windowStart();
+
+    const [{ count: emailsSent }, { count: emailsOpened }] = await Promise.all([
+      supabase.from("notifications").select("id", { count: "exact", head: true }).not("emailed_at", "is", null).gte("created_at", since),
+      supabase
+        .from("events")
+        .select("id", { count: "exact", head: true })
+        .eq("event_type", "notification_opened")
+        .contains("metadata", { channel: "email" })
+        .gte("created_at", since),
+    ]);
+
+    return {
       emailsSent: emailsSent ?? 0,
       emailsOpened: emailsOpened ?? 0,
+      openRatePercentage: emailsSent ? Math.round(((emailsOpened ?? 0) / emailsSent) * 100) : null,
     };
   });
 }
@@ -279,7 +297,10 @@ export type NotificationBreakdownRow = {
 // "Geopende e-mails: 100" zegt niks over welke e-mail dat was — dit
 // groepeert de individuele notificatie-rijen (één per ontvanger) per
 // titel+type, zodat per verzending (bv. een specifieke activiteit, of een
-// handmatig pushbericht) te zien is hoeveel er zijn verstuurd/geopend.
+// handmatig pushbericht) te zien is hoeveel er zijn verstuurd/geopend. Eén
+// gedeelde query voor beide kanalen — de Statistieken-pagina filtert 'm per
+// tabblad (E-mail/Push) i.p.v. twee keer dezelfde notifications/events op
+// te halen.
 export async function getNotificationBreakdown(): Promise<NotificationBreakdownRow[]> {
   return cachedQuery("statistieken-notificaties-breakdown", TTL_MS, async () => {
     const supabase = await createClient();
