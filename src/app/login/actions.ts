@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTemplatedEmail } from "@/lib/email/send";
+import { isEmailRateLimited } from "@/lib/auth/rate-limit";
 import { REMEMBERED_MAX_AGE, REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
 
 export type LoginState = { error?: string };
@@ -61,7 +62,7 @@ export async function signInWithMagicLinkAction(
   const redirectTo = String(formData.get("redirectTo") ?? "/");
   const rememberMe = formData.get("remember") === "on";
 
-  if (email) {
+  if (email && !(await isEmailRateLimited("magic_link_requested", email))) {
     try {
       // Zelfde patroon als wachtwoord-reset: generateLink maakt alleen de
       // token, geen Supabase-mail — zo blijft dit via ons eigen (door

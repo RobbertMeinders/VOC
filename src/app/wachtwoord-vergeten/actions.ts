@@ -2,6 +2,7 @@
 
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTemplatedEmail } from "@/lib/email/send";
+import { isEmailRateLimited } from "@/lib/auth/rate-limit";
 
 export type ForgotPasswordState = { submitted?: boolean };
 
@@ -11,7 +12,7 @@ export async function requestPasswordResetAction(
 ): Promise<ForgotPasswordState> {
   const email = String(formData.get("email") ?? "").trim();
 
-  if (email) {
+  if (email && !(await isEmailRateLimited("password_reset_requested", email))) {
     try {
       // We versturen deze mail zelf (met een eigen, door bestuur bewerkbaar
       // sjabloon) i.p.v. Supabase Auth's ingebouwde resetPasswordForEmail —
