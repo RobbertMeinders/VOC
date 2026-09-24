@@ -5,6 +5,7 @@ import { BackLink } from "@/components/ui/BackLink";
 import {
   getActivityStats,
   getCommunityStats,
+  getNotificationBreakdown,
   getNotificationStats,
   getOverviewStats,
 } from "@/lib/statistics/queries";
@@ -17,6 +18,24 @@ const TABS = [
   { key: "activiteiten", label: "Activiteiten" },
   { key: "notificaties", label: "Notificaties" },
 ] as const;
+
+// Voor leesbare labels in de per-melding-tabel — mirror van de types die de
+// trigger-functies in notifications.type zetten (zie bv. 0019/0023/0034).
+const NOTIFICATION_TYPE_LABELS: Record<string, string> = {
+  new_activity: "Nieuwe activiteit",
+  activity_reminder: "Activiteitherinnering",
+  waitlist_promoted: "Van wachtlijst geplaatst",
+  feed_comment: "Reactie",
+  feed_mention: "Vermelding",
+  new_member: "Nieuw lid",
+  company_membership_request: "Bedrijfskoppeling ter goedkeuring",
+  company_membership_decision: "Bedrijfskoppeling-besluit",
+  access_request: "Toegangsaanvraag",
+  activity_submission: "Activiteit ter goedkeuring",
+  activity_decision: "Activiteit-besluit",
+  feed_post_report: "Bericht gerapporteerd",
+  manual_broadcast: "Handmatig pushbericht",
+};
 
 type TabKey = (typeof TABS)[number]["key"];
 
@@ -54,20 +73,30 @@ async function CommunityTab() {
         <StatCard label="Likes" value={stats.totalLikes} />
         <StatCard label="Reacties" value={stats.totalComments} />
       </div>
-      <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
-        <h2 className="mb-2 text-sm font-semibold text-foreground">Meest bekeken berichten</h2>
-        {stats.topPosts.length === 0 ? (
-          <p className="text-sm text-muted">Nog geen bekeken berichten via een genoemde link.</p>
-        ) : (
-          <ul className="flex flex-col gap-2">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-border text-xs text-muted">
+              <th className="px-4 py-2 font-medium">Meest bekeken berichten</th>
+              <th className="px-4 py-2 text-center font-medium">Bekeken</th>
+            </tr>
+          </thead>
+          <tbody>
             {stats.topPosts.map((post) => (
-              <li key={post.id} className="flex items-center justify-between gap-3 text-sm">
-                <span className="truncate text-foreground">{post.excerpt}</span>
-                <span className="shrink-0 text-muted">{post.views}x</span>
-              </li>
+              <tr key={post.id} className="border-b border-border last:border-0">
+                <td className="max-w-md truncate px-4 py-2 text-foreground">{post.excerpt}</td>
+                <td className="px-4 py-2 text-center text-muted">{post.views}</td>
+              </tr>
             ))}
-          </ul>
-        )}
+            {stats.topPosts.length === 0 && (
+              <tr>
+                <td colSpan={2} className="px-4 py-6 text-center text-sm text-muted">
+                  Nog geen bekeken berichten via een genoemde link.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -87,37 +116,88 @@ async function ActiviteitenTab() {
           value={stats.viewToRegistrationPercentage === null ? "—" : `${stats.viewToRegistrationPercentage}%`}
         />
       </div>
-      <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
-        <h2 className="mb-2 text-sm font-semibold text-foreground">Meest bekeken activiteiten</h2>
-        {stats.topActivities.length === 0 ? (
-          <p className="text-sm text-muted">Nog geen bekeken activiteiten.</p>
-        ) : (
-          <ul className="flex flex-col gap-2">
+      <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-border text-xs text-muted">
+              <th className="px-4 py-2 font-medium">Meest bekeken activiteiten</th>
+              <th className="px-4 py-2 text-center font-medium">Bekeken</th>
+              <th className="px-4 py-2 text-center font-medium">Aangemeld</th>
+              <th className="px-4 py-2 text-center font-medium">Aanwezig</th>
+            </tr>
+          </thead>
+          <tbody>
             {stats.topActivities.map((activity) => (
-              <li key={activity.id} className="flex items-center justify-between gap-3 text-sm">
-                <span className="truncate text-foreground">{activity.title}</span>
-                <span className="shrink-0 text-muted">{activity.views}x</span>
-              </li>
+              <tr key={activity.id} className="border-b border-border last:border-0">
+                <td className="max-w-xs truncate px-4 py-2 text-foreground">{activity.title}</td>
+                <td className="px-4 py-2 text-center text-muted">{activity.views}</td>
+                <td className="px-4 py-2 text-center text-muted">{activity.registrations}</td>
+                <td className="px-4 py-2 text-center text-muted">{activity.attendees}</td>
+              </tr>
             ))}
-          </ul>
-        )}
+            {stats.topActivities.length === 0 && (
+              <tr>
+                <td colSpan={4} className="px-4 py-6 text-center text-sm text-muted">
+                  Nog geen bekeken activiteiten.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
 }
 
 async function NotificatiesTab() {
-  const stats = await getNotificationStats();
+  const [stats, breakdown] = await Promise.all([getNotificationStats(), getNotificationBreakdown()]);
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <StatCard label="Actieve pushabonnementen" value={stats.activePushSubscriptions} />
-      <StatCard label="Leden met push" value={`${stats.pushPercentage}%`} />
-      <StatCard label="Nieuwe abonnementen (30d)" value={stats.newPushSubscriptions} />
-      <StatCard label="Opgezegde abonnementen (30d)" value={stats.unsubscribedPushSubscriptions} />
-      <StatCard label="Verzonden pushmeldingen (30d)" value={stats.pushesSent} />
-      <StatCard label="Geopende pushmeldingen (30d)" value={stats.pushesOpened} />
-      <StatCard label="Verzonden e-mails (30d)" value={stats.emailsSent} />
-      <StatCard label="Geopende e-mails (30d)" value={stats.emailsOpened} />
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <StatCard label="Actieve pushabonnementen" value={stats.activePushSubscriptions} />
+        <StatCard label="Leden met push" value={`${stats.pushPercentage}%`} />
+        <StatCard label="Nieuwe abonnementen (30d)" value={stats.newPushSubscriptions} />
+        <StatCard label="Opgezegde abonnementen (30d)" value={stats.unsubscribedPushSubscriptions} />
+        <StatCard label="Verzonden pushmeldingen (30d)" value={stats.pushesSent} />
+        <StatCard label="Geopende pushmeldingen (30d)" value={stats.pushesOpened} />
+        <StatCard label="Verzonden e-mails (30d)" value={stats.emailsSent} />
+        <StatCard label="Geopende e-mails (30d)" value={stats.emailsOpened} />
+      </div>
+
+      <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-border text-xs text-muted">
+              <th className="px-4 py-2 font-medium">Per melding (laatste 30 dagen)</th>
+              <th className="px-4 py-2 text-center font-medium">Push verzonden</th>
+              <th className="px-4 py-2 text-center font-medium">Push geopend</th>
+              <th className="px-4 py-2 text-center font-medium">E-mail verzonden</th>
+              <th className="px-4 py-2 text-center font-medium">E-mail geopend</th>
+            </tr>
+          </thead>
+          <tbody>
+            {breakdown.map((row) => (
+              <tr key={row.key} className="border-b border-border last:border-0">
+                <td className="max-w-xs px-4 py-2">
+                  <p className="truncate text-foreground">{row.title}</p>
+                  <p className="text-xs text-muted">{NOTIFICATION_TYPE_LABELS[row.type] ?? row.type}</p>
+                </td>
+                <td className="px-4 py-2 text-center text-muted">{row.sentPush || "—"}</td>
+                <td className="px-4 py-2 text-center text-muted">{row.openedPush || "—"}</td>
+                <td className="px-4 py-2 text-center text-muted">{row.sentEmail || "—"}</td>
+                <td className="px-4 py-2 text-center text-muted">{row.openedEmail || "—"}</td>
+              </tr>
+            ))}
+            {breakdown.length === 0 && (
+              <tr>
+                <td colSpan={5} className="px-4 py-6 text-center text-sm text-muted">
+                  Nog geen notificaties in de laatste 30 dagen.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

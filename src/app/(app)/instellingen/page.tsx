@@ -72,37 +72,25 @@ export default async function InstellingenPage() {
         </SettingSubRow>
       </SettingGroup>
 
-      <SettingRow
-        label="Bijgewoonde evenementen tonen"
-        description={
-          <>
-            <p>Zichtbaar voor andere leden op je profiel.</p>
-            <p className="mt-0.5">
-              Let op: jijzelf en bestuur/beheer zien dit onderdeel altijd op je profiel, ongeacht deze instelling —
-              deze schakelaar verbergt het alleen voor overige leden.
-            </p>
-          </>
-        }
-      >
-        <AttendedActivitiesToggle initialVisible={data?.show_attended_activities ?? true} />
-      </SettingRow>
+      <SettingGroup label="Privacy" description="Zichtbaar voor andere leden op je profiel of de bedrijfspagina.">
+        <SettingSubRow label="E-mailadres tonen">
+          <ShowContactToggle field="email" initialVisible={profile.show_email} />
+        </SettingSubRow>
 
-      <SettingRow label="Telefoonnummer tonen" description="Zichtbaar voor andere leden op je profiel.">
-        <ShowContactToggle field="phone" initialVisible={profile.show_phone} />
-      </SettingRow>
+        <SettingSubRow label="Telefoonnummer tonen">
+          <ShowContactToggle field="phone" initialVisible={profile.show_phone} />
+        </SettingSubRow>
 
-      <SettingRow label="E-mailadres tonen" description="Zichtbaar voor andere leden op je profiel.">
-        <ShowContactToggle field="email" initialVisible={profile.show_email} />
-      </SettingRow>
+        <SettingSubRow label="Bijgewoonde evenementen tonen">
+          <AttendedActivitiesToggle initialVisible={data?.show_attended_activities ?? true} />
+        </SettingSubRow>
 
-      {company?.address && (
-        <SettingRow
-          label="Bezoekersadres bedrijf tonen"
-          description="Verbergt het adres van je bedrijf op de bedrijfspagina en op de kaart — handig als hier een privéadres staat."
-        >
-          <ShowAddressToggle companyId={company.id} initialVisible={company.show_address} />
-        </SettingRow>
-      )}
+        {company?.address && (
+          <SettingSubRow label="Bezoekersadres bedrijf tonen">
+            <ShowAddressToggle companyId={company.id} initialVisible={company.show_address} />
+          </SettingSubRow>
+        )}
+      </SettingGroup>
 
       <SettingRow
         label="Mijn gegevens downloaden"

@@ -24,30 +24,59 @@ export const metadata: Metadata = { title: "Beheer" };
 // een gemiste heartbeat door een korte netwerkhik of tabwissel.
 const ONLINE_WINDOW_MS = 5 * 60 * 1000;
 
-const CARDS = [
-  { href: "/beheer/uitnodigingen", label: "Uitnodigingen", icon: UserPlus, description: "Nodig nieuwe leden uit" },
+const SECTIONS = [
   {
-    href: "/beheer/leden-import",
-    label: "Leden importeren",
-    icon: Upload,
-    description: "Bestaande ledengegevens in bulk toevoegen",
+    title: "Leden & bedrijven",
+    cards: [
+      { href: "/beheer/uitnodigingen", label: "Uitnodigingen", icon: UserPlus, description: "Nodig nieuwe leden uit" },
+      {
+        href: "/beheer/leden-import",
+        label: "Leden importeren",
+        icon: Upload,
+        description: "Bestaande ledengegevens in bulk toevoegen",
+      },
+      { href: "/beheer/aanvragen", label: "Toegangsaanvragen", icon: Inbox, description: "Beoordeel aanvragen van buitenaf" },
+      { href: "/beheer/leden", label: "Leden", icon: Users, description: "Profielen, rollen, activeren/deactiveren" },
+      { href: "/beheer/bedrijven", label: "Bedrijven", icon: Building2, description: "Bedrijfsprofielen beheren" },
+    ],
   },
-  { href: "/beheer/aanvragen", label: "Toegangsaanvragen", icon: Inbox, description: "Beoordeel aanvragen van buitenaf" },
-  { href: "/beheer/rapportages", label: "Rapportages", icon: Flag, description: "Gerapporteerde berichten uit de feed" },
-  { href: "/beheer/leden", label: "Leden", icon: Users, description: "Profielen, rollen, activeren/deactiveren" },
-  { href: "/beheer/bedrijven", label: "Bedrijven", icon: Building2, description: "Bedrijfsprofielen beheren" },
-  { href: "/beheer/documenten", label: "Documenten", icon: FileText, description: "Uploaden en verwijderen" },
-  { href: "/beheer/agenda", label: "Activiteiten", icon: CalendarDays, description: "Agenda beheren" },
-];
-
-const COMMUNICATIE_CARDS = [
-  { href: "/beheer/notificaties", label: "Notificaties", icon: Bell, description: "Logboek van verzonden notificaties" },
-  { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail, description: "Inhoud van automatische mails/pushmeldingen" },
-  { href: "/beheer/pushbericht", label: "Handmatig pushbericht", icon: Send, description: "Stuur direct een pushbericht naar alle abonnees" },
-];
-
-const STATISTIEKEN_CARDS = [
-  { href: "/beheer/statistieken", label: "Statistieken", icon: BarChart3, description: "Leden, community, activiteiten en notificaties" },
+  {
+    title: "Content",
+    cards: [
+      { href: "/beheer/agenda", label: "Activiteiten", icon: CalendarDays, description: "Agenda beheren" },
+      { href: "/beheer/documenten", label: "Documenten", icon: FileText, description: "Uploaden en verwijderen" },
+      { href: "/beheer/rapportages", label: "Rapportages", icon: Flag, description: "Gerapporteerde berichten uit de feed" },
+    ],
+  },
+  {
+    title: "Communicatie",
+    cards: [
+      { href: "/beheer/notificaties", label: "Notificaties", icon: Bell, description: "Logboek van verzonden notificaties" },
+      {
+        href: "/beheer/email-templates",
+        label: "E-mailtemplates",
+        icon: Mail,
+        description: "Inhoud van automatische mails/pushmeldingen",
+      },
+      {
+        href: "/beheer/pushbericht",
+        label: "Handmatig pushbericht",
+        icon: Send,
+        description: "Stuur direct een pushbericht naar alle abonnees",
+      },
+    ],
+  },
+  {
+    title: "Statistieken",
+    cards: [
+      {
+        href: "/beheer/statistieken",
+        label: "Statistieken",
+        icon: BarChart3,
+        description: "Leden, community, activiteiten en notificaties",
+      },
+    ],
+  },
 ];
 
 export default async function BeheerPage() {
@@ -107,13 +136,12 @@ export default async function BeheerPage() {
         ))}
       </div>
 
-      <CardGrid cards={CARDS} />
-
-      <h2 className="mb-3 mt-8 text-sm font-semibold text-foreground">Communicatie</h2>
-      <CardGrid cards={COMMUNICATIE_CARDS} />
-
-      <h2 className="mb-3 mt-8 text-sm font-semibold text-foreground">Statistieken</h2>
-      <CardGrid cards={STATISTIEKEN_CARDS} />
+      {SECTIONS.map(({ title, cards }, i) => (
+        <div key={title} className={i > 0 ? "mt-8" : ""}>
+          <h2 className="mb-3 text-sm font-semibold text-foreground">{title}</h2>
+          <CardGrid cards={cards} />
+        </div>
+      ))}
     </div>
   );
 }

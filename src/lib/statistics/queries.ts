@@ -153,7 +153,7 @@ export type ActivityStats = {
   totalRegistrations: number;
   totalAttendees: number;
   viewToRegistrationPercentage: number | null;
-  topActivities: { id: string; title: string; views: number }[];
+  topActivities: { id: string; title: string; views: number; registrations: number; attendees: number }[];
 };
 
 export async function getActivityStats(): Promise<ActivityStats> {
@@ -174,12 +174,25 @@ export async function getActivityStats(): Promise<ActivityStats> {
 
     const uniqueViewers = countUniqueProfiles(viewEvents ?? []);
     const top = topViewedTargets(viewEvents ?? [], 5);
-    const { data: topActivityRows } =
-      top.length > 0 ? await supabase.from("activities").select("id, title").in("id", top.map((t) => t.id)) : { data: [] };
+    const topIds = top.map((t) => t.id);
+    const [{ data: topActivityRows }, { data: topRegistrationRows }] =
+      topIds.length > 0
+        ? await Promise.all([
+            supabase.from("activities").select("id, title").in("id", topIds),
+            supabase.from("activity_registrations").select("activity_id, attended").in("activity_id", topIds),
+          ])
+        : [{ data: [] }, { data: [] }];
 
     const topActivities = top.map(({ id, views }) => {
       const row = (topActivityRows ?? []).find((a) => a.id === id);
-      return { id, title: row?.title ?? "(verwijderde activiteit)", views };
+      const registrationRows = (topRegistrationRows ?? []).filter((r) => r.activity_id === id);
+      return {
+        id,
+        title: row?.title ?? "(verwijderde activiteit)",
+        views,
+        registrations: registrationRows.length,
+        attendees: registrationRows.filter((r) => r.attended).length,
+      };
     });
 
     return {
@@ -250,5 +263,67 @@ export async function getNotificationStats(): Promise<NotificationStats> {
       emailsSent: emailsSent ?? 0,
       emailsOpened: emailsOpened ?? 0,
     };
+  });
+}
+
+export type NotificationBreakdownRow = {
+  key: string;
+  title: string;
+  type: string;
+  sentPush: number;
+  openedPush: number;
+  sentEmail: number;
+  openedEmail: number;
+};
+
+// "Geopende e-mails: 100" zegt niks over welke e-mail dat was — dit
+// groepeert de individuele notificatie-rijen (één per ontvanger) per
+// titel+type, zodat per verzending (bv. een specifieke activiteit, of een
+// handmatig pushbericht) te zien is hoeveel er zijn verstuurd/geopend.
+export async function getNotificationBreakdown(): Promise<NotificationBreakdownRow[]> {
+  return cachedQuery("statistieken-notificaties-breakdown", TTL_MS, async () => {
+    const supabase = await createClient();
+    const since = windowStart();
+
+    const [{ data: notifications }, { data: openEvents }] = await Promise.all([
+      supabase
+        .from("notifications")
+        .select("id, type, title, pushed_at, emailed_at")
+        .gte("created_at", since)
+        .order("created_at", { ascending: false }),
+      supabase
+        .from("events")
+        .select("target_id, metadata")
+        .eq("event_type", "notification_opened")
+        .gte("created_at", since),
+    ]);
+
+    const openedPushIds = new Set<string>();
+    const openedEmailIds = new Set<string>();
+    for (const e of openEvents ?? []) {
+      if (!e.target_id) continue;
+      const channel = (e.metadata as { channel?: string } | null)?.channel;
+      if (channel === "push") openedPushIds.add(e.target_id);
+      if (channel === "email") openedEmailIds.add(e.target_id);
+    }
+
+    const byKey = new Map<string, NotificationBreakdownRow>();
+    for (const n of notifications ?? []) {
+      const key = `${n.type}::${n.title}`;
+      const row = byKey.get(key) ?? { key, title: n.title, type: n.type, sentPush: 0, openedPush: 0, sentEmail: 0, openedEmail: 0 };
+      if (n.pushed_at) {
+        row.sentPush += 1;
+        if (openedPushIds.has(n.id)) row.openedPush += 1;
+      }
+      if (n.emailed_at) {
+        row.sentEmail += 1;
+        if (openedEmailIds.has(n.id)) row.openedEmail += 1;
+      }
+      byKey.set(key, row);
+    }
+
+    return [...byKey.values()]
+      .sort((a, b) => b.sentPush + b.sentEmail - (a.sentPush + a.sentEmail))
+      .slice(0, 20);
   });
 }
