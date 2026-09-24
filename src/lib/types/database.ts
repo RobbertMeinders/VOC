@@ -157,6 +157,8 @@ export interface Database {
           status: ActivityStatus;
           external_registration_url: string | null;
           rejection_reason: string | null;
+          notify_push: boolean;
+          notify_email: boolean;
         };
         Insert: Partial<Database["public"]["Tables"]["activities"]["Row"]> & {
           title: string;
@@ -327,6 +329,8 @@ export interface Database {
           is_read: boolean;
           pushed_at: string | null;
           emailed_at: string | null;
+          channel_push_allowed: boolean;
+          channel_email_allowed: boolean;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["notifications"]["Row"]> & {

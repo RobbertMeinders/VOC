@@ -87,6 +87,8 @@ export function ActivityForm({
     initialSource ?? (activity?.source as "voc" | "lid") ?? (showTypePicker ? "voc" : "lid")
   );
   const [externalRegistration, setExternalRegistration] = useState(Boolean(activity?.external_registration_url));
+  const [notifyPush, setNotifyPush] = useState(activity?.notify_push ?? true);
+  const [notifyEmail, setNotifyEmail] = useState(activity?.notify_email ?? true);
 
   const [startsAt, setStartsAt] = useState(toLocalInputValue(activity?.starts_at ?? null));
   const [endTime, setEndTime] = useState(toLocalTimeValue(activity?.ends_at ?? null));
@@ -126,6 +128,38 @@ export function ActivityForm({
           {source === "lid" && (
             <p className="text-xs text-muted">Ingebracht volgt de gewone goedkeuringslogica, net als bij een lid.</p>
           )}
+        </div>
+      )}
+
+      {source === "voc" && (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-sm font-medium text-foreground">Notificatie bij publiceren</span>
+          <p className="text-xs text-muted">
+            Respecteert altijd de persoonlijke meldingsvoorkeuren van elk lid — dit bepaalt alleen of het kanaal
+            zelf openstaat.
+          </p>
+          <div className="flex gap-4">
+            <label className="flex items-center gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                name="notify_push"
+                checked={notifyPush}
+                onChange={(e) => setNotifyPush(e.target.checked)}
+                className="rounded"
+              />
+              Push versturen
+            </label>
+            <label className="flex items-center gap-2 text-sm text-foreground">
+              <input
+                type="checkbox"
+                name="notify_email"
+                checked={notifyEmail}
+                onChange={(e) => setNotifyEmail(e.target.checked)}
+                className="rounded"
+              />
+              E-mail versturen
+            </label>
+          </div>
         </div>
       )}
 

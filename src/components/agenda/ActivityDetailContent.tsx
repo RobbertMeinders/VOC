@@ -12,6 +12,7 @@ import { AttendeeList } from "@/components/agenda/AttendeeList";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { ActivityAttachmentRow } from "@/components/agenda/ActivityAttachmentRow";
 import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
+import { ApproveActivityForm } from "@/components/agenda/ApproveActivityForm";
 import { deleteActivityAction, decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
 import type { Database } from "@/lib/types/database";
 
@@ -248,14 +249,12 @@ export async function ActivityDetailContent({ id }: { id: string }) {
       {isBoard(profile.role) && activity.status === "pending" && (
         <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-surface p-4 shadow-sm">
           <p className="mr-auto text-sm text-muted">Deze activiteit wacht nog op een besluit.</p>
-          <form action={decideActivitySubmissionAction.bind(null, activity.id, "approved", undefined)}>
-            <button
-              type="submit"
-              className="rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
-            >
-              Goedkeuren
-            </button>
-          </form>
+          <ApproveActivityForm
+            onApprove={async (notifyPush, notifyEmail) => {
+              "use server";
+              await decideActivitySubmissionAction(activity.id, "approved", undefined, notifyPush, notifyEmail);
+            }}
+          />
           <RejectActivityForm
             onReject={async (reason) => {
               "use server";

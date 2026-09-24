@@ -90,6 +90,12 @@ function parseActivityForm(formData: FormData) {
   const maxParticipantsNumber = maxParticipantsRaw ? Number(maxParticipantsRaw) : NaN;
   const externalRegistrationChecked = formData.get("external_registration") === "on";
   const externalRegistrationUrl = String(formData.get("external_registration_url") ?? "").trim();
+  // Checkboxes staan alleen op het formulier als source === "voc" (zie
+  // ActivityForm) — afwezig (community-inzending) betekent gewoon het
+  // bestaande, altijd-aan gedrag; het bestuur bepaalt dit uiteindelijk toch
+  // opnieuw bij het goedkeuren (decideActivitySubmissionAction).
+  const notifyPush = formData.has("notify_push") ? formData.get("notify_push") === "on" : true;
+  const notifyEmail = formData.has("notify_email") ? formData.get("notify_email") === "on" : true;
 
   return {
     title,
@@ -100,6 +106,8 @@ function parseActivityForm(formData: FormData) {
     registration_deadline: parseIsoOrNull(deadlineRaw),
     max_participants: Number.isFinite(maxParticipantsNumber) && maxParticipantsNumber > 0 ? maxParticipantsNumber : null,
     external_registration_url: externalRegistrationChecked && externalRegistrationUrl ? externalRegistrationUrl : null,
+    notify_push: notifyPush,
+    notify_email: notifyEmail,
   };
 }
 
@@ -257,14 +265,23 @@ export async function deleteActivityAction(activityId: string, redirectAfter = t
 export async function decideActivitySubmissionAction(
   activityId: string,
   decision: "approved" | "rejected",
-  rejectionReason?: string
+  rejectionReason?: string,
+  notifyPush = true,
+  notifyEmail = true
 ) {
   await requireBoard();
   const supabase = await createClient();
 
   await supabase
     .from("activities")
-    .update({ status: decision, rejection_reason: decision === "rejected" ? (rejectionReason ?? null) : null })
+    .update({
+      status: decision,
+      rejection_reason: decision === "rejected" ? (rejectionReason ?? null) : null,
+      // Alleen relevant bij goedkeuren — dat is het moment waarop
+      // notify_activity_published (0019/0040) de new_activity-notificatie
+      // aanmaakt en deze kolommen naar de notificatie-rijen kopieert.
+      ...(decision === "approved" ? { notify_push: notifyPush, notify_email: notifyEmail } : {}),
+    })
     .eq("id", activityId);
 
   revalidatePath(`/agenda/${activityId}`);

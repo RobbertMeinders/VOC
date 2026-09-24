@@ -4,6 +4,7 @@ import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
+import { ApproveActivityForm } from "@/components/agenda/ApproveActivityForm";
 import { formatActivityDate } from "@/lib/format/date";
 import { deleteActivityAction, decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
 import type { Database } from "@/lib/types/database";
@@ -77,14 +78,13 @@ export async function BeheerAgendaContent() {
 
             {activity.status === "pending" && (
               <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
-                <form action={decideActivitySubmissionAction.bind(null, activity.id, "approved", undefined)}>
-                  <button
-                    type="submit"
-                    className="rounded-full bg-voc-red px-3 py-1.5 text-xs font-medium text-white hover:bg-voc-red-dark"
-                  >
-                    Goedkeuren
-                  </button>
-                </form>
+                <ApproveActivityForm
+                  size="xs"
+                  onApprove={async (notifyPush, notifyEmail) => {
+                    "use server";
+                    await decideActivitySubmissionAction(activity.id, "approved", undefined, notifyPush, notifyEmail);
+                  }}
+                />
                 <RejectActivityForm
                   onReject={async (reason) => {
                     "use server";
