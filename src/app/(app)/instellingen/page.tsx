@@ -9,6 +9,7 @@ import { ShowContactToggle } from "@/components/profile/ShowContactToggle";
 import { PushCategoryToggle } from "@/components/profile/PushCategoryToggle";
 import { ShowAddressToggle } from "@/components/company/ShowAddressToggle";
 import { SettingRow } from "@/components/ui/SettingRow";
+import { SettingGroup, SettingSubRow } from "@/components/ui/SettingGroup";
 
 export const metadata: Metadata = { title: "Instellingen" };
 
@@ -38,24 +39,26 @@ export default async function InstellingenPage() {
         <ThemeToggle />
       </SettingRow>
 
-      <SettingRow label="Pushmeldingen" description="Ontvang een melding op dit apparaat bij nieuwe activiteit.">
-        <PushToggle />
-      </SettingRow>
+      <SettingGroup label="Pushmeldingen" description="Ontvang een melding op dit apparaat. Per soort melding los aan of uit te zetten.">
+        <SettingSubRow label="Dit apparaat" description="Algemene aan/uit-schakelaar voor pushmeldingen op dit apparaat.">
+          <PushToggle />
+        </SettingSubRow>
 
-      <SettingRow
-        label="Activiteiten"
-        description="Nieuwe activiteiten, herinneringen en promotie van de wachtlijst."
-      >
-        <PushCategoryToggle category="activities" initialEnabled={profile.push_activities} />
-      </SettingRow>
+        <SettingSubRow
+          label="Activiteiten"
+          description="Nieuwe activiteiten (ook om je voor aan te melden), herinneringen en promotie van de wachtlijst."
+        >
+          <PushCategoryToggle category="activities" initialEnabled={profile.push_activities} />
+        </SettingSubRow>
 
-      <SettingRow label="Reacties en vermeldingen" description="Reacties op je berichten en @vermeldingen in de feed.">
-        <PushCategoryToggle category="feed" initialEnabled={profile.push_feed} />
-      </SettingRow>
+        <SettingSubRow label="Reacties en vermeldingen" description="Reacties op je berichten en @vermeldingen in de feed.">
+          <PushCategoryToggle category="feed" initialEnabled={profile.push_feed} />
+        </SettingSubRow>
 
-      <SettingRow label="Nieuwe leden" description="Melding zodra een nieuw lid zich aansluit.">
-        <PushCategoryToggle category="new_members" initialEnabled={profile.push_new_members} />
-      </SettingRow>
+        <SettingSubRow label="Nieuwe leden" description="Melding zodra een nieuw lid zich aansluit.">
+          <PushCategoryToggle category="new_members" initialEnabled={profile.push_new_members} />
+        </SettingSubRow>
+      </SettingGroup>
 
       <SettingRow
         label="Bijgewoonde evenementen tonen"
