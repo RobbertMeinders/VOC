@@ -25,6 +25,7 @@ export async function updateCompanyAction(
   const city = String(formData.get("city") ?? "").trim();
   const address = String(formData.get("address") ?? "").trim();
   const postalCode = String(formData.get("postal_code") ?? "").trim();
+  const showAddress = formData.get("show_address") === "on";
   const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const linkedinUrl = String(formData.get("linkedin_url") ?? "").trim();
@@ -79,6 +80,7 @@ export async function updateCompanyAction(
       city: city || null,
       address: address || null,
       postal_code: postalCode || null,
+      show_address: showAddress,
       phone: phone || null,
       email: email || null,
       linkedin_url: linkedinUrl || null,
@@ -102,6 +104,33 @@ export async function updateCompanyAction(
   invalidateQuery("beheer-bedrijven-page-data");
   revalidatePath(`/bedrijven/${companyId}`);
   return { success: true };
+}
+
+// Standalone tegenhanger van het schuifje in CompanyForm — dezelfde kolom,
+// maar los aan te zetten vanaf de instellingenpagina, dus permissie is
+// ruimer dan updateCompanyAction (dat volledige bedrijfsbeheer is,
+// bestuur/beheer-only): bestuur/beheer, of gewoon een lid van dit bedrijf
+// zelf — die kent het bezoekersadres het beste en is precies wie hier vaak
+// een privéadres heeft staan. companies_board_update (RLS) staat een gewoon
+// lid geen UPDATE op companies toe, dus dit gaat via de
+// set_company_show_address-RPC (0036_company_show_address.sql), die zijn
+// eigen (ruimere, maar tot deze ene kolom beperkte) autorisatiecheck doet.
+export async function updateCompanyShowAddressAction(companyId: string, visible: boolean): Promise<{ error?: string }> {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("set_company_show_address", {
+    p_company_id: companyId,
+    p_visible: visible,
+  });
+
+  if (error) {
+    return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
+  }
+  invalidateQuery("bedrijven-page-data");
+  revalidatePath(`/bedrijven/${companyId}`);
+  revalidatePath("/profiel");
+  return {};
 }
 
 // Alleen beheerder — RLS (companies_admin_delete) is de echte grens, dit is

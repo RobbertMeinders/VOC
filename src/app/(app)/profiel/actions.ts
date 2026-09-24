@@ -109,6 +109,37 @@ export async function updateAttendedActivitiesVisibilityAction(visible: boolean)
   return {};
 }
 
+// Standalone tegenhangers van de show_email/show_phone-schuifjes in
+// ProfileForm — dezelfde twee kolommen, zodat deze instelling ook los op de
+// instellingenpagina staat i.p.v. alleen via het volledige profielformulier.
+export async function updateShowPhoneAction(visible: boolean): Promise<{ error?: string }> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("profiles").update({ show_phone: visible }).eq("id", profile.id);
+
+  if (error) {
+    return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
+  }
+  revalidatePath(`/leden/${profile.id}`);
+  revalidatePath("/profiel");
+  return {};
+}
+
+export async function updateShowEmailAction(visible: boolean): Promise<{ error?: string }> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("profiles").update({ show_email: visible }).eq("id", profile.id);
+
+  if (error) {
+    return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
+  }
+  revalidatePath(`/leden/${profile.id}`);
+  revalidatePath("/profiel");
+  return {};
+}
+
 export async function unsubscribeFromPushAction(endpoint: string): Promise<void> {
   const profile = await requireProfile();
   const supabase = await createClient();

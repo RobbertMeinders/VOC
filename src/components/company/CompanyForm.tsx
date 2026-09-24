@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Switch } from "@/components/ui/Switch";
 import { CompanyLogo } from "./CompanyLogo";
 import { updateCompanyAction, type UpdateCompanyState } from "@/app/(app)/bedrijven/[id]/actions";
 import { compressInputFile } from "@/lib/image/compress";
@@ -35,6 +36,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
   // de keuze zo meteen na het opslaan terug naar "Kies een branche", en een
   // tweede keer opslaan wiste de zojuist opgeslagen branche dus weer.
   const [industry, setIndustry] = useState(company.industry ?? "");
+  const [showAddress, setShowAddress] = useState(company.show_address);
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -189,6 +191,16 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           </label>
           <Input id="postal_code" name="postal_code" defaultValue={company.postal_code ?? ""} placeholder="9640 AB" />
         </div>
+      </div>
+      <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3 py-2.5">
+        <div>
+          <p className="text-sm font-medium text-foreground">Bezoekersadres tonen</p>
+          <p className="text-xs text-muted">
+            Uitzetten verbergt het adres op de bedrijfspagina en op de kaart — handig als hier een privéadres staat.
+          </p>
+        </div>
+        <input type="hidden" name="show_address" value={showAddress ? "on" : ""} />
+        <Switch checked={showAddress} onChange={() => setShowAddress((v) => !v)} label="Bezoekersadres tonen" />
       </div>
 
       <div className="grid grid-cols-2 gap-4">

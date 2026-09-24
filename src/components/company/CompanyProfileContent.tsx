@@ -96,7 +96,7 @@ export async function CompanyProfileContent({ id }: { id: string }) {
         <CompanyMemberList members={members} />
       </div>
 
-      {company.latitude !== null && company.longitude !== null && (
+      {company.show_address && company.latitude !== null && company.longitude !== null && (
         <CompanyLocationMap
           company={{
             id: company.id,

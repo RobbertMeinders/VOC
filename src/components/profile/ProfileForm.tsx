@@ -6,6 +6,7 @@ import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
+import { Switch } from "@/components/ui/Switch";
 import { updateProfileAction, type UpdateProfileState } from "@/app/(app)/profiel/actions";
 import { compressInputFile } from "@/lib/image/compress";
 import type { Profile } from "@/lib/auth/session";
@@ -32,6 +33,8 @@ export function ProfileForm({
 }) {
   const [state, formAction] = useActionState(action, initialState);
   const [preview, setPreview] = useState<string | null>(null);
+  const [showPhone, setShowPhone] = useState(profile.show_phone);
+  const [showEmail, setShowEmail] = useState(profile.show_email);
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -106,19 +109,21 @@ export function ProfileForm({
           Telefoonnummer
         </label>
         <Input id="phone" name="phone" type="tel" defaultValue={profile.phone ?? ""} />
-        <label className="flex items-center gap-1.5 text-xs text-muted">
-          <input type="checkbox" name="show_phone" defaultChecked={profile.show_phone} className="rounded" />
-          Zichtbaar voor andere leden
-        </label>
+        <div className="flex items-center gap-2">
+          <input type="hidden" name="show_phone" value={showPhone ? "on" : ""} />
+          <Switch checked={showPhone} onChange={() => setShowPhone((v) => !v)} label="Telefoonnummer zichtbaar voor andere leden" />
+          <span className="text-xs text-muted">Zichtbaar voor andere leden</span>
+        </div>
       </div>
 
       <div className="flex flex-col gap-1.5">
         <span className="text-sm font-medium text-foreground">E-mailadres</span>
         <p className="text-sm text-muted">{profile.email}</p>
-        <label className="flex items-center gap-1.5 text-xs text-muted">
-          <input type="checkbox" name="show_email" defaultChecked={profile.show_email} className="rounded" />
-          Zichtbaar voor andere leden
-        </label>
+        <div className="flex items-center gap-2">
+          <input type="hidden" name="show_email" value={showEmail ? "on" : ""} />
+          <Switch checked={showEmail} onChange={() => setShowEmail((v) => !v)} label="E-mailadres zichtbaar voor andere leden" />
+          <span className="text-xs text-muted">Zichtbaar voor andere leden</span>
+        </div>
       </div>
 
       <div className="flex flex-col gap-1.5">

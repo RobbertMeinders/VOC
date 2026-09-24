@@ -33,8 +33,9 @@ export function CompanyHeader({
             )}
             <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
               {/* Plaatsnaam staat al achter het volledige adres verderop —
-                  alleen hier tonen als er geen adres is, anders dubbelop. */}
-              {company.city && !company.address && (
+                  alleen hier tonen als er geen (zichtbaar) adres is, anders
+                  dubbelop. */}
+              {company.city && (!company.address || !company.show_address) && (
                 <span className="flex items-center gap-1">
                   <MapPin size={14} />
                   {company.city}
@@ -84,9 +85,14 @@ export function CompanyHeader({
           collapseLabel="Minder weergeven"
         />
       )}
-      {(company.address || company.phone || company.email || company.linkedin_url || company.instagram_url || company.facebook_url) && (
+      {((company.address && company.show_address) ||
+        company.phone ||
+        company.email ||
+        company.linkedin_url ||
+        company.instagram_url ||
+        company.facebook_url) && (
         <div className="mt-4 flex flex-col gap-1.5 border-t border-border pt-4 text-sm text-muted">
-          {company.address && (
+          {company.address && company.show_address && (
             <p className="flex items-start gap-1">
               <MapPin size={14} className="mt-0.5 shrink-0" />
               <span>
@@ -109,7 +115,9 @@ export function CompanyHeader({
             </a>
           )}
           {(company.linkedin_url || company.instagram_url || company.facebook_url) &&
-            (company.address || company.phone || company.email) && <div className="my-1 border-t border-border" />}
+            ((company.address && company.show_address) || company.phone || company.email) && (
+              <div className="my-1 border-t border-border" />
+            )}
           <EntitySocialLinks
             variant="compact"
             linkedinUrl={company.linkedin_url}

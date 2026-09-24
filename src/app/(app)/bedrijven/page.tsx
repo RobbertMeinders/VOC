@@ -22,7 +22,10 @@ export default async function BedrijvenPage({
   // kent geen per-gebruiker variatie), dus dit resultaat delen tussen
   // leden/requests is veilig.
   const { data: companies } = await cachedQuery("bedrijven-page-data", 60_000, () =>
-    supabase.from("companies").select("id, name, industry, city, logo_url, tagline, latitude, longitude").order("name")
+    supabase
+      .from("companies")
+      .select("id, name, industry, city, logo_url, tagline, latitude, longitude, show_address")
+      .order("name")
   );
 
   const branches = Array.from(
@@ -50,8 +53,9 @@ export default async function BedrijvenPage({
     city: c.city,
     logoUrl: c.logo_url ? (logoUrls.get(c.logo_url) ?? null) : null,
     tagline: c.tagline,
-    latitude: c.latitude,
-    longitude: c.longitude,
+    // Verborgen adres betekent ook geen marker op de kaart.
+    latitude: c.show_address ? c.latitude : null,
+    longitude: c.show_address ? c.longitude : null,
   }));
 
   return (

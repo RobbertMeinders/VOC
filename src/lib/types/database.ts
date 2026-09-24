@@ -58,6 +58,7 @@ export interface Database {
           city: string | null;
           address: string | null;
           postal_code: string | null;
+          show_address: boolean;
           phone: string | null;
           email: string | null;
           latitude: number | null;
@@ -402,6 +403,10 @@ export interface Database {
       search_companies_for_signup: {
         Args: { p_query: string };
         Returns: { id: string; name: string; city: string | null }[];
+      };
+      set_company_show_address: {
+        Args: { p_company_id: string; p_visible: boolean };
+        Returns: void;
       };
       has_any_profiles: {
         Args: Record<string, never>;
