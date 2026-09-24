@@ -72,12 +72,12 @@ export default async function InstellingenPage() {
         <AttendedActivitiesToggle initialVisible={data?.show_attended_activities ?? true} />
       </SettingRow>
 
-      <SettingRow label="E-mailadres tonen" description="Zichtbaar voor andere leden op je profiel.">
-        <ShowContactToggle field="email" initialVisible={profile.show_email} />
-      </SettingRow>
-
       <SettingRow label="Telefoonnummer tonen" description="Zichtbaar voor andere leden op je profiel.">
         <ShowContactToggle field="phone" initialVisible={profile.show_phone} />
+      </SettingRow>
+
+      <SettingRow label="E-mailadres tonen" description="Zichtbaar voor andere leden op je profiel.">
+        <ShowContactToggle field="email" initialVisible={profile.show_email} />
       </SettingRow>
 
       {company?.address && (
