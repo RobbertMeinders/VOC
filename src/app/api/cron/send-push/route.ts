@@ -1,6 +1,18 @@
 import { NextResponse } from "next/server";
 import webpush from "web-push";
 import { createClient } from "@/lib/supabase/server";
+import { renderTemplate } from "@/lib/template/render";
+
+// Notificatietypes met een beheerbaar push_templates-record (0039_
+// notification_templates.sql) — mirror van NOTIFICATION_EMAIL_TEMPLATE_KEYS
+// (src/lib/email/send.ts). Overige types gaan altijd met de rauwe
+// titel/body van de notificatie zelf.
+const NOTIFICATION_PUSH_TEMPLATE_KEYS: Record<string, string> = {
+  new_activity: "nieuwe_activiteit",
+  new_member: "nieuw_lid",
+  feed_comment: "feed_reactie",
+  feed_mention: "feed_vermelding",
+};
 
 // Hit periodically by Vercel Cron (see vercel.json) — actually delivering a
 // web push means calling the push service's HTTP endpoint, which can't be
@@ -27,12 +39,31 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
+  // Templates per type hergebruiken i.p.v. voor elke pending notificatie
+  // opnieuw op te zoeken — meerdere pending rijen delen vaak hetzelfde type.
+  const templateCache = new Map<string, { title: string; body: string } | null>();
+  async function renderPushContent(item: { type: string; title: string; body: string | null }) {
+    const templateKey = NOTIFICATION_PUSH_TEMPLATE_KEYS[item.type];
+    if (!templateKey) return { title: item.title, body: item.body ?? "" };
+
+    if (!templateCache.has(templateKey)) {
+      const { data } = await supabase.rpc("get_push_template", { p_key: templateKey });
+      templateCache.set(templateKey, data?.[0] ?? null);
+    }
+    const template = templateCache.get(templateKey);
+    if (!template) return { title: item.title, body: item.body ?? "" };
+
+    const variables = { title: item.title, body: item.body ?? "" };
+    return { title: renderTemplate(template.title, variables), body: renderTemplate(template.body, variables) };
+  }
+
   const pushedIds: string[] = [];
   for (const item of pending ?? []) {
     try {
+      const content = await renderPushContent(item);
       await webpush.sendNotification(
         { endpoint: item.endpoint, keys: { p256dh: item.p256dh, auth: item.auth } },
-        JSON.stringify({ title: item.title, body: item.body, link: item.link })
+        JSON.stringify({ title: content.title, body: content.body, link: item.link })
       );
     } catch (cause) {
       const statusCode = (cause as { statusCode?: number }).statusCode;

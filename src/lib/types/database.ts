@@ -391,6 +391,23 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["email_templates"]["Row"]>;
         Relationships: [];
       };
+      push_templates: {
+        Row: {
+          key: string;
+          title: string;
+          body: string;
+          description: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["push_templates"]["Row"]> & {
+          key: string;
+          title: string;
+          body: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["push_templates"]["Row"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -441,6 +458,7 @@ export interface Database {
         Args: { p_limit?: number };
         Returns: {
           notification_id: string;
+          type: string;
           title: string;
           body: string | null;
           link: string | null;
@@ -471,6 +489,10 @@ export interface Database {
       get_email_template: {
         Args: { p_key: string };
         Returns: { subject: string; body_html: string }[];
+      };
+      get_push_template: {
+        Args: { p_key: string };
+        Returns: { title: string; body: string }[];
       };
     };
     Enums: {

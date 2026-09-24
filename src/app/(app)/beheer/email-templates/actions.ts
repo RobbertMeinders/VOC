@@ -33,3 +33,35 @@ export async function updateEmailTemplateAction(
   revalidatePath("/beheer/email-templates");
   return { success: true };
 }
+
+export type UpdatePushTemplateState = { error?: string; success?: boolean };
+
+// Mirror van updateEmailTemplateAction, voor push_templates i.p.v.
+// email_templates (0039_notification_templates.sql).
+export async function updatePushTemplateAction(
+  key: string,
+  _prevState: UpdatePushTemplateState,
+  formData: FormData
+): Promise<UpdatePushTemplateState> {
+  const profile = await requireBoard();
+
+  const title = String(formData.get("title") ?? "").trim();
+  const body = String(formData.get("body") ?? "").trim();
+
+  if (!title || !body) {
+    return { error: "Titel en bericht zijn verplicht." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("push_templates")
+    .update({ title, body, updated_by: profile.id })
+    .eq("key", key);
+
+  if (error) {
+    return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+  }
+
+  revalidatePath("/beheer/email-templates");
+  return { success: true };
+}

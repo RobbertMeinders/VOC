@@ -21,7 +21,7 @@ export async function GET(request: Request) {
 
   const emailedIds: string[] = [];
   for (const item of pending ?? []) {
-    await sendNotificationEmail(item.email, { title: item.title, body: item.body, link: item.link });
+    await sendNotificationEmail(item.email, { type: item.type, title: item.title, body: item.body, link: item.link });
     emailedIds.push(item.notification_id);
   }
 
