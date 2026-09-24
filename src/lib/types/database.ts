@@ -331,6 +331,7 @@ export interface Database {
           emailed_at: string | null;
           channel_push_allowed: boolean;
           channel_email_allowed: boolean;
+          email_provider_id: string | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["notifications"]["Row"]> & {
@@ -533,6 +534,14 @@ export interface Database {
       };
       log_push_unsubscribed: {
         Args: { p_endpoint: string; p_profile_id?: string | null };
+        Returns: undefined;
+      };
+      set_notification_email_provider_id: {
+        Args: { p_notification_id: string; p_provider_id: string };
+        Returns: undefined;
+      };
+      log_email_opened: {
+        Args: { p_provider_id: string };
         Returns: undefined;
       };
     };

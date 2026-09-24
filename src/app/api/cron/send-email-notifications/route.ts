@@ -21,7 +21,20 @@ export async function GET(request: Request) {
 
   const emailedIds: string[] = [];
   for (const item of pending ?? []) {
-    await sendNotificationEmail(item.email, { type: item.type, title: item.title, body: item.body, link: item.link });
+    const result = await sendNotificationEmail(item.email, {
+      type: item.type,
+      title: item.title,
+      body: item.body,
+      link: item.link,
+    });
+    if (result.providerId) {
+      // Resend's eigen send-id, nodig om een latere open-webhook
+      // (/api/webhooks/resend, Fase F) aan deze rij te koppelen.
+      await supabase.rpc("set_notification_email_provider_id", {
+        p_notification_id: item.notification_id,
+        p_provider_id: result.providerId,
+      });
+    }
     emailedIds.push(item.notification_id);
   }
 

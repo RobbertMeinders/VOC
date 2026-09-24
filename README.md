@@ -95,6 +95,10 @@ Benodigde environment variables (zie `.env.local.example`):
 - `SITE_URL` — basis-URL zonder trailing slash, gebruikt om links in de mails op te bouwen.
 - `SUPABASE_SERVICE_ROLE_KEY` — nodig voor `auth.admin.generateLink()` (genereert alleen de
   reset-token, zonder dat Supabase zelf een mail verstuurt); server-only, nooit in clientcode.
+- `RESEND_WEBHOOK_SECRET` — optioneel, voor "geopende e-mails" in Statistieken > Notificaties.
+  Zet Open Tracking + een webhook naar `/api/webhooks/resend` aan in het Resend-dashboard (zie
+  `.env.local.example`); de handtekening wordt geverifieerd volgens Svix' schema (Resends eigen
+  webhook-provider), zonder losse dependency.
 
 Verstuurt de e-mail niet (ontbrekende/foutieve Resend-configuratie), dan blijft de rest van de flow
 werken: een uitnodiging is nog steeds aangemaakt en de link nog steeds handmatig te kopiëren en

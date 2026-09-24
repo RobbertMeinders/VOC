@@ -20,7 +20,9 @@ export const config = {
      *   notificationclick, which never carries a Supabase session cookie
      *   either; the route itself derives the profile from the
      *   notification id server-side, so no auth is needed or expected here.
+     * - api/webhooks/* — hit by external services (Resend) with their own
+     *   signature-based auth (Svix), never a Supabase session cookie.
      */
-    "/((?!_next/static|_next/image|manifest.webmanifest|sw.js|api/cron|api/notifications/click|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)",
+    "/((?!_next/static|_next/image|manifest.webmanifest|sw.js|api/cron|api/notifications/click|api/webhooks|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)",
   ],
 };

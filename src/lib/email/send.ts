@@ -26,7 +26,7 @@ export async function sendTemplatedEmail(
   templateKey: string,
   to: string,
   variables: Record<string, string>
-): Promise<{ error?: string }> {
+): Promise<{ error?: string; providerId?: string }> {
   const supabase = await createClient();
   const { data: templates, error: templateError } = await supabase.rpc("get_email_template", {
     p_key: templateKey,
@@ -48,13 +48,12 @@ export async function sendTemplatedEmail(
   const html = renderTemplate(template.body_html, variables);
 
   try {
-    const { error } = await resend.emails.send({ from, to, subject, html });
+    const { data, error } = await resend.emails.send({ from, to, subject, html });
     if (error) return { error: "Versturen van de e-mail is niet gelukt." };
+    return { providerId: data?.id };
   } catch {
     return { error: "Versturen van de e-mail is niet gelukt." };
   }
-
-  return {};
 }
 
 // Kale e-mail rechtstreeks via Resend, zonder board-beheerde content —
@@ -65,7 +64,7 @@ async function sendRawNotificationEmail(
   title: string,
   body: string | null,
   linkUrl: string
-): Promise<{ error?: string }> {
+): Promise<{ error?: string; providerId?: string }> {
   const apiKey = process.env.RESEND_API_KEY;
   const from = process.env.EMAIL_FROM;
   if (!apiKey || !from) {
@@ -77,13 +76,12 @@ async function sendRawNotificationEmail(
 
   const resend = new Resend(apiKey);
   try {
-    const { error } = await resend.emails.send({ from, to, subject: title, html });
+    const { data, error } = await resend.emails.send({ from, to, subject: title, html });
     if (error) return { error: "Versturen van de e-mail is niet gelukt." };
+    return { providerId: data?.id };
   } catch {
     return { error: "Versturen van de e-mail is niet gelukt." };
   }
-
-  return {};
 }
 
 /**
@@ -93,12 +91,15 @@ async function sendRawNotificationEmail(
  * NOTIFICATION_EMAIL_TEMPLATE_KEYS) als dat bestaat, anders een kale mail
  * met de rauwe titel/body — zodat notificatietypes zonder eigen template
  * (moderatie, de uitkomst van je eigen aanvraag/inzending, …) gewoon
- * blijven werken.
+ * blijven werken. De geretourneerde providerId (Resend's eigen send-id)
+ * wordt door de cron opgeslagen op de notificatie-rij, zodat een latere
+ * open-webhook (Fase F, /api/webhooks/resend) 'm aan de juiste rij kan
+ * koppelen.
  */
 export async function sendNotificationEmail(
   to: string,
   notification: { type: string; title: string; body: string | null; link: string | null }
-): Promise<{ error?: string }> {
+): Promise<{ error?: string; providerId?: string }> {
   const siteUrl = process.env.SITE_URL ?? "";
   const linkUrl = notification.link ? `${siteUrl}${notification.link}` : "";
 
