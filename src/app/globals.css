@@ -29,6 +29,12 @@
   --voc-red: #e8000f;
   --voc-red-dark: #b8000c;
   --voc-red-light: #fdeaec;
+
+  /* Tweede serie in grafieken met 2 reeksen (Statistieken) — nooit gebruikt
+     als losse merkkleur, alleen als begeleiding naast --voc-red. Gevalideerd
+     tegen --voc-red met dataviz-skill's validate_palette.js (CVD-veilig,
+     zelfde waarde werkt voor licht én donker). */
+  --chart-secondary: #3b82f6;
 }
 
 @theme inline {
@@ -41,6 +47,7 @@
   --color-voc-red: var(--voc-red);
   --color-voc-red-dark: var(--voc-red-dark);
   --color-voc-red-light: var(--voc-red-light);
+  --color-chart-secondary: var(--chart-secondary);
 
   --font-sans: var(--font-inter);
 }

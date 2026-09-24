@@ -7,14 +7,69 @@ import { cachedQuery } from "@/lib/cache/queryCache";
 // — de cijfers zijn voor elk bestuurslid identiek, dus delen tussen viewers
 // is veilig (zie cachedQuery's eigen uitleg in queryCache.ts).
 const TTL_MS = 60_000;
-const WINDOW_DAYS = 30;
 
-function windowStart(): string {
-  return new Date(Date.now() - WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString();
+export type StatsPeriod = "7d" | "30d" | "3m" | "12m" | "all";
+
+const PERIOD_DAYS: Record<Exclude<StatsPeriod, "all">, number> = {
+  "7d": 7,
+  "30d": 30,
+  "3m": 90,
+  "12m": 365,
+};
+
+export function periodStart(period: StatsPeriod): string | null {
+  if (period === "all") return null;
+  return new Date(Date.now() - PERIOD_DAYS[period] * 24 * 60 * 60 * 1000).toISOString();
 }
 
 function countUniqueProfiles(rows: { profile_id: string | null }[]): number {
   return new Set(rows.map((r) => r.profile_id).filter((id): id is string => id !== null)).size;
+}
+
+// ---------------------------------------------------------------------------
+// Maandelijkse bucketing — gedeeld door alle trendgrafieken. Puur in JS op al
+// opgehaalde rijen (geen aparte group-by-queries nodig).
+// ---------------------------------------------------------------------------
+
+export type MonthlyPoint = { month: string; label: string; value: number };
+
+function monthKey(iso: string): string {
+  return iso.slice(0, 7); // "YYYY-MM"
+}
+
+function monthLabel(key: string): string {
+  const [y, m] = key.split("-").map(Number);
+  return new Date(y, m - 1, 1).toLocaleDateString("nl-NL", { month: "short", year: "2-digit" });
+}
+
+function monthKeysBetween(start: Date, end: Date): string[] {
+  const keys: string[] = [];
+  const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+  const last = new Date(end.getFullYear(), end.getMonth(), 1);
+  while (cursor <= last) {
+    keys.push(`${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, "0")}`);
+    cursor.setMonth(cursor.getMonth() + 1);
+  }
+  return keys;
+}
+
+function countsByMonth(dates: string[], months: string[]): number[] {
+  const counts = new Map(months.map((m) => [m, 0]));
+  for (const d of dates) {
+    const key = monthKey(d);
+    if (counts.has(key)) counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return months.map((m) => counts.get(m) ?? 0);
+}
+
+function uniqueCountsByMonth(rows: { created_at: string; profile_id: string | null }[], months: string[]): number[] {
+  const sets = new Map(months.map((m) => [m, new Set<string>()]));
+  for (const r of rows) {
+    if (!r.profile_id) continue;
+    const set = sets.get(monthKey(r.created_at));
+    set?.add(r.profile_id);
+  }
+  return months.map((m) => sets.get(m)?.size ?? 0);
 }
 
 // push_subscriptions_self_select (0001_init.sql) is eigenaar-only — een
@@ -32,23 +87,9 @@ async function getAllPushSubscriptions(
   });
 }
 
-// Groepeert view-events per target_id (aantal + unieke kijkers) en geeft de
-// top N terug — gebruikt door zowel Community als Activiteiten voor "meest
-// bekeken".
-function topViewedTargets(
-  events: { profile_id: string | null; target_id: string | null }[],
-  limit: number
-): { id: string; views: number }[] {
-  const counts = new Map<string, number>();
-  for (const e of events) {
-    if (!e.target_id) continue;
-    counts.set(e.target_id, (counts.get(e.target_id) ?? 0) + 1);
-  }
-  return [...counts.entries()]
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, limit)
-    .map(([id, views]) => ({ id, views }));
-}
+// ---------------------------------------------------------------------------
+// Overzicht
+// ---------------------------------------------------------------------------
 
 export type OverviewStats = {
   totalMembers: number;
@@ -58,12 +99,14 @@ export type OverviewStats = {
   newMembers: number;
   newCompanies: number;
   upcomingActivities: number;
+  memberGrowth: MonthlyPoint[];
+  newMembersPerMonth: MonthlyPoint[];
 };
 
-export async function getOverviewStats(): Promise<OverviewStats> {
-  return cachedQuery("statistieken-overzicht", TTL_MS, async () => {
+export async function getOverviewStats(period: StatsPeriod): Promise<OverviewStats> {
+  return cachedQuery(`statistieken-overzicht-${period}`, TTL_MS, async () => {
     const supabase = await createClient();
-    const since = windowStart();
+    const since = periodStart(period);
 
     const [
       { count: totalMembers },
@@ -71,81 +114,192 @@ export async function getOverviewStats(): Promise<OverviewStats> {
       { count: newMembers },
       { count: newCompanies },
       { count: upcomingActivities },
-      pushProfileIds,
+      pushSubscriptions,
+      { data: allProfileDates },
     ] = await Promise.all([
       supabase.from("profiles").select("id", { count: "exact", head: true }),
       supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
-      supabase.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since),
-      supabase.from("companies").select("id", { count: "exact", head: true }).gte("created_at", since),
+      since
+        ? supabase.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", since)
+        : supabase.from("profiles").select("id", { count: "exact", head: true }),
+      since
+        ? supabase.from("companies").select("id", { count: "exact", head: true }).gte("created_at", since)
+        : supabase.from("companies").select("id", { count: "exact", head: true }),
       supabase
         .from("activities")
         .select("id", { count: "exact", head: true })
         .eq("status", "approved")
         .gte("starts_at", new Date().toISOString()),
       getAllPushSubscriptions(supabase),
+      supabase.from("profiles").select("created_at").order("created_at", { ascending: true }),
     ]);
 
-    const uniquePushMembers = new Set(pushProfileIds.map((s) => s.profile_id)).size;
+    const uniquePushMembers = new Set(pushSubscriptions.map((s) => s.profile_id)).size;
+
+    // Groei-curve: altijd de volledige geschiedenis gebruiken om de
+    // cumulatieve basis kloppend te houden, en pas daarna inkorten tot de
+    // gekozen periode — anders zou "laatste 30 dagen" een curve tonen die
+    // bij 0 begint i.p.v. bij het echte ledenaantal van toen.
+    const profileDates = (allProfileDates ?? []).map((r) => r.created_at);
+    let memberGrowth: MonthlyPoint[] = [];
+    let newMembersPerMonth: MonthlyPoint[] = [];
+    if (profileDates.length > 0) {
+      const allMonths = monthKeysBetween(new Date(profileDates[0]), new Date());
+      const newPerMonth = countsByMonth(profileDates, allMonths);
+      let running = 0;
+      const cumulative = newPerMonth.map((c) => (running += c));
+      const sinceMonth = since ? monthKey(since) : allMonths[0];
+      const startIdx = Math.max(
+        0,
+        allMonths.findIndex((m) => m >= sinceMonth)
+      );
+      memberGrowth = allMonths
+        .slice(startIdx)
+        .map((m, i) => ({ month: m, label: monthLabel(m), value: cumulative[startIdx + i] }));
+      newMembersPerMonth = allMonths
+        .slice(startIdx)
+        .map((m, i) => ({ month: m, label: monthLabel(m), value: newPerMonth[startIdx + i] }));
+    }
 
     return {
       totalMembers: totalMembers ?? 0,
       activeMembers: activeMembers ?? 0,
-      activePushSubscriptions: pushProfileIds.length,
+      activePushSubscriptions: pushSubscriptions.length,
       pushPercentage: activeMembers ? Math.round((uniquePushMembers / activeMembers) * 100) : 0,
       newMembers: newMembers ?? 0,
       newCompanies: newCompanies ?? 0,
       upcomingActivities: upcomingActivities ?? 0,
+      memberGrowth,
+      newMembersPerMonth,
     };
   });
 }
+
+// ---------------------------------------------------------------------------
+// Community
+// ---------------------------------------------------------------------------
+
+export type PostBreakdownRow = {
+  id: string;
+  excerpt: string;
+  uniqueViews: number;
+  totalViews: number;
+  likes: number;
+  comments: number;
+};
 
 export type CommunityStats = {
   totalPosts: number;
   uniqueViewers: number;
   totalLikes: number;
   totalComments: number;
-  topPosts: { id: string; excerpt: string; views: number }[];
+  posts: PostBreakdownRow[];
+  postsAndCommentsPerMonth: { month: string; label: string; posts: number; comments: number }[];
+  viewsPerMonth: MonthlyPoint[];
 };
 
-export async function getCommunityStats(): Promise<CommunityStats> {
-  return cachedQuery("statistieken-community", TTL_MS, async () => {
+export async function getCommunityStats(period: StatsPeriod): Promise<CommunityStats> {
+  return cachedQuery(`statistieken-community-${period}`, TTL_MS, async () => {
     const supabase = await createClient();
+    const since = periodStart(period);
 
     const [
-      { count: totalPosts },
-      { count: postLikes },
-      { count: commentLikes },
-      { count: totalComments },
-      { data: viewEvents },
+      { data: allPosts },
+      { data: allLikes },
+      { data: allCommentLikes },
+      { data: allComments },
+      { data: allViewEvents },
     ] = await Promise.all([
-      supabase.from("feed_posts").select("id", { count: "exact", head: true }),
-      supabase.from("feed_likes").select("id", { count: "exact", head: true }),
+      supabase.from("feed_posts").select("id, content, created_at").order("created_at", { ascending: false }),
+      supabase.from("feed_likes").select("post_id"),
       supabase.from("feed_comment_likes").select("id", { count: "exact", head: true }),
-      supabase.from("feed_comments").select("id", { count: "exact", head: true }),
-      supabase.from("events").select("profile_id, target_id").eq("event_type", "post_viewed"),
+      supabase.from("feed_comments").select("post_id, created_at"),
+      supabase.from("events").select("profile_id, target_id, created_at").eq("event_type", "post_viewed"),
     ]);
 
-    const top = topViewedTargets(viewEvents ?? [], 5);
-    const { data: topPostRows } =
-      top.length > 0
-        ? await supabase.from("feed_posts").select("id, content").in("id", top.map((t) => t.id))
-        : { data: [] };
+    const posts = allPosts ?? [];
+    const likes = allLikes ?? [];
+    const comments = allComments ?? [];
+    const viewEvents = allViewEvents ?? [];
 
-    const topPosts = top.map(({ id, views }) => {
-      const row = (topPostRows ?? []).find((p) => p.id === id);
-      const excerpt = row?.content?.slice(0, 80) ?? "(verwijderd bericht)";
-      return { id, excerpt, views };
-    });
+    // Per-bericht: totale views (elk event telt), unieke views (aparte
+    // leden), likes en reacties — alle-tijd, want dit is een volledige
+    // roster van berichten, geen periodegebonden trend.
+    const totalViewsByPost = new Map<string, number>();
+    const uniqueViewersByPost = new Map<string, Set<string>>();
+    for (const e of viewEvents) {
+      if (!e.target_id) continue;
+      totalViewsByPost.set(e.target_id, (totalViewsByPost.get(e.target_id) ?? 0) + 1);
+      if (e.profile_id) {
+        const set = uniqueViewersByPost.get(e.target_id) ?? new Set<string>();
+        set.add(e.profile_id);
+        uniqueViewersByPost.set(e.target_id, set);
+      }
+    }
+    const likesByPost = new Map<string, number>();
+    for (const l of likes) likesByPost.set(l.post_id, (likesByPost.get(l.post_id) ?? 0) + 1);
+    const commentsByPost = new Map<string, number>();
+    for (const c of comments) commentsByPost.set(c.post_id, (commentsByPost.get(c.post_id) ?? 0) + 1);
+
+    const postRows: PostBreakdownRow[] = posts.map((p) => ({
+      id: p.id,
+      excerpt: p.content?.slice(0, 80) || "(bericht zonder tekst)",
+      uniqueViews: uniqueViewersByPost.get(p.id)?.size ?? 0,
+      totalViews: totalViewsByPost.get(p.id) ?? 0,
+      likes: likesByPost.get(p.id) ?? 0,
+      comments: commentsByPost.get(p.id) ?? 0,
+    }));
+
+    // Trendgrafieken respecteren wél de periodefilter.
+    const postDatesInPeriod = posts.map((p) => p.created_at).filter((d) => !since || d >= since);
+    const commentDatesInPeriod = comments.map((c) => c.created_at).filter((d) => !since || d >= since);
+    const viewsInPeriod = viewEvents.filter((e) => !since || e.created_at >= since);
+
+    const combinedDates = [...postDatesInPeriod, ...commentDatesInPeriod];
+    let postsAndCommentsPerMonth: CommunityStats["postsAndCommentsPerMonth"] = [];
+    if (combinedDates.length > 0) {
+      const months = monthKeysBetween(new Date([...combinedDates].sort()[0]), new Date());
+      const postCounts = countsByMonth(postDatesInPeriod, months);
+      const commentCounts = countsByMonth(commentDatesInPeriod, months);
+      postsAndCommentsPerMonth = months.map((m, i) => ({
+        month: m,
+        label: monthLabel(m),
+        posts: postCounts[i],
+        comments: commentCounts[i],
+      }));
+    }
+
+    let viewsPerMonth: MonthlyPoint[] = [];
+    if (viewsInPeriod.length > 0) {
+      const dates = viewsInPeriod.map((e) => e.created_at);
+      const months = monthKeysBetween(new Date([...dates].sort()[0]), new Date());
+      const counts = uniqueCountsByMonth(viewsInPeriod, months);
+      viewsPerMonth = months.map((m, i) => ({ month: m, label: monthLabel(m), value: counts[i] }));
+    }
 
     return {
-      totalPosts: totalPosts ?? 0,
-      uniqueViewers: countUniqueProfiles(viewEvents ?? []),
-      totalLikes: (postLikes ?? 0) + (commentLikes ?? 0),
-      totalComments: totalComments ?? 0,
-      topPosts,
+      totalPosts: posts.length,
+      uniqueViewers: countUniqueProfiles(viewEvents),
+      totalLikes: likes.length + (allCommentLikes?.length ?? 0),
+      totalComments: comments.length,
+      posts: postRows,
+      postsAndCommentsPerMonth,
+      viewsPerMonth,
     };
   });
 }
+
+// ---------------------------------------------------------------------------
+// Activiteiten
+// ---------------------------------------------------------------------------
+
+export type ActivityBreakdownRow = {
+  id: string;
+  title: string;
+  uniqueViews: number;
+  registrations: number;
+  attendees: number;
+};
 
 export type ActivityStats = {
   totalActivities: number;
@@ -153,58 +307,93 @@ export type ActivityStats = {
   totalRegistrations: number;
   totalAttendees: number;
   viewToRegistrationPercentage: number | null;
-  topActivities: { id: string; title: string; views: number; registrations: number; attendees: number }[];
+  activities: ActivityBreakdownRow[];
+  registrationsAndAttendancePerMonth: { month: string; label: string; registrations: number; attendees: number }[];
 };
 
-export async function getActivityStats(): Promise<ActivityStats> {
-  return cachedQuery("statistieken-activiteiten", TTL_MS, async () => {
+export async function getActivityStats(period: StatsPeriod): Promise<ActivityStats> {
+  return cachedQuery(`statistieken-activiteiten-${period}`, TTL_MS, async () => {
     const supabase = await createClient();
+    const since = periodStart(period);
 
-    const [
-      { count: totalActivities },
-      { count: totalRegistrations },
-      { count: totalAttendees },
-      { data: viewEvents },
-    ] = await Promise.all([
-      supabase.from("activities").select("id", { count: "exact", head: true }).eq("status", "approved"),
-      supabase.from("activity_registrations").select("id", { count: "exact", head: true }),
-      supabase.from("activity_registrations").select("id", { count: "exact", head: true }).eq("attended", true),
+    const [{ data: allActivities }, { data: allRegistrations }, { data: allViewEvents }] = await Promise.all([
+      supabase
+        .from("activities")
+        .select("id, title, starts_at")
+        .eq("status", "approved")
+        .order("starts_at", { ascending: false }),
+      supabase.from("activity_registrations").select("activity_id, attended"),
       supabase.from("events").select("profile_id, target_id").eq("event_type", "activity_viewed"),
     ]);
 
-    const uniqueViewers = countUniqueProfiles(viewEvents ?? []);
-    const top = topViewedTargets(viewEvents ?? [], 5);
-    const topIds = top.map((t) => t.id);
-    const [{ data: topActivityRows }, { data: topRegistrationRows }] =
-      topIds.length > 0
-        ? await Promise.all([
-            supabase.from("activities").select("id, title").in("id", topIds),
-            supabase.from("activity_registrations").select("activity_id, attended").in("activity_id", topIds),
-          ])
-        : [{ data: [] }, { data: [] }];
+    const activities = allActivities ?? [];
+    const registrations = allRegistrations ?? [];
+    const viewEvents = allViewEvents ?? [];
 
-    const topActivities = top.map(({ id, views }) => {
-      const row = (topActivityRows ?? []).find((a) => a.id === id);
-      const registrationRows = (topRegistrationRows ?? []).filter((r) => r.activity_id === id);
+    const uniqueViewersByActivity = new Map<string, Set<string>>();
+    for (const e of viewEvents) {
+      if (!e.target_id || !e.profile_id) continue;
+      const set = uniqueViewersByActivity.get(e.target_id) ?? new Set<string>();
+      set.add(e.profile_id);
+      uniqueViewersByActivity.set(e.target_id, set);
+    }
+    const registrationsByActivity = new Map<string, { attended: boolean }[]>();
+    for (const r of registrations) {
+      const list = registrationsByActivity.get(r.activity_id) ?? [];
+      list.push({ attended: r.attended });
+      registrationsByActivity.set(r.activity_id, list);
+    }
+
+    const activityRows: ActivityBreakdownRow[] = activities.map((a) => {
+      const regs = registrationsByActivity.get(a.id) ?? [];
       return {
-        id,
-        title: row?.title ?? "(verwijderde activiteit)",
-        views,
-        registrations: registrationRows.length,
-        attendees: registrationRows.filter((r) => r.attended).length,
+        id: a.id,
+        title: a.title,
+        uniqueViews: uniqueViewersByActivity.get(a.id)?.size ?? 0,
+        registrations: regs.length,
+        attendees: regs.filter((r) => r.attended).length,
       };
     });
 
+    // Trend: aanmeldingen/aanwezigheid toegeschreven aan de maand waarin de
+    // activiteit zelf plaatsvond (starts_at), niet het aanmeldmoment — dat
+    // vertelt beter wanneer de club daadwerkelijk actief was.
+    const startsAtByActivity = new Map(activities.map((a) => [a.id, a.starts_at]));
+    const regEntries = registrations
+      .map((r) => ({ startsAt: startsAtByActivity.get(r.activity_id), attended: r.attended }))
+      .filter((r): r is { startsAt: string; attended: boolean } => Boolean(r.startsAt) && (!since || r.startsAt! >= since));
+
+    let registrationsAndAttendancePerMonth: ActivityStats["registrationsAndAttendancePerMonth"] = [];
+    if (regEntries.length > 0) {
+      const dates = regEntries.map((r) => r.startsAt);
+      const months = monthKeysBetween(new Date([...dates].sort()[0]), new Date());
+      const regCounts = countsByMonth(dates, months);
+      const attendedDates = regEntries.filter((r) => r.attended).map((r) => r.startsAt);
+      const attendCounts = countsByMonth(attendedDates, months);
+      registrationsAndAttendancePerMonth = months.map((m, i) => ({
+        month: m,
+        label: monthLabel(m),
+        registrations: regCounts[i],
+        attendees: attendCounts[i],
+      }));
+    }
+
+    const uniqueViewers = countUniqueProfiles(viewEvents);
     return {
-      totalActivities: totalActivities ?? 0,
+      totalActivities: activities.length,
       uniqueViewers,
-      totalRegistrations: totalRegistrations ?? 0,
-      totalAttendees: totalAttendees ?? 0,
-      viewToRegistrationPercentage: uniqueViewers > 0 ? Math.round(((totalRegistrations ?? 0) / uniqueViewers) * 100) : null,
-      topActivities,
+      totalRegistrations: registrations.length,
+      totalAttendees: registrations.filter((r) => r.attended).length,
+      viewToRegistrationPercentage: uniqueViewers > 0 ? Math.round((registrations.length / uniqueViewers) * 100) : null,
+      activities: activityRows,
+      registrationsAndAttendancePerMonth,
     };
   });
 }
+
+// ---------------------------------------------------------------------------
+// Push & e-mail
+// ---------------------------------------------------------------------------
 
 export type PushStats = {
   activePushSubscriptions: number;
@@ -213,42 +402,68 @@ export type PushStats = {
   unsubscribedPushSubscriptions: number;
   pushesSent: number;
   pushesOpened: number;
+  openRatePerMonth: MonthlyPoint[];
 };
 
-export async function getPushStats(): Promise<PushStats> {
-  return cachedQuery("statistieken-push", TTL_MS, async () => {
+export async function getPushStats(period: StatsPeriod): Promise<PushStats> {
+  return cachedQuery(`statistieken-push-${period}`, TTL_MS, async () => {
     const supabase = await createClient();
-    const since = windowStart();
+    const since = periodStart(period);
 
     const [
       { count: activeMembers },
       pushSubscriptions,
       { count: unsubscribedPushSubscriptions },
-      { count: pushesSent },
-      { count: pushesOpened },
+      { data: sentNotifications },
+      { data: openEvents },
     ] = await Promise.all([
       supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
       getAllPushSubscriptions(supabase),
-      supabase.from("events").select("id", { count: "exact", head: true }).eq("event_type", "push_unsubscribed").gte("created_at", since),
-      supabase.from("notifications").select("id", { count: "exact", head: true }).not("pushed_at", "is", null).gte("created_at", since),
-      supabase
-        .from("events")
-        .select("id", { count: "exact", head: true })
-        .eq("event_type", "notification_opened")
-        .contains("metadata", { channel: "push" })
-        .gte("created_at", since),
+      since
+        ? supabase
+            .from("events")
+            .select("id", { count: "exact", head: true })
+            .eq("event_type", "push_unsubscribed")
+            .gte("created_at", since)
+        : supabase.from("events").select("id", { count: "exact", head: true }).eq("event_type", "push_unsubscribed"),
+      (since
+        ? supabase.from("notifications").select("id, created_at").not("pushed_at", "is", null).gte("created_at", since)
+        : supabase.from("notifications").select("id, created_at").not("pushed_at", "is", null)
+      ).order("created_at", { ascending: true }),
+      supabase.from("events").select("target_id").eq("event_type", "notification_opened").contains("metadata", { channel: "push" }),
     ]);
 
     const uniquePushMembers = new Set(pushSubscriptions.map((s) => s.profile_id)).size;
-    const newPushSubscriptions = pushSubscriptions.filter((s) => s.created_at >= since).length;
+    const newPushSubscriptions = since ? pushSubscriptions.filter((s) => s.created_at >= since).length : pushSubscriptions.length;
+
+    const openedIds = new Set((openEvents ?? []).map((e) => e.target_id).filter((id): id is string => Boolean(id)));
+    const sent = sentNotifications ?? [];
+    const openedCount = sent.filter((n) => openedIds.has(n.id)).length;
+
+    let openRatePerMonth: MonthlyPoint[] = [];
+    if (sent.length > 0) {
+      const dates = sent.map((n) => n.created_at);
+      const months = monthKeysBetween(new Date(dates[0]), new Date());
+      const sentCounts = countsByMonth(dates, months);
+      const openedDates = sent.filter((n) => openedIds.has(n.id)).map((n) => n.created_at);
+      const openedCounts = countsByMonth(openedDates, months);
+      openRatePerMonth = months
+        .map((m, i) => ({
+          month: m,
+          label: monthLabel(m),
+          value: sentCounts[i] > 0 ? Math.round((openedCounts[i] / sentCounts[i]) * 1000) / 10 : null,
+        }))
+        .filter((p): p is MonthlyPoint => p.value !== null);
+    }
 
     return {
       activePushSubscriptions: pushSubscriptions.length,
       pushPercentage: activeMembers ? Math.round((uniquePushMembers / activeMembers) * 100) : 0,
       newPushSubscriptions,
       unsubscribedPushSubscriptions: unsubscribedPushSubscriptions ?? 0,
-      pushesSent: pushesSent ?? 0,
-      pushesOpened: pushesOpened ?? 0,
+      pushesSent: sent.length,
+      pushesOpened: openedCount,
+      openRatePerMonth,
     };
   });
 }
@@ -257,32 +472,56 @@ export type EmailStats = {
   emailsSent: number;
   emailsOpened: number;
   openRatePercentage: number | null;
+  openRatePerMonth: MonthlyPoint[];
 };
 
 // Geen "actieve abonnementen" zoals bij push — e-mail gaat naar het
 // profiel-e-mailadres van elk lid, dat is geen aparte opt-in-registratie.
-export async function getEmailStats(): Promise<EmailStats> {
-  return cachedQuery("statistieken-email", TTL_MS, async () => {
+export async function getEmailStats(period: StatsPeriod): Promise<EmailStats> {
+  return cachedQuery(`statistieken-email-${period}`, TTL_MS, async () => {
     const supabase = await createClient();
-    const since = windowStart();
+    const since = periodStart(period);
 
-    const [{ count: emailsSent }, { count: emailsOpened }] = await Promise.all([
-      supabase.from("notifications").select("id", { count: "exact", head: true }).not("emailed_at", "is", null).gte("created_at", since),
-      supabase
-        .from("events")
-        .select("id", { count: "exact", head: true })
-        .eq("event_type", "notification_opened")
-        .contains("metadata", { channel: "email" })
-        .gte("created_at", since),
+    const [{ data: sentNotifications }, { data: openEvents }] = await Promise.all([
+      (since
+        ? supabase.from("notifications").select("id, created_at").not("emailed_at", "is", null).gte("created_at", since)
+        : supabase.from("notifications").select("id, created_at").not("emailed_at", "is", null)
+      ).order("created_at", { ascending: true }),
+      supabase.from("events").select("target_id").eq("event_type", "notification_opened").contains("metadata", { channel: "email" }),
     ]);
 
+    const openedIds = new Set((openEvents ?? []).map((e) => e.target_id).filter((id): id is string => Boolean(id)));
+    const sent = sentNotifications ?? [];
+    const openedCount = sent.filter((n) => openedIds.has(n.id)).length;
+
+    let openRatePerMonth: MonthlyPoint[] = [];
+    if (sent.length > 0) {
+      const dates = sent.map((n) => n.created_at);
+      const months = monthKeysBetween(new Date(dates[0]), new Date());
+      const sentCounts = countsByMonth(dates, months);
+      const openedDates = sent.filter((n) => openedIds.has(n.id)).map((n) => n.created_at);
+      const openedCounts = countsByMonth(openedDates, months);
+      openRatePerMonth = months
+        .map((m, i) => ({
+          month: m,
+          label: monthLabel(m),
+          value: sentCounts[i] > 0 ? Math.round((openedCounts[i] / sentCounts[i]) * 1000) / 10 : null,
+        }))
+        .filter((p): p is MonthlyPoint => p.value !== null);
+    }
+
     return {
-      emailsSent: emailsSent ?? 0,
-      emailsOpened: emailsOpened ?? 0,
-      openRatePercentage: emailsSent ? Math.round(((emailsOpened ?? 0) / emailsSent) * 100) : null,
+      emailsSent: sent.length,
+      emailsOpened: openedCount,
+      openRatePercentage: sent.length ? Math.round((openedCount / sent.length) * 100) : null,
+      openRatePerMonth,
     };
   });
 }
+
+// ---------------------------------------------------------------------------
+// Per-melding-overzicht (gedeeld door de E-mail- en Push-tabbladen)
+// ---------------------------------------------------------------------------
 
 export type NotificationBreakdownRow = {
   key: string;
@@ -292,31 +531,26 @@ export type NotificationBreakdownRow = {
   openedPush: number;
   sentEmail: number;
   openedEmail: number;
+  firstSentAt: string;
 };
 
 // "Geopende e-mails: 100" zegt niks over welke e-mail dat was — dit
 // groepeert de individuele notificatie-rijen (één per ontvanger) per
 // titel+type, zodat per verzending (bv. een specifieke activiteit, of een
-// handmatig pushbericht) te zien is hoeveel er zijn verstuurd/geopend. Eén
-// gedeelde query voor beide kanalen — de Statistieken-pagina filtert 'm per
-// tabblad (E-mail/Push) i.p.v. twee keer dezelfde notifications/events op
-// te halen.
+// handmatig pushbericht) te zien is hoeveel er zijn verstuurd/geopend, wélk
+// percentage dat is en wanneer het verstuurd is. Alle-tijd (geen
+// periodefilter): dit is een volledige roster van verzonden meldingen,
+// zelfde soort "volledige lijst" als Activiteiten en Community-berichten.
 export async function getNotificationBreakdown(): Promise<NotificationBreakdownRow[]> {
   return cachedQuery("statistieken-notificaties-breakdown", TTL_MS, async () => {
     const supabase = await createClient();
-    const since = windowStart();
 
     const [{ data: notifications }, { data: openEvents }] = await Promise.all([
       supabase
         .from("notifications")
-        .select("id, type, title, pushed_at, emailed_at")
-        .gte("created_at", since)
+        .select("id, type, title, pushed_at, emailed_at, created_at")
         .order("created_at", { ascending: false }),
-      supabase
-        .from("events")
-        .select("target_id, metadata")
-        .eq("event_type", "notification_opened")
-        .gte("created_at", since),
+      supabase.from("events").select("target_id, metadata").eq("event_type", "notification_opened"),
     ]);
 
     const openedPushIds = new Set<string>();
@@ -331,7 +565,19 @@ export async function getNotificationBreakdown(): Promise<NotificationBreakdownR
     const byKey = new Map<string, NotificationBreakdownRow>();
     for (const n of notifications ?? []) {
       const key = `${n.type}::${n.title}`;
-      const row = byKey.get(key) ?? { key, title: n.title, type: n.type, sentPush: 0, openedPush: 0, sentEmail: 0, openedEmail: 0 };
+      const row =
+        byKey.get(key) ??
+        ({
+          key,
+          title: n.title,
+          type: n.type,
+          sentPush: 0,
+          openedPush: 0,
+          sentEmail: 0,
+          openedEmail: 0,
+          firstSentAt: n.created_at,
+        } satisfies NotificationBreakdownRow);
+      if (n.created_at < row.firstSentAt) row.firstSentAt = n.created_at;
       if (n.pushed_at) {
         row.sentPush += 1;
         if (openedPushIds.has(n.id)) row.openedPush += 1;
@@ -343,8 +589,6 @@ export async function getNotificationBreakdown(): Promise<NotificationBreakdownR
       byKey.set(key, row);
     }
 
-    return [...byKey.values()]
-      .sort((a, b) => b.sentPush + b.sentEmail - (a.sentPush + a.sentEmail))
-      .slice(0, 20);
+    return [...byKey.values()].sort((a, b) => (a.firstSentAt < b.firstSentAt ? 1 : -1));
   });
 }
