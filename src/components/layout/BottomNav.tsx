@@ -46,14 +46,15 @@ export function BottomNav({
               <Link
                 href={href}
                 className={clsx(
-                  "relative flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium",
+                  "relative flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-transform duration-150 active:scale-90",
                   active ? "text-voc-red" : "text-muted"
                 )}
               >
-                <span className="relative">
-                  <Icon size={22} strokeWidth={active ? 2.5 : 2} />
+                <span className="relative flex h-7 w-7 items-center justify-center">
+                  {active && <span className="animate-pop absolute inset-0 rounded-full bg-voc-red-light" />}
+                  <Icon size={22} strokeWidth={active ? 2.5 : 2} className="relative" />
                   {count > 0 && (
-                    <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-voc-red px-1 text-[10px] font-medium text-white">
+                    <span className="animate-pop absolute -right-1.5 -top-1.5 z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-voc-red px-1 text-[10px] font-medium text-white">
                       {count > 9 ? "9+" : count}
                     </span>
                   )}

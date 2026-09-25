@@ -6,7 +6,7 @@ import type { ReactNode } from "react";
 // staat, wat niet liet zien dat ze bij elkaar horen.
 export function SettingGroup({ label, description, children }: { label: string; description?: ReactNode; children: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm transition-colors duration-150 hover:border-voc-red/30">
       <div>
         <p className="text-sm font-medium text-foreground">{label}</p>
         {description && <div className="mt-0.5 text-xs text-muted">{description}</div>}

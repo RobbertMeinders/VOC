@@ -16,7 +16,7 @@ export function SettingRow({
   children: ReactNode;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm transition-colors duration-150 hover:border-voc-red/30">
       {/* Onder elkaar op mobiel (een bredere control, zoals Thema's
           segmented control, past anders slecht naast de tekst), naast
           elkaar vanaf sm — zelfde indeling voor elke instelling. */}

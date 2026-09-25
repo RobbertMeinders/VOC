@@ -54,7 +54,17 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
   if (dismissed) return null;
 
   return (
-    <div className="animate-fade-in fixed inset-x-0 bottom-14 top-14 z-30 overflow-y-auto bg-background md:inset-y-0 md:bottom-0 md:left-64 md:top-0">
+    // key={pathname}: zonder dit blijft dezelfde DOM-node staan zodra je
+    // binnen dit @modal-segment van de ene overlay-route naar de andere
+    // navigeert (bv. lid A -> lid B, activiteitdetail -> bewerken) — de
+    // fade-in-animatie speelt dan niet opnieuw af omdat er niets nieuws
+    // gemount wordt. Met de key gebeurt dat wel, terwijl gewone
+    // Suspense-wissels binnen dezelfde pathname (loading -> data) hier geen
+    // last van hebben, want dan verandert pathname niet.
+    <div
+      key={pathname}
+      className="animate-fade-in fixed inset-x-0 bottom-14 top-14 z-30 overflow-y-auto bg-background md:inset-y-0 md:bottom-0 md:left-64 md:top-0"
+    >
       <div className="mx-auto w-full max-w-3xl px-4 py-6 md:max-w-3xl md:px-8 md:py-10">
         <button
           type="button"
