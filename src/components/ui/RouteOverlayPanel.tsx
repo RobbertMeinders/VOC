@@ -1,12 +1,14 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState, type TouchEvent } from "react";
 import { X } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { getOverlayCloseHref, isOverlayRoute } from "@/lib/ui/overlayRoutes";
 import type { ReactNode } from "react";
+
+const DISMISS_THRESHOLD = 100;
 
 // Overlay voor een route die via een Next.js intercepting route (@modal,
 // "(.)segment") bovenop de huidige pagina verschijnt in plaats van er
@@ -26,6 +28,14 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [dismissed, setDismissed] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
+  // Naar-beneden-vegen om te sluiten — alleen vanaf het grijpstrookje, niet
+  // vanaf ergens in {children}: dat kan lange, scrollbare inhoud zijn (een
+  // heel profiel, een formulier), dus overal laten slepen zou vechten met
+  // gewoon scrollen. Het kruisje blijft daarnaast gewoon staan (niet
+  // iedereen verwacht/begrijpt het sleepgebaar).
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const touchStartY = useRef(0);
 
   // Next's @modal-slot hoort zichzelf te resetten (via default.tsx) zodra je
   // via een menu-link/knop naar een heel andere pagina navigeert, maar dat
@@ -48,6 +58,24 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
     router.push(getOverlayCloseHref(pathname) ?? "/");
   }
 
+  function handleHandleBarTouchStart(e: TouchEvent) {
+    touchStartY.current = e.touches[0].clientY;
+    setDragging(true);
+  }
+
+  function handleHandleBarTouchMove(e: TouchEvent) {
+    // Alleen omlaag laten volgen — omhoog slepen betekent hier niets, het
+    // paneel staat al volledig open.
+    const delta = e.touches[0].clientY - touchStartY.current;
+    if (delta > 0) setDragY(delta);
+  }
+
+  function handleHandleBarTouchEnd() {
+    setDragging(false);
+    if (dragY > DISMISS_THRESHOLD) close();
+    else setDragY(0);
+  }
+
   useEscapeKey(!dismissed, close);
   useBodyScrollLock(!dismissed);
 
@@ -64,10 +92,23 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
     <div
       key={pathname}
       className="animate-sheet-in fixed inset-x-0 bottom-14 top-14 z-30 overflow-y-auto rounded-t-2xl bg-background md:inset-y-0 md:bottom-0 md:left-64 md:top-0 md:rounded-none"
+      style={{
+        transform: `translateY(${dragY}px)`,
+        transition: dragging ? "none" : "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+      }}
     >
       {/* Grijpstrookje — alleen op mobiel, waar dit paneel als bottom sheet
-          omhoog schuift; op desktop is het een zij-paneel zonder sheet-gevoel. */}
-      <div className="mx-auto mb-1 mt-2 h-1.5 w-10 rounded-full bg-black/[.12] md:hidden dark:bg-white/[.16]" />
+          omhoog schuift; op desktop is het een zij-paneel zonder sheet-gevoel.
+          Ruimer touch-gebied dan het zichtbare balkje zelf, anders is het
+          lastig precies te pakken. */}
+      <div
+        className="touch-none py-3 md:hidden"
+        onTouchStart={handleHandleBarTouchStart}
+        onTouchMove={handleHandleBarTouchMove}
+        onTouchEnd={handleHandleBarTouchEnd}
+      >
+        <div className="mx-auto h-1.5 w-10 rounded-full bg-black/[.12] dark:bg-white/[.16]" />
+      </div>
       <div className="mx-auto w-full max-w-3xl px-4 py-6 md:max-w-3xl md:px-8 md:py-10">
         <button
           type="button"
