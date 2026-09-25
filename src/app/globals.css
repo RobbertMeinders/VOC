@@ -150,10 +150,10 @@ body {
    "bottom sheet" die van onderaf omhoog schuift zich veel beter voor dan de
    fade-in die verder overal gebruikt wordt: dat kennen mensen al van hun
    telefoon (actielijsten, delen-menu's). Vanaf md is het paneel een
-   zij-paneel naast de sidebar, geen sheet — daar valt 'm terug op exact
-   dezelfde fade-in als de rest van de app (zie media query hieronder), dus
-   het bureaublad-gedrag verandert niet. Zelfde easing als .animate-scale-in
-   voor een consistent "zacht landen"-gevoel door de hele app heen. */
+   zij-paneel naast de sidebar, geen sheet — daar valt 'm terug op een
+   fade + subtiele zijwaartse schuif (zie media query hieronder). Zelfde
+   easing als .animate-scale-in voor een consistent "zacht landen"-gevoel
+   door de hele app heen. */
 @keyframes voc-sheet-in {
   from {
     opacity: 0;
@@ -165,7 +165,17 @@ body {
 }
 @media (min-width: 768px) {
   .animate-sheet-in {
-    animation: voc-fade-in 0.15s ease-out;
+    animation: voc-fade-slide-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+/* Desktop-tegenhanger van de mobiele sheet-in: geen omhoogschuiven (het is
+   hier een zij-paneel, geen sheet), wel een subtiele fade + zijwaartse
+   schuif i.p.v. de kale fade die de rest van de site gebruikt — geeft het
+   iets meer "aankomst"-gevoel bij het openen van een profiel/activiteit. */
+@keyframes voc-fade-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
   }
 }
 /* Iets nadrukkelijker dan een fade — dropdowns/menu's mogen zichtbaar

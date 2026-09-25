@@ -4,12 +4,15 @@ import { clsx } from "clsx";
 type Variant = "primary" | "secondary" | "ghost" | "danger";
 type Size = "sm" | "md";
 
+// hover:-translate-y-px alleen op de "actie"-varianten (niet ghost, vaak een
+// kleine icoon-/menuknop waar optillen minder op zijn plek is) — voelt op
+// desktop (waar hover bestaat) net iets tactieler dan alleen een kleurvlak.
 const variantClasses: Record<Variant, string> = {
-  primary: "bg-voc-red text-white hover:bg-voc-red-dark disabled:bg-voc-red/50",
+  primary: "bg-voc-red text-white hover:-translate-y-px hover:bg-voc-red-dark disabled:bg-voc-red/50 disabled:hover:translate-y-0",
   secondary:
-    "bg-surface text-foreground border border-border hover:bg-black/[.03] dark:hover:bg-white/[.06]",
+    "bg-surface text-foreground border border-border hover:-translate-y-px hover:bg-black/[.03] dark:hover:bg-white/[.06]",
   ghost: "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.08]",
-  danger: "bg-red-600 text-white hover:bg-red-700 disabled:bg-red-600/50",
+  danger: "bg-red-600 text-white hover:-translate-y-px hover:bg-red-700 disabled:bg-red-600/50 disabled:hover:translate-y-0",
 };
 
 const sizeClasses: Record<Size, string> = {

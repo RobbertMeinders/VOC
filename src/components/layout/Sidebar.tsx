@@ -39,9 +39,11 @@ export function Sidebar({
         key={href}
         href={href}
         className={clsx(
-          "flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-colors",
+          "flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-all duration-150",
           indented ? "px-3 pl-10" : "px-3",
-          active ? "bg-voc-red-light text-voc-red" : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+          active
+            ? "bg-voc-red-light text-voc-red"
+            : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
         <Icon size={indented ? 16 : 20} strokeWidth={active ? 2.5 : 2} />
@@ -72,8 +74,10 @@ export function Sidebar({
         key={href}
         href={href}
         className={clsx(
-          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-          active ? "bg-voc-red-light text-voc-red" : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
+          active
+            ? "bg-voc-red-light text-voc-red"
+            : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
         <Icon size={20} strokeWidth={active ? 2.5 : 2} />
