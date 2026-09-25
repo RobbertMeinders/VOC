@@ -63,8 +63,11 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
     // last van hebben, want dan verandert pathname niet.
     <div
       key={pathname}
-      className="animate-fade-in fixed inset-x-0 bottom-14 top-14 z-30 overflow-y-auto bg-background md:inset-y-0 md:bottom-0 md:left-64 md:top-0"
+      className="animate-sheet-in fixed inset-x-0 bottom-14 top-14 z-30 overflow-y-auto rounded-t-2xl bg-background md:inset-y-0 md:bottom-0 md:left-64 md:top-0 md:rounded-none"
     >
+      {/* Grijpstrookje — alleen op mobiel, waar dit paneel als bottom sheet
+          omhoog schuift; op desktop is het een zij-paneel zonder sheet-gevoel. */}
+      <div className="mx-auto mb-1 mt-2 h-1.5 w-10 rounded-full bg-black/[.12] md:hidden dark:bg-white/[.16]" />
       <div className="mx-auto w-full max-w-3xl px-4 py-6 md:max-w-3xl md:px-8 md:py-10">
         <button
           type="button"

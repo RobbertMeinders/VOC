@@ -145,6 +145,29 @@ body {
 .animate-rise-in {
   animation: voc-rise-in 0.35s ease-out both;
 }
+/* RouteOverlayPanel (lid-/bedrijfsprofiel, activiteitdetail/-formulier, alle
+   beheer-overlays) is op mobiel bijna het hele scherm — daar leent een
+   "bottom sheet" die van onderaf omhoog schuift zich veel beter voor dan de
+   fade-in die verder overal gebruikt wordt: dat kennen mensen al van hun
+   telefoon (actielijsten, delen-menu's). Vanaf md is het paneel een
+   zij-paneel naast de sidebar, geen sheet — daar valt 'm terug op exact
+   dezelfde fade-in als de rest van de app (zie media query hieronder), dus
+   het bureaublad-gedrag verandert niet. Zelfde easing als .animate-scale-in
+   voor een consistent "zacht landen"-gevoel door de hele app heen. */
+@keyframes voc-sheet-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+.animate-sheet-in {
+  animation: voc-sheet-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@media (min-width: 768px) {
+  .animate-sheet-in {
+    animation: voc-fade-in 0.15s ease-out;
+  }
+}
 /* Iets nadrukkelijker dan een fade — dropdowns/menu's mogen zichtbaar
    "open vouwen" i.p.v. bijna onmerkbaar verschijnen. Geen vaste
    transform-origin hier: sommige menu's (bottom-nav) klappen omhoog open,
@@ -155,7 +178,8 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in,
   .animate-scale-in,
-  .animate-rise-in {
+  .animate-rise-in,
+  .animate-sheet-in {
     animation: none;
   }
 }
