@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
+import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import type { FeedAttachment } from "@/lib/feed/types";
 
 const SWIPE_THRESHOLD = 50;
@@ -89,14 +90,21 @@ export function ImageLightbox({
   const current = images[index];
   if (!current?.url) return null;
 
+  // Portal naar document.body: PostCard (de voorouder hiervan) heeft zelf
+  // een animate-*-klasse voor zijn intro-animatie, en een voorouder met een
+  // CSS-animatie op transform creëert een eigen stacking context — zonder
+  // portal blijft deze fixed-inset-0 overlay daardoor "opgesloten" binnen
+  // PostCard's eigen laag en komt-ie niet echt over de rest van de pagina
+  // (header, bottom-nav) heen. Zelfde reden als FloatingPortal elders.
   return (
-    <div
-      className="animate-fade-in fixed inset-0 z-[60] flex touch-none cursor-pointer flex-col bg-black/95"
-      onClick={handleBackgroundClick}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
+    <FloatingPortal>
+      <div
+        className="animate-fade-in fixed inset-0 z-[60] flex touch-none cursor-pointer flex-col bg-black/95"
+        onClick={handleBackgroundClick}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
       <div className="flex items-center justify-between p-4">
         {images.length > 1 && (
           <span className="rounded-full bg-white/10 px-2.5 py-1 text-xs font-medium text-white">
@@ -165,6 +173,7 @@ export function ImageLightbox({
           </>
         )}
       </div>
-    </div>
+      </div>
+    </FloatingPortal>
   );
 }
