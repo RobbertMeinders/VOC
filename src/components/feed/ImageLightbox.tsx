@@ -23,7 +23,16 @@ export function ImageLightbox({
   onClose: () => void;
 }) {
   const [index, setIndex] = useState(initialIndex);
-  const touchStartX = useRef(0);
+  // dragX = live verschuiving tijdens het vegen, volgt de vinger 1-op-1;
+  // dragging schakelt de CSS-transition uit tijdens het slepen (anders loopt
+  // de foto achter de vinger aan) en weer aan bij loslaten (voor de
+  // terugveer/doorschuif-animatie). draggedRef onderscheidt een swipe van een
+  // tik — zonder dat zou loslaten na een veeg de lightbox ook nog sluiten,
+  // want de achtergrond heeft ook een klik-om-te-sluiten.
+  const [dragX, setDragX] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const touchStart = useRef({ x: 0, y: 0 });
+  const draggedRef = useRef(false);
 
   useEscapeKey(true, onClose);
   useBodyScrollLock(true);
@@ -44,13 +53,37 @@ export function ImageLightbox({
   }, [index, images.length]);
 
   function handleTouchStart(e: TouchEvent) {
-    touchStartX.current = e.touches[0].clientX;
+    const touch = e.touches[0];
+    touchStart.current = { x: touch.clientX, y: touch.clientY };
+    draggedRef.current = false;
+    setDragging(true);
   }
 
-  function handleTouchEnd(e: TouchEvent) {
-    const delta = e.changedTouches[0].clientX - touchStartX.current;
-    if (delta > SWIPE_THRESHOLD) goTo(index - 1);
-    else if (delta < -SWIPE_THRESHOLD) goTo(index + 1);
+  function handleTouchMove(e: TouchEvent) {
+    const touch = e.touches[0];
+    const deltaX = touch.clientX - touchStart.current.x;
+    const deltaY = touch.clientY - touchStart.current.y;
+    if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) draggedRef.current = true;
+    // Alleen laten volgen zodra duidelijk is dat het een horizontale veeg is
+    // (niet bv. een verticale scroll-poging) — anders voelt het schokkerig.
+    if (Math.abs(deltaX) > Math.abs(deltaY)) setDragX(deltaX);
+  }
+
+  function handleTouchEnd() {
+    setDragging(false);
+    if (dragX > SWIPE_THRESHOLD) goTo(index - 1);
+    else if (dragX < -SWIPE_THRESHOLD) goTo(index + 1);
+    setDragX(0);
+  }
+
+  function handleBackgroundClick() {
+    // Na een veeg volgt op touchend nog een synthetische click — die mag de
+    // lightbox niet ook meteen weer sluiten.
+    if (draggedRef.current) {
+      draggedRef.current = false;
+      return;
+    }
+    onClose();
   }
 
   const current = images[index];
@@ -58,9 +91,10 @@ export function ImageLightbox({
 
   return (
     <div
-      className="animate-fade-in fixed inset-0 z-[60] flex cursor-pointer flex-col bg-black/95"
-      onClick={onClose}
+      className="animate-fade-in fixed inset-0 z-[60] flex touch-none cursor-pointer flex-col bg-black/95"
+      onClick={handleBackgroundClick}
       onTouchStart={handleTouchStart}
+      onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
       <div className="flex items-center justify-between p-4">
@@ -81,18 +115,28 @@ export function ImageLightbox({
 
       <div className="relative flex flex-1 items-center justify-center overflow-hidden px-2 pb-4">
         {/* stopPropagation: klikken op de foto zelf mag 'm niet sluiten —
-            alleen het donkerder geworden gebied eromheen sluit de lightbox. */}
-        <Image
-          key={current.id}
-          src={current.url}
-          alt={current.fileName}
-          width={0}
-          height={0}
-          sizes="100vw"
+            alleen het donkerder geworden gebied eromheen sluit de lightbox.
+            transform hier (i.p.v. op de Image zelf) omdat `fill` de
+            positionering van de Image al regelt — deze wrapper volgt puur de
+            vinger, transition alleen aan buiten het slepen om (anders loopt
+            de foto achter). */}
+        <div
+          className="relative h-full w-full cursor-auto"
           onClick={(e) => e.stopPropagation()}
-          className="animate-fade-in max-h-full max-w-full cursor-auto object-contain"
-          style={{ width: "auto", height: "auto" }}
-        />
+          style={{
+            transform: `translateX(${dragX}px)`,
+            transition: dragging ? "none" : "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+          }}
+        >
+          <Image
+            key={current.id}
+            src={current.url}
+            alt={current.fileName}
+            fill
+            sizes="100vw"
+            className="animate-fade-in object-contain"
+          />
+        </div>
 
         {images.length > 1 && (
           <>
