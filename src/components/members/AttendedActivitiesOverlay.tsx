@@ -42,7 +42,7 @@ export function AttendedActivitiesOverlay({ memberId, onClose }: { memberId: str
   return (
     <>
       <div className="fixed inset-0 z-40 cursor-pointer bg-black/60 animate-fade-in" onClick={onClose} />
-      <div className="fixed inset-x-3 top-1/2 z-50 -translate-y-1/2 sm:inset-x-0 sm:mx-auto sm:w-full sm:max-w-md sm:px-3">
+      <div className="fixed inset-x-3 top-1/2 z-50 -translate-y-1/2 sm:inset-x-0 sm:mx-auto sm:w-full sm:max-w-md sm:px-3 md:left-64">
         <div className="animate-scale-in flex max-h-[80vh] flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <p className="text-sm font-semibold text-foreground">Bijgewoonde evenementen</p>
