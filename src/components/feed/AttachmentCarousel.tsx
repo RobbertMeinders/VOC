@@ -36,6 +36,40 @@ function Cell({
   );
 }
 
+// Bij precies 1 foto mag de breedte vrij zijn (een liggende foto hoeft niet
+// naar vierkant gecropt te worden), maar de hoogte nooit meer dan de breedte
+// worden — een staande foto zou het bericht anders onnodig lang maken.
+// Begint vierkant (veilige default zonder layout shift) en verbreedt zodra
+// de echte beeldverhouding bekend is uit de geladen afbeelding.
+function SingleCell({ image, onClick }: { image: FeedAttachment; onClick: () => void }) {
+  const [ratio, setRatio] = useState(1);
+
+  if (!image.url) return null;
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{ aspectRatio: ratio }}
+      className="relative w-full overflow-hidden bg-black/[.03] dark:bg-white/[.03]"
+    >
+      <Image
+        src={image.url}
+        alt={image.fileName}
+        fill
+        sizes="(min-width: 640px) 600px, 100vw"
+        className="object-cover"
+        onLoad={(e) => {
+          const img = e.currentTarget;
+          if (img.naturalWidth && img.naturalHeight) {
+            setRatio(Math.max(1, img.naturalWidth / img.naturalHeight));
+          }
+        }}
+      />
+    </button>
+  );
+}
+
 // Statische mozaïek-preview in het bericht zelf, net als Facebook: geen
 // swipe-gebaar meer in de feed nodig (dat bleek op mobiel niet betrouwbaar
 // genoeg te voelen) — tikken op een foto opent gewoon de volledige foto in
@@ -53,9 +87,7 @@ export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
   return (
     <>
       <div className="mt-3 overflow-hidden rounded-xl">
-        {visible.length === 1 && (
-          <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} className="aspect-square w-full" />
-        )}
+        {visible.length === 1 && <SingleCell image={visible[0]} onClick={() => setLightboxIndex(0)} />}
 
         {visible.length === 2 && (
           <div className="grid aspect-square grid-cols-2 grid-rows-[1fr] gap-0.5">
