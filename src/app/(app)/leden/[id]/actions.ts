@@ -72,6 +72,33 @@ export async function updateMemberActiveAction(memberId: string, isActive: boole
   return { success: true };
 }
 
+export type UpdateMemberOrganizationAccountState = { error?: string; success?: boolean };
+
+// Markeert een profiel als "dit is de organisatie zelf, geen collega" —
+// verandert niets aan rol/rechten, haalt het account alleen uit de
+// ledenlijst/zoekresultaten (zie 0046_organization_account.sql).
+export async function updateMemberOrganizationAccountAction(
+  memberId: string,
+  isOrganizationAccount: boolean
+): Promise<UpdateMemberOrganizationAccountState> {
+  await requireAdmin();
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("profiles")
+    .update({ is_organization_account: isOrganizationAccount })
+    .eq("id", memberId);
+
+  if (error) {
+    return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
+  }
+
+  invalidateQuery("leden-page-data");
+  invalidateQuery("beheer-leden-page-data");
+  revalidatePath(`/leden/${memberId}`);
+  return { success: true };
+}
+
 export async function updateMemberProfileAction(
   memberId: string,
   _prevState: UpdateProfileState,

@@ -41,6 +41,7 @@ export interface Database {
           instagram_url: string | null;
           facebook_url: string | null;
           bio: string | null;
+          is_organization_account: boolean;
           created_at: string;
           updated_at: string;
         };

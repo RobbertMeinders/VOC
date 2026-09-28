@@ -73,6 +73,7 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
         .select(
           "id, first_name, last_name, avatar_url, job_title, company_members(is_primary, company:companies(id, name, industry))"
         )
+        .eq("is_organization_account", false)
         .or(`first_name.ilike.${orLike},last_name.ilike.${orLike}`)
         .returns<ProfileRow[]>(),
       supabase

@@ -5,6 +5,7 @@ import { cachedQuery } from "@/lib/cache/queryCache";
 import { Avatar } from "@/components/ui/Avatar";
 import { RoleEditor } from "@/components/members/RoleEditor";
 import { MemberActiveToggle } from "@/components/members/MemberActiveToggle";
+import { OrganizationAccountToggle } from "@/components/members/OrganizationAccountToggle";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import type { Database } from "@/lib/types/database";
 
@@ -66,6 +67,9 @@ export async function BeheerLedenContent() {
                   <MemberActiveToggle memberId={member.id} initialActive={member.is_active} />
                 </div>
               )}
+              <div className="flex-1">
+                <OrganizationAccountToggle memberId={member.id} initialValue={member.is_organization_account} />
+              </div>
             </div>
           </div>
         ))}
