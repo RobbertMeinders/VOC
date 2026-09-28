@@ -157,7 +157,7 @@ function CardGrid({
         <Link
           key={href}
           href={href}
-          className="animate-rise-in flex items-start gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-150 hover:scale-[1.02] hover:border-voc-red hover:shadow-md"
+          className="animate-rise-in flex items-start gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-300 hover:scale-[1.015] hover:border-voc-red hover:shadow-md"
         >
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red">
             <Icon size={18} />
