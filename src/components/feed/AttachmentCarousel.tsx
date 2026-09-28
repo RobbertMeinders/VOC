@@ -12,6 +12,13 @@ import type { FeedAttachment } from "@/lib/feed/types";
 // naar vroeg.
 const MAX_VISIBLE = 4;
 
+// Bovengrens op de hoogte van de fotomozaïek — zonder deze werd een (bijna)
+// vierkante mozaïek op een brede desktop-postkolom torenhoog (breedte volgt
+// de kolom, en aspect-square maakt de hoogte daaraan gelijk). De breedte
+// blijft vol, alleen de hoogte wordt begrensd, dus dit is dezelfde "breder
+// mag, hoger niet"-regel als bij SingleCell, nu ook op de container zelf.
+const MAX_HEIGHT = 420;
+
 function Cell({
   image,
   remainingCount,
@@ -40,7 +47,10 @@ function Cell({
 // naar vierkant gecropt te worden), maar de hoogte nooit meer dan de breedte
 // worden — een staande foto zou het bericht anders onnodig lang maken.
 // Begint vierkant (veilige default zonder layout shift) en verbreedt zodra
-// de echte beeldverhouding bekend is uit de geladen afbeelding.
+// de echte beeldverhouding bekend is uit de geladen afbeelding. MAX_HEIGHT
+// zorgt daarnaast dat een (bijna-)vierkante foto op een brede desktop-
+// postkolom niet alsnog torenhoog wordt — de breedte blijft vol, alleen de
+// hoogte wordt begrensd (dus weer "breder, niet hoger" i.p.v. cropping).
 function SingleCell({ image, onClick }: { image: FeedAttachment; onClick: () => void }) {
   const [ratio, setRatio] = useState(1);
 
@@ -50,7 +60,7 @@ function SingleCell({ image, onClick }: { image: FeedAttachment; onClick: () => 
     <button
       type="button"
       onClick={onClick}
-      style={{ aspectRatio: ratio }}
+      style={{ aspectRatio: ratio, maxHeight: MAX_HEIGHT }}
       className="relative w-full overflow-hidden bg-black/[.03] dark:bg-white/[.03]"
     >
       <Image
@@ -89,16 +99,22 @@ export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
       <div className="mt-3 overflow-hidden rounded-xl">
         {visible.length === 1 && <SingleCell image={visible[0]} onClick={() => setLightboxIndex(0)} />}
 
+        {/* 2 foto's: elke cel apart vierkant i.p.v. de hele rij vierkant maken
+            — bij 2 naast elkaar geplaatste vierkanten is de rij vanzelf 2:1
+            liggend, zonder dat daar nog een aparte max-hoogte voor nodig is
+            (dat was bij de vorige aanpak, met vierkant op de hele container,
+            wél nodig omdat dat elke cel juist een smalle, hoge 1:2-kolom
+            maakte). */}
         {visible.length === 2 && (
-          <div className="grid aspect-square grid-rows-2 gap-0.5">
+          <div className="grid grid-cols-2 gap-0.5">
             {visible.map((image, i) => (
-              <Cell key={image.id} image={image} onClick={() => setLightboxIndex(i)} />
+              <Cell key={image.id} image={image} onClick={() => setLightboxIndex(i)} className="aspect-square" />
             ))}
           </div>
         )}
 
         {visible.length >= 3 && (
-          <div className="grid aspect-square grid-rows-[2fr_1fr] gap-0.5">
+          <div className="grid aspect-square grid-rows-[2fr_1fr] gap-0.5" style={{ maxHeight: MAX_HEIGHT }}>
             <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} />
             <div
               className={clsx("grid grid-rows-[1fr] gap-0.5", visible.length === 3 ? "grid-cols-2" : "grid-cols-3")}
