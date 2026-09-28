@@ -17,6 +17,14 @@ const MAX_VISIBLE = 4;
 // de kolom, en aspect-square maakt de hoogte daaraan gelijk). De breedte
 // blijft vol, alleen de hoogte wordt begrensd, dus dit is dezelfde "breder
 // mag, hoger niet"-regel als bij SingleCell, nu ook op de container zelf.
+//
+// Belangrijke CSS-valkuil hierbij: `aspect-ratio` + `max-height` op een
+// gewoon blok-element zonder EXPLICIETE breedte laat de browser ook de
+// BREEDTE terugschalen naar de geclamde hoogte (om de ratio 1:1 te
+// behouden), i.p.v. alleen de hoogte te clampen — leeg bevestigd met een
+// Playwright-meting: zonder `w-full` erbij werd de mozaïek-breedte
+// stiekem gelijk aan MAX_HEIGHT (420px) i.p.v. de volle kolombreedte.
+// `w-full` erbij (een echte, niet-"auto" breedte) voorkomt dat.
 const MAX_HEIGHT = 420;
 
 function Cell({
@@ -114,7 +122,7 @@ export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
         )}
 
         {visible.length >= 3 && (
-          <div className="grid aspect-square grid-rows-[2fr_1fr] gap-0.5" style={{ maxHeight: MAX_HEIGHT }}>
+          <div className="grid aspect-square w-full grid-rows-[2fr_1fr] gap-0.5" style={{ maxHeight: MAX_HEIGHT }}>
             <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} />
             <div
               className={clsx("grid grid-rows-[1fr] gap-0.5", visible.length === 3 ? "grid-cols-2" : "grid-cols-3")}
