@@ -7,6 +7,8 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { formatActivityDate } from "@/lib/format/date";
+import { fetchFeedPosts } from "@/lib/feed/queries";
+import { RecentPostPreview } from "@/components/feed/RecentPostPreview";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Home" };
@@ -44,7 +46,7 @@ export default async function HomePage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: activities }, { count: companyCount }] = await Promise.all([
+  const [{ data: activities }, { count: companyCount }, recentPosts] = await Promise.all([
     supabase
       .from("activities")
       .select("*")
@@ -54,6 +56,7 @@ export default async function HomePage() {
       .limit(1)
       .returns<ActivityRow[]>(),
     supabase.from("companies").select("id", { count: "exact", head: true }),
+    fetchFeedPosts(supabase, profile.id, 3),
   ]);
 
   const nextActivity = activities?.[0] ?? null;
@@ -146,6 +149,23 @@ export default async function HomePage() {
           <ShortcutButton href="/community" icon={MessageCircle} label="Community" />
         </div>
       </section>
+
+      {recentPosts.length > 0 && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-foreground">Laatste in de community</h2>
+          <div className="flex flex-col gap-3">
+            {recentPosts.map((post) => (
+              <RecentPostPreview key={post.id} post={post} />
+            ))}
+          </div>
+          <Link
+            href="/community"
+            className="mt-3 flex h-10 w-full items-center justify-center rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-all duration-150 hover:bg-black/[.03] active:scale-95 dark:hover:bg-white/[.06]"
+          >
+            Naar Community
+          </Link>
+        </section>
+      )}
     </div>
   );
 }
