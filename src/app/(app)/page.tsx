@@ -27,7 +27,7 @@ function ShortcutButton({
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-150 hover:-translate-y-0.5 hover:border-voc-red hover:text-voc-red hover:shadow-md"
+      className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-150 hover:scale-[1.02] hover:border-voc-red hover:text-voc-red hover:shadow-md"
     >
       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red">
         <Icon size={20} />
