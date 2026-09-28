@@ -90,7 +90,7 @@ export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
         {visible.length === 1 && <SingleCell image={visible[0]} onClick={() => setLightboxIndex(0)} />}
 
         {visible.length === 2 && (
-          <div className="grid aspect-square grid-cols-2 grid-rows-[1fr] gap-0.5">
+          <div className="grid aspect-square grid-rows-2 gap-0.5">
             {visible.map((image, i) => (
               <Cell key={image.id} image={image} onClick={() => setLightboxIndex(i)} />
             ))}
@@ -98,7 +98,7 @@ export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
         )}
 
         {visible.length >= 3 && (
-          <div className="grid aspect-square grid-rows-[3fr_2fr] gap-0.5">
+          <div className="grid aspect-square grid-rows-[2fr_1fr] gap-0.5">
             <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} />
             <div
               className={clsx("grid grid-rows-[1fr] gap-0.5", visible.length === 3 ? "grid-cols-2" : "grid-cols-3")}
