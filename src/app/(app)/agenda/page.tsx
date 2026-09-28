@@ -37,33 +37,6 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
     return true;
   });
 
-  // "Ingebracht door X · Bedrijf" op ingebrachte activiteiten — één batch-
-  // query voor alle betrokken indieners i.p.v. per kaart, en dus ook alleen
-  // uitgevoerd als er daadwerkelijk ingebrachte activiteiten in beeld zijn.
-  const submitterIds = Array.from(
-    new Set(activities.filter((a) => a.source === "lid" && a.created_by).map((a) => a.created_by as string))
-  );
-  const submitterLabels = new Map<string, string>();
-  if (submitterIds.length > 0) {
-    const { data: submitters } = await supabase
-      .from("profiles")
-      .select("id, first_name, last_name, company_members(is_primary, company:companies(name))")
-      .in("id", submitterIds)
-      .returns<
-        {
-          id: string;
-          first_name: string;
-          last_name: string;
-          company_members: { is_primary: boolean; company: { name: string } | null }[];
-        }[]
-      >();
-    for (const s of submitters ?? []) {
-      const membership = s.company_members.find((m) => m.is_primary) ?? s.company_members[0];
-      const name = `${s.first_name} ${s.last_name}`;
-      submitterLabels.set(s.id, membership?.company ? `${name} · ${membership.company.name}` : name);
-    }
-  }
-
   const myRegistrationByActivity = new Map((myRegistrations ?? []).map((r) => [r.activity_id, r.is_waitlisted]));
   const registrationCounts = new Map<string, number>();
   for (const registration of allRegistrations ?? []) {
@@ -78,7 +51,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
 
   const { upcoming, past } = splitUpcomingAndPast(activities);
 
-  function renderCard(activity: ActivityRow) {
+  function renderCard(activity: ActivityRow, hero = false) {
     const myStatus = myRegistrationByActivity.get(activity.id);
     return (
       <ActivityCard
@@ -88,7 +61,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
         registrationCount={registrationCounts.get(activity.id) ?? 0}
         isRegistered={myStatus !== undefined}
         isWaitlisted={myStatus === true}
-        submitterLabel={activity.created_by ? (submitterLabels.get(activity.created_by) ?? null) : null}
+        hero={hero}
       />
     );
   }
@@ -126,7 +99,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
       </div>
 
       {upcoming.length > 0 ? (
-        <div className="flex flex-col gap-3">{upcoming.map(renderCard)}</div>
+        <div className="flex flex-col gap-3">{upcoming.map((activity, i) => renderCard(activity, i === 0))}</div>
       ) : (
         <ComingSoon
           icon={CalendarDays}
@@ -138,7 +111,12 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
       {past.length > 0 && (
         <div className="mt-8">
           <h2 className="mb-3 text-sm font-semibold text-muted">Eerdere activiteiten</h2>
-          <div className="flex flex-col gap-3 opacity-70">{past.map(renderCard)}</div>
+          {/* Duidelijk "voorbij" i.p.v. subtiel gedimd: grayscale + minder
+              dekking, weer volle kleur bij hover/focus zodat het nog prima
+              leesbaar blijft zodra je 'm daadwerkelijk bekijkt. */}
+          <div className="flex flex-col gap-3 opacity-60 grayscale transition-all duration-150 hover:opacity-100 hover:grayscale-0">
+            {past.map((activity) => renderCard(activity))}
+          </div>
         </div>
       )}
     </div>
