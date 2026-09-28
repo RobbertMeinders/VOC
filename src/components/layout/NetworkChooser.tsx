@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, ChevronUp, Users } from "lucide-react";
+import { Building2, ChevronDown, ChevronUp, Users } from "lucide-react";
 import { clsx } from "clsx";
 import { NavBadge } from "./NavBadge";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
@@ -33,17 +33,24 @@ export function NetworkChooser({
   const { open, toggle, close } = useOverlay("netwerk");
   const pathname = usePathname();
   const active = pathname.startsWith("/leden") || pathname.startsWith("/bedrijven");
-  const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(open);
+  // Alleen op mobiel is dit nog een los gepositioneerd paneel (zie
+  // useFixedAnchor hieronder) — de sidebar-variant klapt inline open, dus
+  // heeft geen anker-rect nodig.
+  const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(variant === "mobile" && open);
 
   useEscapeKey(open, close);
 
   if (variant === "sidebar") {
+    // Klapt Bedrijven/Leden als submenu open direct onder Netwerk, binnen de
+    // gewone flex-col van de sidebar — dus geen popover die overheen valt,
+    // maar Documenten/Notificaties eronder schuiven gewoon mee naar beneden,
+    // net als een mapje dat je openklapt.
     return (
-      <div className="relative">
+      <div>
         <button
-          ref={anchorRef}
           type="button"
           onClick={toggle}
+          aria-expanded={open}
           className={clsx(
             "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
             active || open
@@ -53,39 +60,29 @@ export function NetworkChooser({
         >
           <Users size={20} strokeWidth={active ? 2.5 : 2} />
           Netwerk
-          {badgeCount > 0 && (
-            <span className="ml-auto">
-              <NavBadge count={badgeCount} />
-            </span>
-          )}
+          <span className="ml-auto flex items-center gap-1.5">
+            {badgeCount > 0 && <NavBadge count={badgeCount} />}
+            <ChevronDown size={16} className={clsx("transition-transform duration-200", open && "rotate-180")} />
+          </span>
         </button>
-        {/* FloatingPortal: de sidebar zelf is position:fixed, en fixed
-            positionering creëert altijd een eigen stacking-context — zonder
-            portal blijft dit paneel (ook met z-50) daarin "opgesloten" en kan
-            het achter een geopende overlay (RouteOverlayPanel, z-30) uitkomen
-            i.p.v. er overheen, want de sidebar zelf heeft geen eigen z-index.
-            Zelfde bugklasse als de mobiele varianten hieronder (daar was
-            backdrop-blur de vanger i.p.v. fixed positioning zelf). */}
-        {open && rect && (
-          <FloatingPortal>
-            <div className="fixed inset-0 z-40 cursor-pointer" onClick={close} />
-            <div
-              className="animate-scale-in origin-top-left fixed z-50 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg"
-              style={{ left: rect.right + 8, top: rect.top }}
-            >
-              {OPTIONS.map(({ href, label, icon: Icon }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  onClick={close}
-                  className="flex items-center gap-3 px-4 py-3.5 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-                >
-                  <Icon size={20} />
-                  {label}
-                </Link>
-              ))}
-            </div>
-          </FloatingPortal>
+        {open && (
+          <div className="animate-fade-in mt-1 flex flex-col gap-1">
+            {OPTIONS.map(({ href, label, icon: Icon }) => (
+              <Link
+                key={href}
+                href={href}
+                className={clsx(
+                  "flex items-center gap-3 rounded-lg py-2.5 pl-10 pr-3 text-sm font-medium transition-all duration-150",
+                  pathname.startsWith(href)
+                    ? "bg-voc-red-light text-voc-red"
+                    : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                )}
+              >
+                <Icon size={16} />
+                {label}
+              </Link>
+            ))}
+          </div>
         )}
       </div>
     );

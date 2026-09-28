@@ -85,7 +85,7 @@ export function ActivityCard({
       <Link
         href={`/agenda/${activity.id}`}
         className={clsx(
-          "animate-rise-in overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-all duration-300 hover:scale-[1.008] hover:border-voc-red hover:shadow-md",
+          "animate-rise-in overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-all duration-500 ease-out hover:scale-[1.005] hover:border-voc-red hover:shadow-md",
           (isOfficial || isSubmitted) && "border-l-4"
         )}
         style={borderStyle}
@@ -118,7 +118,7 @@ export function ActivityCard({
     <Link
       href={`/agenda/${activity.id}`}
       className={clsx(
-        "animate-rise-in flex gap-4 rounded-2xl border border-border bg-surface shadow-sm transition-all duration-300 hover:scale-[1.015] hover:border-voc-red hover:shadow-md",
+        "animate-rise-in flex gap-4 rounded-2xl border border-border bg-surface shadow-sm transition-all duration-500 ease-out hover:scale-[1.008] hover:border-voc-red hover:shadow-md",
         isSubmitted ? "p-4" : "p-5",
         (isOfficial || isSubmitted) && "border-l-4"
       )}
