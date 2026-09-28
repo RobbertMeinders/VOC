@@ -21,6 +21,16 @@ export function useFixedAnchor<T extends HTMLElement>(open: boolean): { anchorRe
       return;
     }
     const box = anchorRef.current.getBoundingClientRect();
+    // De open/dicht-state van deze popovers is gedeeld tussen de sidebar- en
+    // mobiele variant (zie OverlayContext) — allebei zitten altijd in de DOM,
+    // alleen per breakpoint met CSS verborgen. Een verborgen anker
+    // (display:none) geeft een rect van (0,0,0,0) terug i.p.v. null: zonder
+    // deze check zou de andere, onzichtbare variant zijn eigen portal-paneel
+    // alsnog linksboven in beeld renderen zodra je de zichtbare variant opent.
+    if (box.width === 0) {
+      setRect(null);
+      return;
+    }
     setRect({ left: box.left, right: box.right, top: box.top, bottom: box.bottom, width: box.width });
   }, [open]);
 

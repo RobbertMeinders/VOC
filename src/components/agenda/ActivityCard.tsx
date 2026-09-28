@@ -159,7 +159,11 @@ export function ActivityCard({
           {activity.title}
         </p>
         <p className="mt-1 text-sm text-muted">{formatActivityDate(activity.starts_at)}</p>
-        {activity.location && (
+        {/* Ingebracht mag compacter: de locatieregel weg (staat nog op de
+            detailpagina) — de afbeelding rekt via self-stretch toch al mee
+            met de hoogte van dit tekstblok, dus dit maakt meteen ook de
+            hele kaart lager. */}
+        {activity.location && !isSubmitted && (
           <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted">
             <MapPin size={14} />
             {activity.location}
