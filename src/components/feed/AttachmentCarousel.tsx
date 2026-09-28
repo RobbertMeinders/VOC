@@ -1,12 +1,16 @@
 "use client";
 
-import { useRef, useState, type TouchEvent } from "react";
+import { useState } from "react";
 import Image from "next/image";
 import { clsx } from "clsx";
 import { ImageLightbox } from "./ImageLightbox";
 import type { FeedAttachment } from "@/lib/feed/types";
 
-const SWIPE_THRESHOLD = 50;
+// Hoeveel foto's rechtstreeks zichtbaar zijn in de mozaïek voordat de
+// laatste zichtbare cel een "+N"-label krijgt (1 groot bovenaan + 3 klein
+// eronder) — zelfde patroon als Facebook, waar de gebruiker dit expliciet
+// naar vroeg.
+const MAX_VISIBLE = 4;
 
 function Cell({
   image,
@@ -21,7 +25,7 @@ function Cell({
 }) {
   if (!image.url) return null;
   return (
-    <button type="button" onClick={onClick} className={clsx("overflow-hidden bg-black/[.03] dark:bg-white/[.03]", className)}>
+    <button type="button" onClick={onClick} className={clsx("relative overflow-hidden bg-black/[.03] dark:bg-white/[.03]", className)}>
       <Image src={image.url} alt={image.fileName} fill sizes="(min-width: 640px) 600px, 100vw" className="object-cover" />
       {Boolean(remainingCount) && (
         <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-lg font-semibold text-white">
@@ -32,145 +36,47 @@ function Cell({
   );
 }
 
-// Mobiele preview bij 2+ foto's: een echte swipebare carousel i.p.v. één
-// vaste foto met een "+N"-label erover — je kunt zo direct in het bericht
-// door alle foto's bladeren, zonder eerst de lightbox te hoeven openen.
-// Zelfde volg-de-vinger-sleepmechaniek als ImageLightbox (los gehouden i.p.v.
-// gedeeld, want de context — klikken opent hier de lightbox i.p.v. sluiten —
-// verschilt net genoeg om hergebruik niet te vereenvoudigen).
-function MobileSwipeCarousel({ images, onOpen }: { images: FeedAttachment[]; onOpen: (index: number) => void }) {
-  const [index, setIndex] = useState(0);
-  const [dragX, setDragX] = useState(0);
-  const [dragging, setDragging] = useState(false);
-  const touchStart = useRef({ x: 0, y: 0 });
-  const draggedRef = useRef(false);
-
-  function goTo(next: number) {
-    setIndex(Math.max(0, Math.min(images.length - 1, next)));
-  }
-
-  function handleTouchStart(e: TouchEvent) {
-    const touch = e.touches[0];
-    touchStart.current = { x: touch.clientX, y: touch.clientY };
-    draggedRef.current = false;
-    setDragging(true);
-  }
-
-  function handleTouchMove(e: TouchEvent) {
-    const touch = e.touches[0];
-    const deltaX = touch.clientX - touchStart.current.x;
-    const deltaY = touch.clientY - touchStart.current.y;
-    if (Math.abs(deltaX) > 10 || Math.abs(deltaY) > 10) draggedRef.current = true;
-    if (Math.abs(deltaX) > Math.abs(deltaY)) setDragX(deltaX);
-  }
-
-  function handleTouchEnd() {
-    setDragging(false);
-    if (dragX > SWIPE_THRESHOLD) goTo(index - 1);
-    else if (dragX < -SWIPE_THRESHOLD) goTo(index + 1);
-    setDragX(0);
-  }
-
-  function handleClick() {
-    // Na een veeg volgt nog een synthetische click — die mag niet ook de
-    // lightbox openen op een plek waar je niet naartoe wilde swipen.
-    if (draggedRef.current) {
-      draggedRef.current = false;
-      return;
-    }
-    onOpen(index);
-  }
-
-  return (
-    <div
-      className="relative h-80 w-full touch-none overflow-hidden bg-black/[.03] dark:bg-white/[.03]"
-      onClick={handleClick}
-      onTouchStart={handleTouchStart}
-      onTouchMove={handleTouchMove}
-      onTouchEnd={handleTouchEnd}
-    >
-      {/* Alle foto's staan naast elkaar in één track (niet alleen de actieve
-          gewisseld) — zo kan de buur-foto al op de achtergrond laden vóórdat
-          je ernaartoe swipet, i.p.v. pas te beginnen laden op het moment dat
-          je 'm ziet. priority op de directe buren forceert dat vooraf laden;
-          verder weg blijft next/image's normale lazy-loading gewoon gelden. */}
-      <div
-        className="flex h-full"
-        style={{
-          transform: `translateX(calc(${-index * 100}% + ${dragX}px))`,
-          transition: dragging ? "none" : "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
-      >
-        {images.map((image, i) =>
-          image.url ? (
-            <div key={image.id} className="relative h-full w-full shrink-0">
-              <Image
-                src={image.url}
-                alt={image.fileName}
-                fill
-                sizes="100vw"
-                priority={Math.abs(i - index) <= 1}
-                className="object-cover"
-              />
-            </div>
-          ) : (
-            <div key={image.id} className="h-full w-full shrink-0" />
-          )
-        )}
-      </div>
-      <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1 rounded-full bg-black/30 px-2 py-1 backdrop-blur-sm">
-        {images.map((image, i) => (
-          <span
-            key={image.id}
-            className={clsx(
-              "h-1.5 rounded-full transition-all duration-150",
-              i === index ? "w-4 bg-white" : "w-1.5 bg-white/50"
-            )}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Preview in het bericht zelf: bijgesneden (object-cover) op een vaste
-// verhouding, net als Instagram/X. Bij één foto gewoon die foto, bij 2+ op
-// desktop maximaal 2 naast elkaar (1 links, 1 rechts, met "+N" op de
-// tweede als er meer zijn) — op mobiel is er te weinig breedte voor 2
-// kolommen, dus daar de swipebare MobileSwipeCarousel hierboven. Beide
-// varianten staan in de DOM (nodig om zonder JS/hydratatie-mismatch op
-// viewportbreedte te reageren) en worden puur via CSS getoond/verborgen;
-// next/image's lazy loading haalt de verborgen variant daardoor niet op.
-// Klikken (of bij één foto: op de foto) opent de volledige foto in een
-// lightbox (ImageLightbox), swipebaar (of met pijltoetsen) tussen alle
-// foto's van dit bericht, niet alleen de zichtbare preview-cellen.
+// Statische mozaïek-preview in het bericht zelf, net als Facebook: geen
+// swipe-gebaar meer in de feed nodig (dat bleek op mobiel niet betrouwbaar
+// genoeg te voelen) — tikken op een foto opent gewoon de volledige foto in
+// de lightbox, waar swipen/pijltoetsen tussen alle foto's van het bericht
+// al goed werkt. Vanaf 5 foto's krijgt de laatste zichtbare cel een
+// "+N"-label voor de rest.
 export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   if (images.length === 0) return null;
 
+  const visible = images.slice(0, MAX_VISIBLE);
+  const remaining = Math.max(0, images.length - MAX_VISIBLE);
+
   return (
     <>
       <div className="mt-3 overflow-hidden rounded-xl">
-        {images.length === 1 ? (
-          <div className="relative h-80 w-full">
-            <Cell image={images[0]} onClick={() => setLightboxIndex(0)} className="absolute inset-0" />
+        {visible.length === 1 && <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} className="h-80 w-full" />}
+
+        {visible.length === 2 && (
+          <div className="grid h-80 grid-cols-2 gap-0.5">
+            {visible.map((image, i) => (
+              <Cell key={image.id} image={image} onClick={() => setLightboxIndex(i)} />
+            ))}
           </div>
-        ) : (
-          <>
-            <div className="sm:hidden">
-              <MobileSwipeCarousel images={images} onOpen={setLightboxIndex} />
+        )}
+
+        {visible.length >= 3 && (
+          <div className="grid h-80 grid-rows-[3fr_2fr] gap-0.5">
+            <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} />
+            <div className={clsx("grid gap-0.5", visible.length === 3 ? "grid-cols-2" : "grid-cols-3")}>
+              {visible.slice(1).map((image, i) => (
+                <Cell
+                  key={image.id}
+                  image={image}
+                  onClick={() => setLightboxIndex(i + 1)}
+                  remainingCount={i === visible.length - 2 ? remaining : undefined}
+                />
+              ))}
             </div>
-            <div className="hidden h-80 grid-cols-2 gap-0.5 sm:grid">
-              <Cell image={images[0]} onClick={() => setLightboxIndex(0)} className="relative h-full w-full" />
-              <Cell
-                image={images[1]}
-                remainingCount={images.length - 2}
-                onClick={() => setLightboxIndex(1)}
-                className="relative h-full w-full"
-              />
-            </div>
-          </>
+          </div>
         )}
       </div>
 
