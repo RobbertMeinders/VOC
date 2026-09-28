@@ -31,13 +31,13 @@ export function ActivityCard({
   const isSubmitted = activity.source === "lid";
 
   // Ingebracht is even breed als een officiële activiteit (zelfde
-  // beeldverhouding-taal), maar lager — samen met wat minder padding en het
-  // weglaten van de "ingebracht door"-regel (wie het was is niet cruciaal in
-  // dit overzicht, wel op de detailpagina) zorgt dat ervoor dat de titel op
-  // dezelfde hoogte begint als bij een officiële activiteit i.p.v. dat de
-  // afbeelding er middenin "zweeft" door een hoger tekstblok.
+  // beeldverhouding-taal), maar de kaart zelf is lager (minder padding, geen
+  // "ingebracht door"-regel — wie het was staat nog op de detailpagina). De
+  // afbeelding krijgt daarom geen eigen vaste hoogte: die rekt (via flex
+  // items-stretch, de default) automatisch mee tot precies de hoogte die het
+  // tekstblok ernaast al inneemt, wat dat ook is — i.p.v. een losse
+  // schatting die zelf weer niet klopt zodra de tekst wat korter/langer is.
   const imageWidth = 112;
-  const imageHeight = isSubmitted ? 64 : 112;
 
   const borderStyle = isOfficial
     ? { borderLeftColor: "var(--voc-red)" }
@@ -85,7 +85,7 @@ export function ActivityCard({
       <Link
         href={`/agenda/${activity.id}`}
         className={clsx(
-          "animate-rise-in overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-all duration-150 hover:scale-[1.01] hover:border-voc-red hover:shadow-md",
+          "animate-rise-in overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-all duration-300 hover:scale-[1.008] hover:border-voc-red hover:shadow-md",
           (isOfficial || isSubmitted) && "border-l-4"
         )}
         style={borderStyle}
@@ -118,27 +118,40 @@ export function ActivityCard({
     <Link
       href={`/agenda/${activity.id}`}
       className={clsx(
-        "animate-rise-in flex items-start gap-4 rounded-2xl border border-border bg-surface shadow-sm transition-all duration-150 hover:scale-[1.02] hover:border-voc-red hover:shadow-md",
+        "animate-rise-in flex gap-4 rounded-2xl border border-border bg-surface shadow-sm transition-all duration-300 hover:scale-[1.015] hover:border-voc-red hover:shadow-md",
         isSubmitted ? "p-4" : "p-5",
         (isOfficial || isSubmitted) && "border-l-4"
       )}
       style={borderStyle}
     >
-      {imageUrl ? (
+      {isSubmitted ? (
+        imageUrl ? (
+          <div className="relative shrink-0 self-stretch overflow-hidden rounded-xl" style={{ width: imageWidth }}>
+            <Image src={imageUrl} alt={activity.title} fill sizes="112px" className="object-cover" />
+          </div>
+        ) : (
+          <div
+            className="flex shrink-0 items-center justify-center self-stretch rounded-xl bg-voc-red-light text-voc-red"
+            style={{ width: imageWidth }}
+          >
+            <CalendarDays size={26} />
+          </div>
+        )
+      ) : imageUrl ? (
         <Image
           src={imageUrl}
           alt={activity.title}
           width={imageWidth}
-          height={imageHeight}
-          className="shrink-0 rounded-xl object-cover"
-          style={{ height: imageHeight, width: imageWidth }}
+          height={imageWidth}
+          className="shrink-0 self-start rounded-xl object-cover"
+          style={{ height: imageWidth, width: imageWidth }}
         />
       ) : (
         <div
-          className="flex shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red"
-          style={{ height: imageHeight, width: imageWidth }}
+          className="flex shrink-0 items-center justify-center self-start rounded-xl bg-voc-red-light text-voc-red"
+          style={{ height: imageWidth, width: imageWidth }}
         >
-          <CalendarDays size={isSubmitted ? 26 : 34} />
+          <CalendarDays size={34} />
         </div>
       )}
       <div className="min-w-0 flex-1">

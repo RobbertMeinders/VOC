@@ -111,12 +111,10 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
       {past.length > 0 && (
         <div className="mt-8">
           <h2 className="mb-3 text-sm font-semibold text-muted">Eerdere activiteiten</h2>
-          {/* Duidelijk "voorbij" i.p.v. subtiel gedimd: grayscale + minder
-              dekking, weer volle kleur bij hover/focus zodat het nog prima
-              leesbaar blijft zodra je 'm daadwerkelijk bekijkt. */}
-          <div className="flex flex-col gap-3 opacity-60 grayscale transition-all duration-150 hover:opacity-100 hover:grayscale-0">
-            {past.map((activity) => renderCard(activity))}
-          </div>
+          {/* Lichtjes grijzer dan de rest, niet extreem, en blijft ook zo —
+              geen kleur-restore bij hover (dat voelde als een onnodige
+              knipper-animatie voor iets dat sowieso al voorbij is). */}
+          <div className="flex flex-col gap-3 opacity-80 grayscale-[65%]">{past.map((activity) => renderCard(activity))}</div>
         </div>
       )}
     </div>
