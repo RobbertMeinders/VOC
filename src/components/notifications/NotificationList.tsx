@@ -10,6 +10,7 @@ import {
   markAllNotificationsReadAction,
   markNotificationReadAction,
 } from "@/app/(app)/notificaties/actions";
+import { useMarkNotificationRead } from "@/lib/notifications/useUnreadCount";
 import type { Database } from "@/lib/types/database";
 
 type Notification = Database["public"]["Tables"]["notifications"]["Row"];
@@ -22,19 +23,29 @@ export function NotificationList({ notifications: initialNotifications }: { noti
   // server action still runs in the background to persist it.
   const [notifications, setNotifications] = useState(initialNotifications);
   const hasUnread = notifications.some((n) => !n.is_read);
+  // Zelfde reden als in NotificationCenter: dit werkt alleen de lokale lijst
+  // hier bij, niet het badge-aantal in de sidebar/mobiele header — dat zit
+  // in AppShell, dus die moet los meteen op de hoogte gebracht worden i.p.v.
+  // te wachten op de Realtime-round-trip.
+  const markReadGlobally = useMarkNotificationRead();
 
   function handleOpen(notification: Notification) {
     if (notification.is_read) return;
     setNotifications((current) => current.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n)));
+    markReadGlobally(notification.id);
     void markNotificationReadAction(notification.id);
   }
 
   function handleDelete(notificationId: string) {
     setNotifications((current) => current.filter((n) => n.id !== notificationId));
+    markReadGlobally(notificationId);
     void deleteNotificationAction(notificationId);
   }
 
   function handleMarkAllRead() {
+    for (const n of notifications) {
+      if (!n.is_read) markReadGlobally(n.id);
+    }
     setNotifications((current) => current.map((n) => ({ ...n, is_read: true })));
     void markAllNotificationsReadAction();
   }

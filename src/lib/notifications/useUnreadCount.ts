@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export type UnreadNotification = { id: string; link: string | null };
@@ -29,11 +29,34 @@ function toSections(items: UnreadNotification[]): UnreadNotificationSections {
   return sections;
 }
 
+export type MarkNotificationRead = (id: string) => void;
+
+// Alleen de knop/kaart waarop je klikt weet meteen dat een notificatie
+// gelezen is — het badge-aantal in de sidebar/mobiele header zit in AppShell,
+// een heel ander deel van de boom. Zonder deze context moest de badge
+// wachten op de Supabase Realtime UPDATE-event die pas terugkomt nadat de
+// server action de rij daadwerkelijk heeft weggeschreven — een voelbare
+// vertraging tussen klikken en de teller zien dalen. AppShell geeft hier zijn
+// eigen `markRead` (die dezelfde lokale filter doet als de realtime-handler
+// hieronder) via context door, zodat elke plek die een notificatie
+// gelezen markeert de badge ook meteen, optimistisch, kan bijwerken.
+const MarkNotificationReadContext = createContext<MarkNotificationRead | null>(null);
+export const MarkNotificationReadProvider = MarkNotificationReadContext.Provider;
+
+export function useMarkNotificationRead(): MarkNotificationRead {
+  const markRead = useContext(MarkNotificationReadContext);
+  return markRead ?? (() => {});
+}
+
 export function useUnreadNotificationCount(
   profileId: string,
   initialUnread: UnreadNotification[]
-): UnreadNotificationSections {
+): { sections: UnreadNotificationSections; markRead: MarkNotificationRead } {
   const [items, setItems] = useState(initialUnread);
+
+  const markRead = useCallback((id: string) => {
+    setItems((current) => current.filter((item) => item.id !== id));
+  }, []);
 
   useEffect(() => {
     const supabase = createClient();
@@ -74,5 +97,5 @@ export function useUnreadNotificationCount(
     };
   }, [profileId]);
 
-  return toSections(items);
+  return { sections: toSections(items), markRead };
 }

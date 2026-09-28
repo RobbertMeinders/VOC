@@ -12,6 +12,7 @@ import { NotificationList } from "@/components/notifications/NotificationList";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useFixedAnchor } from "@/lib/dom/useFixedAnchor";
+import { useMarkNotificationRead } from "@/lib/notifications/useUnreadCount";
 import { useOverlay } from "@/lib/ui/OverlayContext";
 import {
   getRecentNotificationsAction,
@@ -35,6 +36,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
   const [notifications, setNotifications] = useState<RecentNotification[] | null>(null);
   const router = useRouter();
   const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(variant === "sidebar" && open);
+  const markRead = useMarkNotificationRead();
 
   useEscapeKey(open, close);
 
@@ -61,6 +63,10 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
       setNotifications((current) =>
         current ? current.map((n) => (n.id === notification.id ? { ...n, is_read: true } : n)) : current
       );
+      // Werkt het badge-aantal in de sidebar/mobiele header meteen bij i.p.v.
+      // te wachten tot de server action de rij heeft weggeschreven en de
+      // Supabase Realtime-update pas daarna terugkomt (zie useUnreadCount.ts).
+      markRead(notification.id);
       void markNotificationReadAction(notification.id);
     }
     close();
