@@ -81,9 +81,6 @@ function MobileSwipeCarousel({ images, onOpen }: { images: FeedAttachment[]; onO
     onOpen(index);
   }
 
-  const current = images[index];
-  if (!current?.url) return null;
-
   return (
     <div
       className="relative h-80 w-full touch-none overflow-hidden bg-black/[.03] dark:bg-white/[.03]"
@@ -92,14 +89,34 @@ function MobileSwipeCarousel({ images, onOpen }: { images: FeedAttachment[]; onO
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
     >
+      {/* Alle foto's staan naast elkaar in één track (niet alleen de actieve
+          gewisseld) — zo kan de buur-foto al op de achtergrond laden vóórdat
+          je ernaartoe swipet, i.p.v. pas te beginnen laden op het moment dat
+          je 'm ziet. priority op de directe buren forceert dat vooraf laden;
+          verder weg blijft next/image's normale lazy-loading gewoon gelden. */}
       <div
-        className="absolute inset-0"
+        className="flex h-full"
         style={{
-          transform: `translateX(${dragX}px)`,
+          transform: `translateX(calc(${-index * 100}% + ${dragX}px))`,
           transition: dragging ? "none" : "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
         }}
       >
-        <Image src={current.url} alt={current.fileName} fill sizes="100vw" className="object-cover" />
+        {images.map((image, i) =>
+          image.url ? (
+            <div key={image.id} className="relative h-full w-full shrink-0">
+              <Image
+                src={image.url}
+                alt={image.fileName}
+                fill
+                sizes="100vw"
+                priority={Math.abs(i - index) <= 1}
+                className="object-cover"
+              />
+            </div>
+          ) : (
+            <div key={image.id} className="h-full w-full shrink-0" />
+          )
+        )}
       </div>
       <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1 rounded-full bg-black/30 px-2 py-1 backdrop-blur-sm">
         {images.map((image, i) => (
