@@ -1,6 +1,10 @@
 import Image from "next/image";
 import { Building2 } from "lucide-react";
 
+// De meeste bedrijfslogo's zijn liggend, niet vierkant — object-cover in een
+// vierkant vlak sneed die aan de zijkanten af (tekst kwijt). object-contain
+// voorkomt dat, geen binnenmarge meer zodat elk logo toch zoveel mogelijk
+// van de tegel vult.
 export function CompanyLogo({ logoUrl, name, size = 64 }: { logoUrl: string | null; name: string; size?: number }) {
   return (
     <div
@@ -8,7 +12,7 @@ export function CompanyLogo({ logoUrl, name, size = 64 }: { logoUrl: string | nu
       style={{ width: size, height: size }}
     >
       {logoUrl ? (
-        <Image src={logoUrl} alt={name} width={size} height={size} className="h-full w-full object-cover" />
+        <Image src={logoUrl} alt={name} width={size} height={size} className="h-full w-full object-contain" />
       ) : (
         <Building2 size={Math.round(size * 0.45)} className="text-voc-red" />
       )}
