@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 import { NotificationList } from "@/components/notifications/NotificationList";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
+import { useFixedAnchor } from "@/lib/dom/useFixedAnchor";
 import { useOverlay } from "@/lib/ui/OverlayContext";
 import {
   getRecentNotificationsAction,
@@ -33,6 +34,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
   const [loading, setLoading] = useState(false);
   const [notifications, setNotifications] = useState<RecentNotification[] | null>(null);
   const router = useRouter();
+  const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(variant === "sidebar" && open);
 
   useEscapeKey(open, close);
 
@@ -199,6 +201,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
   return (
     <div className="relative">
       <button
+        ref={anchorRef}
         type="button"
         onClick={handleOpen}
         className={clsx(
@@ -214,13 +217,22 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
           </span>
         )}
       </button>
-      {open && (
-        <>
+      {/* FloatingPortal: de sidebar zelf is position:fixed, wat altijd een
+          eigen stacking-context creëert — zonder portal blijft dit paneel
+          (ook met z-50) daarin "opgesloten" en kan het achter een geopende
+          overlay (RouteOverlayPanel, z-30) uitkomen i.p.v. er overheen, want
+          de sidebar zelf heeft geen eigen z-index. Zelfde bugklasse als de
+          mobiele variant hierboven (daar was backdrop-blur de vanger). */}
+      {open && rect && (
+        <FloatingPortal>
           <div className="fixed inset-0 z-40 cursor-pointer" onClick={close} />
-          <div className="animate-scale-in origin-top absolute left-0 top-full z-50 mt-1 w-80 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+          <div
+            className="animate-scale-in origin-top fixed z-50 w-80 overflow-hidden rounded-xl border border-border bg-surface shadow-lg"
+            style={{ left: rect.left, top: rect.bottom + 4 }}
+          >
             {panelContent}
           </div>
-        </>
+        </FloatingPortal>
       )}
     </div>
   );

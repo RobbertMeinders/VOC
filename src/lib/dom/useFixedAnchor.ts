@@ -2,7 +2,7 @@
 
 import { useLayoutEffect, useRef, useState, type RefObject } from "react";
 
-export type AnchorRect = { left: number; right: number; top: number; width: number };
+export type AnchorRect = { left: number; right: number; top: number; bottom: number; width: number };
 
 /**
  * Meet de positie van een trigger-knop zodra een popover opent, zodat een
@@ -21,7 +21,7 @@ export function useFixedAnchor<T extends HTMLElement>(open: boolean): { anchorRe
       return;
     }
     const box = anchorRef.current.getBoundingClientRect();
-    setRect({ left: box.left, right: box.right, top: box.top, width: box.width });
+    setRect({ left: box.left, right: box.right, top: box.top, bottom: box.bottom, width: box.width });
   }, [open]);
 
   return { anchorRef, rect };

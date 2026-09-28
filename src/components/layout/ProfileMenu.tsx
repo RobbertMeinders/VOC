@@ -106,11 +106,13 @@ export function SidebarProfileMenu({
   companyName,
 }: Pick<ProfileMenuProps, "profile" | "avatarUrl" | "companyName">) {
   const { open, toggle, close } = useOverlay("profile");
+  const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(open);
   useEscapeKey(open, close);
 
   return (
     <div className="relative min-w-0 flex-1">
       <button
+        ref={anchorRef}
         type="button"
         onClick={toggle}
         className="flex w-full min-w-0 items-center gap-3 rounded-lg p-1.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
@@ -124,10 +126,19 @@ export function SidebarProfileMenu({
         </div>
       </button>
 
-      {open && (
-        <>
+      {/* FloatingPortal: de sidebar zelf is position:fixed, wat altijd een
+          eigen stacking-context creëert — zonder portal blijft dit paneel
+          (ook met z-50) daarin "opgesloten" en kan het achter een geopende
+          overlay (RouteOverlayPanel, z-30) uitkomen i.p.v. er overheen, want
+          de sidebar zelf heeft geen eigen z-index. Zelfde bugklasse als
+          MenuPanel hierboven (daar was backdrop-blur de vanger). */}
+      {open && rect && (
+        <FloatingPortal>
           <div className="fixed inset-0 z-40 cursor-pointer" onClick={close} />
-          <div className="animate-scale-in origin-bottom absolute bottom-full left-0 z-50 mb-2 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+          <div
+            className="animate-scale-in origin-bottom fixed z-50 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg"
+            style={{ left: rect.left, bottom: window.innerHeight - rect.top + 8 }}
+          >
             <form action={signOutAction}>
               <button
                 type="submit"
@@ -138,7 +149,7 @@ export function SidebarProfileMenu({
               </button>
             </form>
           </div>
-        </>
+        </FloatingPortal>
       )}
     </div>
   );

@@ -33,7 +33,7 @@ export function NetworkChooser({
   const { open, toggle, close } = useOverlay("netwerk");
   const pathname = usePathname();
   const active = pathname.startsWith("/leden") || pathname.startsWith("/bedrijven");
-  const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(variant === "mobile" && open);
+  const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(open);
 
   useEscapeKey(open, close);
 
@@ -41,6 +41,7 @@ export function NetworkChooser({
     return (
       <div className="relative">
         <button
+          ref={anchorRef}
           type="button"
           onClick={toggle}
           className={clsx(
@@ -58,12 +59,20 @@ export function NetworkChooser({
             </span>
           )}
         </button>
-        {open && (
-          <>
+        {/* FloatingPortal: de sidebar zelf is position:fixed, en fixed
+            positionering creëert altijd een eigen stacking-context — zonder
+            portal blijft dit paneel (ook met z-50) daarin "opgesloten" en kan
+            het achter een geopende overlay (RouteOverlayPanel, z-30) uitkomen
+            i.p.v. er overheen, want de sidebar zelf heeft geen eigen z-index.
+            Zelfde bugklasse als de mobiele varianten hieronder (daar was
+            backdrop-blur de vanger i.p.v. fixed positioning zelf). */}
+        {open && rect && (
+          <FloatingPortal>
             <div className="fixed inset-0 z-40 cursor-pointer" onClick={close} />
-            {/* Opent naar rechts i.p.v. eronder — anders schuift het paneel
-                over Documenten/Notificaties eronder in de sidebar heen. */}
-            <div className="animate-scale-in origin-top-left absolute left-full top-0 z-50 ml-2 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+            <div
+              className="animate-scale-in origin-top-left fixed z-50 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg"
+              style={{ left: rect.right + 8, top: rect.top }}
+            >
               {OPTIONS.map(({ href, label, icon: Icon }) => (
                 <Link
                   key={href}
@@ -76,7 +85,7 @@ export function NetworkChooser({
                 </Link>
               ))}
             </div>
-          </>
+          </FloatingPortal>
         )}
       </div>
     );
