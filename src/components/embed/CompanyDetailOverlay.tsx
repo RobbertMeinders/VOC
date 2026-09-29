@@ -5,12 +5,18 @@ import { X } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { CompanyDetailContent, type CompanyDetailData } from "./CompanyDetailContent";
 
-// Een echte zwevende overlay (bedrijvenlijst blijft zichtbaar/verduisterd
-// erachter) i.p.v. de lijst te vervangen — gepositioneerd op `anchorY`, de
-// positie van de aangeklikte kaart zelf (zie BedrijvenEmbedList voor waarom:
-// die staat per definitie al in beeld, dus dat is een betrouwbaar
-// ankerpunt zonder enige medewerking van de omliggende WordPress-pagina
-// nodig te hebben).
+// Een echte zwevende overlay (bedrijvenlijst blijft erachter) i.p.v. de
+// lijst te vervangen — gepositioneerd op `anchorY`, de positie van de
+// aangeklikte kaart zelf (zie BedrijvenEmbedList voor waarom: die staat per
+// definitie al in beeld, dus dat is een betrouwbaar ankerpunt zonder enige
+// medewerking van de omliggende WordPress-pagina nodig te hebben).
+//
+// Bewust GEEN verduistering (meer) van de lijst erachter of van de
+// omliggende WordPress-pagina — dat laatste bleek een herhaaldelijke bron
+// van bugs (nooit betrouwbaar te positioneren vanuit een iframe die zelf
+// niet weet welk stukje van zichzelf in beeld is, en één keer zelfs de
+// menubalk overlappend). bg-background dekt de lijst gewoon simpel en
+// solide af i.p.v. 'm te verduisteren.
 export function CompanyDetailOverlay({
   slug,
   anchorY,
@@ -24,24 +30,6 @@ export function CompanyDetailOverlay({
   const [notFound, setNotFound] = useState(false);
 
   useEscapeKey(true, onClose);
-
-  // Verduistert ook de rest van de WordPress-pagina rondom de iframe (zie
-  // /beheer/embed-codes) — de iframe kan dat zelf niet, want die kan nooit
-  // buiten zijn eigen rechthoek tekenen. Een klik daarbuiten stuurt
-  // voc-embed-close-overlay terug.
-  useEffect(() => {
-    window.parent.postMessage({ type: "voc-embed-backdrop-show" }, "*");
-
-    function handleMessage(e: MessageEvent) {
-      if (e.data?.type === "voc-embed-close-overlay") onClose();
-    }
-    window.addEventListener("message", handleMessage);
-
-    return () => {
-      window.parent.postMessage({ type: "voc-embed-backdrop-hide" }, "*");
-      window.removeEventListener("message", handleMessage);
-    };
-  }, [onClose]);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,7 +52,7 @@ export function CompanyDetailOverlay({
   }, [slug]);
 
   return (
-    <div className="absolute inset-0 z-20 bg-black/40" onClick={onClose}>
+    <div className="absolute inset-0 z-20 bg-background" onClick={onClose}>
       <div
         className="absolute left-1/2 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2"
         style={{ top: anchorY }}
@@ -79,13 +67,18 @@ export function CompanyDetailOverlay({
           <X size={18} />
         </button>
 
-        {notFound ? (
-          <div className="rounded-2xl bg-surface p-6 text-center text-sm text-muted shadow-sm">Bedrijf niet gevonden.</div>
-        ) : !company ? (
-          <div className="rounded-2xl bg-surface p-6 text-center text-sm text-muted shadow-sm">Laden…</div>
-        ) : (
-          <CompanyDetailContent company={company} />
-        )}
+        {/* "Vlak in vlak": een omkaderd frame rond de eigenlijke (witte)
+            kaarten, zodat het geheel zich duidelijk afzet tegen de
+            achtergrond i.p.v. los te zweven. */}
+        <div className="rounded-3xl border border-border bg-background p-3 shadow-sm">
+          {notFound ? (
+            <div className="rounded-2xl bg-surface p-6 text-center text-sm text-muted shadow-sm">Bedrijf niet gevonden.</div>
+          ) : !company ? (
+            <div className="rounded-2xl bg-surface p-6 text-center text-sm text-muted shadow-sm">Laden…</div>
+          ) : (
+            <CompanyDetailContent company={company} />
+          )}
+        </div>
       </div>
     </div>
   );
