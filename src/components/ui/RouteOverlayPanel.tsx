@@ -27,7 +27,7 @@ const DISMISS_THRESHOLD = 100;
 export function RouteOverlayPanel({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
-  const overlayOrigin = useOverlayOrigin();
+  const overlayHistory = useOverlayOrigin();
   const [dismissed, setDismissed] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
   // Naar-beneden-vegen om te sluiten — alleen vanaf het grijpstrookje, niet
@@ -57,11 +57,13 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
   }
 
   function close() {
-    // De onthouden origin is vrijwel altijd geldig (zie useOverlayOrigin) —
-    // de extra checks hier zijn puur defensief voor het geval die toch
-    // samenvalt met de huidige overlay-pathname zelf.
-    const target = overlayOrigin && overlayOrigin !== pathname ? overlayOrigin : (getOverlayCloseHref(pathname) ?? "/");
-    router.push(target);
+    // pop() geeft de vorige stap in de overlay-navigatie terug (bv. het
+    // ledenprofiel waarvandaan je een bijgewoonde activiteit opende) — geneste
+    // overlay's sluiten zo stap voor stap terug i.p.v. in één keer helemaal
+    // naar de oorspronkelijke, niet-overlay pagina. Lege stack (of toevallig
+    // gelijk aan de huidige pathname): terugvallen op de vaste bestemming.
+    const target = overlayHistory.pop();
+    router.push(target && target !== pathname ? target : (getOverlayCloseHref(pathname) ?? "/"));
   }
 
   function handleHandleBarTouchStart(e: TouchEvent) {

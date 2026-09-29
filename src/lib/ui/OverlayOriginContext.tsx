@@ -1,40 +1,71 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { isOverlayRoute } from "./overlayRoutes";
 
-const OverlayOriginContext = createContext<string | null>(null);
+type OverlayHistory = { pop: () => string | null };
 
-// Onthoudt de laatste "echte" (niet-overlay) pagina waar je was, zodat het
-// kruisje op een overlay (ledenprofiel, bedrijfsprofiel, activiteitdetail)
-// daarnaartoe terug kan i.p.v. altijd naar een vaste bestemming (/leden,
-// /bedrijven) — open je bijv. een bedrijfsprofiel vanuit de feed, dan moet
-// sluiten je weer bij de feed brengen, niet bij de bedrijvenlijst. Bijwerken
-// tijdens render (i.p.v. in een effect) volgt hetzelfde patroon als
-// RouteOverlayPanel's lastPathname hieronder: React's eigen aanpak voor
-// "state aanpassen naar aanleiding van een wijzigende prop", zonder een
-// extra gecascadeerde render. Je kunt een overlay-route nooit als
-// allereerste, verse paginalaad tegenkomen (Next's intercepting routes
-// onderscheppen alleen client-side navigatie), dus de initiële state
-// hieronder staat al gegarandeerd op een echte basispagina.
+const OverlayHistoryContext = createContext<OverlayHistory | null>(null);
+
+// Bridge tussen `pop()` (een event-handler, roept router.push aan) en de
+// volgende render van deze pathname (die daardoor verandert): zonder dit zou
+// die navigatie zelf weer als een "nieuwe" overlay-transitie gezien worden en
+// een extra stack-entry pushen — zie de toelichting in de provider hieronder.
+let pendingPop = false;
+
+// Eén gedeelde "terug-stack", specifiek voor overlay-navigatie (ledenprofiel,
+// bedrijfsprofiel, activiteitdetail/-formulier, alle beheer-overlays) —
+// bijv. vanuit een profiel een bijgewoonde activiteit openen, moet het
+// kruisje daarop terug naar dat profiel brengen, niet in één keer helemaal
+// naar de oorspronkelijke pagina van vóór het profiel. Bewust GEEN echte
+// browser-history (router.back()): tussendoor ook via het menu/bottom-nav
+// genavigeerd, en die history-entries tellen óók mee voor back() — deze
+// stack bouwt alleen op bij transities NAAR een overlay-route en reset zodra
+// je naar een echte (niet-overlay) pagina navigeert, dus menu-navigatie kan
+// 'm nooit vervuilen. Bijwerken gebeurt in een effect (niet tijdens render):
+// de stack is een ref, niet nodig voor render-output, dus geen enkele reden
+// om 'm tijdens render aan te raken.
 export function OverlayOriginProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const [origin, setOrigin] = useState(pathname);
-  const [lastPathname, setLastPathname] = useState(pathname);
+  const stackRef = useRef<string[]>([]);
+  const prevPathnameRef = useRef(pathname);
 
-  if (pathname !== lastPathname) {
-    setLastPathname(pathname);
-    if (!isOverlayRoute(pathname)) {
-      setOrigin(pathname);
+  useEffect(() => {
+    const prev = prevPathnameRef.current;
+    prevPathnameRef.current = pathname;
+    if (prev === pathname) return;
+
+    if (pendingPop) {
+      pendingPop = false;
+      return;
     }
-  }
+    if (isOverlayRoute(pathname)) {
+      stackRef.current.push(prev);
+    } else {
+      stackRef.current = [];
+    }
+  }, [pathname]);
 
-  return <OverlayOriginContext.Provider value={origin}>{children}</OverlayOriginContext.Provider>;
+  const value = useMemo<OverlayHistory>(
+    () => ({
+      pop: () => {
+        const target = stackRef.current.pop();
+        if (target !== undefined) pendingPop = true;
+        return target ?? null;
+      },
+    }),
+    []
+  );
+
+  return <OverlayHistoryContext.Provider value={value}>{children}</OverlayHistoryContext.Provider>;
 }
 
-export function useOverlayOrigin(): string {
-  const ctx = useContext(OverlayOriginContext);
+// Retourneert de "pop"-functie i.p.v. een kant-en-klare string: RouteOverlayPanel
+// roept deze pas aan op het daadwerkelijke sluitmoment (niet bij elke render),
+// zodat de stack alleen verandert als er ook echt gesloten wordt.
+export function useOverlayOrigin(): OverlayHistory {
+  const ctx = useContext(OverlayHistoryContext);
   if (ctx === null) throw new Error("useOverlayOrigin must be used within an OverlayOriginProvider");
   return ctx;
 }

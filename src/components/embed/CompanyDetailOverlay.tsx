@@ -5,21 +5,19 @@ import { X } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { CompanyDetailContent, type CompanyDetailData } from "./CompanyDetailContent";
 
-// Een zwevende overlay (de bedrijvenlijst blijft gemount en zichtbaar
-// erachter) i.p.v. de lijst te vervangen — gepositioneerd op `anchorY`, de
-// positie van de aangeklikte kaart zelf (zie BedrijvenEmbedList voor waarom:
-// die staat per definitie al in beeld, dus dat is een betrouwbaar ankerpunt
-// zonder enige medewerking van de omliggende WordPress-pagina nodig te
-// hebben).
+// Een zwevende overlay (de bedrijvenlijst blijft gemount en verduisterd
+// erachter zichtbaar) — gepositioneerd op `anchorY`, de positie van de
+// aangeklikte kaart zelf (zie BedrijvenEmbedList voor waarom: die staat per
+// definitie al in beeld, dus dat is een betrouwbaar ankerpunt zonder enige
+// medewerking van de omliggende WordPress-pagina nodig te hebben).
 //
-// Een eerdere versie dekte de lijst hierachter af met een volledig
-// `inset-0`-vlak — dat erfde de hoogte van de (mogelijk veel langere)
-// relative-wrapper eromheen, wat een groot leeg grijs vlak rond dit kaartje
-// opleverde zodra de lijst lang genoeg was. Deze versie dekt niets meer af:
-// alleen een ONZICHTBARE klikvanger over de volledige wrapper (voor
-// klik-buiten-het-kaartje-om-sluiten, hoe hoog dan ook — een onzichtbaar
-// vlak geeft nooit een zichtbaar hoogte-artefact) plus het kaartje zelf, dat
-// door zijn eigen rand/schaduw al genoeg opvalt tegen de lijst erachter.
+// `position: fixed` i.p.v. `absolute` t.o.v. een wrapper: deze iframe heeft
+// zelf geen scrollbalk (hoogte volgt exact de inhoud, zie EmbedAutoHeight),
+// dus "fixed" dekt hier betrouwbaar de volledige, werkelijke inhoud af —
+// zonder het risico van een eerdere versie, waar een `absolute inset-0`
+// t.o.v. een `relative`-wrapper (die zelf binnen de smallere max-w-5xl-kolom
+// zat) niet de volle breedte van bredere viewports raakte, en dus buiten die
+// kolom niet op klikken-om-te-sluiten reageerde.
 export function CompanyDetailOverlay({
   slug,
   anchorY,
@@ -55,7 +53,7 @@ export function CompanyDetailOverlay({
   }, [slug]);
 
   return (
-    <div className="absolute inset-0 z-20" onClick={onClose}>
+    <div className="animate-fade-in fixed inset-0 z-20 bg-black/40" onClick={onClose}>
       <div
         className="absolute left-1/2 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2"
         style={{ top: anchorY }}
@@ -72,19 +70,13 @@ export function CompanyDetailOverlay({
           </button>
         </div>
 
-        {/* "Vlak in vlak": een omkaderd frame rond de eigenlijke kaarten,
-            zodat het geheel zich duidelijk afzet tegen de lijst erachter
-            i.p.v. los te zweven — beide vlakken wit, alleen rand/schaduw
-            geven de scheiding aan. */}
-        <div className="rounded-3xl border border-border bg-surface p-3 shadow-lg">
-          {notFound ? (
-            <div className="rounded-2xl bg-surface p-6 text-center text-sm text-muted shadow-sm">Bedrijf niet gevonden.</div>
-          ) : !company ? (
-            <div className="rounded-2xl bg-surface p-6 text-center text-sm text-muted shadow-sm">Laden…</div>
-          ) : (
-            <CompanyDetailContent company={company} />
-          )}
-        </div>
+        {notFound ? (
+          <div className="rounded-2xl bg-surface p-6 text-center text-sm text-muted shadow-lg">Bedrijf niet gevonden.</div>
+        ) : !company ? (
+          <div className="rounded-2xl bg-surface p-6 text-center text-sm text-muted shadow-lg">Laden…</div>
+        ) : (
+          <CompanyDetailContent company={company} />
+        )}
       </div>
     </div>
   );

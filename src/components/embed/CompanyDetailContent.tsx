@@ -35,7 +35,7 @@ export function CompanyDetailContent({ company }: { company: CompanyDetailData }
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-2xl bg-surface p-4 shadow-sm">
+      <div className="rounded-2xl bg-surface p-4 shadow-lg">
         <div className="flex items-start gap-4">
           {company.logoUrl && !logoFailed ? (
             // De meeste bedrijfslogo's zijn liggend, niet vierkant — object-cover
@@ -102,7 +102,7 @@ export function CompanyDetailContent({ company }: { company: CompanyDetailData }
       </div>
 
       {company.employees.length > 0 && (
-        <div className="rounded-2xl bg-surface p-4 shadow-sm">
+        <div className="rounded-2xl bg-surface p-4 shadow-lg">
           <p className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij {company.name}</p>
           <ul className="flex flex-col gap-3">
             {company.employees.map((employee) => (

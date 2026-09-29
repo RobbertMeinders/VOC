@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { Building2 } from "lucide-react";
 import { CompanyFilters } from "@/components/company/CompanyFilters";
 import { BedrijvenView, type MapCapableCompany } from "@/components/company/BedrijvenView";
@@ -11,16 +11,12 @@ type EmbedCompanyListItem = MapCapableCompany & { slug: string };
 
 // Toont de bedrijvenlijst (incl. zoekbalk) en, na een klik, een zwevende
 // overlay met het detail van dat bedrijf erbovenop — de lijst blijft
-// gemount en zichtbaar erachter i.p.v. vervangen te worden (zie
-// CompanyDetailOverlay voor waarom, en waarom dat deze keer geen groot leeg
-// vlak meer oplevert). Dat vereist wel een `position: relative`-context hier
-// (het `relative` op de wrapper hieronder): CompanyDetailOverlay positioneert
-// zichzelf met `absolute` t.o.v. daarvan. company.href blijft intact als
-// progressive-enhancement-fallback (rechtsklik/nieuw tabblad/geen JS wijst
-// nog gewoon naar de echte /embed/bedrijven/[slug]-pagina).
+// gemount en zichtbaar (verduisterd) erachter i.p.v. vervangen te worden.
+// company.href blijft intact als progressive-enhancement-fallback
+// (rechtsklik/nieuw tabblad/geen JS wijst nog gewoon naar de echte
+// /embed/bedrijven/[slug]-pagina).
 export function BedrijvenEmbedList({ items, branches }: { items: EmbedCompanyListItem[]; branches: string[] }) {
   const [selected, setSelected] = useState<{ slug: string; anchorY: number } | null>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
 
   // De overlay moet meteen zichtbaar zijn, ook als de gebruiker ver naar
   // beneden gescrold is in een lange lijst — deze iframe heeft zelf geen
@@ -29,13 +25,13 @@ export function BedrijvenEmbedList({ items, branches }: { items: EmbedCompanyLis
   // "welk stukje van de iframe is nu in beeld" (dat vereist medewerking van
   // de omliggende WordPress-pagina, wat bij een oudere embed-code niet
   // werkt). De aangeklikte kaart zelf staat per definitie al in beeld — dus
-  // die positie (t.o.v. deze relative-wrapper) gebruiken we direct als
-  // ankerpunt voor de overlay, zonder enige omliggende-pagina-afhankelijkheid.
+  // die positie gebruiken we direct als ankerpunt voor de overlay.
+  // getBoundingClientRect().top is al viewport-relatief, en CompanyDetailOverlay
+  // positioneert zichzelf nu ook met `position: fixed` (viewport-relatief,
+  // zie daar voor waarom) — dus geen omrekening t.o.v. een wrapper meer nodig.
   function handleSelect(slug: string, e: MouseEvent) {
     e.preventDefault();
-    const cardRect = e.currentTarget.getBoundingClientRect();
-    const wrapperRect = wrapperRef.current?.getBoundingClientRect();
-    const anchorY = Math.max(0, cardRect.top - (wrapperRect?.top ?? 0));
+    const anchorY = Math.max(0, e.currentTarget.getBoundingClientRect().top);
     setSelected({ slug, anchorY });
   }
 
@@ -45,7 +41,7 @@ export function BedrijvenEmbedList({ items, branches }: { items: EmbedCompanyLis
   }));
 
   return (
-    <div ref={wrapperRef} className="relative">
+    <div>
       <CompanyFilters branches={branches} />
       {items.length > 0 ? (
         <BedrijvenView items={itemsWithClick} />
