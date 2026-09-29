@@ -57,23 +57,26 @@ export function CompanyDetailOverlay({
   return (
     <div className="absolute inset-0 z-20" onClick={onClose}>
       <div
-        className="absolute left-1/2 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2"
+        className="absolute left-1/2 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2"
         style={{ top: anchorY }}
         onClick={(e) => e.stopPropagation()}
       >
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Sluiten"
-          className="mb-3 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-foreground shadow-sm hover:border-voc-red hover:text-voc-red"
-        >
-          <X size={18} />
-        </button>
+        <div className="mb-3 flex justify-end">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Sluiten"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-foreground shadow-sm hover:border-voc-red hover:text-voc-red"
+          >
+            <X size={18} />
+          </button>
+        </div>
 
-        {/* "Vlak in vlak": een omkaderd frame rond de eigenlijke (witte)
-            kaarten, zodat het geheel zich duidelijk afzet tegen de lijst
-            erachter i.p.v. los te zweven. */}
-        <div className="rounded-3xl border border-border bg-background p-3 shadow-lg">
+        {/* "Vlak in vlak": een omkaderd frame rond de eigenlijke kaarten,
+            zodat het geheel zich duidelijk afzet tegen de lijst erachter
+            i.p.v. los te zweven — beide vlakken wit, alleen rand/schaduw
+            geven de scheiding aan. */}
+        <div className="rounded-3xl border border-border bg-surface p-3 shadow-lg">
           {notFound ? (
             <div className="rounded-2xl bg-surface p-6 text-center text-sm text-muted shadow-sm">Bedrijf niet gevonden.</div>
           ) : !company ? (
