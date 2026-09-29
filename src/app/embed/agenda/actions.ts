@@ -12,8 +12,15 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // (0047_public_agenda_registration.sql), volledig los van de "echte"
 // ledenaanmeldingen (activity_registrations): geen wachtlijst, geen
 // koppeling aan een profiel. Nogmaals invullen met hetzelfde e-mailadres
-// werkt als bijwerken (upsert), niet als foutmelding — zie de RLS-policy's
-// in diezelfde migratie voor de onderbouwing.
+// werkt als bijwerken, niet als foutmelding.
+//
+// Bewust géén .upsert(): Postgres vereist voor INSERT ... ON CONFLICT DO
+// UPDATE dat de rol ook een SELECT-policy heeft om de botsende rij te
+// kunnen vinden — die is er hier bewust niet (een bezoeker mag nooit zien
+// wie zich al heeft aangemeld, alleen het bestuur). Daardoor faalde zelfs
+// de allereerste, unieke aanmelding al met een RLS-fout. Los, gewoon
+// INSERT proberen en bij een unique-violation (23505) een losse UPDATE
+// doen — die heeft alleen de eigen update-policy nodig, geen SELECT.
 export async function registerPublicForActivityAction(
   activityId: string,
   _prevState: PublicRegisterState,
@@ -31,11 +38,19 @@ export async function registerPublicForActivityAction(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("public_activity_registrations")
-    .upsert({ activity_id: activityId, name, email, company_name: companyName || null }, { onConflict: "activity_id,email" });
+  const row = { activity_id: activityId, name, email, company_name: companyName || null };
+  const { error: insertError } = await supabase.from("public_activity_registrations").insert(row);
 
-  if (error) {
+  if (insertError?.code === "23505") {
+    const { error: updateError } = await supabase
+      .from("public_activity_registrations")
+      .update({ name, company_name: companyName || null })
+      .eq("activity_id", activityId)
+      .eq("email", email);
+    if (updateError) {
+      return { error: "Aanmelden is niet gelukt. Probeer het opnieuw." };
+    }
+  } else if (insertError) {
     // De insert-policy wijst een activiteit af die niet (meer) goedgekeurd
     // is of geen publieke aanmelding toestaat — dat komt hier als een RLS-
     // fout binnen, niet als een duidelijke boodschap.
