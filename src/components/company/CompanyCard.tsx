@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { MouseEvent } from "react";
 import { CompanyLogo } from "./CompanyLogo";
 
 export type CompanyListItem = {
@@ -12,12 +13,18 @@ export type CompanyListItem = {
   // hier /embed/bedrijven/{slug} door, zodat dit component ongewijzigd
   // herbruikt kan worden (zie /embed/bedrijven/page.tsx).
   href?: string;
+  // Optioneel: de embed onderschept de klik hiermee om een in-page overlay
+  // te tonen i.p.v. een echte navigatie (zie BedrijvenEmbedList) — href
+  // blijft intact als progressive-enhancement-fallback. Ongebruikt op het
+  // echte portaal (geen gedragswijziging daar).
+  onClick?: (e: MouseEvent) => void;
 };
 
 export function CompanyCard({ company }: { company: CompanyListItem }) {
   return (
     <Link
       href={company.href ?? `/bedrijven/${company.id}`}
+      onClick={company.onClick}
       className="animate-rise-in flex min-w-0 items-center gap-4 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-500 ease-out hover:scale-[1.008] hover:border-voc-red hover:shadow-md"
     >
       <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={80} />

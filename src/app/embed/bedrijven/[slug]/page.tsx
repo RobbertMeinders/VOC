@@ -1,42 +1,29 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Building2, Globe } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
-import { PopupLoginLink } from "@/components/embed/PopupLoginLink";
-import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
-import { Avatar } from "@/components/ui/Avatar";
-
-type PublicCompany = {
-  id: string;
-  slug: string;
-  name: string;
-  logo_url: string | null;
-  tagline: string | null;
-  description: string | null;
-  industry: string | null;
-  city: string | null;
-  website: string | null;
-  linkedin_url: string | null;
-  instagram_url: string | null;
-  facebook_url: string | null;
-  employees: { id: string; first_name: string; last_name: string; job_title: string | null; avatar_url: string | null }[];
-};
+import { CompanyDetailContent, type CompanyDetailData } from "@/components/embed/CompanyDetailContent";
 
 export const metadata: Metadata = { title: "VOC Bedrijvengids" };
 
-// Publieke, nav-loze detailpagina — zelfde iframe-doel als /embed/bedrijven
-// zelf. get_public_company() (0050_public_company_directory.sql) geeft
-// notFound() al impliciet: een niet-opt-in of niet-bestaand bedrijf komt
-// gewoon leeg terug.
+// Publieke, nav-loze detailpagina — bereikbaar als directe/gedeelde link en
+// als progressive-enhancement-fallback (rechtsklik/nieuw tabblad/geen JS)
+// achter elke bedrijfskaart in /embed/bedrijven. Bij een normale klik
+// (JS aan) onderschept BedrijvenEmbedList de navigatie en toont in plaats
+// daarvan een in-page overlay via hetzelfde /api/embed/companies/[slug]
+// endpoint — zie CompanyDetailOverlay voor waarom die niet gewoon naar
+// deze pagina navigeert. get_public_company() (0050_public_company_directory.sql)
+// geeft notFound() al impliciet: een niet-opt-in of niet-bestaand bedrijf
+// komt gewoon leeg terug.
 export default async function BedrijfEmbedDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const supabase = await createClient();
 
   const { data } = await supabase.rpc("get_public_company", { p_slug: slug });
-  const company = (data?.[0] ?? null) as PublicCompany | null;
+  const company = data?.[0] ?? null;
 
   if (!company) notFound();
 
@@ -48,6 +35,26 @@ export default async function BedrijfEmbedDetailPage({ params }: { params: Promi
       company.employees.map((e) => e.avatar_url)
     ),
   ]);
+
+  const detail: CompanyDetailData = {
+    name: company.name,
+    logoUrl,
+    tagline: company.tagline,
+    description: company.description,
+    industry: company.industry,
+    city: company.city,
+    website: company.website,
+    linkedinUrl: company.linkedin_url,
+    instagramUrl: company.instagram_url,
+    facebookUrl: company.facebook_url,
+    employees: company.employees.map((e) => ({
+      id: e.id,
+      firstName: e.first_name,
+      lastName: e.last_name,
+      jobTitle: e.job_title,
+      avatarUrl: e.avatar_url ? (avatarUrls.get(e.avatar_url) ?? null) : null,
+    })),
+  };
 
   return (
     // Zie /embed/agenda/page.tsx voor waarom data-theme="light" + min-h-screen
@@ -61,92 +68,7 @@ export default async function BedrijfEmbedDetailPage({ params }: { params: Promi
           Terug naar bedrijvengids
         </Link>
 
-        <div className="rounded-2xl bg-surface p-4 shadow-sm">
-          <div className="flex items-start gap-4">
-            {logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element -- publieke, external-embed pagina: geen framework-afhankelijkheden
-              <img src={logoUrl} alt={company.name} className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
-            ) : (
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-voc-red-light text-voc-red">
-                <Building2 size={28} />
-              </div>
-            )}
-            <div className="min-w-0">
-              <h1 className="text-xl font-semibold text-foreground">{company.name}</h1>
-              {company.tagline && <p className="mt-0.5 text-sm text-muted">{company.tagline}</p>}
-              {(company.industry || company.city) && (
-                <p className="mt-0.5 text-sm text-muted">{[company.industry, company.city].filter(Boolean).join(" · ")}</p>
-              )}
-              {company.website && (
-                <a
-                  href={company.website}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1.5 flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red hover:underline"
-                >
-                  <Globe size={14} />
-                  {company.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
-                </a>
-              )}
-            </div>
-          </div>
-
-          {company.description && (
-            <p className="mt-4 whitespace-pre-line border-t border-border pt-4 text-sm text-foreground">
-              {company.description}
-            </p>
-          )}
-
-          {(company.linkedin_url || company.instagram_url || company.facebook_url) && (
-            // text-foreground: EntitySocialLinks' compact variant stelt zelf
-            // geen tekstkleur in (op de echte portaalpagina's altijd prima,
-            // want die volgen consequent hetzelfde thema) en erft daardoor
-            // hier de (op een donker OS-thema witte) kleur van <body> i.p.v.
-            // onze data-theme="light"-override — dat maakte de tekst
-            // onzichtbaar tot je eroverheen hoverde.
-            <div className="mt-4 border-t border-border pt-4">
-              <EntitySocialLinks
-                linkedinUrl={company.linkedin_url}
-                instagramUrl={company.instagram_url}
-                facebookUrl={company.facebook_url}
-                variant="compact"
-                className="text-foreground"
-              />
-            </div>
-          )}
-        </div>
-
-        {company.employees.length > 0 && (
-          <div className="rounded-2xl bg-surface p-4 shadow-sm">
-            <p className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij {company.name}</p>
-            <ul className="flex flex-col gap-3">
-              {company.employees.map((employee) => (
-                <li key={employee.id}>
-                  {/* Klik op een naam -> loginmuur, geen openbaar profiel (zie
-                      de eerdere ontwerp-discussie). Pop-up i.p.v. target="_top":
-                      zie PopupLoginLink voor waarom. */}
-                  <PopupLoginLink
-                    href={`/login?next=${encodeURIComponent(`/leden/${employee.id}`)}`}
-                    className="flex items-center gap-3 hover:opacity-80"
-                  >
-                    <Avatar
-                      firstName={employee.first_name}
-                      lastName={employee.last_name}
-                      avatarUrl={employee.avatar_url ? (avatarUrls.get(employee.avatar_url) ?? null) : null}
-                      size={40}
-                    />
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-medium text-foreground">
-                        {employee.first_name} {employee.last_name}
-                      </p>
-                      {employee.job_title && <p className="truncate text-xs text-muted">{employee.job_title}</p>}
-                    </div>
-                  </PopupLoginLink>
-                </li>
-              ))}
-            </ul>
-          </div>
-        )}
+        <CompanyDetailContent company={detail} />
       </div>
     </div>
   );

@@ -56,7 +56,11 @@ export function CompanyMap({
       {companies.map((company) => (
         <Marker key={company.id} position={[company.latitude, company.longitude]} icon={markerIcon}>
           <Popup>
-            <Link href={company.href ?? `/bedrijven/${company.id}`} className="font-medium text-voc-red hover:underline">
+            <Link
+              href={company.href ?? `/bedrijven/${company.id}`}
+              onClick={company.onClick}
+              className="font-medium text-voc-red hover:underline"
+            >
               {company.name}
             </Link>
             {company.city && <p className="mt-0.5 text-xs text-gray-600">{company.city}</p>}

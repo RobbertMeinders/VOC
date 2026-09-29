@@ -1,11 +1,8 @@
 import type { Metadata } from "next";
-import { Building2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
-import { CompanyFilters } from "@/components/company/CompanyFilters";
-import { BedrijvenView } from "@/components/company/BedrijvenView";
-import { ComingSoon } from "@/components/ui/ComingSoon";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
+import { BedrijvenEmbedList } from "./BedrijvenEmbedList";
 
 export const metadata: Metadata = { title: "VOC Bedrijvengids" };
 
@@ -48,6 +45,7 @@ export default async function BedrijvenEmbedPage({
 
   const items = filtered.map((c) => ({
     id: c.id,
+    slug: c.slug,
     name: c.name,
     industry: c.industry,
     city: c.city,
@@ -65,13 +63,7 @@ export default async function BedrijvenEmbedPage({
     <div data-theme="light" className="min-h-screen bg-background">
       <div className="p-4">
         <EmbedAutoHeight />
-        <CompanyFilters branches={branches} />
-
-        {items.length > 0 ? (
-          <BedrijvenView items={items} />
-        ) : (
-          <ComingSoon icon={Building2} title="Geen bedrijven gevonden" description="Pas je zoekopdracht of filter aan." />
-        )}
+        <BedrijvenEmbedList items={items} branches={branches} />
       </div>
     </div>
   );
