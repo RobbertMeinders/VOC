@@ -12,6 +12,12 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // (waarmee nog ingelogd/een wachtwoord gereset zou kunnen worden) wordt
 // hier apart overschreven via de Supabase Admin API, die alleen server-
 // side met de service_role-sleutel werkt.
+//
+// delete_expired_prospects() (0051_prospects.sql) ruimt dezelfde 90-dagen-
+// bewaartermijn op voor niet-leden die zich via de openbare agenda hebben
+// aangemeld (public_activity_registrations) — hoort inhoudelijk bij een
+// ander bewaartermijn-onderwerp, maar hoeft er geen aparte dagelijkse cron
+// (en dus aparte vercel.json-entry) voor te hebben.
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -19,7 +25,10 @@ export async function GET(request: Request) {
   }
 
   const supabase = await createClient();
-  const { data: anonymized, error } = await supabase.rpc("anonymize_expired_profiles");
+  const [{ data: anonymized, error }, { data: deletedProspects, error: prospectsError }] = await Promise.all([
+    supabase.rpc("anonymize_expired_profiles"),
+    supabase.rpc("delete_expired_prospects"),
+  ]);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
@@ -34,5 +43,9 @@ export async function GET(request: Request) {
     if (!authError) authUpdated++;
   }
 
-  return NextResponse.json({ anonymized: (anonymized ?? []).length, authUpdated });
+  return NextResponse.json({
+    anonymized: (anonymized ?? []).length,
+    authUpdated,
+    deletedProspects: prospectsError ? null : deletedProspects,
+  });
 }

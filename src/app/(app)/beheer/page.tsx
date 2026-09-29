@@ -14,6 +14,7 @@ import {
   Upload,
   UserPlus,
   Users,
+  UserSearch,
 } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -39,6 +40,12 @@ const SECTIONS = [
       { href: "/beheer/aanvragen", label: "Toegangsaanvragen", icon: Inbox, description: "Beoordeel aanvragen van buitenaf" },
       { href: "/beheer/leden", label: "Leden", icon: Users, description: "Profielen, rollen, activeren/deactiveren" },
       { href: "/beheer/bedrijven", label: "Bedrijven", icon: Building2, description: "Bedrijfsprofielen beheren" },
+      {
+        href: "/beheer/prospects",
+        label: "Potentiële leden",
+        icon: UserSearch,
+        description: "Niet-leden die zich via de openbare agenda hebben aangemeld",
+      },
     ],
   },
   {
