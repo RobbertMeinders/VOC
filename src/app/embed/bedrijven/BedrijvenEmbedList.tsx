@@ -17,37 +17,25 @@ type EmbedCompanyListItem = MapCapableCompany & { slug: string };
 // company.href blijft intact als progressive-enhancement-fallback
 // (rechtsklik/nieuw tabblad/geen JS wijst nog gewoon naar de echte
 // /embed/bedrijven/[slug]-pagina).
+//
+// Bewust GEEN voc-embed-scroll-top-bericht hier (in tegenstelling tot een
+// echte paginanavigatie): dit is geen nieuwe "pagina" maar meer detail over
+// dezelfde lijst — een geforceerde window.scrollTo() op de omliggende
+// WordPress-pagina op het exacte moment van klikken voelde daardoor als een
+// ongewenste, onverwachte sprong. De overlay verschijnt gewoon op de
+// plek waar de lijst al stond.
 export function BedrijvenEmbedList({ items, branches }: { items: EmbedCompanyListItem[]; branches: string[] }) {
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
 
-  // Zelfde bericht dat EmbedAutoHeight ook bij een echte paginanavigatie
-  // stuurt: laat de omliggende WordPress-pagina terug naar de bovenkant van
-  // de iframe scrollen, zodat je de detailweergave (of, bij het sluiten, de
-  // lijst) altijd vanaf de titel ziet i.p.v. op je oude scrollpositie
-  // middenin de vorige weergave te blijven hangen.
-  function scrollEmbedToTop() {
-    window.parent.postMessage({ type: "voc-embed-scroll-top" }, "*");
-  }
-
-  function openCompany(slug: string) {
-    setSelectedSlug(slug);
-    scrollEmbedToTop();
-  }
-
-  function closeCompany() {
-    setSelectedSlug(null);
-    scrollEmbedToTop();
-  }
-
   if (selectedSlug) {
-    return <CompanyDetailOverlay slug={selectedSlug} onClose={closeCompany} />;
+    return <CompanyDetailOverlay slug={selectedSlug} onClose={() => setSelectedSlug(null)} />;
   }
 
   const itemsWithClick = items.map((company) => ({
     ...company,
     onClick: (e: MouseEvent) => {
       e.preventDefault();
-      openCompany(company.slug);
+      setSelectedSlug(company.slug);
     },
   }));
 
