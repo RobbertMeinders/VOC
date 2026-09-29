@@ -11,7 +11,6 @@ const OVERLAY_ROUTES: { pattern: RegExp; closeHref: (match: RegExpMatchArray) =>
   { pattern: /^\/agenda\/[^/]+$/, closeHref: () => "/agenda" },
   { pattern: /^\/bedrijven\/[^/]+$/, closeHref: () => "/bedrijven" },
   { pattern: /^\/leden\/[^/]+$/, closeHref: () => "/leden" },
-  { pattern: /^\/beheer\/(agenda|bedrijven|documenten|leden)$/, closeHref: () => "/beheer" },
 ];
 
 export function isOverlayRoute(pathname: string): boolean {
