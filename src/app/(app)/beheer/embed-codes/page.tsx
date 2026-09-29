@@ -12,26 +12,18 @@ const EMBEDS = [
     path: "/embed/agenda",
     label: "Agenda",
     description: "Overzicht van goedgekeurde activiteiten, doorklikbaar naar aanmelden.",
-    fullWidth: false,
   },
   {
     id: "voc-embed-aanmelden",
     path: "/embed/aanmelden",
     label: "Word lid",
     description: "Aanmeldformulier voor nieuwe leden (komt bij Beheer > Toegangsaanvragen terecht).",
-    fullWidth: false,
   },
   {
     id: "voc-embed-bedrijven",
     path: "/embed/bedrijven",
     label: "Bedrijvengids",
     description: "Overzicht van bedrijven die opt-in zijn voor de openbare bedrijvengids (zie Instellingen).",
-    // Spant de volle breedte van de website (i.p.v. de smallere content-
-    // container) via de bekende "full-bleed"-CSS-truc — nodig zodat de
-    // verduistering achter een geopend bedrijf (zie CompanyDetailOverlay)
-    // niet blijft steken in witte marges links/rechts. De inhoud zelf blijft
-    // via een max-w-wrapper in de embed-pagina zelf mooi centraal staan.
-    fullWidth: true,
   },
 ];
 
@@ -82,16 +74,7 @@ export default async function EmbedCodesPage() {
     iframe.src = '${origin}/embed/agenda?activiteit=' + encodeURIComponent(slug);
   }`
               : "";
-          // full-bleed-truc: laat de iframe de volle breedte van het venster
-          // innemen ondanks een smallere content-container eromheen — nodig
-          // zodat de eigen verduistering van de bedrijvengids-overlay (zie
-          // CompanyDetailOverlay, gewoon binnen de iframe zelf) niet blijft
-          // steken in witte marges links/rechts. Werkt niet als een thema
-          // ergens overflow-x: hidden zet op een voorouder van de iframe.
-          const fullWidthStyle = embed.fullWidth
-            ? "width:100vw;position:relative;left:50%;right:50%;margin-left:-50vw;margin-right:-50vw;"
-            : "";
-          const code = `<iframe id="${embed.id}" src="${origin}${embed.path}" width="100%" height="600" style="border:0;${fullWidthStyle}" allow="clipboard-write; web-share" title="VOC ${embed.label}"></iframe>
+          const code = `<iframe id="${embed.id}" src="${origin}${embed.path}" width="100%" height="600" style="border:0;" allow="clipboard-write; web-share" title="VOC ${embed.label}"></iframe>
 <script>
 (function () {
   var iframe = document.getElementById('${embed.id}');
@@ -108,17 +91,6 @@ export default async function EmbedCodesPage() {
     if (event.data.type === 'voc-embed-scroll-top') {
       var rect = iframe.getBoundingClientRect();
       window.scrollTo({ top: window.scrollY + rect.top - 20, behavior: 'smooth' });
-    }
-    // De bedrijvengids-embed toont een detailoverlay bovenop de lijst i.p.v.
-    // een nieuwe pagina — die iframe heeft zelf geen scrollbalk (window.scrollY
-    // is daarbinnen altijd 0), dus alleen wij weten hier welk stukje van de
-    // iframe nu daadwerkelijk in beeld is. Dat geven we terug zodat de
-    // overlay zich daarop kan positioneren i.p.v. altijd bovenaan te
-    // verschijnen.
-    if (event.data.type === 'voc-embed-request-viewport-offset') {
-      var iframeRect = iframe.getBoundingClientRect();
-      var offset = Math.max(0, -iframeRect.top);
-      iframe.contentWindow.postMessage({ type: 'voc-embed-viewport-offset', offset: offset }, '*');
     }
   });
 ${hashRedirect}
@@ -142,9 +114,8 @@ ${hashRedirect}
         thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen. Klik je in de agenda door naar
         een detailpagina (of terug), dan scrollt de website automatisch weer naar de bovenkant van het embed, ook als
         je daarvoor ver naar beneden had gescrold. In de bedrijvengids opent een bedrijf juist als overlay bovenop de
-        lijst, precies waar je op dat moment aan het kijken bent — de iframe neemt daarvoor de volle breedte van de
-        website in (i.p.v. de smallere content-container), zodat de verduistering achter de overlay niet blijft
-        steken in witte marges; de inhoud zelf blijft daarbinnen gewoon mooi centraal staan. Staat er nog een oudere
+        lijst, precies waar je op dat moment aan het kijken bent — de verduistering blijft daarbij beperkt tot het
+        geembedde gedeelte zelf (de iframe kan nooit buiten zijn eigen rechthoek tekenen). Staat er nog een oudere
         versie van deze code op de website, plak &apos;m dan hier opnieuw.
       </p>
       <p className="text-xs text-muted">
