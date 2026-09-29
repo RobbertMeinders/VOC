@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import { Bell, X } from "lucide-react";
 import { clsx } from "clsx";
 import { formatActivityDateShort } from "@/lib/format/date";
-import { NavBadge } from "@/components/layout/NavBadge";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { NotificationList } from "@/components/notifications/NotificationList";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
@@ -210,16 +209,16 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
         ref={anchorRef}
         type="button"
         onClick={handleOpen}
+        aria-label="Notificaties"
         className={clsx(
-          "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
-          open ? "bg-voc-red-light text-voc-red" : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+          "relative flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]",
+          open && "bg-voc-red-light text-voc-red"
         )}
       >
-        <Bell size={20} strokeWidth={open ? 2.5 : 2} />
-        Notificaties
+        <Bell size={18} strokeWidth={open ? 2.5 : 2} />
         {count > 0 && (
-          <span className="ml-auto">
-            <NavBadge count={count} />
+          <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-voc-red px-1 text-[10px] font-medium text-white">
+            {count > 9 ? "9+" : count}
           </span>
         )}
       </button>

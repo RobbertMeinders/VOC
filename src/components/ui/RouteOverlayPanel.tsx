@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { getOverlayCloseHref, isOverlayRoute } from "@/lib/ui/overlayRoutes";
+import { useOverlayOrigin } from "@/lib/ui/OverlayOriginContext";
 import type { ReactNode } from "react";
 
 const DISMISS_THRESHOLD = 100;
@@ -26,6 +27,7 @@ const DISMISS_THRESHOLD = 100;
 export function RouteOverlayPanel({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
+  const overlayOrigin = useOverlayOrigin();
   const [dismissed, setDismissed] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
   // Naar-beneden-vegen om te sluiten — alleen vanaf het grijpstrookje, niet
@@ -55,7 +57,11 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
   }
 
   function close() {
-    router.push(getOverlayCloseHref(pathname) ?? "/");
+    // De onthouden origin is vrijwel altijd geldig (zie useOverlayOrigin) —
+    // de extra checks hier zijn puur defensief voor het geval die toch
+    // samenvalt met de huidige overlay-pathname zelf.
+    const target = overlayOrigin && overlayOrigin !== pathname ? overlayOrigin : (getOverlayCloseHref(pathname) ?? "/");
+    router.push(target);
   }
 
   function handleHandleBarTouchStart(e: TouchEvent) {

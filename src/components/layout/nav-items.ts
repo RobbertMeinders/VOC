@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Bell, Building2, CalendarDays, FileText, Home, LayoutDashboard, MessageCircle, Search, Users } from "lucide-react";
+import { Building2, CalendarDays, FileText, Home, LayoutDashboard, MessageCircle, Search, Users } from "lucide-react";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
 export type NavItem = {
@@ -41,7 +41,6 @@ export const NETWERK_NAV_ITEM: NavItem = {
 
 export const DOCUMENTEN_NAV_ITEM: NavItem = { href: "/documenten", label: "Documenten", icon: FileText };
 export const ZOEKEN_NAV_ITEM: NavItem = { href: "/zoeken", label: "Zoeken", icon: Search };
-export const NOTIFICATIES_NAV_ITEM: NavItem = { href: "/notificaties", label: "Notificaties", icon: Bell, badgeKey: "total" };
 export const BEHEER_NAV_ITEM: NavItem = { href: "/beheer", label: "Beheer", icon: LayoutDashboard, badgeKey: "beheer" };
 
 // Mobiele bottom nav: precies 4 hoofditems. Netwerk tikken opent eerst een
@@ -54,15 +53,17 @@ export const MOBILE_PRIMARY_NAV_ITEMS: NavItem[] = [
 ];
 
 // Desktop sidebar: platte lijst. Netwerk opent in Sidebar.tsx een popover
-// (Leden/Bedrijven) i.p.v. een eigen route te hebben; Zoeken zit niet in
-// deze lijst maar als overlay-icoon naast het logo (net als op mobiel).
+// (Leden/Bedrijven) i.p.v. een eigen route te hebben; Zoeken en Notificaties
+// zitten niet in deze lijst maar als compacte icoontjes naast het logo (net
+// als Zoeken al op mobiel deed) — allebei een snel-in-en-uit-popover i.p.v.
+// een echte navigatiebestemming, dus dat verdient geen even brede rij als de
+// rest van het menu.
 export const DESKTOP_NAV_ITEMS: NavItem[] = [
   HOME_NAV_ITEM,
   COMMUNITY_NAV_ITEM,
   AGENDA_NAV_ITEM,
   NETWERK_NAV_ITEM,
   DOCUMENTEN_NAV_ITEM,
-  NOTIFICATIES_NAV_ITEM,
 ];
 
 // "Profiel" is bewust geen eigen nav-item: dat, "mijn bedrijfsprofiel",

@@ -135,27 +135,6 @@ export async function updateCompanyShowAddressAction(companyId: string, visible:
   return {};
 }
 
-// Mirror van updateCompanyShowAddressAction hierboven, alleen dan voor
-// is_publicly_visible (0050_public_company_directory.sql) — of dit bedrijf
-// op de openbare bedrijvengids-embed (/embed/bedrijven) mag verschijnen.
-export async function updateCompanyPubliclyVisibleAction(companyId: string, visible: boolean): Promise<{ error?: string }> {
-  await requireProfile();
-  const supabase = await createClient();
-
-  const { error } = await supabase.rpc("set_company_publicly_visible", {
-    p_company_id: companyId,
-    p_visible: visible,
-  });
-
-  if (error) {
-    return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
-  }
-  invalidateQuery("bedrijven-page-data");
-  revalidatePath(`/bedrijven/${companyId}`);
-  revalidatePath("/profiel");
-  return {};
-}
-
 // Alleen beheerder — RLS (companies_admin_delete) is de echte grens, dit is
 // alleen voor een nette foutmelding. Company_members/-requests hangen via
 // on delete cascade aan companies, dus die ruimt de database vanzelf op.

@@ -95,17 +95,19 @@ export function Sidebar({
     <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-surface px-4 py-6 md:flex">
       <div className="mb-8 flex items-center justify-between px-2">
         <Logo />
-        <SearchOverlay variant="sidebar" />
+        <div className="flex items-center gap-1">
+          <SearchOverlay variant="sidebar" />
+          {/* Popover i.p.v. directe navigatie: een snelle blik zonder de
+              huidige pagina te verlaten (/notificaties blijft gewoon
+              bereikbaar via "Alles bekijken" in het paneel). Naast Zoeken
+              i.p.v. een eigen rij in het menu: allebei een klein
+              popover-icoontje, geen echte navigatiebestemming. */}
+          <NotificationCenter count={unread.total} variant="sidebar" />
+        </div>
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">
         {DESKTOP_NAV_ITEMS.map((item) => {
-          if (item.label === "Notificaties") {
-            // Popover i.p.v. directe navigatie: een snelle blik zonder de
-            // huidige pagina te verlaten (/notificaties blijft gewoon
-            // bereikbaar via "Alles bekijken" in het paneel).
-            return <NotificationCenter key={item.href} count={unread.total} variant="sidebar" />;
-          }
           if (item.label === "Netwerk") {
             // Klik opent een popover (Leden/Bedrijven) net als het
             // accountmenu, i.p.v. een altijd-uitgeklapt submenu.

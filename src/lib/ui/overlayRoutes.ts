@@ -17,11 +17,13 @@ export function isOverlayRoute(pathname: string): boolean {
   return OVERLAY_ROUTES.some(({ pattern }) => pattern.test(pathname));
 }
 
-// Sluiten (kruisje/Esc) gaat naar een vaste bestemming i.p.v. router.back():
-// met browser-history kon sluiten op een onverwachte plek uitkomen zodra je
+// Fallback-bestemming voor RouteOverlayPanel's kruisje/Esc — gebruikt alleen
+// als useOverlayOrigin() (de laatst bekende niet-overlay pagina) om wat voor
+// reden dan ook niet beschikbaar is. Bewust geen router.back(): met
+// browser-history kon sluiten op een onverwachte plek uitkomen zodra je
 // tussendoor ook via het menu/bottom-nav had genavigeerd (die history-entries
-// tellen óók mee voor back()) — een vaste bestemming, berekend uit de huidige
-// pathname, is voorspelbaar ongeacht hoe je er kwam.
+// tellen óók mee voor back()) — deze vaste bestemming, berekend uit de
+// huidige pathname, is voorspelbaar ongeacht hoe je er kwam.
 export function getOverlayCloseHref(pathname: string): string | null {
   for (const { pattern, closeHref } of OVERLAY_ROUTES) {
     const match = pathname.match(pattern);
