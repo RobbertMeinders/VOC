@@ -22,7 +22,7 @@ export default function AanmeldenEmbedPage() {
     <div data-theme="light" className="min-h-screen bg-background">
       <div className="p-4">
         <EmbedAutoHeight />
-        <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+        <div className="mx-auto w-full max-w-md rounded-2xl border border-border bg-surface p-5 shadow-sm">
           <h1 className="mb-1 text-lg font-semibold text-foreground">Word lid van de VOC</h1>
           <p className="mb-5 text-sm text-muted">Laat je gegevens achter en het bestuur neemt contact met je op.</p>
           <AccessRequestForm />
