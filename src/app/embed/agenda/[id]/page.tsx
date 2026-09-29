@@ -34,13 +34,16 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
 
   const isPast = new Date(activity.starts_at) < new Date();
 
-  // /embed staat in PUBLIC_PATHS (geen auth vereist), maar een bezoeker die
-  // al is ingelogd op het portaal (zelfde browser, cookies niet
-  // third-party-geblokkeerd) IS hier gewoon herkenbaar. Zonder deze check
-  // zag zo iemand niets bruikbaars: bij allow_public_registration alleen
-  // het anonieme formulier (dat langs de echte, aan hun profiel gekoppelde
-  // aanmelding/wachtlijst heen gaat), en anders alleen een inlogknop terwijl
-  // ze al waren ingelogd.
+  // /embed staat in PUBLIC_PATHS (geen auth vereist). Deze check herkent een
+  // bezoeker die toevallig in dezelfde tab al is ingelogd op het portaal
+  // (bv. iemand die rechtstreeks naar deze /embed-URL navigeert). In de
+  // écht ingebedde situatie (iframe op de externe WordPress-site) werkt dit
+  // NIET: Supabase's sessiecookie gaat mee als SameSite=Lax, en die wordt
+  // door de browser nooit meegestuurd naar een cross-site iframe — ongeacht
+  // third-party-cookie-instellingen. Daarom hieronder ALTIJD ook een
+  // expliciete "Al lid? Log in"-optie tonen, i.p.v. alleen op deze
+  // (onbetrouwbare, in de praktijk vrijwel nooit werkende) detectie te
+  // vertrouwen.
   const [imageUrl, { data: interestCount }, profile] = await Promise.all([
     getSignedStorageUrl("activity-images", activity.image_url),
     supabase.rpc("get_activity_interest_count", { p_activity_id: activity.id }),
@@ -120,22 +123,32 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
                 {registration ? "Bekijk in het portaal" : "Aanmelden via het portaal"}
               </Link>
             </div>
-          ) : activity.allow_public_registration ? (
-            <PublicRegistrationForm activityId={activity.id} />
           ) : (
-            <div className="flex flex-col gap-2 text-sm text-foreground">
-              <p>Deze activiteit is alleen voor leden.</p>
-              {/* target="_top": deze pagina draait als iframe op de VOC-website — zonder
-                  dit zou het inlogscherm proberen te laden binnen dat kleine iframe.
-                  ?next=/agenda/[id]: stuurt na inloggen door naar de activiteit zelf
-                  in het portaal, i.p.v. naar het dashboard. */}
-              <Link
-                href={`/login?next=${encodeURIComponent(`/agenda/${activity.id}`)}`}
-                target="_top"
-                className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
-              >
-                Log in om je aan te melden
-              </Link>
+            <div className="flex flex-col gap-4">
+              <div className="flex flex-col gap-2 text-sm text-foreground">
+                <p>Al lid van de VOC?</p>
+                {/* target="_top": deze pagina draait als iframe op de VOC-website — zonder
+                    dit zou het inlogscherm proberen te laden binnen dat kleine iframe.
+                    ?next=/agenda/[id]: stuurt na inloggen door naar de activiteit zelf
+                    in het portaal, i.p.v. naar het dashboard. */}
+                <Link
+                  href={`/login?next=${encodeURIComponent(`/agenda/${activity.id}`)}`}
+                  target="_top"
+                  className="inline-block w-fit rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-black/[.04]"
+                >
+                  Log in om je aan te melden
+                </Link>
+              </div>
+              {activity.allow_public_registration ? (
+                <div className="flex flex-col gap-3 border-t border-border pt-4">
+                  <p className="text-sm text-foreground">Nog geen lid?</p>
+                  <PublicRegistrationForm activityId={activity.id} />
+                </div>
+              ) : (
+                <p className="border-t border-border pt-4 text-sm text-muted">
+                  Nog geen lid? Deze activiteit is alleen voor leden.
+                </p>
+              )}
             </div>
           )}
         </div>
