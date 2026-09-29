@@ -53,7 +53,12 @@ export async function updateSession(request: NextRequest) {
   }
 
   if (user && pathname === "/login") {
-    return NextResponse.redirect(new URL("/", request.url));
+    // ?next=... respecteren i.p.v. altijd hardcoded naar "/" — anders komt
+    // een al-ingelogde bezoeker die via bv. de embed-agenda's "Log in om je
+    // aan te melden"-link met ?next=/agenda/[id] hier belandt, alsnog op het
+    // dashboard terecht i.p.v. bij de activiteit waar die vandaan kwam.
+    const next = request.nextUrl.searchParams.get("next");
+    return NextResponse.redirect(new URL(next && next.startsWith("/") ? next : "/", request.url));
   }
 
   // Forward the user id we just verified with Supabase Auth to the actual
