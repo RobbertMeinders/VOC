@@ -113,6 +113,24 @@ export async function updateAttendedActivitiesVisibilityAction(visible: boolean)
   return {};
 }
 
+// Mirror van updateAttendedActivitiesVisibilityAction hierboven — of naam
+// + functie van dit lid mogen verschijnen op de openbare bedrijvengids-
+// embed (/embed/bedrijven), onder "Werkzaam bij" van het eigen bedrijf.
+// Standaard uit (0050_public_company_directory.sql): dit is bewust een
+// eigen, per-persoon keuze, geen bedrijfsbrede aan/uit-knop.
+export async function updatePubliclyVisibleAction(visible: boolean): Promise<{ error?: string }> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("profiles").update({ publicly_visible: visible }).eq("id", profile.id);
+
+  if (error) {
+    console.error("[profiel] updatePubliclyVisibleAction failed:", error);
+    return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
+  }
+  return {};
+}
+
 // Standalone tegenhangers van de show_email/show_phone-schuifjes in
 // ProfileForm — dezelfde twee kolommen, zodat deze instelling ook los op de
 // instellingenpagina staat i.p.v. alleen via het volledige profielformulier.

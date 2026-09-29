@@ -9,23 +9,27 @@ import { AttendedActivitiesToggle } from "@/components/profile/AttendedActivitie
 import { ShowContactToggle } from "@/components/profile/ShowContactToggle";
 import { NotificationCategoryToggle } from "@/components/profile/NotificationCategoryToggle";
 import { ShowAddressToggle } from "@/components/company/ShowAddressToggle";
+import { CompanyPubliclyVisibleToggle } from "@/components/company/CompanyPubliclyVisibleToggle";
+import { PubliclyVisibleToggle } from "@/components/profile/PubliclyVisibleToggle";
 import { DeleteAccountButton } from "@/components/profile/DeleteAccountButton";
 import { SettingRow } from "@/components/ui/SettingRow";
 import { SettingGroup, SettingSubRow } from "@/components/ui/SettingGroup";
 
 export const metadata: Metadata = { title: "Instellingen" };
 
-type Membership = { company: { id: string; address: string | null; show_address: boolean } | null };
+type Membership = {
+  company: { id: string; address: string | null; show_address: boolean; is_publicly_visible: boolean } | null;
+};
 
 export default async function InstellingenPage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
   const [{ data }, { data: membership }] = await Promise.all([
-    supabase.from("profiles").select("show_attended_activities").eq("id", profile.id).single(),
+    supabase.from("profiles").select("show_attended_activities, publicly_visible").eq("id", profile.id).single(),
     supabase
       .from("company_members")
-      .select("company:companies(id, address, show_address)")
+      .select("company:companies(id, address, show_address, is_publicly_visible)")
       .eq("profile_id", profile.id)
       .limit(1)
       .maybeSingle()
@@ -102,6 +106,18 @@ export default async function InstellingenPage() {
         {company?.address && (
           <SettingSubRow label="Bezoekersadres bedrijf tonen">
             <ShowAddressToggle companyId={company.id} initialVisible={company.show_address} />
+          </SettingSubRow>
+        )}
+
+        {company && (
+          <SettingSubRow label="Bedrijf tonen op openbare bedrijvengids">
+            <CompanyPubliclyVisibleToggle companyId={company.id} initialVisible={company.is_publicly_visible} />
+          </SettingSubRow>
+        )}
+
+        {company && (
+          <SettingSubRow label="Naam en functie tonen op bedrijvengids">
+            <PubliclyVisibleToggle initialVisible={data?.publicly_visible ?? false} />
           </SettingSubRow>
         )}
       </SettingGroup>

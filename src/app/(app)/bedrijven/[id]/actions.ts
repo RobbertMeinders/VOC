@@ -26,6 +26,7 @@ export async function updateCompanyAction(
   const address = String(formData.get("address") ?? "").trim();
   const postalCode = String(formData.get("postal_code") ?? "").trim();
   const showAddress = formData.get("show_address") === "on";
+  const isPubliclyVisible = formData.get("is_publicly_visible") === "on";
   const phone = String(formData.get("phone") ?? "").trim();
   const email = String(formData.get("email") ?? "").trim();
   const linkedinUrl = String(formData.get("linkedin_url") ?? "").trim();
@@ -81,6 +82,7 @@ export async function updateCompanyAction(
       address: address || null,
       postal_code: postalCode || null,
       show_address: showAddress,
+      is_publicly_visible: isPubliclyVisible,
       phone: phone || null,
       email: email || null,
       linkedin_url: linkedinUrl || null,
@@ -120,6 +122,27 @@ export async function updateCompanyShowAddressAction(companyId: string, visible:
   const supabase = await createClient();
 
   const { error } = await supabase.rpc("set_company_show_address", {
+    p_company_id: companyId,
+    p_visible: visible,
+  });
+
+  if (error) {
+    return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
+  }
+  invalidateQuery("bedrijven-page-data");
+  revalidatePath(`/bedrijven/${companyId}`);
+  revalidatePath("/profiel");
+  return {};
+}
+
+// Mirror van updateCompanyShowAddressAction hierboven, alleen dan voor
+// is_publicly_visible (0050_public_company_directory.sql) — of dit bedrijf
+// op de openbare bedrijvengids-embed (/embed/bedrijven) mag verschijnen.
+export async function updateCompanyPubliclyVisibleAction(companyId: string, visible: boolean): Promise<{ error?: string }> {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("set_company_publicly_visible", {
     p_company_id: companyId,
     p_visible: visible,
   });

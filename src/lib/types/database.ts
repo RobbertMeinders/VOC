@@ -42,6 +42,7 @@ export interface Database {
           facebook_url: string | null;
           bio: string | null;
           is_organization_account: boolean;
+          publicly_visible: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -75,6 +76,7 @@ export interface Database {
           linkedin_url: string | null;
           instagram_url: string | null;
           facebook_url: string | null;
+          is_publicly_visible: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -185,6 +187,27 @@ export interface Database {
           email: string;
         };
         Update: Partial<Database["public"]["Tables"]["public_activity_registrations"]["Row"]>;
+        Relationships: [];
+      };
+      prospects: {
+        Row: {
+          id: string;
+          email: string;
+          name: string;
+          company_name: string | null;
+          status: "nog_te_beoordelen" | "wil_lid_worden" | "wil_niet_lid_worden" | "geen_antwoord";
+          status_note: string | null;
+          first_seen_at: string;
+          last_seen_at: string;
+          status_updated_at: string | null;
+          status_updated_by: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["prospects"]["Row"]> & {
+          email: string;
+          name: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["prospects"]["Row"]>;
         Relationships: [];
       };
       activity_registrations: {
@@ -485,6 +508,36 @@ export interface Database {
       set_company_show_address: {
         Args: { p_company_id: string; p_visible: boolean };
         Returns: void;
+      };
+      set_company_publicly_visible: {
+        Args: { p_company_id: string; p_visible: boolean };
+        Returns: void;
+      };
+      get_public_companies: {
+        Args: Record<string, never>;
+        Returns: { id: string; slug: string; name: string; logo_url: string | null; tagline: string | null; industry: string | null; city: string | null }[];
+      };
+      get_public_company: {
+        Args: { p_slug: string };
+        Returns: {
+          id: string;
+          slug: string;
+          name: string;
+          logo_url: string | null;
+          tagline: string | null;
+          description: string | null;
+          industry: string | null;
+          city: string | null;
+          website: string | null;
+          linkedin_url: string | null;
+          instagram_url: string | null;
+          facebook_url: string | null;
+          employees: { id: string; first_name: string; last_name: string; job_title: string | null }[];
+        }[];
+      };
+      delete_expired_prospects: {
+        Args: Record<string, never>;
+        Returns: number;
       };
       anonymize_expired_profiles: {
         Args: Record<string, never>;

@@ -37,6 +37,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
   // tweede keer opslaan wiste de zojuist opgeslagen branche dus weer.
   const [industry, setIndustry] = useState(company.industry ?? "");
   const [showAddress, setShowAddress] = useState(company.show_address);
+  const [isPubliclyVisible, setIsPubliclyVisible] = useState(company.is_publicly_visible);
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -201,6 +202,22 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
         </div>
         <input type="hidden" name="show_address" value={showAddress ? "on" : ""} />
         <Switch checked={showAddress} onChange={() => setShowAddress((v) => !v)} label="Bezoekersadres tonen" />
+      </div>
+
+      <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3 py-2.5">
+        <div>
+          <p className="text-sm font-medium text-foreground">Zichtbaar op de openbare bedrijvengids</p>
+          <p className="text-xs text-muted">
+            Toont naam, logo, branche, plaats, omschrijving en website op de bedrijvengids-embed van de VOC-website.
+            Contactgegevens (telefoon, e-mail, adres) worden nooit publiek getoond.
+          </p>
+        </div>
+        <input type="hidden" name="is_publicly_visible" value={isPubliclyVisible ? "on" : ""} />
+        <Switch
+          checked={isPubliclyVisible}
+          onChange={() => setIsPubliclyVisible((v) => !v)}
+          label="Zichtbaar op de openbare bedrijvengids"
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">

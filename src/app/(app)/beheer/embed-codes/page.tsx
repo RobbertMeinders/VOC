@@ -19,6 +19,12 @@ const EMBEDS = [
     label: "Word lid",
     description: "Aanmeldformulier voor nieuwe leden (komt bij Beheer > Toegangsaanvragen terecht).",
   },
+  {
+    id: "voc-embed-bedrijven",
+    path: "/embed/bedrijven",
+    label: "Bedrijvengids",
+    description: "Overzicht van bedrijven die opt-in zijn voor de openbare bedrijvengids (zie Instellingen).",
+  },
 ];
 
 // Basis-URL wordt uit de request zelf gehaald (host-header) i.p.v. de
