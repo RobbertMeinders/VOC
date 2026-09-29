@@ -30,6 +30,8 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
 
   if (!activity) notFound();
 
+  const isPast = new Date(activity.starts_at) < new Date();
+
   const [imageUrl, { data: interestCount }] = await Promise.all([
     getSignedStorageUrl("activity-images", activity.image_url),
     supabase.rpc("get_activity_interest_count", { p_activity_id: activity.id }),
@@ -44,9 +46,9 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
       </Link>
       {imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- publieke, external-embed pagina: geen framework-afhankelijkheden
-        <img src={imageUrl} alt={activity.title} className="h-48 w-full rounded-xl object-cover" />
+        <img src={imageUrl} alt={activity.title} className="h-72 w-full rounded-xl object-cover" />
       ) : (
-        <div className="flex h-48 w-full items-center justify-center rounded-xl bg-[#fdeaec] text-voc-red">
+        <div className="flex h-72 w-full items-center justify-center rounded-xl bg-[#fdeaec] text-voc-red">
           <CalendarDays size={40} />
         </div>
       )}
@@ -68,8 +70,10 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
 
       {activity.description && <p className="whitespace-pre-line text-sm text-[#17171a]">{activity.description}</p>}
 
-      <div className="rounded-2xl border border-[#e5e5ea] bg-white p-4">
-        {activity.allow_public_registration ? (
+      <div className="rounded-2xl bg-[#f7f7f8] p-4 shadow-sm">
+        {isPast ? (
+          <p className="text-sm text-[#6b6b72]">Deze activiteit heeft al plaatsgevonden.</p>
+        ) : activity.allow_public_registration ? (
           <PublicRegistrationForm activityId={activity.id} />
         ) : (
           <div className="flex flex-col gap-2 text-sm text-[#17171a]">

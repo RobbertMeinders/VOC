@@ -18,25 +18,87 @@ type Activity = Database["public"]["Tables"]["activities"]["Row"];
 // tussen te staan). Elk item linkt door naar de publieke detailpagina, die
 // ook het aanmeldformulier (of de inlogmuur) toont — zie
 // supabase/migrations/0047_public_agenda_registration.sql.
+const PAST_ACTIVITIES_LIMIT = 6;
+
+// Fotokaart voor zowel aankomend als eerder — image-first, zo min mogelijk
+// tekst (geen omschrijving meer op het overzicht, die staat al op de
+// detailpagina). isPast dooft 'm iets (grijzer, geen hover-zoom) zonder
+// 'm te verstoppen — juist bewust getoond, laat zien dat de club actief is.
+function ActivityCard({
+  activity,
+  imageUrl,
+  count,
+  isPast = false,
+}: {
+  activity: Activity;
+  imageUrl: string | null;
+  count: number;
+  isPast?: boolean;
+}) {
+  return (
+    <Link
+      href={`/embed/agenda/${activity.id}`}
+      className={`overflow-hidden rounded-2xl bg-white shadow-sm ${
+        isPast ? "opacity-80 grayscale-[50%]" : "transition-all duration-500 ease-out hover:scale-[1.008] hover:shadow-md"
+      }`}
+    >
+      {imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element -- a public, external-embed page: keep it framework-agnostic and dependency-free
+        <img src={imageUrl} alt={activity.title} className="h-40 w-full object-cover" />
+      ) : (
+        <div className="flex h-40 w-full items-center justify-center bg-[#fdeaec] text-voc-red">
+          <CalendarDays size={32} />
+        </div>
+      )}
+      <div className="p-3">
+        <p className="truncate text-sm font-semibold text-[#17171a]">{activity.title}</p>
+        <p className="mt-0.5 text-xs text-[#6b6b72]">{formatActivityDate(activity.starts_at)}</p>
+        {activity.location && (
+          <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-[#6b6b72]">
+            <MapPin size={12} />
+            {activity.location}
+          </p>
+        )}
+        <p className="mt-1 flex items-center gap-1 text-xs text-[#6b6b72]">
+          <Users size={12} />
+          {count} aanmeldingen
+        </p>
+      </div>
+    </Link>
+  );
+}
+
 export default async function AgendaEmbedPage() {
   const supabase = await createClient();
 
-  const { data: activities } = await supabase
-    .from("activities")
-    .select("*")
-    .eq("status", "approved")
-    .gte("starts_at", new Date().toISOString())
-    .order("starts_at", { ascending: true })
-    .returns<Activity[]>();
+  const [{ data: upcoming }, { data: past }] = await Promise.all([
+    supabase
+      .from("activities")
+      .select("*")
+      .eq("status", "approved")
+      .gte("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: true })
+      .returns<Activity[]>(),
+    supabase
+      .from("activities")
+      .select("*")
+      .eq("status", "approved")
+      .lt("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: false })
+      .limit(PAST_ACTIVITIES_LIMIT)
+      .returns<Activity[]>(),
+  ]);
+
+  const allActivities = [...(upcoming ?? []), ...(past ?? [])];
 
   const [imageUrls, counts] = await Promise.all([
     getSignedStorageUrls(
       supabase,
       "activity-images",
-      (activities ?? []).map((a) => a.image_url)
+      allActivities.map((a) => a.image_url)
     ),
     Promise.all(
-      (activities ?? []).map(async (a) => {
+      allActivities.map(async (a) => {
         const { data } = await supabase.rpc("get_activity_interest_count", { p_activity_id: a.id });
         return [a.id, data ?? 0] as const;
       })
@@ -44,7 +106,7 @@ export default async function AgendaEmbedPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-3 bg-white p-4">
+    <div className="flex flex-col gap-6 bg-white p-4">
       <EmbedAutoHeight />
       {/* Deze titel + intro staan hier i.p.v. los op de WordPress-pagina
           zelf, juist zodat ze ALLEEN op dit overzicht staan — klik je door
@@ -63,45 +125,39 @@ export default async function AgendaEmbedPage() {
           te versterken. Aanmelden is verplicht in verband met de organisatie.
         </p>
       </div>
-      {(activities ?? []).length === 0 && (
-        <p className="py-8 text-center text-sm text-[#6b6b72]">Er zijn momenteel geen activiteiten gepland.</p>
+
+      {(upcoming ?? []).length === 0 && (
+        <p className="py-4 text-center text-sm text-[#6b6b72]">Er zijn momenteel geen activiteiten gepland.</p>
       )}
-      {(activities ?? []).map((activity) => {
-        const imageUrl = activity.image_url ? (imageUrls.get(activity.image_url) ?? null) : null;
-        return (
-          <Link
-            key={activity.id}
-            href={`/embed/agenda/${activity.id}`}
-            className="flex gap-3 rounded-xl border border-[#e5e5ea] bg-white p-3 shadow-sm hover:border-voc-red/40"
-          >
-            {imageUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element -- a public, external-embed page: keep it framework-agnostic and dependency-free
-              <img src={imageUrl} alt={activity.title} className="h-28 w-28 shrink-0 rounded-lg object-cover" />
-            ) : (
-              <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-lg bg-[#fdeaec] text-voc-red">
-                <CalendarDays size={24} />
-              </div>
-            )}
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-[#17171a]">{activity.title}</p>
-              <p className="mt-0.5 text-xs text-[#6b6b72]">{formatActivityDate(activity.starts_at)}</p>
-              {activity.location && (
-                <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-[#6b6b72]">
-                  <MapPin size={12} />
-                  {activity.location}
-                </p>
-              )}
-              {activity.description && (
-                <p className="mt-1 line-clamp-2 text-xs text-[#6b6b72]">{activity.description}</p>
-              )}
-              <p className="mt-1 flex items-center gap-1 text-xs text-[#6b6b72]">
-                <Users size={12} />
-                {counts.get(activity.id) ?? 0} aanmeldingen
-              </p>
-            </div>
-          </Link>
-        );
-      })}
+      {(upcoming ?? []).length > 0 && (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {(upcoming ?? []).map((activity) => (
+            <ActivityCard
+              key={activity.id}
+              activity={activity}
+              imageUrl={activity.image_url ? (imageUrls.get(activity.image_url) ?? null) : null}
+              count={counts.get(activity.id) ?? 0}
+            />
+          ))}
+        </div>
+      )}
+
+      {(past ?? []).length > 0 && (
+        <div>
+          <h3 className="text-lg font-semibold text-[#17171a]">Eerdere activiteiten</h3>
+          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {(past ?? []).map((activity) => (
+              <ActivityCard
+                key={activity.id}
+                activity={activity}
+                imageUrl={activity.image_url ? (imageUrls.get(activity.image_url) ?? null) : null}
+                count={counts.get(activity.id) ?? 0}
+                isPast
+              />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
