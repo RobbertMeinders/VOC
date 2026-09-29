@@ -78,6 +78,30 @@ export default async function EmbedCodesPage() {
 <script>
 (function () {
   var iframe = document.getElementById('${embed.id}');
+  // Verduistert de rest van DEZE (WordPress-)pagina zolang de bedrijvengids-
+  // embed een detailoverlay toont — de iframe kan dat zelf niet (die kan
+  // nooit buiten z'n eigen rechthoek tekenen), dus dat doen we hier. De
+  // iframe krijgt tijdelijk een hogere z-index dan deze achtergrond, zodat
+  // de iframe zelf (met z'n eigen, lichtere verduistering van de lijst
+  // erbinnen) er gewoon "bovenop" blijft staan.
+  var backdrop = null;
+  function showBackdrop() {
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:999998;';
+      backdrop.addEventListener('click', function () {
+        iframe.contentWindow.postMessage({ type: 'voc-embed-close-overlay' }, '*');
+      });
+      document.body.appendChild(backdrop);
+    }
+    backdrop.style.display = 'block';
+    iframe.style.position = 'relative';
+    iframe.style.zIndex = '999999';
+  }
+  function hideBackdrop() {
+    if (backdrop) backdrop.style.display = 'none';
+    iframe.style.zIndex = '';
+  }
   window.addEventListener('message', function (event) {
     if (event.source !== iframe.contentWindow || !event.data) return;
     if (event.data.type === 'voc-embed-height') {
@@ -103,6 +127,8 @@ export default async function EmbedCodesPage() {
       var offset = Math.max(0, -iframeRect.top);
       iframe.contentWindow.postMessage({ type: 'voc-embed-viewport-offset', offset: offset }, '*');
     }
+    if (event.data.type === 'voc-embed-backdrop-show') showBackdrop();
+    if (event.data.type === 'voc-embed-backdrop-hide') hideBackdrop();
   });
 ${hashRedirect}
 })();
@@ -125,8 +151,10 @@ ${hashRedirect}
         thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen. Klik je in de agenda door naar
         een detailpagina (of terug), dan scrollt de website automatisch weer naar de bovenkant van het embed, ook als
         je daarvoor ver naar beneden had gescrold. In de bedrijvengids opent een bedrijf juist als overlay bovenop de
-        lijst, precies waar je op dat moment aan het kijken bent — staat er nog een oudere versie van deze code op de
-        website, dan verschijnt die overlay in plaats daarvan bovenaan de lijst; plak &apos;m in dat geval hier opnieuw.
+        lijst, precies waar je op dat moment aan het kijken bent, en verduistert het scriptje ook de rest van de
+        website eromheen (de iframe kan dat zelf niet, want die kan nooit buiten zijn eigen rechthoek tekenen) — staat
+        er nog een oudere versie van deze code op de website, dan verschijnt die overlay in plaats daarvan bovenaan de
+        lijst zonder die extra verduistering; plak &apos;m in dat geval hier opnieuw.
       </p>
       <p className="text-xs text-muted">
         De &quot;Delen&quot;-knop op een activiteit deelt naar de echte website (met een leesbaar #-anker, bijv.

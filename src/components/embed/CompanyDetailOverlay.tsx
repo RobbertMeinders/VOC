@@ -68,6 +68,24 @@ export function CompanyDetailOverlay({ slug, onClose }: { slug: string; onClose:
     };
   }, []);
 
+  // Verduistert ook de rest van de WordPress-pagina (buiten de iframe) zolang
+  // dit open staat — de iframe kan dat zelf niet, dus dat doet de embed-code
+  // (zie /beheer/embed-codes) op ons verzoek. Een klik daarop (buiten de
+  // iframe) stuurt op zijn beurt voc-embed-close-overlay terug.
+  useEffect(() => {
+    window.parent.postMessage({ type: "voc-embed-backdrop-show" }, "*");
+
+    function handleMessage(e: MessageEvent) {
+      if (e.data?.type === "voc-embed-close-overlay") onClose();
+    }
+    window.addEventListener("message", handleMessage);
+
+    return () => {
+      window.parent.postMessage({ type: "voc-embed-backdrop-hide" }, "*");
+      window.removeEventListener("message", handleMessage);
+    };
+  }, [onClose]);
+
   // Nog geen positie bekend: liever heel even niets tonen dan een zichtbare
   // sprong van "bovenaan" naar de uiteindelijke plek.
   if (offset === null) return null;
@@ -76,7 +94,7 @@ export function CompanyDetailOverlay({ slug, onClose }: { slug: string; onClose:
     <div className="absolute inset-0 z-20 bg-black/40" onClick={onClose}>
       <div
         className="absolute left-1/2 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2"
-        style={{ top: offset + 16 }}
+        style={{ top: offset + 96 }}
         onClick={(e) => e.stopPropagation()}
       >
         <button
