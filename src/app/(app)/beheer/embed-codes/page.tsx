@@ -48,7 +48,7 @@ export default async function EmbedCodesPage() {
           // doorgeeft (zie EmbedAutoHeight) en zet de iframe daarop — zonder
           // dit zou de iframe op de opgegeven starthoogte (600) blijven
           // staan, met een eigen scrollbalkje zodra de inhoud langer is.
-          const code = `<iframe id="${embed.id}" src="${origin}${embed.path}" width="100%" height="600" style="border:0;" title="VOC ${embed.label}"></iframe>
+          const code = `<iframe id="${embed.id}" src="${origin}${embed.path}" width="100%" height="600" style="border:0;" allow="clipboard-write; web-share" title="VOC ${embed.label}"></iframe>
 <script>
 (function () {
   var iframe = document.getElementById('${embed.id}');
