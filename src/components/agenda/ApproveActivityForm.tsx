@@ -13,8 +13,10 @@ export function ApproveActivityForm({
   size?: "sm" | "xs";
 }) {
   const [open, setOpen] = useState(false);
-  const [notifyPush, setNotifyPush] = useState(true);
-  const [notifyEmail, setNotifyEmail] = useState(true);
+  // Standaard uit — zelfde reden als in ActivityForm: niet elke goedkeuring
+  // hoort automatisch een pushmelding/mail te versturen.
+  const [notifyPush, setNotifyPush] = useState(false);
+  const [notifyEmail, setNotifyEmail] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const buttonClass =

@@ -304,8 +304,8 @@ export async function decideActivitySubmissionAction(
   activityId: string,
   decision: "approved" | "rejected",
   rejectionReason?: string,
-  notifyPush = true,
-  notifyEmail = true
+  notifyPush = false,
+  notifyEmail = false
 ) {
   await requireBoard();
   const supabase = await createClient();

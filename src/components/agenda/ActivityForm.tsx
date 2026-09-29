@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Switch } from "@/components/ui/Switch";
 import { compressInputFile } from "@/lib/image/compress";
 import type { ActivityFormState } from "@/app/(app)/agenda/actions";
 import type { Database } from "@/lib/types/database";
@@ -88,8 +89,13 @@ export function ActivityForm({
   );
   const [externalRegistration, setExternalRegistration] = useState(Boolean(activity?.external_registration_url));
   const [allowPublicRegistration, setAllowPublicRegistration] = useState(activity?.allow_public_registration ?? false);
-  const [notifyPush, setNotifyPush] = useState(activity?.notify_push ?? true);
-  const [notifyEmail, setNotifyEmail] = useState(activity?.notify_email ?? true);
+  // Standaard uit bij een NIEUWE activiteit — niet elke publicatie hoort
+  // per se een pushmelding/mail te verdienen, dus dat is een bewuste keuze
+  // i.p.v. een default die je makkelijk over het hoofd ziet. Bij het
+  // bewerken van een bestaande activiteit blijft gewoon de opgeslagen
+  // waarde staan.
+  const [notifyPush, setNotifyPush] = useState(activity?.notify_push ?? false);
+  const [notifyEmail, setNotifyEmail] = useState(activity?.notify_email ?? false);
 
   const [startsAt, setStartsAt] = useState(toLocalInputValue(activity?.starts_at ?? null));
   const [endTime, setEndTime] = useState(toLocalTimeValue(activity?.ends_at ?? null));
@@ -129,38 +135,6 @@ export function ActivityForm({
           {source === "lid" && (
             <p className="text-xs text-muted">Ingebracht volgt de gewone goedkeuringslogica, net als bij een lid.</p>
           )}
-        </div>
-      )}
-
-      {source === "voc" && (
-        <div className="flex flex-col gap-1.5">
-          <span className="text-sm font-medium text-foreground">Notificatie bij publiceren</span>
-          <p className="text-xs text-muted">
-            Respecteert altijd de persoonlijke meldingsvoorkeuren van elk lid — dit bepaalt alleen of het kanaal
-            zelf openstaat.
-          </p>
-          <div className="flex gap-4">
-            <label className="flex items-center gap-2 text-sm text-foreground">
-              <input
-                type="checkbox"
-                name="notify_push"
-                checked={notifyPush}
-                onChange={(e) => setNotifyPush(e.target.checked)}
-                className="rounded"
-              />
-              Push versturen
-            </label>
-            <label className="flex items-center gap-2 text-sm text-foreground">
-              <input
-                type="checkbox"
-                name="notify_email"
-                checked={notifyEmail}
-                onChange={(e) => setNotifyEmail(e.target.checked)}
-                className="rounded"
-              />
-              E-mail versturen
-            </label>
-          </div>
         </div>
       )}
 
@@ -331,6 +305,32 @@ export function ActivityForm({
           className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
         />
       </div>
+
+      {source === "voc" && (
+        // Onderaan i.p.v. bovenaan, en standaard uit: dit stond eerder als
+        // eerste bovenaan het formulier met beide vinkjes al aangevinkt,
+        // waardoor je zonder er expliciet bij stil te staan meteen een
+        // melding naar alle leden stuurde. Nu een bewuste keuze vlak vóór
+        // publiceren, in dezelfde schakelaar-stijl als de rest van de app
+        // i.p.v. kale checkboxes.
+        <div className="flex flex-col gap-2">
+          <span className="text-sm font-medium text-foreground">Notificatie bij publiceren</span>
+          <p className="text-xs text-muted">
+            Respecteert altijd de persoonlijke meldingsvoorkeuren van elk lid — dit bepaalt alleen of het kanaal
+            zelf openstaat.
+          </p>
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3 py-2.5">
+            <p className="text-sm text-foreground">Pushmelding versturen</p>
+            <input type="hidden" name="notify_push" value={notifyPush ? "on" : ""} />
+            <Switch checked={notifyPush} onChange={() => setNotifyPush((v) => !v)} label="Pushmelding versturen" />
+          </div>
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3 py-2.5">
+            <p className="text-sm text-foreground">E-mail versturen</p>
+            <input type="hidden" name="notify_email" value={notifyEmail ? "on" : ""} />
+            <Switch checked={notifyEmail} onChange={() => setNotifyEmail((v) => !v)} label="E-mail versturen" />
+          </div>
+        </div>
+      )}
 
       {state.error && (
         <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">

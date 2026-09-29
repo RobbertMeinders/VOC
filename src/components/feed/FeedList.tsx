@@ -93,19 +93,23 @@ export function FeedList({
     const el = document.getElementById(`comment-${highlightId}`) ?? document.getElementById(`post-${highlightId}`);
     if (!el) return;
     el.scrollIntoView({ behavior: "smooth", block: "center" });
-    el.classList.add("ring-2", "ring-voc-red", "rounded-xl", "transition-shadow", "duration-700");
-    // Twee stappen i.p.v. de ring in één keer weghalen: eerst de kleur naar
-    // transparant laten overgaan (transition-shadow vangt die kleurwissel
-    // op, dus dat faded zichtbaar uit), pas daarna de klassen zelf opruimen.
-    const fadeTimeout = setTimeout(() => {
-      el.classList.remove("ring-voc-red");
-      el.classList.add("ring-transparent");
-    }, 3000);
+    el.classList.add("ring-2", "ring-voc-red", "rounded-xl", "transition-shadow", "duration-[3000ms]", "ease-out");
+    // Dubbele rAF i.p.v. direct de kleur wisselen: de browser moet de
+    // "aan"-staat (ring-voc-red) eerst echt geschilderd hebben voordat de
+    // overgang naar transparant iets valt te animeren — begint de fade dus
+    // meteen bij het verschijnen i.p.v. pas na een periode vol aangehouden
+    // te zijn.
+    const raf1 = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        el.classList.remove("ring-voc-red");
+        el.classList.add("ring-transparent");
+      });
+    });
     const cleanupTimeout = setTimeout(() => {
-      el.classList.remove("ring-2", "ring-transparent", "rounded-xl", "transition-shadow", "duration-700");
-    }, 3700);
+      el.classList.remove("ring-2", "ring-transparent", "rounded-xl", "transition-shadow", "duration-[3000ms]", "ease-out");
+    }, 3200);
     return () => {
-      clearTimeout(fadeTimeout);
+      cancelAnimationFrame(raf1);
       clearTimeout(cleanupTimeout);
     };
   }, [highlightId]);
