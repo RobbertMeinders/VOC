@@ -92,23 +92,22 @@ export function Sidebar({
   }
 
   return (
-    <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-surface px-4 py-6 md:flex">
-      {/* Logo op zijn eigen rij (i.p.v. ernaast in dezelfde rij als de
-          icoontjes): met beide icoontjes ernaast paste "Ledenportaal" niet
-          meer volledig, en truncate liet 'm halverwege afbreken — een eigen
-          rij eronder geeft het logo altijd de volle breedte, ongeacht hoeveel
-          icoontjes er staan. */}
-      <div className="mb-4 px-2">
+    <aside className="fixed inset-y-0 left-0 hidden w-72 flex-col border-r border-border bg-surface px-4 py-6 md:flex">
+      <div className="mb-8 flex items-center justify-between gap-2 px-2">
         <Logo />
-      </div>
-      <div className="mb-4 flex items-center justify-end gap-0.5 px-2">
-        <SearchOverlay variant="sidebar" />
-        {/* Popover i.p.v. directe navigatie: een snelle blik zonder de
-            huidige pagina te verlaten (/notificaties blijft gewoon
-            bereikbaar via "Alles bekijken" in het paneel). Naast Zoeken
-            i.p.v. een eigen rij in het menu: allebei een klein
-            popover-icoontje, geen echte navigatiebestemming. */}
-        <NotificationCenter count={unread.total} variant="sidebar" />
+        <div className="flex shrink-0 items-center gap-0.5">
+          <SearchOverlay variant="sidebar" />
+          {/* Popover i.p.v. directe navigatie: een snelle blik zonder de
+              huidige pagina te verlaten (/notificaties blijft gewoon
+              bereikbaar via "Alles bekijken" in het paneel). Naast Zoeken
+              i.p.v. een eigen rij in het menu: allebei een klein
+              popover-icoontje, geen echte navigatiebestemming. De sidebar
+              is w-72 (i.p.v. het eerdere w-64) juist om deze rij naast het
+              volledige "Ledenportaal"-logo te laten passen, zonder
+              afknippen of een aparte icoontjes-rij eronder — beide eerdere
+              probeersels oogden niet lekker. */}
+          <NotificationCenter count={unread.total} variant="sidebar" />
+        </div>
       </div>
 
       <nav className="flex flex-1 flex-col gap-1">

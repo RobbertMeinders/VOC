@@ -166,18 +166,26 @@ body {
 /* Highlight-ring rond een vanuit een notificatie geopend bericht (zie
    FeedList) — een kant-en-klare CSS-animatie i.p.v. handmatig een
    Tailwind ring-kleur wisselen via JS/rAF: dat laatste bleek onbetrouwbaar
-   (soms geen zichtbare "aan"-staat door timing/re-render-races). Rechtstreeks
-   box-shadow i.p.v. Tailwind's ring-utility, zodat de hele overgang gewoon
-   door de browser zelf wordt getimed, geen enkele JS-choreografie nodig. */
+   (soms geen zichtbare "aan"-staat door timing/re-render-races). Bewust
+   `outline` i.p.v. `box-shadow`/Tailwind's ring-utility: de kaart heeft zelf
+   al een box-shadow (shadow-sm) en een animatie op datzelfde box-shadow
+   verving die volledig zolang de animatie liep — zodra de highlight-klasse
+   daarna werd verwijderd, "plopte" de normale kaartschaduw abrupt terug,
+   wat als een soort laad-flikkering oogde. Outline is een compleet
+   losstaande laag (geen invloed op box-shadow/layout), dus daar speelt dat
+   niet: die volgt bovendien gewoon de eigen border-radius van de kaart
+   (rounded-2xl) in elke moderne browser, dus geen aparte rounded-*-klasse
+   hier meer nodig. */
 @keyframes voc-highlight-fade {
   from {
-    box-shadow: 0 0 0 2px var(--voc-red);
+    outline-color: var(--voc-red);
   }
   to {
-    box-shadow: 0 0 0 2px transparent;
+    outline-color: transparent;
   }
 }
 .animate-highlight-fade {
+  outline: 2px solid transparent;
   animation: voc-highlight-fade 3s ease-out;
 }
 /* RouteOverlayPanel (lid-/bedrijfsprofiel, activiteitdetail/-formulier, alle

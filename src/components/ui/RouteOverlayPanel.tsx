@@ -97,7 +97,7 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
     // last van hebben, want dan verandert pathname niet.
     <div
       key={pathname}
-      className="animate-sheet-in fixed inset-x-0 bottom-14 top-14 z-30 overflow-y-auto rounded-t-2xl bg-background md:inset-y-0 md:bottom-0 md:left-64 md:top-0 md:rounded-none"
+      className="animate-sheet-in fixed inset-x-0 bottom-14 top-14 z-30 overflow-y-auto rounded-t-2xl bg-background md:inset-y-0 md:bottom-0 md:left-72 md:top-0 md:rounded-none"
       style={{
         transform: `translateY(${dragY}px)`,
         transition: dragging ? "none" : "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, Globe } from "lucide-react";
+import { Building2, Globe, Lock } from "lucide-react";
 import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
 import { Avatar } from "@/components/ui/Avatar";
 import { PopupLoginLink } from "@/components/embed/PopupLoginLink";
@@ -120,11 +120,14 @@ export function CompanyDetailContent({ company }: { company: CompanyDetailData }
               </li>
             ))}
           </ul>
-          <p className="mt-3 border-t border-border pt-3 text-xs text-muted">
-            <PopupLoginLink href="/login" className="font-medium text-voc-red hover:underline">
-              Log in
-            </PopupLoginLink>{" "}
-            voor meer info over dit team.
+          <p className="mt-3 flex items-center gap-1.5 border-t border-border pt-3 text-xs text-muted">
+            <Lock size={12} className="shrink-0" />
+            <span>
+              <PopupLoginLink href="/login" className="font-medium text-voc-red hover:underline">
+                Log in
+              </PopupLoginLink>{" "}
+              voor meer info.
+            </span>
           </p>
         </div>
       )}

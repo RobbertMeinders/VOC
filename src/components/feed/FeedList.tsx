@@ -97,9 +97,9 @@ export function FeedList({
     // met classList/rAF de kleur te wisselen — dat bleek onbetrouwbaar (de
     // ring kwam soms niet of nauwelijks zichtbaar in beeld). Faded meteen
     // vanaf het verschijnen uit, getimed door de browser zelf.
-    el.classList.add("rounded-xl", "animate-highlight-fade");
+    el.classList.add("animate-highlight-fade");
     const cleanupTimeout = setTimeout(() => {
-      el.classList.remove("rounded-xl", "animate-highlight-fade");
+      el.classList.remove("animate-highlight-fade");
     }, 3000);
     return () => clearTimeout(cleanupTimeout);
   }, [highlightId]);

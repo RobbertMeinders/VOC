@@ -36,7 +36,7 @@ export function ReportPostOverlay({ postId, onClose }: { postId: string; onClose
   return (
     <FloatingPortal>
       <div className="fixed inset-0 z-40 cursor-pointer bg-black/60 animate-fade-in" onClick={onClose} />
-      <div className="fixed inset-x-3 top-1/2 z-50 -translate-y-1/2 sm:inset-x-0 sm:mx-auto sm:w-full sm:max-w-sm sm:px-3 md:left-64">
+      <div className="fixed inset-x-3 top-1/2 z-50 -translate-y-1/2 sm:inset-x-0 sm:mx-auto sm:w-full sm:max-w-sm sm:px-3 md:left-72">
         <div className="animate-scale-in rounded-2xl border border-border bg-surface shadow-lg">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <p className="text-sm font-semibold text-foreground">Bericht rapporteren</p>
