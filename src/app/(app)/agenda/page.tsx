@@ -4,7 +4,7 @@ import { CalendarDays, CalendarPlus } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
-import { splitUpcomingAndPast } from "@/lib/format/date";
+import { formatMonthLabel, splitUpcomingAndPast } from "@/lib/format/date";
 import { isBoard } from "@/lib/auth/roles";
 import { ActivityCard } from "@/components/agenda/ActivityCard";
 import { ComingSoon } from "@/components/ui/ComingSoon";
@@ -50,6 +50,20 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
   );
 
   const { upcoming, past } = splitUpcomingAndPast(activities);
+
+  // Groepeert op maand zodat de lijst niet als één ononderbroken stapel
+  // bijna-identieke kaarten oogt — `upcoming` is al oplopend gesorteerd, dus
+  // een simpele opeenvolgende groepering (i.p.v. Map) volstaat.
+  const upcomingByMonth: { label: string; items: ActivityRow[] }[] = [];
+  for (const activity of upcoming) {
+    const label = formatMonthLabel(activity.starts_at);
+    const lastGroup = upcomingByMonth[upcomingByMonth.length - 1];
+    if (lastGroup?.label === label) {
+      lastGroup.items.push(activity);
+    } else {
+      upcomingByMonth.push({ label, items: [activity] });
+    }
+  }
 
   function renderCard(activity: ActivityRow, hero = false) {
     const myStatus = myRegistrationByActivity.get(activity.id);
@@ -99,7 +113,14 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
       </div>
 
       {upcoming.length > 0 ? (
-        <div className="flex flex-col gap-3">{upcoming.map((activity, i) => renderCard(activity, i === 0))}</div>
+        <div className="flex flex-col gap-6">
+          {upcomingByMonth.map((group, groupIndex) => (
+            <div key={group.label} className="flex flex-col gap-3">
+              <h2 className="text-sm font-semibold text-muted">{group.label}</h2>
+              {group.items.map((activity, i) => renderCard(activity, groupIndex === 0 && i === 0))}
+            </div>
+          ))}
+        </div>
       ) : (
         <ComingSoon
           icon={CalendarDays}

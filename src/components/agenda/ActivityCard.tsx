@@ -23,10 +23,6 @@ export function ActivityCard({
   hero?: boolean;
 }) {
   const isFull = activity.max_participants !== null && registrationCount >= activity.max_participants;
-  // Een officiële Activiteit mag wat prominenter ogen dan een Ingebracht
-  // evenement (compacter/neutraler) — vandaar de accentrand hier i.p.v. een
-  // apart badge dat elke kaart evenveel gewicht zou geven. Ingebracht krijgt
-  // dezelfde rand, maar in grijs i.p.v. rood.
   const isOfficial = activity.source === "voc";
   const isSubmitted = activity.source === "lid";
 
@@ -39,14 +35,13 @@ export function ActivityCard({
   // schatting die zelf weer niet klopt zodra de tekst wat korter/langer is.
   const imageWidth = 112;
 
-  const borderStyle = isOfficial
-    ? { borderLeftColor: "var(--voc-red)" }
-    : isSubmitted
-      ? { borderLeftColor: "var(--muted)" }
-      : undefined;
-
   const badges = (
     <div className="mt-2 flex flex-wrap items-center gap-2">
+      {isOfficial && (
+        <span className="rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red">
+          VOC-activiteit
+        </span>
+      )}
       {isSubmitted && (
         <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-xs font-medium text-muted dark:bg-white/[.08]">
           Ingebracht
@@ -78,17 +73,13 @@ export function ActivityCard({
 
   // De eerstvolgende activiteit mag er als "hero" uitspringen boven de rest
   // van de lijst: een bredere banner-afbeelding boven de tekst i.p.v.
-  // ernaast, en een groter kopje — zelfde kaart-taal (rand, badges), alleen
+  // ernaast, en een groter kopje — zelfde kaart-taal (badges), alleen
   // prominenter.
   if (hero) {
     return (
       <Link
         href={`/agenda/${activity.id}`}
-        className={clsx(
-          "animate-rise-in overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-all duration-500 ease-out hover:scale-[1.005] hover:border-voc-red hover:shadow-md",
-          (isOfficial || isSubmitted) && "border-l-4"
-        )}
-        style={borderStyle}
+        className="animate-rise-in overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-all duration-500 ease-out hover:scale-[1.005] hover:border-voc-red hover:shadow-md"
       >
         {imageUrl ? (
           <div className="relative h-44 w-full sm:h-52">
@@ -119,10 +110,8 @@ export function ActivityCard({
       href={`/agenda/${activity.id}`}
       className={clsx(
         "animate-rise-in flex gap-4 rounded-2xl border border-border bg-surface shadow-sm transition-all duration-500 ease-out hover:scale-[1.008] hover:border-voc-red hover:shadow-md",
-        isSubmitted ? "p-4" : "p-5",
-        (isOfficial || isSubmitted) && "border-l-4"
+        isSubmitted ? "p-4" : "p-5"
       )}
-      style={borderStyle}
     >
       {isSubmitted ? (
         imageUrl ? (

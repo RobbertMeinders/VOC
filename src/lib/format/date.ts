@@ -26,6 +26,15 @@ export function formatActivityDateShort(iso: string): string {
   }).format(new Date(iso));
 }
 
+// Maandkopje voor het groeperen van de agendalijst (bv. "Oktober 2026") —
+// Intl geeft de maandnaam standaard met kleine letter terug.
+export function formatMonthLabel(iso: string): string {
+  const label = new Intl.DateTimeFormat("nl-NL", { timeZone: NL_TIMEZONE, month: "long", year: "numeric" }).format(
+    new Date(iso)
+  );
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
 export function formatActivityTimeOnly(iso: string): string {
   return new Intl.DateTimeFormat("nl-NL", {
     timeZone: NL_TIMEZONE,
