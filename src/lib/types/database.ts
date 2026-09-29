@@ -515,7 +515,17 @@ export interface Database {
       };
       get_public_companies: {
         Args: Record<string, never>;
-        Returns: { id: string; slug: string; name: string; logo_url: string | null; tagline: string | null; industry: string | null; city: string | null }[];
+        Returns: {
+          id: string;
+          slug: string;
+          name: string;
+          logo_url: string | null;
+          tagline: string | null;
+          industry: string | null;
+          city: string | null;
+          latitude: number | null;
+          longitude: number | null;
+        }[];
       };
       get_public_company: {
         Args: { p_slug: string };
