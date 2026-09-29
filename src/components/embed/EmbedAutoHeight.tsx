@@ -24,16 +24,28 @@ export function EmbedAutoHeight() {
     function post() {
       window.parent.postMessage({ type: "voc-embed-height", height: document.documentElement.scrollHeight }, "*");
     }
+    function postScrollTop() {
+      window.parent.postMessage({ type: "voc-embed-scroll-top" }, "*");
+    }
 
     post();
-    window.parent.postMessage({ type: "voc-embed-scroll-top" }, "*");
+    postScrollTop();
     const observer = new ResizeObserver(post);
     observer.observe(document.documentElement);
-    window.addEventListener("load", post);
+    // De hoogte vlak na mount is vaak nog niet definitief (een logo/foto die
+    // nog moet laden maakt de pagina alsnog langer) — de eerste scroll-top
+    // hierboven rekent dan met een te lage hoogte, waardoor de omliggende
+    // pagina alsnog ergens halverwege blijft steken i.p.v. helemaal boven-
+    // aan. Na "load" is de layout wel definitief, dus dan nog eens.
+    function onLoad() {
+      post();
+      postScrollTop();
+    }
+    window.addEventListener("load", onLoad);
 
     return () => {
       observer.disconnect();
-      window.removeEventListener("load", post);
+      window.removeEventListener("load", onLoad);
     };
   }, []);
 

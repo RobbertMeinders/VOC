@@ -86,11 +86,18 @@ export default async function BedrijfEmbedDetailPage({ params }: { params: Promi
                 Website
               </a>
             )}
+            {/* text-foreground: EntitySocialLinks' compact variant stelt zelf
+                geen tekstkleur in (op de echte portaalpagina's altijd prima,
+                want die volgen consequent hetzelfde thema) en erft daardoor
+                hier de (op een donker OS-thema witte) kleur van <body> i.p.v.
+                onze data-theme="light"-override — dat maakte de tekst
+                onzichtbaar tot je eroverheen hoverde. */}
             <EntitySocialLinks
               linkedinUrl={company.linkedin_url}
               instagramUrl={company.instagram_url}
               facebookUrl={company.facebook_url}
               variant="compact"
+              className="text-foreground"
             />
           </div>
         )}
