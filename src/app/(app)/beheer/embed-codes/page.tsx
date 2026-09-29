@@ -48,6 +48,23 @@ export default async function EmbedCodesPage() {
           // doorgeeft (zie EmbedAutoHeight) en zet de iframe daarop — zonder
           // dit zou de iframe op de opgegeven starthoogte (600) blijven
           // staan, met een eigen scrollbalkje zodra de inhoud langer is.
+          //
+          // Voor de agenda-embed: leest ook een #activiteit-<id>-anker in de
+          // URL van DEZE (WordPress-)pagina uit — dat kan het scriptje hier
+          // wél, in tegenstelling tot de iframe-inhoud zelf, die vanwege
+          // cross-origin nooit bij de hash van de omliggende pagina kan. Dat
+          // anker komt uit de "Delen"-knop op de activiteit-detailpagina
+          // (zie ShareActivityButton, marketingUrl) — zo opent een gedeelde
+          // link altijd de echte site, direct doorgesprongen naar de juiste
+          // activiteit, i.p.v. de kale embed-URL zonder sitenavigatie eromheen.
+          const hashRedirect =
+            embed.id === "voc-embed-agenda"
+              ? `
+  var match = /^#activiteit-([0-9a-fA-F-]{36})$/.exec(window.location.hash);
+  if (match) {
+    iframe.src = '${origin}/embed/agenda/' + match[1];
+  }`
+              : "";
           const code = `<iframe id="${embed.id}" src="${origin}${embed.path}" width="100%" height="600" style="border:0;" allow="clipboard-write; web-share" title="VOC ${embed.label}"></iframe>
 <script>
 (function () {
@@ -57,6 +74,7 @@ export default async function EmbedCodesPage() {
       iframe.style.height = event.data.height + 'px';
     }
   });
+${hashRedirect}
 })();
 </script>`;
           return (
@@ -75,6 +93,12 @@ export default async function EmbedCodesPage() {
         De hoogte past zich automatisch aan de inhoud aan (600 is alleen de starthoogte tot de pagina geladen is) —
         geen los scrollbalkje in het iframe nodig. De inhoud is altijd in het lichte thema, ongeacht het
         thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen.
+      </p>
+      <p className="text-xs text-muted">
+        De &quot;Delen&quot;-knop op een activiteit deelt naar de echte website (met een #activiteit-…-anker) in
+        plaats van de kale embed-URL, zodra de environment variable <code>MARKETING_AGENDA_URL</code> op Vercel is
+        ingesteld op de volledige URL van de agenda-pagina (bijv. https://www.vocveendam.nl/agenda). Plak na het
+        instellen of wijzigen daarvan de agenda-embedcode hierboven opnieuw, zodat het scriptje het anker herkent.
       </p>
     </div>
   );

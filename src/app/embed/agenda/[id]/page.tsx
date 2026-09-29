@@ -5,6 +5,7 @@ import { ArrowLeft, CalendarDays, MapPin, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { formatActivityDate } from "@/lib/format/date";
+import { getCurrentProfile } from "@/lib/auth/session";
 import { PublicRegistrationForm } from "@/components/embed/PublicRegistrationForm";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
 import { ShareActivityButton } from "@/components/embed/ShareActivityButton";
@@ -33,10 +34,29 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
 
   const isPast = new Date(activity.starts_at) < new Date();
 
-  const [imageUrl, { data: interestCount }] = await Promise.all([
+  // /embed staat in PUBLIC_PATHS (geen auth vereist), maar een bezoeker die
+  // al is ingelogd op het portaal (zelfde browser, cookies niet
+  // third-party-geblokkeerd) IS hier gewoon herkenbaar. Zonder deze check
+  // zag zo iemand niets bruikbaars: bij allow_public_registration alleen
+  // het anonieme formulier (dat langs de echte, aan hun profiel gekoppelde
+  // aanmelding/wachtlijst heen gaat), en anders alleen een inlogknop terwijl
+  // ze al waren ingelogd.
+  const [imageUrl, { data: interestCount }, profile] = await Promise.all([
     getSignedStorageUrl("activity-images", activity.image_url),
     supabase.rpc("get_activity_interest_count", { p_activity_id: activity.id }),
+    getCurrentProfile(),
   ]);
+
+  const registration = profile
+    ? (
+        await supabase
+          .from("activity_registrations")
+          .select("is_waitlisted")
+          .eq("activity_id", activity.id)
+          .eq("profile_id", profile.id)
+          .maybeSingle()
+      ).data
+    : null;
 
   return (
     // Zie /embed/agenda/page.tsx voor waarom data-theme="light" + min-h-screen
@@ -50,7 +70,7 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
             <ArrowLeft size={16} />
             Terug naar agenda
           </Link>
-          <ShareActivityButton activityId={activity.id} title={activity.title} />
+          <ShareActivityButton activityId={activity.id} title={activity.title} marketingUrl={process.env.MARKETING_AGENDA_URL} />
         </div>
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- publieke, external-embed pagina: geen framework-afhankelijkheden
@@ -81,6 +101,25 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
         <div className="mx-auto mt-2 w-full max-w-md rounded-2xl bg-surface p-5 shadow-sm">
           {isPast ? (
             <p className="text-sm text-muted">Deze activiteit heeft al plaatsgevonden.</p>
+          ) : profile ? (
+            // Ingelogd lid: altijd doorsturen naar de echte activiteitpagina in
+            // het portaal (target="_top", breekt uit de iframe) — die heeft de
+            // volledige aanmeld-/wachtlijstlogica al, dit embed-formulier is
+            // alleen voor anonieme niet-leden.
+            <div className="flex flex-col gap-2 text-sm text-foreground">
+              {registration ? (
+                <p>{registration.is_waitlisted ? "Je staat op de wachtlijst voor deze activiteit." : "Je bent aangemeld voor deze activiteit."}</p>
+              ) : (
+                <p>Je bent ingelogd als lid. Meld je aan via het portaal.</p>
+              )}
+              <Link
+                href={`/agenda/${activity.id}`}
+                target="_top"
+                className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
+              >
+                {registration ? "Bekijk in het portaal" : "Aanmelden via het portaal"}
+              </Link>
+            </div>
           ) : activity.allow_public_registration ? (
             <PublicRegistrationForm activityId={activity.id} />
           ) : (

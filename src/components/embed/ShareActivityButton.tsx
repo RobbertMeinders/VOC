@@ -5,10 +5,17 @@ import { Check, Share2 } from "lucide-react";
 
 // navigator.share (mobiel: opent het native deelmenu) met een clipboard-
 // fallback (desktop, of wanneer de gebruiker het deelmenu zelf sluit) —
-// zelfde copy-feedback-patroon als CopyEmbedCode. De URL is altijd
-// window.location.origin, wat binnen de iframe naar voc-blue.vercel.app
-// wijst (niet naar de WordPress-pagina eromheen) — precies de directe,
-// unieke link naar déze activiteit die los van de iframe werkt.
+// zelfde copy-feedback-patroon als CopyEmbedCode.
+//
+// marketingUrl (MARKETING_AGENDA_URL, server-side ingesteld en hier als
+// prop doorgegeven): de publieke WordPress-pagina waar de agenda-iframe op
+// staat. Delen we anders enkel de kale voc-blue.vercel.app/embed/... URL,
+// dan land een ontvanger op een pagina zonder site-navigatie/branding eromheen
+// — verwarrend. Met marketingUrl gezet, wordt er gedeeld naar
+// "<marketingUrl>#activiteit-<id>"; het scriptje in de gegenereerde
+// embed-code (/beheer/embed-codes) leest dat anker op de WordPress-pagina
+// zelf uit en stuurt de iframe direct naar de juiste activiteit. Zonder
+// marketingUrl (nog niet ingesteld) valt terug op de directe embed-URL.
 // document.execCommand('copy') i.p.v. enkel navigator.clipboard.writeText():
 // in een cross-origin iframe (deze pagina, ingeladen vanaf de WordPress-
 // site) staat clipboard-write standaard NIET toe zonder een expliciet
@@ -32,11 +39,21 @@ function legacyCopy(text: string): boolean {
   return ok;
 }
 
-export function ShareActivityButton({ activityId, title }: { activityId: string; title: string }) {
+export function ShareActivityButton({
+  activityId,
+  title,
+  marketingUrl,
+}: {
+  activityId: string;
+  title: string;
+  marketingUrl?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   async function share() {
-    const url = `${window.location.origin}/embed/agenda/${activityId}`;
+    const url = marketingUrl
+      ? `${marketingUrl.replace(/\/$/, "")}#activiteit-${activityId}`
+      : `${window.location.origin}/embed/agenda/${activityId}`;
     if (navigator.share) {
       try {
         await navigator.share({ title, url });
