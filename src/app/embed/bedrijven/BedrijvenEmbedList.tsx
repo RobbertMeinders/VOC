@@ -1,41 +1,46 @@
 "use client";
 
-import { useRef, useState, type MouseEvent } from "react";
+import { useState, type MouseEvent } from "react";
 import { Building2 } from "lucide-react";
 import { CompanyFilters } from "@/components/company/CompanyFilters";
 import { BedrijvenView, type MapCapableCompany } from "@/components/company/BedrijvenView";
 import { ComingSoon } from "@/components/ui/ComingSoon";
-import { CompanyDetailOverlay } from "@/components/embed/CompanyDetailOverlay";
+import { CompanyDetailView } from "@/components/embed/CompanyDetailView";
+import { scrollEmbedToTop } from "@/components/embed/EmbedAutoHeight";
 
 type EmbedCompanyListItem = MapCapableCompany & { slug: string };
 
-// Toont de bedrijvenlijst (incl. zoekbalk) en, na een klik, een zwevende
-// overlay met het detail van dat bedrijf erbovenop — de lijst blijft
-// gemount en zichtbaar/verduisterd erachter (net als in het portaal), i.p.v.
-// vervangen te worden. Dat vereist wel een `position: relative`-context hier
-// (het `relative` op de wrapper hieronder): CompanyDetailOverlay positioneert
-// zichzelf met `absolute` t.o.v. daarvan. company.href blijft intact als
-// progressive-enhancement-fallback (rechtsklik/nieuw tabblad/geen JS wijst
-// nog gewoon naar de echte /embed/bedrijven/[slug]-pagina).
+// Toont de bedrijvenlijst (incl. zoekbalk) en, na een klik, het bedrijfsdetail
+// — dat VERVANGT de lijst i.p.v. er als zwevende overlay overheen te staan.
+// Een eerdere versie deed dat laatste wel (`position: absolute` t.o.v. een
+// `relative`-wrapper om lijst + overlay heen), maar erfde daarmee de hoogte
+// van die wrapper, die gewoon zo hoog bleef als de (mogelijk veel langere)
+// lijst erachter — dat gaf een groot leeg grijs vlak rond een klein kaartje
+// zodra er genoeg bedrijven waren. Simpele document-flow-vervanging heeft
+// dat probleem niet: de hoogte volgt gewoon de werkelijke inhoud, en
+// scrollEmbedToTop() (zie EmbedAutoHeight) zorgt dat de omliggende
+// WordPress-pagina niet blijft hangen op de oude scrollpositie zodra die
+// hoogte verandert. company.href blijft intact als progressive-enhancement-
+// fallback (rechtsklik/nieuw tabblad/geen JS wijst nog gewoon naar de echte
+// /embed/bedrijven/[slug]-pagina).
 export function BedrijvenEmbedList({ items, branches }: { items: EmbedCompanyListItem[]; branches: string[] }) {
-  const [selected, setSelected] = useState<{ slug: string; anchorY: number } | null>(null);
-  const wrapperRef = useRef<HTMLDivElement>(null);
+  const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
 
-  // De overlay moet meteen zichtbaar zijn, ook als de gebruiker ver naar
-  // beneden gescrold is in een lange lijst — deze iframe heeft zelf geen
-  // scrollbalk (de omliggende WordPress-pagina scrolt 'm als geheel mee),
-  // dus window.scrollY is hier altijd 0 en we kunnen niet zomaar navragen
-  // "welk stukje van de iframe is nu in beeld" (dat vereist medewerking van
-  // de omliggende pagina, wat bij een oudere embed-code niet werkt). De
-  // aangeklikte kaart zelf staat per definitie al in beeld — dus die positie
-  // (t.o.v. deze relative-wrapper) gebruiken we direct als ankerpunt voor de
-  // overlay, zonder enige omliggende-pagina-afhankelijkheid.
   function handleSelect(slug: string, e: MouseEvent) {
     e.preventDefault();
-    const cardRect = e.currentTarget.getBoundingClientRect();
-    const wrapperRect = wrapperRef.current?.getBoundingClientRect();
-    const anchorY = Math.max(0, cardRect.top - (wrapperRect?.top ?? 0));
-    setSelected({ slug, anchorY });
+    setSelectedSlug(slug);
+    scrollEmbedToTop();
+  }
+
+  function handleBack() {
+    setSelectedSlug(null);
+    scrollEmbedToTop();
+  }
+
+  if (selectedSlug) {
+    // key={selectedSlug}: forceert een verse mount (dus verse fetch-state)
+    // per bedrijf i.p.v. zelf in een effect te resetten.
+    return <CompanyDetailView key={selectedSlug} slug={selectedSlug} onBack={handleBack} />;
   }
 
   const itemsWithClick = items.map((company) => ({
@@ -44,15 +49,12 @@ export function BedrijvenEmbedList({ items, branches }: { items: EmbedCompanyLis
   }));
 
   return (
-    <div ref={wrapperRef} className="relative">
+    <div>
       <CompanyFilters branches={branches} />
       {items.length > 0 ? (
         <BedrijvenView items={itemsWithClick} />
       ) : (
         <ComingSoon icon={Building2} title="Geen bedrijven gevonden" description="Pas je zoekopdracht of filter aan." />
-      )}
-      {selected && (
-        <CompanyDetailOverlay slug={selected.slug} anchorY={selected.anchorY} onClose={() => setSelected(null)} />
       )}
     </div>
   );

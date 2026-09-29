@@ -29,6 +29,17 @@ import { useEffect } from "react";
 // in-embed-navigatie (lijst -> detail, of terug) blijft wél scrollen.
 let hasMountedBefore = false;
 
+// Los aanroepbaar (i.p.v. alleen via de mount-logica hieronder) voor
+// content die binnen dezelfde pagina wisselt zonder te remounten — zie
+// BedrijvenEmbedList, dat de lijst client-side vervangt door een
+// bedrijfsdetail. Zonder deze melding blijft de omliggende WordPress-pagina
+// op zijn oude scrollpositie staan terwijl de iframe-inhoud daaronder
+// wegvalt/verandert, met hetzelfde "je ziet zomaar het midden van iets
+// anders"-effect als bij een gewone paginanavigatie (zie boven).
+export function scrollEmbedToTop() {
+  window.parent.postMessage({ type: "voc-embed-scroll-top" }, "*");
+}
+
 export function EmbedAutoHeight() {
   useEffect(() => {
     const isFirstMountEver = !hasMountedBefore;
