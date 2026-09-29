@@ -383,11 +383,18 @@ export interface Database {
         Row: {
           id: string;
           name: string;
+          first_name: string | null;
+          last_name: string | null;
           email: string;
           message: string | null;
           phone: string | null;
           company_name: string | null;
           job_title: string | null;
+          address: string | null;
+          postal_code: string | null;
+          city: string | null;
+          website: string | null;
+          consent_at: string | null;
           status: "pending" | "handled";
           created_at: string;
         };

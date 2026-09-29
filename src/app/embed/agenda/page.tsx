@@ -46,6 +46,23 @@ export default async function AgendaEmbedPage() {
   return (
     <div className="flex flex-col gap-3 bg-white p-4">
       <EmbedAutoHeight />
+      {/* Deze titel + intro staan hier i.p.v. los op de WordPress-pagina
+          zelf, juist zodat ze ALLEEN op dit overzicht staan — klik je door
+          naar een activiteit, dan verandert alleen de inhoud van de iframe
+          (deze tekst hoort daar niet meer thuis) i.p.v. dat 'm op de
+          WordPress-pagina blijft hangen omdat die buiten de iframe valt. */}
+      <div>
+        <h2 className="text-xl font-semibold text-[#17171a]">De activiteiten</h2>
+        <p className="mt-2 text-sm text-[#6b6b72]">
+          De Veendammer OndernemersCompagnie organiseert het hele jaar door activiteiten voor en door ondernemers in
+          Veendam en omgeving. Van informele borrels en kennissessies tot bedrijfsbezoeken en een groot
+          eindejaarsfeest, er is voor ieder wat wils.
+        </p>
+        <p className="mt-2 text-sm text-[#6b6b72]">
+          Alle activiteiten zijn bedoeld om ondernemers samen te brengen, kennis te delen en het netwerk in de regio
+          te versterken. Aanmelden is verplicht in verband met de organisatie.
+        </p>
+      </div>
       {(activities ?? []).length === 0 && (
         <p className="py-8 text-center text-sm text-[#6b6b72]">Er zijn momenteel geen activiteiten gepland.</p>
       )}
@@ -59,9 +76,9 @@ export default async function AgendaEmbedPage() {
           >
             {imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- a public, external-embed page: keep it framework-agnostic and dependency-free
-              <img src={imageUrl} alt={activity.title} className="h-[72px] w-[72px] shrink-0 rounded-lg object-cover" />
+              <img src={imageUrl} alt={activity.title} className="h-28 w-28 shrink-0 rounded-lg object-cover" />
             ) : (
-              <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-lg bg-[#fdeaec] text-voc-red">
+              <div className="flex h-28 w-28 shrink-0 items-center justify-center rounded-lg bg-[#fdeaec] text-voc-red">
                 <CalendarDays size={24} />
               </div>
             )}

@@ -23,6 +23,18 @@ export function AccessRequestRow({ request }: { request: AccessRequest }) {
           {" · "}
           {new Date(request.created_at).toLocaleDateString("nl-NL")}
         </p>
+        {(request.address || request.postal_code || request.city) && (
+          <p className="mt-0.5 text-xs text-muted">
+            {[request.address, [request.postal_code, request.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
+          </p>
+        )}
+        {request.website && (
+          <p className="mt-0.5 text-xs text-muted">
+            <a href={request.website} target="_blank" rel="noreferrer" className="hover:underline">
+              {request.website}
+            </a>
+          </p>
+        )}
         {request.message && <p className="mt-1 text-sm text-foreground">{request.message}</p>}
       </div>
       <form action={markAccessRequestHandledAction.bind(null, request.id)}>

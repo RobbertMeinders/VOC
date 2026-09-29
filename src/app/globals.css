@@ -74,6 +74,24 @@
   --voc-red-light: #2a1315;
 }
 
+/* Niet alleen :root[data-theme] hierboven, ook dit ongescopede selector: een
+   embed-pagina (/embed/*) moet altijd licht ogen — ongeacht het OS-thema van
+   de bezoeker — maar leent onderdelen zoals AccessRequestForm die ook op
+   een gewone, theme-volgende portaalpagina (/toegang-aanvragen) draaien.
+   Een [data-theme="light"] op een willekeurige wrapper-div (i.p.v. alleen
+   op :root) herdefinieert deze custom properties lokaal voor die subtree,
+   wat de van :root geërfde donkere waarden overschrijft zonder het
+   component zelf theme-specifieke classes te hoeven geven. */
+[data-theme="light"] {
+  --background: #f7f7f8;
+  --surface: #ffffff;
+  --foreground: #17171a;
+  --muted: #6b6b72;
+  --border: #e5e5ea;
+
+  --voc-red-light: #fdeaec;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);

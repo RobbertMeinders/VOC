@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { CalendarDays, MapPin, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, MapPin, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { formatActivityDate } from "@/lib/format/date";
@@ -38,6 +38,10 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
   return (
     <div className="flex flex-col gap-4 bg-white p-4">
       <EmbedAutoHeight />
+      <Link href="/embed/agenda" className="flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red hover:underline">
+        <ArrowLeft size={16} />
+        Terug naar agenda
+      </Link>
       {imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- publieke, external-embed pagina: geen framework-afhankelijkheden
         <img src={imageUrl} alt={activity.title} className="h-48 w-full rounded-xl object-cover" />

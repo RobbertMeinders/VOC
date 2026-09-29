@@ -31,11 +31,45 @@ export function AccessRequestForm() {
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="first_name" className="text-sm font-medium text-foreground">
+            Voornaam
+          </label>
+          <Input id="first_name" name="first_name" required autoComplete="given-name" />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="last_name" className="text-sm font-medium text-foreground">
+            Achternaam
+          </label>
+          <Input id="last_name" name="last_name" required autoComplete="family-name" />
+        </div>
+      </div>
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="name" className="text-sm font-medium text-foreground">
-          Naam
+        <label htmlFor="company_name" className="text-sm font-medium text-foreground">
+          Bedrijfsnaam
         </label>
-        <Input id="name" name="name" required autoComplete="name" />
+        <Input id="company_name" name="company_name" autoComplete="organization" />
+      </div>
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="address" className="text-sm font-medium text-foreground">
+          Adres
+        </label>
+        <Input id="address" name="address" autoComplete="street-address" />
+      </div>
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="postal_code" className="text-sm font-medium text-foreground">
+            Postcode
+          </label>
+          <Input id="postal_code" name="postal_code" autoComplete="postal-code" />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="city" className="text-sm font-medium text-foreground">
+            Plaatsnaam
+          </label>
+          <Input id="city" name="city" autoComplete="address-level2" />
+        </div>
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="email" className="text-sm font-medium text-foreground">
@@ -58,10 +92,10 @@ export function AccessRequestForm() {
         </div>
       </div>
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="company_name" className="text-sm font-medium text-foreground">
-          Bedrijf
+        <label htmlFor="website" className="text-sm font-medium text-foreground">
+          Website
         </label>
-        <Input id="company_name" name="company_name" autoComplete="organization" />
+        <Input id="website" name="website" type="url" autoComplete="url" placeholder="https://" />
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="message" className="text-sm font-medium text-foreground">
@@ -75,6 +109,13 @@ export function AccessRequestForm() {
           placeholder="Bijvoorbeeld: waarom je graag lid wilt worden"
         />
       </div>
+      <label className="flex items-start gap-2 text-sm text-foreground">
+        <input type="checkbox" name="consent" required className="mt-0.5 rounded" />
+        <span>
+          Door dit formulier in te dienen doe ik een lidmaatschapsaanvraag bij de Veendammer OndernemersCompagnie en
+          geef ik toestemming voor het bewaren van mijn gegevens ten behoeve van de beoordeling van mijn aanvraag.
+        </span>
+      </label>
       {state.error && (
         <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
           {state.error}
