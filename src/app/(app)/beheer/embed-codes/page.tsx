@@ -49,20 +49,23 @@ export default async function EmbedCodesPage() {
           // dit zou de iframe op de opgegeven starthoogte (600) blijven
           // staan, met een eigen scrollbalkje zodra de inhoud langer is.
           //
-          // Voor de agenda-embed: leest ook een #activiteit-<id>-anker in de
-          // URL van DEZE (WordPress-)pagina uit — dat kan het scriptje hier
-          // wél, in tegenstelling tot de iframe-inhoud zelf, die vanwege
-          // cross-origin nooit bij de hash van de omliggende pagina kan. Dat
-          // anker komt uit de "Delen"-knop op de activiteit-detailpagina
-          // (zie ShareActivityButton, marketingUrl) — zo opent een gedeelde
-          // link altijd de echte site, direct doorgesprongen naar de juiste
-          // activiteit, i.p.v. de kale embed-URL zonder sitenavigatie eromheen.
+          // Voor de agenda-embed: leest ook een leesbaar #-anker (bv.
+          // "#open-borrel") in de URL van DEZE (WordPress-)pagina uit — dat
+          // kan het scriptje hier wél, in tegenstelling tot de iframe-inhoud
+          // zelf, die vanwege cross-origin nooit bij de hash van de
+          // omliggende pagina kan. Dat anker komt uit de "Delen"-knop op de
+          // activiteit-detailpagina (zie ShareActivityButton, marketingUrl).
+          // Het scriptje geeft de slug enkel door als ?activiteit=<slug> —
+          // /embed/agenda zoekt 'm zelf op en stuurt de iframe door, zodat
+          // een gedeelde link altijd de echte site opent, direct
+          // doorgesprongen naar de juiste activiteit, i.p.v. de kale
+          // embed-URL zonder sitenavigatie eromheen.
           const hashRedirect =
             embed.id === "voc-embed-agenda"
               ? `
-  var match = /^#activiteit-([0-9a-fA-F-]{36})$/.exec(window.location.hash);
-  if (match) {
-    iframe.src = '${origin}/embed/agenda/' + match[1];
+  var slug = window.location.hash.replace(/^#/, '');
+  if (slug) {
+    iframe.src = '${origin}/embed/agenda?activiteit=' + encodeURIComponent(slug);
   }`
               : "";
           const code = `<iframe id="${embed.id}" src="${origin}${embed.path}" width="100%" height="600" style="border:0;" allow="clipboard-write; web-share" title="VOC ${embed.label}"></iframe>
@@ -70,8 +73,18 @@ export default async function EmbedCodesPage() {
 (function () {
   var iframe = document.getElementById('${embed.id}');
   window.addEventListener('message', function (event) {
-    if (event.source === iframe.contentWindow && event.data && event.data.type === 'voc-embed-height') {
+    if (event.source !== iframe.contentWindow || !event.data) return;
+    if (event.data.type === 'voc-embed-height') {
       iframe.style.height = event.data.height + 'px';
+    }
+    // Deze iframe heeft zelf geen scrollbalk (hoogte volgt de inhoud) — dus
+    // scrollen gebeurt altijd op deze pagina. Zonder dit blijft de pagina op
+    // dezelfde scrollpositie hangen zodra je vanuit een lang, naar beneden
+    // gescrold overzicht doorklikt naar een detailpagina: je ziet dan het
+    // midden van die nieuwe pagina i.p.v. de titel/context bovenaan.
+    if (event.data.type === 'voc-embed-scroll-top') {
+      var rect = iframe.getBoundingClientRect();
+      window.scrollTo({ top: window.scrollY + rect.top - 20, behavior: 'smooth' });
     }
   });
 ${hashRedirect}
@@ -92,13 +105,16 @@ ${hashRedirect}
       <p className="text-xs text-muted">
         De hoogte past zich automatisch aan de inhoud aan (600 is alleen de starthoogte tot de pagina geladen is) —
         geen los scrollbalkje in het iframe nodig. De inhoud is altijd in het lichte thema, ongeacht het
-        thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen.
+        thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen. Klik je door naar een
+        detailpagina (of terug), dan scrollt de website automatisch weer naar de bovenkant van het embed, ook als je
+        daarvoor ver naar beneden had gescrold.
       </p>
       <p className="text-xs text-muted">
-        De &quot;Delen&quot;-knop op een activiteit deelt naar de echte website (met een #activiteit-…-anker) in
-        plaats van de kale embed-URL, zodra de environment variable <code>MARKETING_AGENDA_URL</code> op Vercel is
-        ingesteld op de volledige URL van de agenda-pagina (bijv. https://www.vocveendam.nl/agenda). Plak na het
-        instellen of wijzigen daarvan de agenda-embedcode hierboven opnieuw, zodat het scriptje het anker herkent.
+        De &quot;Delen&quot;-knop op een activiteit deelt naar de echte website (met een leesbaar #-anker, bijv.
+        #open-borrel) in plaats van de kale embed-URL, zodra de environment variable{" "}
+        <code>MARKETING_AGENDA_URL</code> op Vercel is ingesteld op de volledige URL van de agenda-pagina (bijv.
+        https://www.vocveendam.nl/agenda). Plak na het instellen of wijzigen daarvan de agenda-embedcode hierboven
+        opnieuw, zodat het scriptje het anker herkent.
       </p>
     </div>
   );

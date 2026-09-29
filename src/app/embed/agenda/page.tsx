@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { CalendarDays, MapPin, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
@@ -68,8 +69,24 @@ function ActivityCard({
   );
 }
 
-export default async function AgendaEmbedPage() {
+export default async function AgendaEmbedPage({ searchParams }: { searchParams: Promise<{ activiteit?: string }> }) {
+  const { activiteit } = await searchParams;
   const supabase = await createClient();
+
+  // Komt van het scriptje in de gegenereerde embed-code (/beheer/embed-codes),
+  // dat een #-anker op de WordPress-pagina (bv. "#open-borrel", gezet door
+  // de "Delen"-knop) doorgeeft als ?activiteit=<slug> — zoek 'm op en spring
+  // meteen door naar de detailpagina, i.p.v. eerst de lijst te tonen.
+  // Onvindbare/verlopen slug: geen foutmelding, gewoon de normale lijst.
+  if (activiteit) {
+    const { data: match } = await supabase
+      .from("activities")
+      .select("id")
+      .eq("slug", activiteit)
+      .eq("status", "approved")
+      .maybeSingle();
+    if (match) redirect(`/embed/agenda/${match.id}`);
+  }
 
   const [{ data: upcoming }, { data: past }] = await Promise.all([
     supabase

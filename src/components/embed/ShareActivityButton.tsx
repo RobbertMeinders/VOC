@@ -12,10 +12,12 @@ import { Check, Share2 } from "lucide-react";
 // staat. Delen we anders enkel de kale voc-blue.vercel.app/embed/... URL,
 // dan land een ontvanger op een pagina zonder site-navigatie/branding eromheen
 // — verwarrend. Met marketingUrl gezet, wordt er gedeeld naar
-// "<marketingUrl>#activiteit-<id>"; het scriptje in de gegenereerde
-// embed-code (/beheer/embed-codes) leest dat anker op de WordPress-pagina
-// zelf uit en stuurt de iframe direct naar de juiste activiteit. Zonder
-// marketingUrl (nog niet ingesteld) valt terug op de directe embed-URL.
+// "<marketingUrl>#<leesbare-slug>" (bv. "#open-borrel", i.p.v. de kale
+// activity-uuid); het scriptje in de gegenereerde embed-code
+// (/beheer/embed-codes) leest dat anker op de WordPress-pagina zelf uit en
+// geeft 'm door aan /embed/agenda?activiteit=<slug>, dat de bijbehorende
+// activiteit opzoekt en de iframe daarheen doorstuurt. Zonder marketingUrl
+// (nog niet ingesteld) valt terug op de directe embed-URL (op activityId).
 // document.execCommand('copy') i.p.v. enkel navigator.clipboard.writeText():
 // in een cross-origin iframe (deze pagina, ingeladen vanaf de WordPress-
 // site) staat clipboard-write standaard NIET toe zonder een expliciet
@@ -41,19 +43,19 @@ function legacyCopy(text: string): boolean {
 
 export function ShareActivityButton({
   activityId,
+  slug,
   title,
   marketingUrl,
 }: {
   activityId: string;
+  slug: string;
   title: string;
   marketingUrl?: string;
 }) {
   const [copied, setCopied] = useState(false);
 
   async function share() {
-    const url = marketingUrl
-      ? `${marketingUrl.replace(/\/$/, "")}#activiteit-${activityId}`
-      : `${window.location.origin}/embed/agenda/${activityId}`;
+    const url = marketingUrl ? `${marketingUrl.replace(/\/$/, "")}#${slug}` : `${window.location.origin}/embed/agenda/${activityId}`;
     if (navigator.share) {
       try {
         await navigator.share({ title, url });

@@ -73,7 +73,12 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
             <ArrowLeft size={16} />
             Terug naar agenda
           </Link>
-          <ShareActivityButton activityId={activity.id} title={activity.title} marketingUrl={process.env.MARKETING_AGENDA_URL} />
+          <ShareActivityButton
+            activityId={activity.id}
+            slug={activity.slug}
+            title={activity.title}
+            marketingUrl={process.env.MARKETING_AGENDA_URL}
+          />
         </div>
         {imageUrl ? (
           // eslint-disable-next-line @next/next/no-img-element -- publieke, external-embed pagina: geen framework-afhankelijkheden
@@ -124,8 +129,8 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
               </Link>
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
-              <div className="flex flex-col gap-2 text-sm text-foreground">
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col items-center gap-2 text-center text-sm text-foreground">
                 <p>Al lid van de VOC?</p>
                 {/* target="_top": deze pagina draait als iframe op de VOC-website — zonder
                     dit zou het inlogscherm proberen te laden binnen dat kleine iframe.
@@ -134,18 +139,18 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
                 <Link
                   href={`/login?next=${encodeURIComponent(`/agenda/${activity.id}`)}`}
                   target="_top"
-                  className="inline-block w-fit rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-black/[.04]"
+                  className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
                 >
                   Log in om je aan te melden
                 </Link>
               </div>
               {activity.allow_public_registration ? (
-                <div className="flex flex-col gap-3 border-t border-border pt-4">
+                <div className="flex flex-col gap-3 border-t border-border pt-6">
                   <p className="text-sm text-foreground">Nog geen lid?</p>
                   <PublicRegistrationForm activityId={activity.id} />
                 </div>
               ) : (
-                <p className="border-t border-border pt-4 text-sm text-muted">
+                <p className="border-t border-border pt-6 text-sm text-muted">
                   Nog geen lid? Deze activiteit is alleen voor leden.
                 </p>
               )}

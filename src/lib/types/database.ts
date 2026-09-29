@@ -161,6 +161,7 @@ export interface Database {
           notify_push: boolean;
           notify_email: boolean;
           allow_public_registration: boolean;
+          slug: string;
         };
         Insert: Partial<Database["public"]["Tables"]["activities"]["Row"]> & {
           title: string;

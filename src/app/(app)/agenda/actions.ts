@@ -31,6 +31,34 @@ function parseIsoOrNull(value: string): string | null {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
+function slugify(title: string): string {
+  const base = title
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+  return base || "activiteit";
+}
+
+// Genereert eenmalig, bij het aanmaken, een leesbare permalink-slug (bv.
+// "open-borrel") — gebruikt door de "Delen"-knop op de openbare
+// agenda-embed (zie ShareActivityButton + /embed/agenda's
+// ?activiteit=<slug>-lookup). Wordt daarna nooit meer herberekend bij het
+// bewerken, ook niet als de titel wijzigt: anders zou een al gedeelde link
+// stukgaan.
+async function generateUniqueSlug(supabase: Awaited<ReturnType<typeof createClient>>, title: string): Promise<string> {
+  const base = slugify(title);
+  let slug = base;
+  let attempt = 2;
+  for (;;) {
+    const { data } = await supabase.from("activities").select("id").eq("slug", slug).maybeSingle();
+    if (!data) return slug;
+    slug = `${base}-${attempt++}`;
+  }
+}
+
 export type RegisterResult = ActionResult & { waitlisted?: boolean };
 
 export async function registerForActivityAction(activityId: string): Promise<RegisterResult> {
@@ -169,9 +197,10 @@ export async function createActivityAction(
     const source = String(formData.get("source") ?? "") === "lid" ? "lid" : "voc";
 
     const supabase = await createClient();
+    const slug = await generateUniqueSlug(supabase, title);
     const { data: activity, error } = await supabase
       .from("activities")
-      .insert({ title, starts_at: startsAt, ...rest, source, created_by: profile.id })
+      .insert({ title, starts_at: startsAt, ...rest, source, slug, created_by: profile.id })
       .select("id")
       .single();
 
