@@ -38,13 +38,19 @@ export function CompanyDetailContent({ company }: { company: CompanyDetailData }
       <div className="rounded-2xl bg-surface p-4 shadow-sm">
         <div className="flex items-start gap-4">
           {company.logoUrl && !logoFailed ? (
-            // eslint-disable-next-line @next/next/no-img-element -- publieke, external-embed pagina: geen framework-afhankelijkheden
-            <img
-              src={company.logoUrl}
-              alt={company.name}
-              onError={() => setLogoFailed(true)}
-              className="h-16 w-16 shrink-0 rounded-2xl object-cover"
-            />
+            // De meeste bedrijfslogo's zijn liggend, niet vierkant — object-cover
+            // in een vierkant vlak sneed die aan de zijkanten af (zie CompanyLogo,
+            // waar dit al met object-contain is opgelost). bg-white: contrast voor
+            // logo's met een transparante achtergrond.
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-white">
+              {/* eslint-disable-next-line @next/next/no-img-element -- publieke, external-embed pagina: geen framework-afhankelijkheden */}
+              <img
+                src={company.logoUrl}
+                alt={company.name}
+                onError={() => setLogoFailed(true)}
+                className="h-full w-full object-contain"
+              />
+            </div>
           ) : (
             <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-voc-red-light text-voc-red">
               <Building2 size={28} />
