@@ -7,6 +7,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { Skeleton } from "@/components/ui/Skeleton";
+import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import type { Liker } from "@/app/(app)/actions";
 
 // Overlay met wie een bericht of reactie geliked heeft — lazy geladen pas
@@ -31,7 +32,7 @@ export function LikersOverlay({
   }, []);
 
   return (
-    <>
+    <FloatingPortal>
       <div className="fixed inset-0 z-40 cursor-pointer bg-black/40 animate-fade-in" onClick={onClose} />
       <div className="fixed inset-x-4 top-1/2 z-50 -translate-y-1/2 sm:inset-x-auto sm:left-1/2 sm:w-80 sm:-translate-x-1/2 md:left-[calc(50%+8rem)]">
         <div className="animate-scale-in max-h-[70vh] overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
@@ -73,6 +74,6 @@ export function LikersOverlay({
           </div>
         </div>
       </div>
-    </>
+    </FloatingPortal>
   );
 }

@@ -211,13 +211,13 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
         onClick={handleOpen}
         aria-label="Notificaties"
         className={clsx(
-          "relative flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]",
+          "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]",
           open && "bg-voc-red-light text-voc-red"
         )}
       >
-        <Bell size={18} strokeWidth={open ? 2.5 : 2} />
+        <Bell size={16} strokeWidth={open ? 2.5 : 2} />
         {count > 0 && (
-          <span className="absolute right-1 top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-voc-red px-1 text-[10px] font-medium text-white">
+          <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-voc-red px-1 text-[10px] font-medium text-white">
             {count > 9 ? "9+" : count}
           </span>
         )}

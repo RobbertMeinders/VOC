@@ -93,9 +93,21 @@ export function FeedList({
     const el = document.getElementById(`comment-${highlightId}`) ?? document.getElementById(`post-${highlightId}`);
     if (!el) return;
     el.scrollIntoView({ behavior: "smooth", block: "center" });
-    el.classList.add("ring-2", "ring-voc-red", "rounded-xl");
-    const timeout = setTimeout(() => el.classList.remove("ring-2", "ring-voc-red", "rounded-xl"), 3000);
-    return () => clearTimeout(timeout);
+    el.classList.add("ring-2", "ring-voc-red", "rounded-xl", "transition-shadow", "duration-700");
+    // Twee stappen i.p.v. de ring in één keer weghalen: eerst de kleur naar
+    // transparant laten overgaan (transition-shadow vangt die kleurwissel
+    // op, dus dat faded zichtbaar uit), pas daarna de klassen zelf opruimen.
+    const fadeTimeout = setTimeout(() => {
+      el.classList.remove("ring-voc-red");
+      el.classList.add("ring-transparent");
+    }, 3000);
+    const cleanupTimeout = setTimeout(() => {
+      el.classList.remove("ring-2", "ring-transparent", "rounded-xl", "transition-shadow", "duration-700");
+    }, 3700);
+    return () => {
+      clearTimeout(fadeTimeout);
+      clearTimeout(cleanupTimeout);
+    };
   }, [highlightId]);
 
   useEffect(() => {

@@ -183,11 +183,11 @@ export function SearchOverlay({ variant }: { variant: "sidebar" | "mobile" }) {
           onClick={toggle}
           aria-label="Zoeken"
           className={clsx(
-            "flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]",
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]",
             open && "bg-voc-red-light text-voc-red"
           )}
         >
-          <Search size={18} />
+          <Search size={16} />
         </button>
       )}
       {open && <SearchPanel close={close} />}

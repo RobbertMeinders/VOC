@@ -6,6 +6,7 @@ import { CalendarDays, X } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { useInfiniteScroll } from "@/lib/dom/useInfiniteScroll";
+import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { formatActivityDateShort } from "@/lib/format/date";
 import { getAttendedActivitiesPageAction, type AttendedActivity } from "@/app/(app)/leden/[id]/list-actions";
 import { MEMBER_PROFILE_LIST_PAGE_SIZE } from "@/lib/feed/pagination";
@@ -40,7 +41,7 @@ export function AttendedActivitiesOverlay({ memberId, onClose }: { memberId: str
   const sentinelRef = useInfiniteScroll(loadMore, hasMore && activities !== null);
 
   return (
-    <>
+    <FloatingPortal>
       <div className="fixed inset-0 z-40 cursor-pointer bg-black/60 animate-fade-in" onClick={onClose} />
       <div className="fixed inset-x-3 top-1/2 z-50 -translate-y-1/2 sm:inset-x-0 sm:mx-auto sm:w-full sm:max-w-md sm:px-3 md:left-64">
         <div className="animate-scale-in flex max-h-[80vh] flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
@@ -77,6 +78,6 @@ export function AttendedActivitiesOverlay({ memberId, onClose }: { memberId: str
           </div>
         </div>
       </div>
-    </>
+    </FloatingPortal>
   );
 }

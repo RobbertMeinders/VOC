@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { useInfiniteScroll } from "@/lib/dom/useInfiniteScroll";
+import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { PostCard } from "@/components/feed/PostCard";
 import { getMemberPostsPageAction } from "@/app/(app)/leden/[id]/list-actions";
 import { MEMBER_PROFILE_LIST_PAGE_SIZE } from "@/lib/feed/pagination";
@@ -77,39 +78,41 @@ export function MemberPostsOverlay({
   }
 
   return (
-    <div className="animate-fade-in fixed inset-0 z-50 flex flex-col bg-background pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]">
-      <div className="flex items-center justify-between border-b border-border bg-surface px-4 py-3">
-        <p className="text-sm font-semibold text-foreground">Alle berichten</p>
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Sluiten"
-          className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
-        >
-          <X size={16} />
-        </button>
+    <FloatingPortal>
+      <div className="animate-fade-in fixed inset-0 z-50 flex flex-col bg-background pb-[env(safe-area-inset-bottom)] pt-[env(safe-area-inset-top)]">
+        <div className="flex items-center justify-between border-b border-border bg-surface px-4 py-3">
+          <p className="text-sm font-semibold text-foreground">Alle berichten</p>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Sluiten"
+            className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+          >
+            <X size={16} />
+          </button>
+        </div>
+        <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 overflow-y-auto p-4">
+          {posts === null && <p className="py-6 text-center text-sm text-muted">Laden…</p>}
+          {posts?.map((post) => (
+            <PostCard
+              key={post.id}
+              post={post}
+              currentUserId={currentUserId}
+              canModerate={canModerate}
+              canEditOthers={canEditOthers}
+              onDeleted={removePost}
+              onUpdated={updatePost}
+              onCommentDeleted={removeComment}
+              onCommentUpdated={updateComment}
+            />
+          ))}
+          {hasMore && posts !== null && (
+            <div ref={sentinelRef} className="py-3 text-center text-xs text-muted">
+              {isLoading ? "Meer berichten laden…" : ""}
+            </div>
+          )}
+        </div>
       </div>
-      <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 overflow-y-auto p-4">
-        {posts === null && <p className="py-6 text-center text-sm text-muted">Laden…</p>}
-        {posts?.map((post) => (
-          <PostCard
-            key={post.id}
-            post={post}
-            currentUserId={currentUserId}
-            canModerate={canModerate}
-            canEditOthers={canEditOthers}
-            onDeleted={removePost}
-            onUpdated={updatePost}
-            onCommentDeleted={removeComment}
-            onCommentUpdated={updateComment}
-          />
-        ))}
-        {hasMore && posts !== null && (
-          <div ref={sentinelRef} className="py-3 text-center text-xs text-muted">
-            {isLoading ? "Meer berichten laden…" : ""}
-          </div>
-        )}
-      </div>
-    </div>
+    </FloatingPortal>
   );
 }

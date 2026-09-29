@@ -93,9 +93,9 @@ export function Sidebar({
 
   return (
     <aside className="fixed inset-y-0 left-0 hidden w-64 flex-col border-r border-border bg-surface px-4 py-6 md:flex">
-      <div className="mb-8 flex items-center justify-between px-2">
+      <div className="mb-8 flex items-center justify-between gap-2 px-2">
         <Logo />
-        <div className="flex items-center gap-1">
+        <div className="flex shrink-0 items-center gap-0.5">
           <SearchOverlay variant="sidebar" />
           {/* Popover i.p.v. directe navigatie: een snelle blik zonder de
               huidige pagina te verlaten (/notificaties blijft gewoon
