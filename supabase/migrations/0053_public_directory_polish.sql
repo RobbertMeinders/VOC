@@ -32,6 +32,13 @@ create policy "company_logos_public_select" on storage.objects
 -- dezelfde voorwaarde die de interne /bedrijven-kaart al hanteert. Zo komt
 -- een verborgen adres nooit als kaart-marker naar buiten, ook al is de
 -- rest van het profiel publiek.
+--
+-- drop eerst: CREATE OR REPLACE mag de kolomset van een RETURNS TABLE-
+-- functie niet wijzigen (Postgres-foutmelding 42P13 "cannot change return
+-- type of existing function" — de bestaande get_public_companies() uit
+-- 0050 had nog geen latitude/longitude).
+drop function if exists public.get_public_companies();
+
 create or replace function public.get_public_companies()
 returns table (
   id uuid,
