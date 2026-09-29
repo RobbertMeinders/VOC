@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import type { CompanyDetailData } from "@/components/embed/CompanyDetailContent";
 
-// Client-side aangeroepen door CompanyDetailView (klik op een bedrijf in
+// Client-side aangeroepen door CompanyDetailOverlay (klik op een bedrijf in
 // de bedrijvengids-embed) — een los JSON-endpoint i.p.v. een paginanavigatie
 // naar /embed/bedrijven/[slug], want die navigatie triggert in dit
 // cross-origin iframe telkens opnieuw de height/scroll-top-postMessage-

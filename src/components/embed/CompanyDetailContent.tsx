@@ -22,7 +22,7 @@ export type CompanyDetailData = {
 
 // Gedeelde opmaak voor het bedrijfsdetail op de bedrijvengids-embed — gebruikt
 // door zowel /embed/bedrijven/[slug] (directe/gedeelde link, echte
-// paginanavigatie) als CompanyDetailView (klik vanuit de lijst, geen
+// paginanavigatie) als CompanyDetailOverlay (klik vanuit de lijst, geen
 // navigatie). Verwacht kant-en-klare, al-opgeloste velden (signed URL's e.d.)
 // i.p.v. rauwe database-rijen, zodat dit component zelf geen server- of
 // client-specifieke data-ophaal-logica hoeft te kennen.

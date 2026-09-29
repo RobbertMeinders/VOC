@@ -13,11 +13,11 @@ export const metadata: Metadata = { title: "VOC Bedrijvengids" };
 // als progressive-enhancement-fallback (rechtsklik/nieuw tabblad/geen JS)
 // achter elke bedrijfskaart in /embed/bedrijven. Bij een normale klik
 // (JS aan) onderschept BedrijvenEmbedList de navigatie en toont in plaats
-// daarvan hetzelfde detail client-side (CompanyDetailView) via hetzelfde
-// /api/embed/companies/[slug]-endpoint, i.p.v. hierheen te navigeren.
-// get_public_company() (0050_public_company_directory.sql) geeft notFound()
-// al impliciet: een niet-opt-in of niet-bestaand bedrijf komt gewoon leeg
-// terug.
+// daarvan een in-page overlay via hetzelfde /api/embed/companies/[slug]
+// endpoint — zie CompanyDetailOverlay voor waarom die niet gewoon naar
+// deze pagina navigeert. get_public_company() (0050_public_company_directory.sql)
+// geeft notFound() al impliciet: een niet-opt-in of niet-bestaand bedrijf
+// komt gewoon leeg terug.
 export default async function BedrijfEmbedDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const supabase = await createClient();

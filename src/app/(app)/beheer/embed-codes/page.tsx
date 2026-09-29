@@ -115,13 +115,12 @@ ${hashRedirect}
       <p className="text-xs text-muted">
         De hoogte past zich automatisch aan de inhoud aan (600 is alleen de starthoogte tot de pagina geladen is) —
         geen los scrollbalkje in het iframe nodig. De inhoud is altijd in het lichte thema, ongeacht het
-        thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen. Klik je door naar een
-        detailpagina (in de agenda, of naar een bedrijf in de bedrijvengids), dan scrollt de website automatisch mee
-        naar de bovenkant daarvan, ook als je daarvoor ver naar beneden had gescrold — ga je weer terug, dan blijft de
-        pagina gewoon staan waar je was, in plaats van nogmaals te scrollen. Staat de titel van een geopende
-        pagina/detail nu nog (deels) achter de menubalk van de website, verhoog dan <code>STICKY_HEADER_HEIGHT</code>{" "}
-        bovenin het scriptje. Staat er nog een oudere versie van deze code op de website, plak &apos;m dan hier
-        opnieuw.
+        thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen. Klik je in de agenda door naar
+        een detailpagina (of terug), dan scrollt de website automatisch weer naar de bovenkant van het embed, ook als
+        je daarvoor ver naar beneden had gescrold — staat de titel daarvan nu nog (deels) achter de menubalk van de
+        website, verhoog dan <code>STICKY_HEADER_HEIGHT</code> bovenin het scriptje. In de bedrijvengids opent een
+        bedrijf juist als overlay bovenop de lijst, precies waar je op dat moment aan het kijken bent — daar hoeft dus
+        niets te scrollen. Staat er nog een oudere versie van deze code op de website, plak &apos;m dan hier opnieuw.
       </p>
       <p className="text-xs text-muted">
         De &quot;Delen&quot;-knop op een activiteit deelt naar de echte website (met een leesbaar #-anker, bijv.
