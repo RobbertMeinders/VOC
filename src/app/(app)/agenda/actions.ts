@@ -95,6 +95,7 @@ function parseActivityForm(formData: FormData) {
   const maxParticipantsNumber = maxParticipantsRaw ? Number(maxParticipantsRaw) : NaN;
   const externalRegistrationChecked = formData.get("external_registration") === "on";
   const externalRegistrationUrl = String(formData.get("external_registration_url") ?? "").trim();
+  const allowPublicRegistration = formData.get("allow_public_registration") === "on";
   // Checkboxes staan alleen op het formulier als source === "voc" (zie
   // ActivityForm) — afwezig (community-inzending) betekent gewoon het
   // bestaande, altijd-aan gedrag; het bestuur bepaalt dit uiteindelijk toch
@@ -113,6 +114,7 @@ function parseActivityForm(formData: FormData) {
     external_registration_url: externalRegistrationChecked && externalRegistrationUrl ? externalRegistrationUrl : null,
     notify_push: notifyPush,
     notify_email: notifyEmail,
+    allow_public_registration: allowPublicRegistration,
   };
 }
 

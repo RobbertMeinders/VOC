@@ -4,7 +4,12 @@ import type { Database } from "@/lib/types/database";
 import { supabaseAnonKey, supabaseUrl } from "./env";
 import { DEFAULT_MAX_AGE, REMEMBERED_MAX_AGE, REMEMBER_ME_COOKIE, VERIFIED_USER_ID_HEADER } from "./session-persistence";
 
-const PUBLIC_PATHS = ["/login", "/register", "/auth", "/wachtwoord-vergeten", "/toegang-aanvragen"];
+// /embed: publieke, nav-loze pagina's bedoeld om als iframe op de externe
+// VOC-website te draaien (agenda, aanmelden) — een écht uitgelogde bezoeker
+// daar mag nooit tegen de inlogmuur aanlopen. Stond hier per ongeluk nog
+// niet bij: werkte tot nu toe alleen "toevallig" zodra wie het testte zelf
+// al op het portaal was ingelogd in dezelfde browser.
+const PUBLIC_PATHS = ["/login", "/register", "/auth", "/wachtwoord-vergeten", "/toegang-aanvragen", "/embed"];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));

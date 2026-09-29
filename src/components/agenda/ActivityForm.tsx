@@ -87,6 +87,7 @@ export function ActivityForm({
     initialSource ?? (activity?.source as "voc" | "lid") ?? (showTypePicker ? "voc" : "lid")
   );
   const [externalRegistration, setExternalRegistration] = useState(Boolean(activity?.external_registration_url));
+  const [allowPublicRegistration, setAllowPublicRegistration] = useState(activity?.allow_public_registration ?? false);
   const [notifyPush, setNotifyPush] = useState(activity?.notify_push ?? true);
   const [notifyEmail, setNotifyEmail] = useState(activity?.notify_email ?? true);
 
@@ -248,6 +249,23 @@ export function ActivityForm({
             placeholder="Onbeperkt"
           />
         </div>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+          <input
+            type="checkbox"
+            name="allow_public_registration"
+            checked={allowPublicRegistration}
+            onChange={(e) => setAllowPublicRegistration(e.target.checked)}
+            className="rounded"
+          />
+          Aanmelden door niet-leden toestaan (openbare website)
+        </label>
+        <p className="text-xs text-muted">
+          Zonder vinkje ziet een bezoeker van de website deze activiteit wel, maar kan alleen een lid zich (via het
+          portaal) aanmelden.
+        </p>
       </div>
 
       {source === "lid" && (

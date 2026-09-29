@@ -160,12 +160,30 @@ export interface Database {
           rejection_reason: string | null;
           notify_push: boolean;
           notify_email: boolean;
+          allow_public_registration: boolean;
         };
         Insert: Partial<Database["public"]["Tables"]["activities"]["Row"]> & {
           title: string;
           starts_at: string;
         };
         Update: Partial<Database["public"]["Tables"]["activities"]["Row"]>;
+        Relationships: [];
+      };
+      public_activity_registrations: {
+        Row: {
+          id: string;
+          activity_id: string;
+          name: string;
+          email: string;
+          company_name: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["public_activity_registrations"]["Row"]> & {
+          activity_id: string;
+          name: string;
+          email: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["public_activity_registrations"]["Row"]>;
         Relationships: [];
       };
       activity_registrations: {
@@ -451,6 +469,10 @@ export interface Database {
       search_companies_for_signup: {
         Args: { p_query: string };
         Returns: { id: string; name: string; city: string | null }[];
+      };
+      get_activity_interest_count: {
+        Args: { p_activity_id: string };
+        Returns: number;
       };
       set_company_show_address: {
         Args: { p_company_id: string; p_visible: boolean };

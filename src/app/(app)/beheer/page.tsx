@@ -5,6 +5,7 @@ import {
   Bell,
   Building2,
   CalendarDays,
+  Code,
   FileText,
   Flag,
   Inbox,
@@ -74,6 +75,17 @@ const SECTIONS = [
         label: "Statistieken",
         icon: BarChart3,
         description: "Leden, community, activiteiten en notificaties",
+      },
+    ],
+  },
+  {
+    title: "Openbare website",
+    cards: [
+      {
+        href: "/beheer/embed-codes",
+        label: "Embed-codes",
+        icon: Code,
+        description: "Iframe-codes voor de agenda en het aanmeldformulier op de VOC-website",
       },
     ],
   },
