@@ -9,27 +9,16 @@ import { CompanyDetailOverlay } from "@/components/embed/CompanyDetailOverlay";
 
 type EmbedCompanyListItem = MapCapableCompany & { slug: string };
 
-// Toont de bedrijvenlijst (incl. zoekbalk) óf, na een klik, het detail van
-// één bedrijf, binnen dezelfde /embed/bedrijven-route en zonder
-// paginanavigatie — zie CompanyDetailOverlay voor waarom (position:fixed
-// werkt hier niet zoals verwacht in een height-auto-groeiende iframe). De
-// zoekbalk verdwijnt zolang een bedrijf openstaat, net als in het portaal.
-// company.href blijft intact als progressive-enhancement-fallback
-// (rechtsklik/nieuw tabblad/geen JS wijst nog gewoon naar de echte
-// /embed/bedrijven/[slug]-pagina).
-//
-// Bewust GEEN voc-embed-scroll-top-bericht hier (in tegenstelling tot een
-// echte paginanavigatie): dit is geen nieuwe "pagina" maar meer detail over
-// dezelfde lijst — een geforceerde window.scrollTo() op de omliggende
-// WordPress-pagina op het exacte moment van klikken voelde daardoor als een
-// ongewenste, onverwachte sprong. De overlay verschijnt gewoon op de
-// plek waar de lijst al stond.
+// Toont de bedrijvenlijst (incl. zoekbalk) en, na een klik, een zwevende
+// overlay met het detail van dat bedrijf erbovenop — de lijst blijft
+// gemount en zichtbaar/verduisterd erachter (net als in het portaal), i.p.v.
+// vervangen te worden. Dat vereist wel een `position: relative`-context hier
+// (het `relative` op de wrapper hieronder): CompanyDetailOverlay positioneert
+// zichzelf met `absolute` t.o.v. daarvan. company.href blijft intact als
+// progressive-enhancement-fallback (rechtsklik/nieuw tabblad/geen JS wijst
+// nog gewoon naar de echte /embed/bedrijven/[slug]-pagina).
 export function BedrijvenEmbedList({ items, branches }: { items: EmbedCompanyListItem[]; branches: string[] }) {
   const [selectedSlug, setSelectedSlug] = useState<string | null>(null);
-
-  if (selectedSlug) {
-    return <CompanyDetailOverlay slug={selectedSlug} onClose={() => setSelectedSlug(null)} />;
-  }
 
   const itemsWithClick = items.map((company) => ({
     ...company,
@@ -40,13 +29,14 @@ export function BedrijvenEmbedList({ items, branches }: { items: EmbedCompanyLis
   }));
 
   return (
-    <>
+    <div className="relative">
       <CompanyFilters branches={branches} />
       {items.length > 0 ? (
         <BedrijvenView items={itemsWithClick} />
       ) : (
         <ComingSoon icon={Building2} title="Geen bedrijven gevonden" description="Pas je zoekopdracht of filter aan." />
       )}
-    </>
+      {selectedSlug && <CompanyDetailOverlay slug={selectedSlug} onClose={() => setSelectedSlug(null)} />}
+    </div>
   );
 }

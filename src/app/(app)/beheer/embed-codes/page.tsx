@@ -92,6 +92,17 @@ export default async function EmbedCodesPage() {
       var rect = iframe.getBoundingClientRect();
       window.scrollTo({ top: window.scrollY + rect.top - 20, behavior: 'smooth' });
     }
+    // De bedrijvengids-embed toont een detailoverlay bovenop de lijst i.p.v.
+    // een nieuwe pagina — die iframe heeft zelf geen scrollbalk (window.scrollY
+    // is daarbinnen altijd 0), dus alleen wij weten hier welk stukje van de
+    // iframe nu daadwerkelijk in beeld is. Dat geven we terug zodat de
+    // overlay zich daarop kan positioneren i.p.v. altijd bovenaan te
+    // verschijnen.
+    if (event.data.type === 'voc-embed-request-viewport-offset') {
+      var iframeRect = iframe.getBoundingClientRect();
+      var offset = Math.max(0, -iframeRect.top);
+      iframe.contentWindow.postMessage({ type: 'voc-embed-viewport-offset', offset: offset }, '*');
+    }
   });
 ${hashRedirect}
 })();
@@ -111,9 +122,11 @@ ${hashRedirect}
       <p className="text-xs text-muted">
         De hoogte past zich automatisch aan de inhoud aan (600 is alleen de starthoogte tot de pagina geladen is) —
         geen los scrollbalkje in het iframe nodig. De inhoud is altijd in het lichte thema, ongeacht het
-        thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen. Klik je door naar een
-        detailpagina (of terug), dan scrollt de website automatisch weer naar de bovenkant van het embed, ook als je
-        daarvoor ver naar beneden had gescrold.
+        thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen. Klik je in de agenda door naar
+        een detailpagina (of terug), dan scrollt de website automatisch weer naar de bovenkant van het embed, ook als
+        je daarvoor ver naar beneden had gescrold. In de bedrijvengids opent een bedrijf juist als overlay bovenop de
+        lijst, precies waar je op dat moment aan het kijken bent — staat er nog een oudere versie van deze code op de
+        website, dan verschijnt die overlay in plaats daarvan bovenaan de lijst; plak &apos;m in dat geval hier opnieuw.
       </p>
       <p className="text-xs text-muted">
         De &quot;Delen&quot;-knop op een activiteit deelt naar de echte website (met een leesbaar #-anker, bijv.
