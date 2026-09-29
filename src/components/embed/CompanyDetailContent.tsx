@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import { Building2, Globe } from "lucide-react";
 import { PopupLoginLink } from "@/components/embed/PopupLoginLink";
 import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
@@ -24,13 +27,24 @@ export type CompanyDetailData = {
 // i.p.v. rauwe database-rijen, zodat dit component zelf geen server- of
 // client-specifieke data-ophaal-logica hoeft te kennen.
 export function CompanyDetailContent({ company }: { company: CompanyDetailData }) {
+  // Een enkele mislukte laadpoging (bijv. een net-verlopen signed URL) liet
+  // hier de kale, lelijke "afbeelding niet gevonden"-icoon van de browser
+  // zien i.p.v. onze eigen nette fallback — deze vlag valt terug op die
+  // fallback zodra de <img> zelf een fout meldt.
+  const [logoFailed, setLogoFailed] = useState(false);
+
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-2xl bg-surface p-4 shadow-sm">
         <div className="flex items-start gap-4">
-          {company.logoUrl ? (
+          {company.logoUrl && !logoFailed ? (
             // eslint-disable-next-line @next/next/no-img-element -- publieke, external-embed pagina: geen framework-afhankelijkheden
-            <img src={company.logoUrl} alt={company.name} className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
+            <img
+              src={company.logoUrl}
+              alt={company.name}
+              onError={() => setLogoFailed(true)}
+              className="h-16 w-16 shrink-0 rounded-2xl object-cover"
+            />
           ) : (
             <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-voc-red-light text-voc-red">
               <Building2 size={28} />

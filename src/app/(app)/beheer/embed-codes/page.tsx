@@ -78,10 +78,54 @@ export default async function EmbedCodesPage() {
 <script>
 (function () {
   var iframe = document.getElementById('${embed.id}');
+  // Verduistert de rest van DEZE (WordPress-)pagina rondom de iframe zolang
+  // de bedrijvengids-embed een detailoverlay toont — vier losse vlakken die
+  // precies om de iframe's eigen rechthoek heen liggen (boven/onder/links/
+  // rechts), berekend uit de actuele positie van de iframe. Bewust GEEN
+  // vlak dat de iframe zelf overlapt en GEEN aanpassing van de iframe's
+  // eigen z-index: dat liet de iframe eerder ten onrechte over de sticky
+  // menubalk heen vallen zodra die, gescrold, hetzelfde schermgebied innam.
+  // De iframe's eigen (lichtere) verduistering van de lijst zelf gebeurt
+  // gewoon bínnen de iframe (zie CompanyDetailOverlay) en blijft ongemoeid.
+  var backdropParts = null;
+  function ensureBackdrop() {
+    if (backdropParts) return;
+    backdropParts = ['top', 'bottom', 'left', 'right'].map(function () {
+      var el = document.createElement('div');
+      el.style.cssText = 'position:fixed;background:rgba(0,0,0,.45);z-index:2147483000;display:none;';
+      el.addEventListener('click', function () {
+        iframe.contentWindow.postMessage({ type: 'voc-embed-close-overlay' }, '*');
+      });
+      document.body.appendChild(el);
+      return el;
+    });
+  }
+  function positionBackdrop() {
+    if (!backdropParts) return;
+    var rect = iframe.getBoundingClientRect();
+    var top = backdropParts[0], bottom = backdropParts[1], left = backdropParts[2], right = backdropParts[3];
+    top.style.top = '0px'; top.style.left = '0px'; top.style.right = '0px'; top.style.height = Math.max(0, rect.top) + 'px';
+    bottom.style.top = Math.max(0, rect.bottom) + 'px'; bottom.style.left = '0px'; bottom.style.right = '0px'; bottom.style.bottom = '0px';
+    left.style.top = Math.max(0, rect.top) + 'px'; left.style.left = '0px'; left.style.width = Math.max(0, rect.left) + 'px'; left.style.height = Math.max(0, rect.height) + 'px';
+    right.style.top = Math.max(0, rect.top) + 'px'; right.style.left = Math.max(0, rect.right) + 'px'; right.style.right = '0px'; right.style.height = Math.max(0, rect.height) + 'px';
+  }
+  function showBackdrop() {
+    ensureBackdrop();
+    positionBackdrop();
+    backdropParts.forEach(function (el) { el.style.display = 'block'; });
+    window.addEventListener('scroll', positionBackdrop, { passive: true });
+    window.addEventListener('resize', positionBackdrop);
+  }
+  function hideBackdrop() {
+    if (backdropParts) backdropParts.forEach(function (el) { el.style.display = 'none'; });
+    window.removeEventListener('scroll', positionBackdrop);
+    window.removeEventListener('resize', positionBackdrop);
+  }
   window.addEventListener('message', function (event) {
     if (event.source !== iframe.contentWindow || !event.data) return;
     if (event.data.type === 'voc-embed-height') {
       iframe.style.height = event.data.height + 'px';
+      positionBackdrop();
     }
     // Deze iframe heeft zelf geen scrollbalk (hoogte volgt de inhoud) — dus
     // scrollen gebeurt altijd op deze pagina. Zonder dit blijft de pagina op
@@ -92,6 +136,8 @@ export default async function EmbedCodesPage() {
       var rect = iframe.getBoundingClientRect();
       window.scrollTo({ top: window.scrollY + rect.top - 20, behavior: 'smooth' });
     }
+    if (event.data.type === 'voc-embed-backdrop-show') showBackdrop();
+    if (event.data.type === 'voc-embed-backdrop-hide') hideBackdrop();
   });
 ${hashRedirect}
 })();
@@ -114,9 +160,8 @@ ${hashRedirect}
         thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen. Klik je in de agenda door naar
         een detailpagina (of terug), dan scrollt de website automatisch weer naar de bovenkant van het embed, ook als
         je daarvoor ver naar beneden had gescrold. In de bedrijvengids opent een bedrijf juist als overlay bovenop de
-        lijst, precies waar je op dat moment aan het kijken bent — de verduistering blijft daarbij beperkt tot het
-        geembedde gedeelte zelf (de iframe kan nooit buiten zijn eigen rechthoek tekenen). Staat er nog een oudere
-        versie van deze code op de website, plak &apos;m dan hier opnieuw.
+        lijst, precies waar je op dat moment aan het kijken bent, en verduistert het scriptje ook de rest van de
+        website eromheen. Staat er nog een oudere versie van deze code op de website, plak &apos;m dan hier opnieuw.
       </p>
       <p className="text-xs text-muted">
         De &quot;Delen&quot;-knop op een activiteit deelt naar de echte website (met een leesbaar #-anker, bijv.

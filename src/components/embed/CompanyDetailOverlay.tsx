@@ -25,6 +25,24 @@ export function CompanyDetailOverlay({
 
   useEscapeKey(true, onClose);
 
+  // Verduistert ook de rest van de WordPress-pagina rondom de iframe (zie
+  // /beheer/embed-codes) — de iframe kan dat zelf niet, want die kan nooit
+  // buiten zijn eigen rechthoek tekenen. Een klik daarbuiten stuurt
+  // voc-embed-close-overlay terug.
+  useEffect(() => {
+    window.parent.postMessage({ type: "voc-embed-backdrop-show" }, "*");
+
+    function handleMessage(e: MessageEvent) {
+      if (e.data?.type === "voc-embed-close-overlay") onClose();
+    }
+    window.addEventListener("message", handleMessage);
+
+    return () => {
+      window.parent.postMessage({ type: "voc-embed-backdrop-hide" }, "*");
+      window.removeEventListener("message", handleMessage);
+    };
+  }, [onClose]);
+
   useEffect(() => {
     let cancelled = false;
 
