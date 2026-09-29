@@ -128,10 +128,9 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
                 {registration ? "Bekijk in het portaal" : "Aanmelden via het portaal"}
               </Link>
             </div>
-          ) : (
+          ) : activity.allow_public_registration ? (
             <div className="flex flex-col gap-6">
-              <div className="flex flex-col items-center gap-2 text-center text-sm text-foreground">
-                <p>Al lid van de VOC?</p>
+              <div className="flex justify-center">
                 {/* target="_top": deze pagina draait als iframe op de VOC-website — zonder
                     dit zou het inlogscherm proberen te laden binnen dat kleine iframe.
                     ?next=/agenda/[id]: stuurt na inloggen door naar de activiteit zelf
@@ -144,16 +143,21 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
                   Log in om je aan te melden
                 </Link>
               </div>
-              {activity.allow_public_registration ? (
-                <div className="flex flex-col gap-3 border-t border-border pt-6">
-                  <p className="text-sm text-foreground">Nog geen lid?</p>
-                  <PublicRegistrationForm activityId={activity.id} />
-                </div>
-              ) : (
-                <p className="border-t border-border pt-6 text-sm text-muted">
-                  Nog geen lid? Deze activiteit is alleen voor leden.
-                </p>
-              )}
+              <div className="flex flex-col gap-3 border-t border-border pt-6">
+                <p className="text-sm text-foreground">Nog geen lid?</p>
+                <PublicRegistrationForm activityId={activity.id} />
+              </div>
+            </div>
+          ) : (
+            <div className="flex flex-col items-center gap-3 text-center">
+              <p className="text-sm text-muted">Deze activiteit is alleen voor leden.</p>
+              <Link
+                href={`/login?next=${encodeURIComponent(`/agenda/${activity.id}`)}`}
+                target="_top"
+                className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
+              >
+                Log in om je aan te melden
+              </Link>
             </div>
           )}
         </div>
