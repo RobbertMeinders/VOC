@@ -154,7 +154,7 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
                 </Link>
               </div>
               <div className="flex flex-col gap-3 border-t border-border pt-6">
-                <p className="text-sm text-foreground">Nog geen lid?</p>
+                <p className="text-sm text-foreground">Meld je aan als bezoeker</p>
                 <PublicRegistrationForm activityId={activity.id} />
               </div>
             </div>
