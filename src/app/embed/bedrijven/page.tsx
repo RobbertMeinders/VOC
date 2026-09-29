@@ -61,7 +61,13 @@ export default async function BedrijvenEmbedPage({
     // hier samen nodig zijn (voorkomt de donkere balk die <body> anders
     // onderin liet doorschemeren bij een donker OS-thema).
     <div data-theme="light" className="min-h-screen bg-background">
-      <div className="p-4">
+      {/* De iframe zelf volgt gewoon de breedte van de WordPress-pagina (geen
+          eigen CSS-breedte-truc meer, zie /beheer/embed-codes — dat brak op
+          deze site). Deze max-w-wrapper zorgt dat de inhoud zelf een
+          prettige leesbreedte houdt met zichtbare marges aan weerszijden
+          i.p.v. van rand tot rand te lopen, ook als die pagina zelf breder
+          is. */}
+      <div className="mx-auto max-w-5xl p-4">
         <EmbedAutoHeight />
         <BedrijvenEmbedList items={items} branches={branches} />
       </div>
