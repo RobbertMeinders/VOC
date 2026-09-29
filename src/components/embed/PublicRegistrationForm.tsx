@@ -34,18 +34,18 @@ export function PublicRegistrationForm({ activityId }: { activityId: string }) {
   return (
     <form action={formAction} className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="name" className="text-sm font-medium text-[#17171a]">
+        <label htmlFor="name" className="text-sm font-medium text-foreground">
           Naam
         </label>
         <input
           id="name"
           name="name"
           required
-          className="rounded-lg border border-[#e5e5ea] bg-white px-3 py-2 text-sm text-[#17171a] placeholder:text-[#6b6b72] focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+          className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="email" className="text-sm font-medium text-[#17171a]">
+        <label htmlFor="email" className="text-sm font-medium text-foreground">
           E-mailadres
         </label>
         <input
@@ -53,21 +53,22 @@ export function PublicRegistrationForm({ activityId }: { activityId: string }) {
           name="email"
           type="email"
           required
-          className="rounded-lg border border-[#e5e5ea] bg-white px-3 py-2 text-sm text-[#17171a] placeholder:text-[#6b6b72] focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+          className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
         />
       </div>
       <div className="flex flex-col gap-1.5">
-        <label htmlFor="company_name" className="text-sm font-medium text-[#17171a]">
-          Bedrijfsnaam (optioneel)
+        <label htmlFor="company_name" className="text-sm font-medium text-foreground">
+          Bedrijfsnaam
         </label>
         <input
           id="company_name"
           name="company_name"
-          className="rounded-lg border border-[#e5e5ea] bg-white px-3 py-2 text-sm text-[#17171a] placeholder:text-[#6b6b72] focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+          required
+          className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
         />
       </div>
       {state.error && (
-        <p role="alert" className="rounded-lg bg-[#fdeaec] px-3 py-2 text-sm text-voc-red">
+        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
           {state.error}
         </p>
       )}

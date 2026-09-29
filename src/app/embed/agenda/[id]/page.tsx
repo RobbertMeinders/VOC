@@ -7,6 +7,7 @@ import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { formatActivityDate } from "@/lib/format/date";
 import { PublicRegistrationForm } from "@/components/embed/PublicRegistrationForm";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
+import { ShareActivityButton } from "@/components/embed/ShareActivityButton";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -38,57 +39,67 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
   ]);
 
   return (
-    <div className="flex flex-col gap-4 bg-white p-4">
-      <EmbedAutoHeight />
-      <Link href="/embed/agenda" className="flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red hover:underline">
-        <ArrowLeft size={16} />
-        Terug naar agenda
-      </Link>
-      {imageUrl ? (
-        // eslint-disable-next-line @next/next/no-img-element -- publieke, external-embed pagina: geen framework-afhankelijkheden
-        <img src={imageUrl} alt={activity.title} className="h-72 w-full rounded-xl object-cover" />
-      ) : (
-        <div className="flex h-72 w-full items-center justify-center rounded-xl bg-[#fdeaec] text-voc-red">
-          <CalendarDays size={40} />
+    // Zie /embed/agenda/page.tsx voor waarom data-theme="light" + min-h-screen
+    // hier samen nodig zijn (voorkomt de donkere balk die <body> anders
+    // onderin liet doorschemeren bij een donker OS-thema).
+    <div data-theme="light" className="min-h-screen bg-background">
+      <div className="flex flex-col gap-4 p-4">
+        <EmbedAutoHeight />
+        <div className="flex items-center justify-between gap-3">
+          <Link href="/embed/agenda" className="flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red hover:underline">
+            <ArrowLeft size={16} />
+            Terug naar agenda
+          </Link>
+          <ShareActivityButton activityId={activity.id} title={activity.title} />
         </div>
-      )}
-
-      <div>
-        <h1 className="text-xl font-semibold text-[#17171a]">{activity.title}</h1>
-        <p className="mt-1 text-sm text-[#6b6b72]">{formatActivityDate(activity.starts_at)}</p>
-        {activity.location && (
-          <p className="mt-0.5 flex items-center gap-1 text-sm text-[#6b6b72]">
-            <MapPin size={14} />
-            {activity.location}
-          </p>
-        )}
-        <p className="mt-1 flex items-center gap-1 text-sm text-[#6b6b72]">
-          <Users size={14} />
-          {interestCount ?? 0} aanmeldingen
-        </p>
-      </div>
-
-      {activity.description && <p className="whitespace-pre-line text-sm text-[#17171a]">{activity.description}</p>}
-
-      <div className="rounded-2xl bg-[#f7f7f8] p-4 shadow-sm">
-        {isPast ? (
-          <p className="text-sm text-[#6b6b72]">Deze activiteit heeft al plaatsgevonden.</p>
-        ) : activity.allow_public_registration ? (
-          <PublicRegistrationForm activityId={activity.id} />
+        {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- publieke, external-embed pagina: geen framework-afhankelijkheden
+          <img src={imageUrl} alt={activity.title} className="h-80 w-full rounded-xl object-cover" />
         ) : (
-          <div className="flex flex-col gap-2 text-sm text-[#17171a]">
-            <p>Deze activiteit is alleen voor leden.</p>
-            {/* target="_top": deze pagina draait als iframe op de VOC-website — zonder
-                dit zou het inlogscherm proberen te laden binnen dat kleine iframe. */}
-            <Link
-              href="/login"
-              target="_top"
-              className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
-            >
-              Log in om je aan te melden
-            </Link>
+          <div className="flex h-80 w-full items-center justify-center rounded-xl bg-voc-red-light text-voc-red">
+            <CalendarDays size={40} />
           </div>
         )}
+
+        <div>
+          <h1 className="text-xl font-semibold text-foreground">{activity.title}</h1>
+          <p className="mt-1 text-sm text-muted">{formatActivityDate(activity.starts_at)}</p>
+          {activity.location && (
+            <p className="mt-0.5 flex items-center gap-1 text-sm text-muted">
+              <MapPin size={14} />
+              {activity.location}
+            </p>
+          )}
+          <p className="mt-1 flex items-center gap-1 text-sm text-muted">
+            <Users size={14} />
+            {interestCount ?? 0} aanmeldingen
+          </p>
+        </div>
+
+        {activity.description && <p className="whitespace-pre-line text-sm text-foreground">{activity.description}</p>}
+
+        <div className="mx-auto w-full max-w-sm rounded-2xl bg-surface p-4 shadow-sm">
+          {isPast ? (
+            <p className="text-sm text-muted">Deze activiteit heeft al plaatsgevonden.</p>
+          ) : activity.allow_public_registration ? (
+            <PublicRegistrationForm activityId={activity.id} />
+          ) : (
+            <div className="flex flex-col gap-2 text-sm text-foreground">
+              <p>Deze activiteit is alleen voor leden.</p>
+              {/* target="_top": deze pagina draait als iframe op de VOC-website — zonder
+                  dit zou het inlogscherm proberen te laden binnen dat kleine iframe.
+                  ?next=/agenda/[id]: stuurt na inloggen door naar de activiteit zelf
+                  in het portaal, i.p.v. naar het dashboard. */}
+              <Link
+                href={`/login?next=${encodeURIComponent(`/agenda/${activity.id}`)}`}
+                target="_top"
+                className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
+              >
+                Log in om je aan te melden
+              </Link>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

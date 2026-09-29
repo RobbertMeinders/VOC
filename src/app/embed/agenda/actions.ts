@@ -30,21 +30,21 @@ export async function registerPublicForActivityAction(
   const email = String(formData.get("email") ?? "").trim();
   const companyName = String(formData.get("company_name") ?? "").trim();
 
-  if (!name || !email) {
-    return { error: "Naam en e-mailadres zijn verplicht." };
+  if (!name || !email || !companyName) {
+    return { error: "Naam, e-mailadres en bedrijfsnaam zijn verplicht." };
   }
   if (!EMAIL_PATTERN.test(email)) {
     return { error: "Vul een geldig e-mailadres in." };
   }
 
   const supabase = await createClient();
-  const row = { activity_id: activityId, name, email, company_name: companyName || null };
+  const row = { activity_id: activityId, name, email, company_name: companyName };
   const { error: insertError } = await supabase.from("public_activity_registrations").insert(row);
 
   if (insertError?.code === "23505") {
     const { error: updateError } = await supabase
       .from("public_activity_registrations")
-      .update({ name, company_name: companyName || null })
+      .update({ name, company_name: companyName })
       .eq("activity_id", activityId)
       .eq("email", email);
     if (updateError) {

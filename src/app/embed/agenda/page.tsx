@@ -38,28 +38,28 @@ function ActivityCard({
   return (
     <Link
       href={`/embed/agenda/${activity.id}`}
-      className={`overflow-hidden rounded-2xl bg-white shadow-sm ${
+      className={`overflow-hidden rounded-2xl bg-surface shadow-sm ${
         isPast ? "opacity-80 grayscale-[50%]" : "transition-all duration-500 ease-out hover:scale-[1.008] hover:shadow-md"
       }`}
     >
       {imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- a public, external-embed page: keep it framework-agnostic and dependency-free
-        <img src={imageUrl} alt={activity.title} className="h-40 w-full object-cover" />
+        <img src={imageUrl} alt={activity.title} className="h-48 w-full object-cover" />
       ) : (
-        <div className="flex h-40 w-full items-center justify-center bg-[#fdeaec] text-voc-red">
+        <div className="flex h-48 w-full items-center justify-center bg-voc-red-light text-voc-red">
           <CalendarDays size={32} />
         </div>
       )}
       <div className="p-3">
-        <p className="truncate text-sm font-semibold text-[#17171a]">{activity.title}</p>
-        <p className="mt-0.5 text-xs text-[#6b6b72]">{formatActivityDate(activity.starts_at)}</p>
+        <p className="truncate text-sm font-semibold text-foreground">{activity.title}</p>
+        <p className="mt-0.5 text-xs text-muted">{formatActivityDate(activity.starts_at)}</p>
         {activity.location && (
-          <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-[#6b6b72]">
+          <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted">
             <MapPin size={12} />
             {activity.location}
           </p>
         )}
-        <p className="mt-1 flex items-center gap-1 text-xs text-[#6b6b72]">
+        <p className="mt-1 flex items-center gap-1 text-xs text-muted">
           <Users size={12} />
           {count} aanmeldingen
         </p>
@@ -106,58 +106,65 @@ export default async function AgendaEmbedPage() {
   ]);
 
   return (
-    <div className="flex flex-col gap-6 bg-white p-4">
-      <EmbedAutoHeight />
-      {/* Deze titel + intro staan hier i.p.v. los op de WordPress-pagina
-          zelf, juist zodat ze ALLEEN op dit overzicht staan — klik je door
-          naar een activiteit, dan verandert alleen de inhoud van de iframe
-          (deze tekst hoort daar niet meer thuis) i.p.v. dat 'm op de
-          WordPress-pagina blijft hangen omdat die buiten de iframe valt. */}
-      <div>
-        <h2 className="text-xl font-semibold text-[#17171a]">De activiteiten</h2>
-        <p className="mt-2 text-sm text-[#6b6b72]">
-          De Veendammer OndernemersCompagnie organiseert het hele jaar door activiteiten voor en door ondernemers in
-          Veendam en omgeving. Van informele borrels en kennissessies tot bedrijfsbezoeken en een groot
-          eindejaarsfeest, er is voor ieder wat wils.
-        </p>
-        <p className="mt-2 text-sm text-[#6b6b72]">
-          Alle activiteiten zijn bedoeld om ondernemers samen te brengen, kennis te delen en het netwerk in de regio
-          te versterken. Aanmelden is verplicht in verband met de organisatie.
-        </p>
-      </div>
-
-      {(upcoming ?? []).length === 0 && (
-        <p className="py-4 text-center text-sm text-[#6b6b72]">Er zijn momenteel geen activiteiten gepland.</p>
-      )}
-      {(upcoming ?? []).length > 0 && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {(upcoming ?? []).map((activity) => (
-            <ActivityCard
-              key={activity.id}
-              activity={activity}
-              imageUrl={activity.image_url ? (imageUrls.get(activity.image_url) ?? null) : null}
-              count={counts.get(activity.id) ?? 0}
-            />
-          ))}
-        </div>
-      )}
-
-      {(past ?? []).length > 0 && (
+    // data-theme="light" + min-h-screen: dwingt het lichte thema af voor de
+    // HELE zichtbare iframe-hoogte, niet alleen voor de inhoud zelf. Zonder
+    // min-h-screen dekt deze div alleen zijn eigen (kortere) inhoud af — het
+    // stuk daaronder blijft dan <body> zelf, die bij een donker OS-thema
+    // alsnog donker inkleurt en als een zwarte balk onderin zichtbaar werd.
+    <div data-theme="light" className="min-h-screen bg-background">
+      <div className="flex flex-col gap-6 p-4">
+        <EmbedAutoHeight />
+        {/* Deze titel + intro staan hier i.p.v. los op de WordPress-pagina
+            zelf, juist zodat ze ALLEEN op dit overzicht staan — klik je door
+            naar een activiteit, dan verandert alleen de inhoud van de iframe
+            (deze tekst hoort daar niet meer thuis) i.p.v. dat 'm op de
+            WordPress-pagina blijft hangen omdat die buiten de iframe valt. */}
         <div>
-          <h3 className="text-lg font-semibold text-[#17171a]">Eerdere activiteiten</h3>
-          <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {(past ?? []).map((activity) => (
+          <h2 className="text-xl font-semibold text-foreground">De activiteiten</h2>
+          <p className="mt-2 text-sm text-muted">
+            De Veendammer OndernemersCompagnie organiseert het hele jaar door activiteiten voor en door ondernemers
+            in Veendam en omgeving. Van informele borrels en kennissessies tot bedrijfsbezoeken en een groot
+            eindejaarsfeest, er is voor ieder wat wils.
+          </p>
+          <p className="mt-2 text-sm text-muted">
+            Alle activiteiten zijn bedoeld om ondernemers samen te brengen, kennis te delen en het netwerk in de
+            regio te versterken. Aanmelden is verplicht in verband met de organisatie.
+          </p>
+        </div>
+
+        {(upcoming ?? []).length === 0 && (
+          <p className="py-4 text-center text-sm text-muted">Er zijn momenteel geen activiteiten gepland.</p>
+        )}
+        {(upcoming ?? []).length > 0 && (
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {(upcoming ?? []).map((activity) => (
               <ActivityCard
                 key={activity.id}
                 activity={activity}
                 imageUrl={activity.image_url ? (imageUrls.get(activity.image_url) ?? null) : null}
                 count={counts.get(activity.id) ?? 0}
-                isPast
               />
             ))}
           </div>
-        </div>
-      )}
+        )}
+
+        {(past ?? []).length > 0 && (
+          <div>
+            <h3 className="text-lg font-semibold text-foreground">Eerdere activiteiten</h3>
+            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {(past ?? []).map((activity) => (
+                <ActivityCard
+                  key={activity.id}
+                  activity={activity}
+                  imageUrl={activity.image_url ? (imageUrls.get(activity.image_url) ?? null) : null}
+                  count={counts.get(activity.id) ?? 0}
+                  isPast
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
