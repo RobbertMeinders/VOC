@@ -41,13 +41,6 @@ export default async function BedrijvenEmbedPage() {
     <div data-theme="light" className="min-h-screen bg-background">
       <div className="flex flex-col gap-6 p-4">
         <EmbedAutoHeight />
-        <div>
-          <h2 className="text-xl font-semibold text-foreground">Bedrijvengids</h2>
-          <p className="mt-2 text-sm text-muted">
-            De ondernemers van de Veendammer OndernemersCompagnie, van kennissessie tot netwerkborrel al aan tafel —
-            hieronder een greep uit ons ledenbestand.
-          </p>
-        </div>
 
         {companies.length === 0 && <p className="py-4 text-center text-sm text-muted">Er zijn nog geen bedrijven te tonen.</p>}
 
