@@ -6,7 +6,7 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { isBoard } from "@/lib/auth/roles";
-import { formatActivityDate, formatActivityTimeOnly } from "@/lib/format/date";
+import { formatActivityDate, formatActivityTimeOnly, formatLastActive } from "@/lib/format/date";
 import { RegisterButton } from "@/components/agenda/RegisterButton";
 import { AttendeeList } from "@/components/agenda/AttendeeList";
 import { DeleteButton } from "@/components/feed/DeleteButton";
@@ -51,39 +51,62 @@ export async function ActivityDetailContent({ id }: { id: string }) {
     last_name: string;
     company_members: { is_primary: boolean; company: { name: string } | null }[];
   };
+  type PublicRegistrationRow = {
+    id: string;
+    name: string;
+    email: string;
+    company_name: string | null;
+    created_at: string;
+  };
 
   // Alle onafhankelijke queries (incl. de indiener, voorheen pas hierna en
   // apart gewacht) samen in één Promise.all i.p.v. na elkaar — dat scheelt
   // een volledige netwerk-rondgang bij het openen van deze pagina/overlay.
-  const [imageUrl, { data: registrations }, { data: myRegistration }, { data: attachments }, { data: submitter }] =
-    await Promise.all([
-      getSignedStorageUrl("activity-images", activity.image_url),
-      supabase
-        .from("activity_registrations")
-        .select("id, is_waitlisted, attended, profile:profiles(id, first_name, last_name, avatar_url)")
-        .eq("activity_id", id)
-        .order("created_at", { ascending: true })
-        .returns<RegistrationRow[]>(),
-      supabase
-        .from("activity_registrations")
-        .select("id, is_waitlisted")
-        .eq("activity_id", id)
-        .eq("profile_id", profile.id)
-        .maybeSingle(),
-      supabase
-        .from("activity_attachments")
-        .select("*")
-        .eq("activity_id", id)
-        .order("created_at", { ascending: true })
-        .returns<Attachment[]>(),
-      activity.source === "lid" && activity.created_by
-        ? supabase
-            .from("profiles")
-            .select("first_name, last_name, company_members(is_primary, company:companies(name))")
-            .eq("id", activity.created_by)
-            .maybeSingle<SubmitterRow>()
-        : Promise.resolve({ data: null as SubmitterRow | null }),
-    ]);
+  const [
+    imageUrl,
+    { data: registrations },
+    { data: myRegistration },
+    { data: attachments },
+    { data: submitter },
+    { data: publicRegistrations },
+  ] = await Promise.all([
+    getSignedStorageUrl("activity-images", activity.image_url),
+    supabase
+      .from("activity_registrations")
+      .select("id, is_waitlisted, attended, profile:profiles(id, first_name, last_name, avatar_url)")
+      .eq("activity_id", id)
+      .order("created_at", { ascending: true })
+      .returns<RegistrationRow[]>(),
+    supabase
+      .from("activity_registrations")
+      .select("id, is_waitlisted")
+      .eq("activity_id", id)
+      .eq("profile_id", profile.id)
+      .maybeSingle(),
+    supabase
+      .from("activity_attachments")
+      .select("*")
+      .eq("activity_id", id)
+      .order("created_at", { ascending: true })
+      .returns<Attachment[]>(),
+    activity.source === "lid" && activity.created_by
+      ? supabase
+          .from("profiles")
+          .select("first_name, last_name, company_members(is_primary, company:companies(name))")
+          .eq("id", activity.created_by)
+          .maybeSingle<SubmitterRow>()
+      : Promise.resolve({ data: null as SubmitterRow | null }),
+    // public_activity_registrations is sowieso alleen leesbaar voor bestuur
+    // (RLS), maar niet-bestuursleden slaan deze query gewoon over.
+    isBoard(profile.role) && activity.allow_public_registration
+      ? supabase
+          .from("public_activity_registrations")
+          .select("id, name, email, company_name, created_at")
+          .eq("activity_id", id)
+          .order("created_at", { ascending: true })
+          .returns<PublicRegistrationRow[]>()
+      : Promise.resolve({ data: null as PublicRegistrationRow[] | null }),
+  ]);
 
   let submitterLabel: string | null = null;
   if (submitter) {
@@ -232,6 +255,29 @@ export async function ActivityDetailContent({ id }: { id: string }) {
         activityId={id}
         canManage={isBoard(profile.role)}
       />
+
+      {publicRegistrations && publicRegistrations.length > 0 && (
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+          <h2 className="mb-1 text-sm font-semibold text-foreground">
+            Niet-leden aangemeld ({publicRegistrations.length})
+          </h2>
+          <p className="mb-3 text-xs text-muted">
+            Via de openbare agenda-embed, buiten het ledenbestand om. Zie ook Beheer &gt; Potentiële leden.
+          </p>
+          <div className="flex flex-col">
+            {publicRegistrations.map((registration) => (
+              <div key={registration.id} className="flex flex-col gap-0.5 border-b border-border py-2 last:border-0">
+                <p className="text-sm font-medium text-foreground">{registration.name}</p>
+                <p className="text-xs text-muted">
+                  {registration.email}
+                  {registration.company_name && ` · ${registration.company_name}`} · aangemeld{" "}
+                  {formatLastActive(registration.created_at).toLowerCase()}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {(attachments ?? []).length > 0 && (
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
