@@ -9,6 +9,7 @@ import { getCurrentProfile } from "@/lib/auth/session";
 import { PublicRegistrationForm } from "@/components/embed/PublicRegistrationForm";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
 import { ShareActivityButton } from "@/components/embed/ShareActivityButton";
+import { RegisterButton } from "@/components/agenda/RegisterButton";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -50,16 +51,26 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
     getCurrentProfile(),
   ]);
 
-  const registration = profile
-    ? (
-        await supabase
+  const [registration, confirmedCount] = profile
+    ? await Promise.all([
+        supabase
           .from("activity_registrations")
           .select("is_waitlisted")
           .eq("activity_id", activity.id)
           .eq("profile_id", profile.id)
           .maybeSingle()
-      ).data
-    : null;
+          .then((r) => r.data),
+        supabase
+          .from("activity_registrations")
+          .select("id", { count: "exact", head: true })
+          .eq("activity_id", activity.id)
+          .eq("is_waitlisted", false)
+          .then((r) => r.count ?? 0),
+      ])
+    : [null, 0];
+
+  const isFull = activity.max_participants !== null && confirmedCount >= activity.max_participants;
+  const deadlinePassed = activity.registration_deadline ? new Date(activity.registration_deadline) < new Date() : false;
 
   return (
     // Zie /embed/agenda/page.tsx voor waarom data-theme="light" + min-h-screen
@@ -110,23 +121,22 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
           {isPast ? (
             <p className="text-sm text-muted">Deze activiteit heeft al plaatsgevonden.</p>
           ) : profile ? (
-            // Ingelogd lid: altijd doorsturen naar de echte activiteitpagina in
-            // het portaal (target="_top", breekt uit de iframe) — die heeft de
-            // volledige aanmeld-/wachtlijstlogica al, dit embed-formulier is
-            // alleen voor anonieme niet-leden.
-            <div className="flex flex-col gap-2 text-sm text-foreground">
-              {registration ? (
-                <p>{registration.is_waitlisted ? "Je staat op de wachtlijst voor deze activiteit." : "Je bent aangemeld voor deze activiteit."}</p>
-              ) : (
-                <p>Je bent ingelogd als lid. Meld je aan via het portaal.</p>
-              )}
-              <Link
-                href={`/agenda/${activity.id}`}
-                target="_top"
-                className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
-              >
-                {registration ? "Bekijk in het portaal" : "Aanmelden via het portaal"}
-              </Link>
+            // Ingelogd lid (sessie hier daadwerkelijk gedetecteerd, zie de
+            // uitleg bij `profile` hierboven): meld je meteen aan via
+            // dezelfde server action als het portaal zelf gebruikt (dus met
+            // wachtlijst e.d.) — geen omweg via een "ga naar het portaal"-knop
+            // nodig, we weten al wie je bent.
+            <div className="flex flex-col gap-3 text-sm text-foreground">
+              <p>
+                Je bent ingelogd als <span className="font-medium">{profile.first_name}</span>.
+              </p>
+              <RegisterButton
+                activityId={activity.id}
+                initialRegistered={Boolean(registration)}
+                initialWaitlisted={Boolean(registration?.is_waitlisted)}
+                isFull={isFull}
+                deadlinePassed={deadlinePassed}
+              />
             </div>
           ) : activity.allow_public_registration ? (
             <div className="flex flex-col gap-6">
