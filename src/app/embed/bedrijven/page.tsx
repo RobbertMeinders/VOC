@@ -61,7 +61,11 @@ export default async function BedrijvenEmbedPage({
     // hier samen nodig zijn (voorkomt de donkere balk die <body> anders
     // onderin liet doorschemeren bij een donker OS-thema).
     <div data-theme="light" className="min-h-screen bg-background">
-      <div className="p-4">
+      {/* De iframe zelf neemt de volle breedte van de website in (zie
+          /beheer/embed-codes, fullWidth), zodat de verduistering achter een
+          geopende overlay niet blijft steken in witte marges — de inhoud
+          zelf blijft via deze max-w-wrapper gewoon mooi centraal staan. */}
+      <div className="mx-auto max-w-5xl p-4">
         <EmbedAutoHeight />
         <BedrijvenEmbedList items={items} branches={branches} />
       </div>
