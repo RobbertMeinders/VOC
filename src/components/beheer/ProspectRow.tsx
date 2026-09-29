@@ -1,5 +1,7 @@
 import { formatLastActive } from "@/lib/format/date";
 import { ProspectStatusSelect } from "./ProspectStatusSelect";
+import { DeleteButton } from "@/components/feed/DeleteButton";
+import { deleteProspectAction } from "@/app/(app)/beheer/prospects/actions";
 import type { Database } from "@/lib/types/database";
 
 export type Prospect = Database["public"]["Tables"]["prospects"]["Row"];
@@ -18,8 +20,12 @@ export function ProspectRow({ prospect }: { prospect: Prospect }) {
           {formatLastActive(prospect.last_seen_at)}
         </p>
       </div>
-      <div className="shrink-0">
+      <div className="flex shrink-0 items-center gap-2">
         <ProspectStatusSelect prospectId={prospect.id} initialStatus={prospect.status} />
+        <DeleteButton
+          onDelete={() => deleteProspectAction(prospect.id)}
+          confirmMessage={`${prospect.name} verwijderen uit de potentiële leden?`}
+        />
       </div>
     </div>
   );

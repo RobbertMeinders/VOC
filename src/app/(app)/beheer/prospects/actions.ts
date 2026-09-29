@@ -22,3 +22,11 @@ export async function updateProspectStatusAction(prospectId: string, status: Pro
   revalidatePath("/beheer/prospects");
   return {};
 }
+
+export async function deleteProspectAction(prospectId: string): Promise<void> {
+  await requireBoard();
+  const supabase = await createClient();
+
+  await supabase.from("prospects").delete().eq("id", prospectId);
+  revalidatePath("/beheer/prospects");
+}

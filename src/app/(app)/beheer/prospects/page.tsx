@@ -22,9 +22,16 @@ export default async function ProspectsPage() {
     <div>
       <BackLink href="/beheer" label="Terug naar Beheer" />
       <h1 className="mb-1 text-xl font-semibold text-foreground">Potentiële leden</h1>
-      <p className="mb-6 text-sm text-muted">
+      <p className="mb-2 text-sm text-muted">
         Niet-leden die zich via de openbare agenda-embed hebben aangemeld voor een activiteit. Wordt automatisch
         bijgewerkt bij elke nieuwe aanmelding en na 90 dagen zonder nieuwe aanmelding automatisch verwijderd.
+      </p>
+      <p className="mb-6 text-sm text-muted">
+        Gebruik het e-mailadres om zelf contact op te nemen (bijv. na de activiteit, of om te vragen of diegene lid
+        wil worden), en zet daarna de status: <span className="text-foreground">Wil lid worden</span> als iemand
+        toegevoegd moet worden (via Beheer &gt; Uitnodigingen), <span className="text-foreground">Wil niet lid worden</span>{" "}
+        of <span className="text-foreground">Geen antwoord</span> om af te sluiten. Met het prullenbakje kun je een
+        rij ook direct verwijderen, bijvoorbeeld bij een verkeerd ingevuld e-mailadres.
       </p>
 
       <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
