@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
 import { geocodeAddress } from "@/lib/geo/geocode";
 import { invalidateQuery } from "@/lib/cache/queryCache";
+import { logAuditAction } from "@/lib/audit/log";
 
 export type UpdateCompanyState = { error?: string; success?: boolean };
 
@@ -98,6 +99,8 @@ export async function updateCompanyAction(
   if (error) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
+
+  await logAuditAction("company_updated", "company", companyId);
 
   // Naam/branche/logo van dit bedrijf staan ook in de bedrijven- en
   // ledenlijst (die het bedrijf van elk lid meestuurt) — beide invalideren.

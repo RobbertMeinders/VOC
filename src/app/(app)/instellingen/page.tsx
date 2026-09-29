@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Download, KeyRound } from "lucide-react";
+import { Download, KeyRound, ShieldCheck } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PushToggle } from "@/components/profile/PushToggle";
@@ -114,6 +114,16 @@ export default async function InstellingenPage() {
           </SettingSubRow>
         )}
       </SettingGroup>
+
+      <SettingRow label="Privacy & veiligheid" description="Hoe het portaal met je gegevens en toegang omgaat.">
+        <Link
+          href="/privacy"
+          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red"
+        >
+          <ShieldCheck size={14} />
+          Bekijken
+        </Link>
+      </SettingRow>
 
       <SettingRow
         label="Mijn gegevens downloaden"

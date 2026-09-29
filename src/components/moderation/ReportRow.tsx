@@ -12,6 +12,8 @@ const REASON_LABELS: Record<string, string> = {
   anders: "Anders",
 };
 
+export type ReportResolution = { resolvedByName: string; resolvedAt: string; action: string };
+
 export type ReportRowData = {
   id: string;
   reason: string;
@@ -19,6 +21,7 @@ export type ReportRowData = {
   createdAt: string;
   reporterName: string;
   post: { id: string; content: string | null; authorName: string } | null;
+  resolution?: ReportResolution | null;
 };
 
 export function ReportRow({ report }: { report: ReportRowData }) {
@@ -58,26 +61,34 @@ export function ReportRow({ report }: { report: ReportRowData }) {
       ) : (
         <p className="text-sm text-muted">Dit bericht is al verwijderd.</p>
       )}
-      <div className="flex items-center gap-2">
-        {report.post && (
+      {report.resolution ? (
+        <div className="rounded-lg border border-border bg-black/[.02] px-3 py-2 text-xs text-muted dark:bg-white/[.03]">
+          <p>Behandeld door: {report.resolution.resolvedByName}</p>
+          <p>Actie: {report.resolution.action}</p>
+          <p>Datum: {formatRelativeTime(report.resolution.resolvedAt)}</p>
+        </div>
+      ) : (
+        <div className="flex items-center gap-2">
+          {report.post && (
+            <button
+              type="button"
+              disabled={isPending}
+              onClick={() => resolve("deleted")}
+              className="rounded-full bg-voc-red px-3 py-1.5 text-xs font-medium text-white hover:bg-voc-red-dark disabled:opacity-60"
+            >
+              Bericht verwijderen
+            </button>
+          )}
           <button
             type="button"
             disabled={isPending}
-            onClick={() => resolve("deleted")}
-            className="rounded-full bg-voc-red px-3 py-1.5 text-xs font-medium text-white hover:bg-voc-red-dark disabled:opacity-60"
+            onClick={() => resolve("dismissed")}
+            className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
           >
-            Bericht verwijderen
+            Melding afwijzen
           </button>
-        )}
-        <button
-          type="button"
-          disabled={isPending}
-          onClick={() => resolve("dismissed")}
-          className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-        >
-          Melding afwijzen
-        </button>
-      </div>
+        </div>
+      )}
     </div>
   );
 }

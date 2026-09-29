@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { logAuditAction } from "@/lib/audit/log";
 
 // Verwijderen van het gerapporteerde bericht markeert de rapportage meteen
 // als afgehandeld (cascade via post_id zou de rij zelf verwijderen — dat
@@ -17,6 +18,13 @@ export async function resolveReportAction(reportId: string, decision: "deleted" 
   if (decision === "deleted") {
     await supabase.from("feed_posts").delete().eq("id", postId);
   }
+
+  // Wie het heeft afgehandeld en welke actie is genomen staat nergens op de
+  // rapportage-rij zelf — audit_logs is hier de enige plek waar dat
+  // (behandeld door/wanneer/actie) uit valt te herleiden voor de UI.
+  await logAuditAction("report_resolved", "feed_post_report", reportId, {
+    decision: decision === "deleted" ? "Bericht verwijderd" : "Bericht behouden",
+  });
 
   revalidatePath("/beheer/rapportages");
 }

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
 import { uploadDocument } from "@/lib/supabase/uploadDocument";
 import { invalidateQuery } from "@/lib/cache/queryCache";
+import { logAuditAction } from "@/lib/audit/log";
 
 export type ActionResult = { error?: string };
 
@@ -266,6 +267,8 @@ export async function updateActivityAction(
       return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
     }
 
+    await logAuditAction("activity_updated", "activity", activityId);
+
     revalidatePath(`/agenda/${activityId}`);
     revalidatePath("/agenda");
     return { success: true };
@@ -321,6 +324,13 @@ export async function decideActivitySubmissionAction(
       ...(decision === "approved" ? { notify_push: notifyPush, notify_email: notifyEmail } : {}),
     })
     .eq("id", activityId);
+
+  await logAuditAction(
+    decision === "approved" ? "activity_approved" : "activity_rejected",
+    "activity",
+    activityId,
+    decision === "rejected" ? { rejection_reason: rejectionReason ?? null } : {}
+  );
 
   revalidatePath(`/agenda/${activityId}`);
   revalidatePath("/agenda");

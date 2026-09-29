@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, LayoutDashboard, LogOut, Settings, User as UserIcon } from "lucide-react";
+import { Building2, LayoutDashboard, LogOut, Settings, ShieldCheck, User as UserIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
 import { NavBadge } from "./NavBadge";
@@ -32,6 +32,7 @@ function menuItems(profile: Profile, companyId: string | null) {
     { href: `/leden/${profile.id}`, label: "Mijn profiel", icon: UserIcon },
     ...(companyId ? [{ href: `/bedrijven/${companyId}`, label: "Mijn bedrijfsprofiel", icon: Building2 }] : []),
     { href: "/instellingen", label: "Instellingen", icon: Settings },
+    { href: "/privacy", label: "Privacy & veiligheid", icon: ShieldCheck },
     ...(isBoard(profile.role) ? [{ href: "/beheer", label: "Beheer", icon: LayoutDashboard }] : []),
   ];
 }

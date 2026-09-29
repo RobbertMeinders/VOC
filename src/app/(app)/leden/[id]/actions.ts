@@ -5,6 +5,7 @@ import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
 import { invalidateQuery } from "@/lib/cache/queryCache";
+import { logAuditAction } from "@/lib/audit/log";
 import type { UpdateProfileState } from "@/app/(app)/profiel/actions";
 import type { UserRole } from "@/lib/types/database";
 
@@ -33,6 +34,8 @@ export async function updateMemberRoleAction(
   if (error) {
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
+
+  await logAuditAction("member_role_changed", "profile", memberId, { role });
 
   invalidateQuery("beheer-leden-page-data");
   revalidatePath(`/leden/${memberId}`);
@@ -64,6 +67,8 @@ export async function updateMemberActiveAction(memberId: string, isActive: boole
   if (error) {
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
+
+  await logAuditAction(isActive ? "member_activated" : "member_deactivated", "profile", memberId);
 
   // Deactivering haalt het lid direct uit de (RLS-gefilterde) ledenlijst.
   invalidateQuery("leden-page-data");
@@ -147,6 +152,8 @@ export async function updateMemberProfileAction(
   if (error) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
+
+  await logAuditAction("member_profile_updated", "profile", memberId);
 
   // Naam/functie/avatar staan ook in de ledenlijst.
   invalidateQuery("leden-page-data");

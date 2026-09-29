@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { uploadDocument } from "@/lib/supabase/uploadDocument";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logEvent } from "@/lib/events/log";
+import { logAuditAction } from "@/lib/audit/log";
 
 export type DocumentFormState = { error?: string; success?: boolean };
 
@@ -33,20 +34,26 @@ export async function uploadDocumentAction(
     return { error: result.error };
   }
 
-  const { error } = await supabase.from("documents").insert({
-    title,
-    description: description || null,
-    category: category || null,
-    storage_path: result.path,
-    file_name: file.name,
-    file_size: file.size,
-    mime_type: file.type,
-    uploaded_by: profile.id,
-  });
+  const { data: document, error } = await supabase
+    .from("documents")
+    .insert({
+      title,
+      description: description || null,
+      category: category || null,
+      storage_path: result.path,
+      file_name: file.name,
+      file_size: file.size,
+      mime_type: file.type,
+      uploaded_by: profile.id,
+    })
+    .select("id")
+    .single();
 
   if (error) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
+
+  await logAuditAction("document_added", "document", document.id, { title });
 
   invalidateQuery("documenten-page-data");
   revalidatePath("/documenten");
@@ -60,8 +67,10 @@ export async function logDocumentViewAction(documentId: string): Promise<void> {
 export async function deleteDocumentAction(documentId: string, storagePath: string) {
   await requireBoard();
   const supabase = await createClient();
+  const { data: document } = await supabase.from("documents").select("title").eq("id", documentId).maybeSingle();
   await supabase.storage.from("documents").remove([storagePath]);
   await supabase.from("documents").delete().eq("id", documentId);
+  await logAuditAction("document_deleted", "document", documentId, { title: document?.title ?? null });
   invalidateQuery("documenten-page-data");
   revalidatePath("/documenten");
 }

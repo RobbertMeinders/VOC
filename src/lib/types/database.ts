@@ -479,6 +479,22 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["events"]["Row"]>;
         Relationships: [];
       };
+      audit_logs: {
+        Row: {
+          id: string;
+          action: string;
+          actor_id: string | null;
+          target_type: string | null;
+          target_id: string | null;
+          metadata: Record<string, unknown>;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["audit_logs"]["Row"]> & {
+          action: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["audit_logs"]["Row"]>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -620,6 +636,10 @@ export interface Database {
       };
       log_event: {
         Args: { p_event_type: string; p_target_type?: string | null; p_target_id?: string | null; p_metadata?: Record<string, unknown> };
+        Returns: undefined;
+      };
+      log_audit_action: {
+        Args: { p_action: string; p_target_type?: string | null; p_target_id?: string | null; p_metadata?: Record<string, unknown> };
         Returns: undefined;
       };
       log_notification_click: {
