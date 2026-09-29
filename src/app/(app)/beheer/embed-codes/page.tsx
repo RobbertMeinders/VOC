@@ -8,11 +8,13 @@ export const metadata: Metadata = { title: "Embed-codes" };
 
 const EMBEDS = [
   {
+    id: "voc-embed-agenda",
     path: "/embed/agenda",
     label: "Agenda",
     description: "Overzicht van goedgekeurde activiteiten, doorklikbaar naar aanmelden.",
   },
   {
+    id: "voc-embed-aanmelden",
     path: "/embed/aanmelden",
     label: "Word lid",
     description: "Aanmeldformulier voor nieuwe leden (komt bij Beheer > Toegangsaanvragen terecht).",
@@ -42,7 +44,21 @@ export default async function EmbedCodesPage() {
 
       <div className="flex flex-col gap-4">
         {EMBEDS.map((embed) => {
-          const code = `<iframe src="${origin}${embed.path}" width="100%" height="600" style="border:0;" title="VOC ${embed.label}"></iframe>`;
+          // Het scriptje luistert naar de hoogte die de embed-pagina zelf
+          // doorgeeft (zie EmbedAutoHeight) en zet de iframe daarop — zonder
+          // dit zou de iframe op de opgegeven starthoogte (600) blijven
+          // staan, met een eigen scrollbalkje zodra de inhoud langer is.
+          const code = `<iframe id="${embed.id}" src="${origin}${embed.path}" width="100%" height="600" style="border:0;" title="VOC ${embed.label}"></iframe>
+<script>
+(function () {
+  var iframe = document.getElementById('${embed.id}');
+  window.addEventListener('message', function (event) {
+    if (event.source === iframe.contentWindow && event.data && event.data.type === 'voc-embed-height') {
+      iframe.style.height = event.data.height + 'px';
+    }
+  });
+})();
+</script>`;
           return (
             <div key={embed.path} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
               <p className="text-sm font-semibold text-foreground">{embed.label}</p>
@@ -56,8 +72,9 @@ export default async function EmbedCodesPage() {
       </div>
 
       <p className="text-xs text-muted">
-        De hoogte (600) is een startpunt — pas &apos;m aan als de inhoud op de website afgeknipt wordt of te veel
-        witruimte overlaat.
+        De hoogte past zich automatisch aan de inhoud aan (600 is alleen de starthoogte tot de pagina geladen is) —
+        geen los scrollbalkje in het iframe nodig. De inhoud is altijd in het lichte thema, ongeacht het
+        thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen.
       </p>
     </div>
   );

@@ -4,6 +4,7 @@ import { CalendarDays, MapPin, Users } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { formatActivityDate } from "@/lib/format/date";
+import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "VOC Agenda" };
@@ -43,9 +44,10 @@ export default async function AgendaEmbedPage() {
   ]);
 
   return (
-    <div className="mx-auto flex max-w-xl flex-col gap-3 bg-background p-4">
+    <div className="flex flex-col gap-3 bg-white p-4">
+      <EmbedAutoHeight />
       {(activities ?? []).length === 0 && (
-        <p className="py-8 text-center text-sm text-muted">Er zijn momenteel geen activiteiten gepland.</p>
+        <p className="py-8 text-center text-sm text-[#6b6b72]">Er zijn momenteel geen activiteiten gepland.</p>
       )}
       {(activities ?? []).map((activity) => {
         const imageUrl = activity.image_url ? (imageUrls.get(activity.image_url) ?? null) : null;
@@ -53,29 +55,29 @@ export default async function AgendaEmbedPage() {
           <Link
             key={activity.id}
             href={`/embed/agenda/${activity.id}`}
-            className="flex gap-3 rounded-xl border border-border bg-surface p-3 shadow-sm hover:border-voc-red/40"
+            className="flex gap-3 rounded-xl border border-[#e5e5ea] bg-white p-3 shadow-sm hover:border-voc-red/40"
           >
             {imageUrl ? (
               // eslint-disable-next-line @next/next/no-img-element -- a public, external-embed page: keep it framework-agnostic and dependency-free
               <img src={imageUrl} alt={activity.title} className="h-[72px] w-[72px] shrink-0 rounded-lg object-cover" />
             ) : (
-              <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red">
+              <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-lg bg-[#fdeaec] text-voc-red">
                 <CalendarDays size={24} />
               </div>
             )}
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-foreground">{activity.title}</p>
-              <p className="mt-0.5 text-xs text-muted">{formatActivityDate(activity.starts_at)}</p>
+              <p className="truncate text-sm font-semibold text-[#17171a]">{activity.title}</p>
+              <p className="mt-0.5 text-xs text-[#6b6b72]">{formatActivityDate(activity.starts_at)}</p>
               {activity.location && (
-                <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted">
+                <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-[#6b6b72]">
                   <MapPin size={12} />
                   {activity.location}
                 </p>
               )}
               {activity.description && (
-                <p className="mt-1 line-clamp-2 text-xs text-muted">{activity.description}</p>
+                <p className="mt-1 line-clamp-2 text-xs text-[#6b6b72]">{activity.description}</p>
               )}
-              <p className="mt-1 flex items-center gap-1 text-xs text-muted">
+              <p className="mt-1 flex items-center gap-1 text-xs text-[#6b6b72]">
                 <Users size={12} />
                 {counts.get(activity.id) ?? 0} aanmeldingen
               </p>
