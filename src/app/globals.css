@@ -163,6 +163,23 @@ body {
 .animate-rise-in {
   animation: voc-rise-in 0.35s ease-out both;
 }
+/* Highlight-ring rond een vanuit een notificatie geopend bericht (zie
+   FeedList) — een kant-en-klare CSS-animatie i.p.v. handmatig een
+   Tailwind ring-kleur wisselen via JS/rAF: dat laatste bleek onbetrouwbaar
+   (soms geen zichtbare "aan"-staat door timing/re-render-races). Rechtstreeks
+   box-shadow i.p.v. Tailwind's ring-utility, zodat de hele overgang gewoon
+   door de browser zelf wordt getimed, geen enkele JS-choreografie nodig. */
+@keyframes voc-highlight-fade {
+  from {
+    box-shadow: 0 0 0 2px var(--voc-red);
+  }
+  to {
+    box-shadow: 0 0 0 2px transparent;
+  }
+}
+.animate-highlight-fade {
+  animation: voc-highlight-fade 3s ease-out;
+}
 /* RouteOverlayPanel (lid-/bedrijfsprofiel, activiteitdetail/-formulier, alle
    beheer-overlays) is op mobiel bijna het hele scherm — daar leent een
    "bottom sheet" die van onderaf omhoog schuift zich veel beter voor dan de

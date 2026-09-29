@@ -93,25 +93,15 @@ export function FeedList({
     const el = document.getElementById(`comment-${highlightId}`) ?? document.getElementById(`post-${highlightId}`);
     if (!el) return;
     el.scrollIntoView({ behavior: "smooth", block: "center" });
-    el.classList.add("ring-2", "ring-voc-red", "rounded-xl", "transition-shadow", "duration-[3000ms]", "ease-out");
-    // Dubbele rAF i.p.v. direct de kleur wisselen: de browser moet de
-    // "aan"-staat (ring-voc-red) eerst echt geschilderd hebben voordat de
-    // overgang naar transparant iets valt te animeren — begint de fade dus
-    // meteen bij het verschijnen i.p.v. pas na een periode vol aangehouden
-    // te zijn.
-    const raf1 = requestAnimationFrame(() => {
-      requestAnimationFrame(() => {
-        el.classList.remove("ring-voc-red");
-        el.classList.add("ring-transparent");
-      });
-    });
+    // Kant-en-klare CSS-animatie (zie .animate-highlight-fade) i.p.v. zelf
+    // met classList/rAF de kleur te wisselen — dat bleek onbetrouwbaar (de
+    // ring kwam soms niet of nauwelijks zichtbaar in beeld). Faded meteen
+    // vanaf het verschijnen uit, getimed door de browser zelf.
+    el.classList.add("rounded-xl", "animate-highlight-fade");
     const cleanupTimeout = setTimeout(() => {
-      el.classList.remove("ring-2", "ring-transparent", "rounded-xl", "transition-shadow", "duration-[3000ms]", "ease-out");
-    }, 3200);
-    return () => {
-      cancelAnimationFrame(raf1);
-      clearTimeout(cleanupTimeout);
-    };
+      el.classList.remove("rounded-xl", "animate-highlight-fade");
+    }, 3000);
+    return () => clearTimeout(cleanupTimeout);
   }, [highlightId]);
 
   useEffect(() => {

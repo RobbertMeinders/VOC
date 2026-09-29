@@ -39,7 +39,7 @@ function ActivityCard({
   return (
     <Link
       href={`/embed/agenda/${activity.id}`}
-      className={`overflow-hidden rounded-2xl bg-surface shadow-sm ${
+      className={`overflow-hidden rounded-2xl border border-border bg-surface shadow-sm ${
         isPast ? "opacity-80 grayscale-[50%]" : "transition-all duration-500 ease-out hover:scale-[1.008] hover:shadow-md"
       }`}
     >
@@ -128,7 +128,7 @@ export default async function AgendaEmbedPage({ searchParams }: { searchParams: 
     // min-h-screen dekt deze div alleen zijn eigen (kortere) inhoud af — het
     // stuk daaronder blijft dan <body> zelf, die bij een donker OS-thema
     // alsnog donker inkleurt en als een zwarte balk onderin zichtbaar werd.
-    <div data-theme="light" className="min-h-screen bg-background">
+    <div data-theme="light" className="min-h-screen bg-surface">
       <div className="flex flex-col gap-6 p-4">
         <EmbedAutoHeight />
         {/* Deze titel + intro staan hier i.p.v. los op de WordPress-pagina
@@ -166,7 +166,7 @@ export default async function AgendaEmbedPage({ searchParams }: { searchParams: 
         )}
 
         {(past ?? []).length > 0 && (
-          <div>
+          <div className="mt-6">
             <h3 className="text-lg font-semibold text-foreground">Eerdere activiteiten</h3>
             <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {(past ?? []).map((activity) => (

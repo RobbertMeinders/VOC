@@ -225,21 +225,20 @@ export function ActivityForm({
         </div>
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <label className="flex items-center gap-2 text-sm font-medium text-foreground">
-          <input
-            type="checkbox"
-            name="allow_public_registration"
-            checked={allowPublicRegistration}
-            onChange={(e) => setAllowPublicRegistration(e.target.checked)}
-            className="rounded"
-          />
-          Aanmelden door niet-leden toestaan (openbare website)
-        </label>
-        <p className="text-xs text-muted">
-          Zonder vinkje ziet een bezoeker van de website deze activiteit wel, maar kan alleen een lid zich (via het
-          portaal) aanmelden.
-        </p>
+      <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3 py-2.5">
+        <div>
+          <p className="text-sm font-medium text-foreground">Aanmelden door niet-leden toestaan</p>
+          <p className="text-xs text-muted">
+            Uit: een bezoeker van de openbare website ziet deze activiteit wel, maar kan alleen een lid zich (via het
+            portaal) aanmelden.
+          </p>
+        </div>
+        <input type="hidden" name="allow_public_registration" value={allowPublicRegistration ? "on" : ""} />
+        <Switch
+          checked={allowPublicRegistration}
+          onChange={() => setAllowPublicRegistration((v) => !v)}
+          label="Aanmelden door niet-leden toestaan"
+        />
       </div>
 
       {source === "lid" && (

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { Building2, Globe } from "lucide-react";
-import { PopupLoginLink } from "@/components/embed/PopupLoginLink";
 import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
 import { Avatar } from "@/components/ui/Avatar";
+import { PopupLoginLink } from "@/components/embed/PopupLoginLink";
 
 export type CompanyDetailData = {
   name: string;
@@ -106,25 +106,26 @@ export function CompanyDetailContent({ company }: { company: CompanyDetailData }
           <p className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij {company.name}</p>
           <ul className="flex flex-col gap-3">
             {company.employees.map((employee) => (
-              <li key={employee.id}>
-                {/* Klik op een naam -> loginmuur, geen openbaar profiel (zie
-                    de eerdere ontwerp-discussie). Pop-up i.p.v. target="_top":
-                    zie PopupLoginLink voor waarom. */}
-                <PopupLoginLink
-                  href={`/login?next=${encodeURIComponent(`/leden/${employee.id}`)}`}
-                  className="flex items-center gap-3 hover:opacity-80"
-                >
-                  <Avatar firstName={employee.firstName} lastName={employee.lastName} avatarUrl={employee.avatarUrl} size={40} />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {employee.firstName} {employee.lastName}
-                    </p>
-                    {employee.jobTitle && <p className="truncate text-xs text-muted">{employee.jobTitle}</p>}
-                  </div>
-                </PopupLoginLink>
+              // Geen link (meer): dit is de openbare, niet-ingelogde embed —
+              // er is toch geen openbaar profiel om naartoe te gaan, dus
+              // klikbaar/hover-gedrag suggereerde hier iets dat niet klopte.
+              <li key={employee.id} className="flex items-center gap-3">
+                <Avatar firstName={employee.firstName} lastName={employee.lastName} avatarUrl={employee.avatarUrl} size={40} />
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {employee.firstName} {employee.lastName}
+                  </p>
+                  {employee.jobTitle && <p className="truncate text-xs text-muted">{employee.jobTitle}</p>}
+                </div>
               </li>
             ))}
           </ul>
+          <p className="mt-3 border-t border-border pt-3 text-xs text-muted">
+            <PopupLoginLink href="/login" className="font-medium text-voc-red hover:underline">
+              Log in
+            </PopupLoginLink>{" "}
+            voor meer info over dit team.
+          </p>
         </div>
       )}
     </div>

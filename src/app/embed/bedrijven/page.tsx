@@ -60,7 +60,7 @@ export default async function BedrijvenEmbedPage({
     // Zie /embed/agenda/page.tsx voor waarom data-theme="light" + min-h-screen
     // hier samen nodig zijn (voorkomt de donkere balk die <body> anders
     // onderin liet doorschemeren bij een donker OS-thema).
-    <div data-theme="light" className="min-h-screen bg-background">
+    <div data-theme="light" className="min-h-screen bg-surface">
       {/* De iframe zelf volgt gewoon de breedte van de WordPress-pagina (geen
           eigen CSS-breedte-truc meer, zie /beheer/embed-codes — dat brak op
           deze site). Deze max-w-wrapper zorgt dat de inhoud zelf een
