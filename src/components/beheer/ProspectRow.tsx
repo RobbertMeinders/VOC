@@ -23,7 +23,7 @@ export function ProspectRow({ prospect }: { prospect: Prospect }) {
       <div className="flex shrink-0 items-center gap-2">
         <ProspectStatusSelect prospectId={prospect.id} initialStatus={prospect.status} />
         <DeleteButton
-          onDelete={() => deleteProspectAction(prospect.id)}
+          onDelete={deleteProspectAction.bind(null, prospect.id)}
           confirmMessage={`${prospect.name} verwijderen uit de potentiële leden?`}
         />
       </div>
