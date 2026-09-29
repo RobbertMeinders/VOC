@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 
 // De vier menu-overlays (zoeken, notificaties, netwerk, account) leven allemaal
 // zowel in de sidebar als in de mobiele header/bottom-nav tegelijk in de DOM
@@ -26,15 +27,10 @@ export function OverlayProvider({ children }: { children: ReactNode }) {
   // Achtergrond niet laten scrollen terwijl een overlay open staat — zonder
   // dit kan de focus op een input in een fixed paneel (Zoeken) de pagina op
   // iOS Safari alsnog laten "springen" terwijl het toetsenbord opent, ook al
-  // is het paneel zelf al fixed gepositioneerd.
-  useEffect(() => {
-    if (!openOverlay) return;
-    const original = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = original;
-    };
-  }, [openOverlay]);
+  // is het paneel zelf al fixed gepositioneerd. Gedeelde hook (i.p.v. een
+  // eigen inline effect) zodat dit meetelt in dezelfde teller als elk ander
+  // modal/overlay in de app — zie useBodyScrollLock voor waarom dat nodig is.
+  useBodyScrollLock(openOverlay !== null);
 
   const value = useMemo<OverlayContextValue>(
     () => ({
