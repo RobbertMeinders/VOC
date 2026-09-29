@@ -32,9 +32,12 @@ export function BedrijvenEmbedList({ items, branches }: { items: EmbedCompanyLis
     scrollEmbedToTop();
   }
 
+  // Bewust GEEN scrollEmbedToTop() hier: bij het openen van een bedrijf wil
+  // je naar de (mogelijk elders in beeld staande) titel gebracht worden,
+  // maar bij teruggaan naar de lijst mag de pagina gewoon blijven staan waar
+  // 'm al stond — opnieuw scrollen voelde als een onnodige, ongewenste sprong.
   function handleBack() {
     setSelectedSlug(null);
-    scrollEmbedToTop();
   }
 
   if (selectedSlug) {

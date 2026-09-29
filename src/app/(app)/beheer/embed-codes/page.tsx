@@ -78,6 +78,10 @@ export default async function EmbedCodesPage() {
 <script>
 (function () {
   var iframe = document.getElementById('${embed.id}');
+  // Hoogte van een eventuele vaste/sticky menubalk bovenaan de website —
+  // pas dit getal aan als de titel van een geopende pagina/detail er nu nog
+  // (deels) achter wegvalt. 0 als de site geen vaste menubalk heeft.
+  var STICKY_HEADER_HEIGHT = 100;
   window.addEventListener('message', function (event) {
     if (event.source !== iframe.contentWindow || !event.data) return;
     if (event.data.type === 'voc-embed-height') {
@@ -90,7 +94,7 @@ export default async function EmbedCodesPage() {
     // midden van die nieuwe pagina i.p.v. de titel/context bovenaan.
     if (event.data.type === 'voc-embed-scroll-top') {
       var rect = iframe.getBoundingClientRect();
-      window.scrollTo({ top: window.scrollY + rect.top - 20, behavior: 'smooth' });
+      window.scrollTo({ top: window.scrollY + rect.top - STICKY_HEADER_HEIGHT - 20, behavior: 'smooth' });
     }
   });
 ${hashRedirect}
@@ -111,11 +115,13 @@ ${hashRedirect}
       <p className="text-xs text-muted">
         De hoogte past zich automatisch aan de inhoud aan (600 is alleen de starthoogte tot de pagina geladen is) —
         geen los scrollbalkje in het iframe nodig. De inhoud is altijd in het lichte thema, ongeacht het
-        thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen. Klik je in de agenda door naar
-        een detailpagina (of terug), dan scrollt de website automatisch weer naar de bovenkant van het embed, ook als
-        je daarvoor ver naar beneden had gescrold. In de bedrijvengids opent een bedrijf juist als overlay bovenop de
-        lijst, precies waar je op dat moment aan het kijken bent. Staat er nog een oudere versie van deze code op de
-        website, plak &apos;m dan hier opnieuw.
+        thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen. Klik je door naar een
+        detailpagina (in de agenda, of naar een bedrijf in de bedrijvengids), dan scrollt de website automatisch mee
+        naar de bovenkant daarvan, ook als je daarvoor ver naar beneden had gescrold — ga je weer terug, dan blijft de
+        pagina gewoon staan waar je was, in plaats van nogmaals te scrollen. Staat de titel van een geopende
+        pagina/detail nu nog (deels) achter de menubalk van de website, verhoog dan <code>STICKY_HEADER_HEIGHT</code>{" "}
+        bovenin het scriptje. Staat er nog een oudere versie van deze code op de website, plak &apos;m dan hier
+        opnieuw.
       </p>
       <p className="text-xs text-muted">
         De &quot;Delen&quot;-knop op een activiteit deelt naar de echte website (met een leesbaar #-anker, bijv.
