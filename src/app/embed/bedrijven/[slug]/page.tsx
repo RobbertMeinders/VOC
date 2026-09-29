@@ -3,10 +3,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, Building2, Globe } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getSignedStorageUrl } from "@/lib/supabase/storage";
+import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
 import { PopupLoginLink } from "@/components/embed/PopupLoginLink";
 import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
+import { Avatar } from "@/components/ui/Avatar";
 
 type PublicCompany = {
   id: string;
@@ -21,7 +22,7 @@ type PublicCompany = {
   linkedin_url: string | null;
   instagram_url: string | null;
   facebook_url: string | null;
-  employees: { id: string; first_name: string; last_name: string; job_title: string | null }[];
+  employees: { id: string; first_name: string; last_name: string; job_title: string | null; avatar_url: string | null }[];
 };
 
 export const metadata: Metadata = { title: "VOC Bedrijvengids" };
@@ -39,7 +40,14 @@ export default async function BedrijfEmbedDetailPage({ params }: { params: Promi
 
   if (!company) notFound();
 
-  const logoUrl = await getSignedStorageUrl("company-logos", company.logo_url);
+  const [logoUrl, avatarUrls] = await Promise.all([
+    getSignedStorageUrl("company-logos", company.logo_url),
+    getSignedStorageUrls(
+      supabase,
+      "avatars",
+      company.employees.map((e) => e.avatar_url)
+    ),
+  ]);
 
   return (
     // Zie /embed/agenda/page.tsx voor waarom data-theme="light" + min-h-screen
@@ -53,59 +61,65 @@ export default async function BedrijfEmbedDetailPage({ params }: { params: Promi
           Terug naar bedrijvengids
         </Link>
 
-        <div className="flex items-center gap-4">
-          {logoUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- publieke, external-embed pagina: geen framework-afhankelijkheden
-            <img src={logoUrl} alt={company.name} className="h-20 w-20 shrink-0 rounded-2xl object-cover" />
-          ) : (
-            <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl bg-voc-red-light text-voc-red">
-              <Building2 size={32} />
+        <div className="rounded-2xl bg-surface p-4 shadow-sm">
+          <div className="flex items-start gap-4">
+            {logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- publieke, external-embed pagina: geen framework-afhankelijkheden
+              <img src={logoUrl} alt={company.name} className="h-16 w-16 shrink-0 rounded-2xl object-cover" />
+            ) : (
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-voc-red-light text-voc-red">
+                <Building2 size={28} />
+              </div>
+            )}
+            <div className="min-w-0">
+              <h1 className="text-xl font-semibold text-foreground">{company.name}</h1>
+              {company.tagline && <p className="mt-0.5 text-sm text-muted">{company.tagline}</p>}
+              {(company.industry || company.city) && (
+                <p className="mt-0.5 text-sm text-muted">{[company.industry, company.city].filter(Boolean).join(" · ")}</p>
+              )}
+              {company.website && (
+                <a
+                  href={company.website}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-1.5 flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red hover:underline"
+                >
+                  <Globe size={14} />
+                  {company.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
+                </a>
+              )}
+            </div>
+          </div>
+
+          {company.description && (
+            <p className="mt-4 whitespace-pre-line border-t border-border pt-4 text-sm text-foreground">
+              {company.description}
+            </p>
+          )}
+
+          {(company.linkedin_url || company.instagram_url || company.facebook_url) && (
+            // text-foreground: EntitySocialLinks' compact variant stelt zelf
+            // geen tekstkleur in (op de echte portaalpagina's altijd prima,
+            // want die volgen consequent hetzelfde thema) en erft daardoor
+            // hier de (op een donker OS-thema witte) kleur van <body> i.p.v.
+            // onze data-theme="light"-override — dat maakte de tekst
+            // onzichtbaar tot je eroverheen hoverde.
+            <div className="mt-4 border-t border-border pt-4">
+              <EntitySocialLinks
+                linkedinUrl={company.linkedin_url}
+                instagramUrl={company.instagram_url}
+                facebookUrl={company.facebook_url}
+                variant="compact"
+                className="text-foreground"
+              />
             </div>
           )}
-          <div className="min-w-0">
-            <h1 className="text-xl font-semibold text-foreground">{company.name}</h1>
-            {(company.industry || company.city) && (
-              <p className="mt-0.5 text-sm text-muted">{[company.industry, company.city].filter(Boolean).join(" · ")}</p>
-            )}
-            {company.tagline && <p className="mt-0.5 text-sm text-muted">{company.tagline}</p>}
-          </div>
         </div>
-
-        {company.description && <p className="whitespace-pre-line text-sm text-foreground">{company.description}</p>}
-
-        {(company.website || company.linkedin_url || company.instagram_url || company.facebook_url) && (
-          <div className="flex flex-wrap items-center gap-3">
-            {company.website && (
-              <a
-                href={company.website}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.04]"
-              >
-                <Globe size={14} />
-                Website
-              </a>
-            )}
-            {/* text-foreground: EntitySocialLinks' compact variant stelt zelf
-                geen tekstkleur in (op de echte portaalpagina's altijd prima,
-                want die volgen consequent hetzelfde thema) en erft daardoor
-                hier de (op een donker OS-thema witte) kleur van <body> i.p.v.
-                onze data-theme="light"-override — dat maakte de tekst
-                onzichtbaar tot je eroverheen hoverde. */}
-            <EntitySocialLinks
-              linkedinUrl={company.linkedin_url}
-              instagramUrl={company.instagram_url}
-              facebookUrl={company.facebook_url}
-              variant="compact"
-              className="text-foreground"
-            />
-          </div>
-        )}
 
         {company.employees.length > 0 && (
           <div className="rounded-2xl bg-surface p-4 shadow-sm">
-            <p className="mb-2 text-sm font-semibold text-foreground">Werkzaam bij {company.name}</p>
-            <ul className="flex flex-col gap-2">
+            <p className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij {company.name}</p>
+            <ul className="flex flex-col gap-3">
               {company.employees.map((employee) => (
                 <li key={employee.id}>
                   {/* Klik op een naam -> loginmuur, geen openbaar profiel (zie
@@ -113,10 +127,20 @@ export default async function BedrijfEmbedDetailPage({ params }: { params: Promi
                       zie PopupLoginLink voor waarom. */}
                   <PopupLoginLink
                     href={`/login?next=${encodeURIComponent(`/leden/${employee.id}`)}`}
-                    className="text-sm text-voc-red hover:underline"
+                    className="flex items-center gap-3 hover:opacity-80"
                   >
-                    {employee.first_name} {employee.last_name}
-                    {employee.job_title && <span className="text-muted"> — {employee.job_title}</span>}
+                    <Avatar
+                      firstName={employee.first_name}
+                      lastName={employee.last_name}
+                      avatarUrl={employee.avatar_url ? (avatarUrls.get(employee.avatar_url) ?? null) : null}
+                      size={40}
+                    />
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-medium text-foreground">
+                        {employee.first_name} {employee.last_name}
+                      </p>
+                      {employee.job_title && <p className="truncate text-xs text-muted">{employee.job_title}</p>}
+                    </div>
                   </PopupLoginLink>
                 </li>
               ))}

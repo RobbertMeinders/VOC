@@ -542,7 +542,7 @@ export interface Database {
           linkedin_url: string | null;
           instagram_url: string | null;
           facebook_url: string | null;
-          employees: { id: string; first_name: string; last_name: string; job_title: string | null }[];
+          employees: { id: string; first_name: string; last_name: string; job_title: string | null; avatar_url: string | null }[];
         }[];
       };
       delete_expired_prospects: {
