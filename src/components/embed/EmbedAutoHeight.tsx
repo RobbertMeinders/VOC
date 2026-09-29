@@ -19,12 +19,26 @@ import { useEffect } from "react";
 // layout), dus "bij het mounten" is precies het navigatiemoment: meld dan
 // ook meteen dat de omliggende pagina terug naar de bovenkant van de
 // iframe moet scrollen.
+//
+// Uitzondering: de állereerste keer dat deze iframe ooit laadt (de bezoeker
+// komt gewoon op de WordPress-pagina terecht) staat die pagina al waar hij
+// moet staan — een scroll-top-melding dán liet de hele buitenpagina meteen
+// bij binnenkomst een stukje verspringen. Deze module-scoped vlag overleeft
+// client-side navigatie binnen dezelfde iframe (Next.js Link, geen page
+// reload) maar reset bij een echte (her)load van de iframe, dus normale
+// in-embed-navigatie (lijst -> detail, of terug) blijft wél scrollen.
+let hasMountedBefore = false;
+
 export function EmbedAutoHeight() {
   useEffect(() => {
+    const isFirstMountEver = !hasMountedBefore;
+    hasMountedBefore = true;
+
     function post() {
       window.parent.postMessage({ type: "voc-embed-height", height: document.documentElement.scrollHeight }, "*");
     }
     function postScrollTop() {
+      if (isFirstMountEver) return;
       window.parent.postMessage({ type: "voc-embed-scroll-top" }, "*");
     }
 
