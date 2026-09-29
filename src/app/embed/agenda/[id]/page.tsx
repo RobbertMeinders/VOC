@@ -10,6 +10,7 @@ import { PublicRegistrationForm } from "@/components/embed/PublicRegistrationFor
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
 import { ShareActivityButton } from "@/components/embed/ShareActivityButton";
 import { RegisterButton } from "@/components/agenda/RegisterButton";
+import { PopupLoginLink } from "@/components/embed/PopupLoginLink";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -141,17 +142,18 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
           ) : activity.allow_public_registration ? (
             <div className="flex flex-col gap-6">
               <div className="flex justify-center">
-                {/* target="_top": deze pagina draait als iframe op de VOC-website — zonder
-                    dit zou het inlogscherm proberen te laden binnen dat kleine iframe.
-                    ?next=/agenda/[id]: stuurt na inloggen door naar de activiteit zelf
-                    in het portaal, i.p.v. naar het dashboard. */}
-                <Link
+                {/* Pop-up i.p.v. target="_top": zie PopupLoginLink voor waarom —
+                    zo blijf je op de WordPress-pagina en werkt inloggen/aanmelden
+                    toch altijd (first-party cookies in de pop-up, i.p.v. de
+                    cross-site cookie die dit iframe nooit krijgt). ?next=/agenda/[id]:
+                    stuurt na inloggen door naar de activiteit zelf in het portaal,
+                    i.p.v. naar het dashboard. */}
+                <PopupLoginLink
                   href={`/login?next=${encodeURIComponent(`/agenda/${activity.id}`)}`}
-                  target="_top"
                   className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
                 >
                   Log in om je aan te melden
-                </Link>
+                </PopupLoginLink>
               </div>
               <div className="flex flex-col gap-3 border-t border-border pt-6">
                 <p className="text-sm text-foreground">Meld je aan als bezoeker</p>
@@ -161,13 +163,12 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
           ) : (
             <div className="flex flex-col items-center gap-3 text-center">
               <p className="text-sm text-muted">Deze activiteit is alleen voor leden.</p>
-              <Link
+              <PopupLoginLink
                 href={`/login?next=${encodeURIComponent(`/agenda/${activity.id}`)}`}
-                target="_top"
                 className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
               >
                 Log in om je aan te melden
-              </Link>
+              </PopupLoginLink>
             </div>
           )}
         </div>
