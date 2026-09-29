@@ -22,12 +22,18 @@ export const config = {
      *   notification id server-side, so no auth is needed or expected here.
      * - api/webhooks/* — hit by external services (Resend) with their own
      *   signature-based auth (Svix), never a Supabase session cookie.
-     * - api/embed/* — publieke JSON-endpoints voor de agenda-embed, bedoeld
-     *   voor een anonieme bezoeker (net als /embed zelf); de route zelf
-     *   geeft gewoon `{ profile: null }` terug als er geen sessie is i.p.v.
-     *   dat de middleware 'm naar /login zou moeten redirecten — een
-     *   redirect zou hier een niet-JSON response opleveren.
+     *
+     * api/embed/* is DELIBERATELY NOT excluded here (unlike the paths
+     * above): those routes call getCurrentProfile(), which trusts the
+     * x-voc-verified-user-id header as already-verified — a guarantee that
+     * only holds because this middleware is the one thing that sets/clears
+     * it based on a real auth.getUser() call. Excluding api/embed from the
+     * matcher used to mean that header was never touched for those routes,
+     * so a client could set it directly on the request and impersonate any
+     * profile id (IDOR). api/embed is listed in PUBLIC_PATHS (middleware.ts)
+     * instead, so it still never gets redirected to /login for an
+     * anonymous visitor, while the header keeps getting verified.
      */
-    "/((?!_next/static|_next/image|manifest.webmanifest|sw.js|api/cron|api/notifications/click|api/webhooks|api/embed|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)",
+    "/((?!_next/static|_next/image|manifest.webmanifest|sw.js|api/cron|api/notifications/click|api/webhooks|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)",
   ],
 };

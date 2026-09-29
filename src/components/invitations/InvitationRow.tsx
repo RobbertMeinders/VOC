@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Clock, Copy, Mail, X } from "lucide-react";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import type { Invitation } from "./InvitationList";
@@ -14,14 +14,22 @@ export function InvitationRow({ invitation }: { invitation: Invitation }) {
   const [copied, setCopied] = useState(false);
   const [sending, setSending] = useState(false);
   const [sendResult, setSendResult] = useState<string | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const link = typeof window !== "undefined" ? `${window.location.origin}/register/${invitation.token}` : "";
   const name = [invitation.first_name, invitation.last_name].filter(Boolean).join(" ");
 
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
   async function copyLink() {
     await navigator.clipboard.writeText(link);
     setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => setCopied(false), 2000);
   }
 
   async function sendEmail() {

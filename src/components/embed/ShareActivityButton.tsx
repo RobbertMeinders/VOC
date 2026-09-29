@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Check, Share2 } from "lucide-react";
 
 // navigator.share (mobiel: opent het native deelmenu) met een clipboard-
@@ -53,6 +53,13 @@ export function ShareActivityButton({
   marketingUrl?: string;
 }) {
   const [copied, setCopied] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
 
   async function share() {
     const url = marketingUrl ? `${marketingUrl.replace(/\/$/, "")}#${slug}` : `${window.location.origin}/embed/agenda/${activityId}`;
@@ -76,7 +83,8 @@ export function ShareActivityButton({
     }
     if (ok) {
       setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => setCopied(false), 2000);
     }
   }
 
