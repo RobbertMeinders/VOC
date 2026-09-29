@@ -22,7 +22,12 @@ export const config = {
      *   notification id server-side, so no auth is needed or expected here.
      * - api/webhooks/* — hit by external services (Resend) with their own
      *   signature-based auth (Svix), never a Supabase session cookie.
+     * - api/embed/* — publieke JSON-endpoints voor de agenda-embed, bedoeld
+     *   voor een anonieme bezoeker (net als /embed zelf); de route zelf
+     *   geeft gewoon `{ profile: null }` terug als er geen sessie is i.p.v.
+     *   dat de middleware 'm naar /login zou moeten redirecten — een
+     *   redirect zou hier een niet-JSON response opleveren.
      */
-    "/((?!_next/static|_next/image|manifest.webmanifest|sw.js|api/cron|api/notifications/click|api/webhooks|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)",
+    "/((?!_next/static|_next/image|manifest.webmanifest|sw.js|api/cron|api/notifications/click|api/webhooks|api/embed|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)",
   ],
 };

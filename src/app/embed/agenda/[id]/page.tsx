@@ -6,11 +6,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { formatActivityDate } from "@/lib/format/date";
 import { getCurrentProfile } from "@/lib/auth/session";
-import { PublicRegistrationForm } from "@/components/embed/PublicRegistrationForm";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
 import { ShareActivityButton } from "@/components/embed/ShareActivityButton";
 import { RegisterButton } from "@/components/agenda/RegisterButton";
-import { PopupLoginLink } from "@/components/embed/PopupLoginLink";
+import { MemberOrVisitorRegistration } from "@/components/embed/MemberOrVisitorRegistration";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -139,37 +138,17 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
                 deadlinePassed={deadlinePassed}
               />
             </div>
-          ) : activity.allow_public_registration ? (
-            <div className="flex flex-col gap-6">
-              <div className="flex justify-center">
-                {/* Pop-up i.p.v. target="_top": zie PopupLoginLink voor waarom —
-                    zo blijf je op de WordPress-pagina en werkt inloggen/aanmelden
-                    toch altijd (first-party cookies in de pop-up, i.p.v. de
-                    cross-site cookie die dit iframe nooit krijgt). ?next=/agenda/[id]:
-                    stuurt na inloggen door naar de activiteit zelf in het portaal,
-                    i.p.v. naar het dashboard. */}
-                <PopupLoginLink
-                  href={`/login?next=${encodeURIComponent(`/agenda/${activity.id}`)}`}
-                  className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
-                >
-                  Log in om je aan te melden
-                </PopupLoginLink>
-              </div>
-              <div className="flex flex-col gap-3 border-t border-border pt-6">
-                <p className="text-sm text-foreground">Meld je aan als bezoeker</p>
-                <PublicRegistrationForm activityId={activity.id} />
-              </div>
-            </div>
           ) : (
-            <div className="flex flex-col items-center gap-3 text-center">
-              <p className="text-sm text-muted">Deze activiteit is alleen voor leden.</p>
-              <PopupLoginLink
-                href={`/login?next=${encodeURIComponent(`/agenda/${activity.id}`)}`}
-                className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
-              >
-                Log in om je aan te melden
-              </PopupLoginLink>
-            </div>
+            // Server-side kon geen sessie gedetecteerd worden (het normale
+            // geval in een echte cross-site iframe-embed) — dit component
+            // probeert het client-side alsnog via de Storage Access API,
+            // met de altijd-werkende pop-up als fallback. Zie
+            // MemberOrVisitorRegistration voor de volledige uitleg.
+            <MemberOrVisitorRegistration
+              activityId={activity.id}
+              allowPublicRegistration={activity.allow_public_registration}
+              loginHref={`/login?next=${encodeURIComponent(`/agenda/${activity.id}`)}`}
+            />
           )}
         </div>
       </div>
