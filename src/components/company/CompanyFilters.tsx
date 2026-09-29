@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/Input";
 
@@ -11,9 +11,19 @@ export function CompanyFilters({ branches }: { branches: string[] }) {
   const searchParams = useSearchParams();
   const [query, setQuery] = useState(searchParams.get("q") ?? "");
 
+  // Ref i.p.v. de searchParams uit de render-closure: de branche-select hieronder
+  // past de URL synchroon aan (router.replace), maar de setTimeout hier is nog
+  // 300ms onderweg met een oudere snapshot van searchParams — zonder deze ref
+  // overschrijft die vertraagde timeout de net-gekozen branchefilter weer met de
+  // verouderde staat zodra hij afgaat.
+  const searchParamsRef = useRef(searchParams);
+  useEffect(() => {
+    searchParamsRef.current = searchParams;
+  }, [searchParams]);
+
   useEffect(() => {
     const timeout = setTimeout(() => {
-      const params = new URLSearchParams(searchParams);
+      const params = new URLSearchParams(searchParamsRef.current);
       if (query) params.set("q", query);
       else params.delete("q");
       router.replace(`${pathname}?${params.toString()}`);

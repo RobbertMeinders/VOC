@@ -9,6 +9,7 @@ import { formatActivityDateShort } from "@/lib/format/date";
 import { Skeleton } from "@/components/ui/Skeleton";
 import { NotificationList } from "@/components/notifications/NotificationList";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
+import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useFixedAnchor } from "@/lib/dom/useFixedAnchor";
 import { useMarkNotificationRead } from "@/lib/notifications/useUnreadCount";
@@ -38,6 +39,10 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
   const markRead = useMarkNotificationRead();
 
   useEscapeKey(open, close);
+  // Alleen relevant op mobiel: daar is dit een volledig-scherm sheet (net als
+  // MemberPostsOverlay/ImageLightbox), en zonder lock kan de pagina eronder
+  // via touch nog scrollen terwijl deze overlay openstaat.
+  useBodyScrollLock(variant === "mobile" && open);
 
   function handleOpen() {
     const willOpen = !open;

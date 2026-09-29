@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { Building2, Calendar, FileText, Search, User, X } from "lucide-react";
 import { clsx } from "clsx";
+import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useOverlay } from "@/lib/ui/OverlayContext";
 import { searchPreviewAction, type SearchPreviewItem } from "@/app/(app)/zoeken/preview-actions";
@@ -26,6 +27,7 @@ function SearchPanel({ close }: { close: () => void }) {
   const router = useRouter();
 
   useEscapeKey(true, close);
+  useBodyScrollLock(true);
 
   useEffect(() => {
     inputRef.current?.focus();

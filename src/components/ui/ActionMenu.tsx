@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MoreVertical } from "lucide-react";
 import { clsx } from "clsx";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
+import { FloatingPortal } from "@/components/ui/FloatingPortal";
 
 export type ActionMenuItem = {
   label: string;
@@ -34,7 +35,15 @@ export function ActionMenu({ items }: { items: ActionMenuItem[] }) {
       </button>
       {open && (
         <>
-          <div className="fixed inset-0 z-30 cursor-pointer" onClick={() => setOpen(false)} />
+          {/* FloatingPortal: alleen deze onzichtbare klik-vanger, niet het menu
+              zelf — een voorouder met een always-on transform (RouteOverlayPanel,
+              bij berichten binnen een geopend profieloverlay) maakt zichzelf
+              anders het containing block voor deze fixed inset-0-laag, waardoor
+              klikken buiten dat paneel (bv. de sidebar) het menu niet meer
+              sloten. Het menu zelf blijft gewoon absolute t.o.v. de trigger. */}
+          <FloatingPortal>
+            <div className="fixed inset-0 z-30 cursor-pointer" onClick={() => setOpen(false)} />
+          </FloatingPortal>
           <div className="animate-scale-in origin-top absolute right-0 top-full z-40 mt-1 w-40 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
             {items.map((item) => (
               <button

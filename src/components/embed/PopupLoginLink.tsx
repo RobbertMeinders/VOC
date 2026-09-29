@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
 // Waarom een pop-up i.p.v. gewoon target="_top": deze pagina draait in een
@@ -14,6 +15,17 @@ import { useRouter } from "next/navigation";
 // open i.p.v. dat je 'm helemaal verlaat.
 export function PopupLoginLink({ href, className, children }: { href: string; className?: string; children: React.ReactNode }) {
   const router = useRouter();
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Zonder deze cleanup blijft de poll-interval na het verlaten/ontmounten
+  // van deze embed-pagina (bv. klikken naar een ander bedrijf terwijl de
+  // login-pop-up nog openstaat) gewoon doortikken tegen een router-referentie
+  // van een component die niet meer bestaat.
+  useEffect(() => {
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, []);
 
   function open(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
@@ -36,9 +48,11 @@ export function PopupLoginLink({ href, className, children }: { href: string; cl
     const interval = setInterval(() => {
       if (popup.closed) {
         clearInterval(interval);
+        intervalRef.current = null;
         router.refresh();
       }
     }, 500);
+    intervalRef.current = interval;
   }
 
   return (
