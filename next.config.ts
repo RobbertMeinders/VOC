@@ -3,6 +3,25 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Don't let `next dev` regenerate AGENTS.md/CLAUDE.md on every run.
   agentRules: false,
+  async headers() {
+    return [
+      {
+        // Alles BEHALVE /embed en /api/embed — die moeten juist wél in een
+        // iframe op de publieke WordPress-site kunnen laden (zie
+        // README "WordPress-embed"). De rest van de app (ingelogde
+        // portaalpagina's, login) hoort nooit in andermans iframe: zonder
+        // deze header kon een kwaadwillende site het portaal onzichtbaar
+        // over eigen knoppen leggen (clickjacking) om een ingelogd lid
+        // bv. per ongeluk op "Account verwijderen" te laten klikken.
+        source: "/((?!embed(?:/|$)|api/embed(?:/|$)).*)",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          { key: "X-Content-Type-Options", value: "nosniff" },
+          { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+    ];
+  },
   experimental: {
     serverActions: {
       // Default is 1MB, too small for a phone photo. Match the largest
