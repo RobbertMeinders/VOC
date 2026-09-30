@@ -1,6 +1,7 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/types/database";
+import { safeRedirectPath } from "@/lib/url/safeRedirect";
 import { supabaseAnonKey, supabaseUrl } from "./env";
 import { DEFAULT_MAX_AGE, REMEMBERED_MAX_AGE, REMEMBER_ME_COOKIE, VERIFIED_USER_ID_HEADER } from "./session-persistence";
 
@@ -64,7 +65,7 @@ export async function updateSession(request: NextRequest) {
     // aan te melden"-link met ?next=/agenda/[id] hier belandt, alsnog op het
     // dashboard terecht i.p.v. bij de activiteit waar die vandaan kwam.
     const next = request.nextUrl.searchParams.get("next");
-    return NextResponse.redirect(new URL(next && next.startsWith("/") ? next : "/", request.url));
+    return NextResponse.redirect(new URL(safeRedirectPath(next), request.url));
   }
 
   // Forward the user id we just verified with Supabase Auth to the actual

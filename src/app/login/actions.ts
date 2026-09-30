@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTemplatedEmail } from "@/lib/email/send";
 import { isEmailRateLimited } from "@/lib/auth/rate-limit";
 import { REMEMBERED_MAX_AGE, REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
+import { safeRedirectPath } from "@/lib/url/safeRedirect";
 
 export type LoginState = { error?: string };
 
@@ -49,7 +50,7 @@ export async function signInAction(_prevState: LoginState, formData: FormData): 
     await supabase.from("profiles").update({ last_active_at: new Date().toISOString() }).eq("id", data.user.id);
   }
 
-  redirect(redirectTo.startsWith("/") ? redirectTo : "/");
+  redirect(safeRedirectPath(redirectTo));
 }
 
 export type MagicLinkState = { submitted?: boolean };
@@ -74,7 +75,7 @@ export async function signInWithMagicLinkAction(
       const hashedToken = data?.properties?.hashed_token;
 
       if (hashedToken) {
-        const next = redirectTo.startsWith("/") ? redirectTo : "/";
+        const next = safeRedirectPath(redirectTo);
         const link = `${process.env.SITE_URL ?? ""}/auth/confirm?token_hash=${hashedToken}&type=magiclink&next=${encodeURIComponent(next)}`;
         await sendTemplatedEmail("inloggen_magic_link", email, { link });
       }
