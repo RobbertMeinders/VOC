@@ -18,12 +18,14 @@ export async function createClient() {
   const maxAge = cookieStore.get(REMEMBER_ME_COOKIE)?.value === "1" ? REMEMBERED_MAX_AGE : DEFAULT_MAX_AGE;
 
   return createServerClient<Database>(supabaseUrl(), supabaseAnonKey(), {
-    // @supabase/ssr's eigen default is httpOnly: false (nodig voor sommige
-    // client-side flows die dit package zelf niet gebruikt) — expliciet
-    // overschreven, anders is het sessie-JWT via document.cookie leesbaar
-    // voor elke JavaScript die op de pagina draait. Verkleint de impact van
-    // een eventuele toekomstige XSS-bug van "sessie stelen" naar niets.
-    cookieOptions: { maxAge, httpOnly: true, secure: process.env.NODE_ENV === "production" },
+    // httpOnly hier NIET op true zetten: createBrowserClient (client.ts,
+    // gebruikt voor de Realtime-abonnementen in FeedList/useUnreadCount)
+    // leest de sessie uitsluitend via document.cookie — met httpOnly zou
+    // die client zijn eigen sessie niet meer kunnen vinden, waardoor
+    // Realtime als anoniem verbindt en RLS alle postgres_changes-events
+    // stilzwijgend blokkeert (live-badge/live-feed breekt). secure blijft
+    // wel aan: dat beperkt alleen verzending tot HTTPS, geen JS-leesbaarheid.
+    cookieOptions: { maxAge, secure: process.env.NODE_ENV === "production" },
     cookies: {
       getAll() {
         return cookieStore.getAll();
