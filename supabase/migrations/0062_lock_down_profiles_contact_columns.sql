@@ -1,0 +1,30 @@
+-- Security-audit bevinding #1 (kritiek, 2026-09-30): profiles_members_select
+-- (0001_init.sql) staat nog steeds toe dat elk actief lid de VOLLEDIGE rij
+-- van elk ander lid leest, inclusief email/phone, ongeacht diens
+-- show_email/show_phone-instelling. De RPC's get_member_profile/
+-- get_members_directory (0061_masked_contact_fields.sql) maskeren dit
+-- correct voor de eigen code van de app, maar RLS is alleen rij-niveau:
+-- de onderliggende policy liet (en laat, tot deze migratie) iedereen nog
+-- steeds rechtstreeks `supabase.from('profiles').select('email,phone')`
+-- vanuit bv. de browserconsole uitvoeren en zo de privacy-instelling van
+-- elk lid volledig omzeilen — RLS met public.is_active_member() zegt
+-- niets over welke KOLOMMEN zichtbaar zijn, alleen welke RIJEN.
+--
+-- Kolomtoegang is, in tegenstelling tot RLS, wel gewoon per kolom af te
+-- dwingen via GRANT/REVOKE. Dit werkt naast de bestaande RPC's omdat een
+-- security-definer-functie draait met de rechten van de functie-EIGENAAR
+-- (de migratierol), niet van de aanroeper — get_member_profile/
+-- get_members_directory blijven dus email/phone gewoon kunnen lezen en
+-- correct maskeren, terwijl elke rechtstreekse query vanuit authenticated/
+-- anon op die twee kolommen voortaan vastloopt met "permission denied for
+-- column email/phone".
+--
+-- Geverifieerd (volledige grep door src/) dat geen enkele bestaande query
+-- in de applicatie rechtstreeks profiles.email of profiles.phone
+-- selecteert buiten deze twee RPC's om: elke overige plek selecteert
+-- uitsluitend andere kolommen, of doet alleen een .update() (waarvoor
+-- UPDATE-rechten nodig zijn, niet SELECT — dus onveranderd door deze
+-- migratie; changeEmailAction loopt sowieso via auth.updateUser(), niet
+-- via een rechtstreekse profiles-update).
+revoke select (email, phone) on public.profiles from authenticated;
+revoke select (email, phone) on public.profiles from anon;
