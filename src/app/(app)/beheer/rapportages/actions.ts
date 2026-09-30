@@ -9,13 +9,13 @@ import { logAuditAction } from "@/lib/audit/log";
 // als afgehandeld (cascade via post_id zou de rij zelf verwijderen — dat
 // zou het overzicht van "wat is er ooit gerapporteerd" verliezen, dus
 // bewust eerst de rapportage bijwerken vóór het bericht weg is).
-export async function resolveReportAction(reportId: string, decision: "deleted" | "dismissed", postId: string) {
+export async function resolveReportAction(reportId: string, decision: "deleted" | "dismissed", postId: string | null) {
   await requireBoard();
   const supabase = await createClient();
 
   await supabase.from("feed_post_reports").update({ status: "afgehandeld" }).eq("id", reportId);
 
-  if (decision === "deleted") {
+  if (decision === "deleted" && postId) {
     await supabase.from("feed_posts").delete().eq("id", postId);
   }
 

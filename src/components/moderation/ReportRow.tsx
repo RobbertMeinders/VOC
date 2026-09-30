@@ -31,10 +31,17 @@ export function ReportRow({ report }: { report: ReportRowData }) {
   if (resolved) return null;
 
   function resolve(decision: "deleted" | "dismissed") {
-    if (!report.post) return;
-    if (decision === "deleted" && !window.confirm("Dit bericht definitief verwijderen?")) return;
+    // Alleen bij "verwijderen" is er een bericht nodig — "afwijzen" moet ook
+    // werken als het bericht al op een andere manier weg is (report.post is
+    // dan null, zie de "Dit bericht is al verwijderd."-melding hieronder).
+    // Deze guard zat eerder vóór de decision-check, waardoor zo'n rapportage
+    // nooit als afgehandeld gemarkeerd kon worden.
+    if (decision === "deleted") {
+      if (!report.post) return;
+      if (!window.confirm("Dit bericht definitief verwijderen?")) return;
+    }
     startTransition(async () => {
-      await resolveReportAction(report.id, decision, report.post!.id);
+      await resolveReportAction(report.id, decision, report.post?.id ?? null);
       setResolved(true);
     });
   }
