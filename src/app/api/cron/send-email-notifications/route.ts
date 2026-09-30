@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { sendNotificationEmail } from "@/lib/email/send";
 
 // Mirror van /api/cron/send-push — zelfde CRON_SECRET-patroon, zelfde
@@ -12,7 +12,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = await createClient();
+  // get_pending_email_notifications geeft echte e-mailadressen van leden
+  // terug — staat sinds 0060_restrict_cron_only_rpcs_and_registration_
+  // update.sql alleen nog open voor service_role, dus deze cron (heeft toch
+  // geen gebruikerssessie) gaat voortaan via de admin-client i.p.v. de
+  // sessie-gebonden client.
+  const supabase = createAdminClient();
   const { data: pending, error } = await supabase.rpc("get_pending_email_notifications", { p_limit: 50 });
 
   if (error) {

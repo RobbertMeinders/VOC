@@ -521,6 +521,10 @@ export interface Database {
         Args: { p_activity_id: string };
         Returns: number;
       };
+      upsert_public_activity_registration: {
+        Args: { p_activity_id: string; p_name: string; p_email: string; p_company_name: string | null };
+        Returns: undefined;
+      };
       set_company_show_address: {
         Args: { p_company_id: string; p_visible: boolean };
         Returns: void;

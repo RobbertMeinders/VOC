@@ -1,6 +1,6 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 // Resend signeert webhooks volgens Svix' schema (Resend gebruikt Svix als
 // webhook-provider) — geen losse "svix"-dependency nodig voor dit ene
@@ -51,7 +51,11 @@ export async function POST(request: Request) {
   }
 
   if (event.type === "email.opened" && event.data?.email_id) {
-    const supabase = await createClient();
+    // log_email_opened staat sinds 0060_restrict_cron_only_rpcs_and_
+    // registration_update.sql alleen nog open voor service_role — deze
+    // route heeft toch geen gebruikerssessie (de handtekeningcontrole
+    // hierboven is de enige, wél toereikende, verificatie).
+    const supabase = createAdminClient();
     await supabase.rpc("log_email_opened", { p_provider_id: event.data.email_id });
   }
 

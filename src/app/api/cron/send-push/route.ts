@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import webpush from "web-push";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { renderTemplate } from "@/lib/template/render";
 import { logPushUnsubscribed } from "@/lib/events/log";
 
@@ -33,7 +33,12 @@ export async function GET(request: Request) {
   }
   webpush.setVapidDetails("mailto:bestuur@voc-veendam.nl", publicKey, privateKey);
 
-  const supabase = await createClient();
+  // get_pending_push_notifications geeft o.a. de geheime pushabonnement-
+  // sleutels (endpoint/p256dh/auth) van leden terug — staat sinds
+  // 0060_restrict_cron_only_rpcs_and_registration_update.sql alleen nog open
+  // voor service_role, dus deze cron (heeft toch geen gebruikerssessie) gaat
+  // voortaan via de admin-client i.p.v. de sessie-gebonden client.
+  const supabase = createAdminClient();
   const { data: pending, error } = await supabase.rpc("get_pending_push_notifications", { p_limit: 50 });
 
   if (error) {
@@ -77,7 +82,7 @@ export async function GET(request: Request) {
         // The subscription is gone (browser data cleared, permission
         // revoked, …) — remove it so we stop trying, and log it for the
         // "opgezegde pushabonnementen"-statistiek.
-        await logPushUnsubscribed(item.endpoint, item.profile_id);
+        await logPushUnsubscribed(item.endpoint, item.profile_id, supabase);
       }
     }
     pushedIds.push(item.notification_id);

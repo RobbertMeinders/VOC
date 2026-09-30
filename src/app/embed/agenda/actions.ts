@@ -14,13 +14,16 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // koppeling aan een profiel. Nogmaals invullen met hetzelfde e-mailadres
 // werkt als bijwerken, niet als foutmelding.
 //
-// Bewust géén .upsert(): Postgres vereist voor INSERT ... ON CONFLICT DO
-// UPDATE dat de rol ook een SELECT-policy heeft om de botsende rij te
-// kunnen vinden — die is er hier bewust niet (een bezoeker mag nooit zien
-// wie zich al heeft aangemeld, alleen het bestuur). Daardoor faalde zelfs
-// de allereerste, unieke aanmelding al met een RLS-fout. Los, gewoon
-// INSERT proberen en bij een unique-violation (23505) een losse UPDATE
-// doen — die heeft alleen de eigen update-policy nodig, geen SELECT.
+// Gaat via de upsert_public_activity_registration-RPC (security definer,
+// 0060_restrict_cron_only_rpcs_and_registration_update.sql) i.p.v. losse
+// insert/update-policies: de insert-of-update matcht daar atomisch binnen
+// de database zelf op (activity_id, email), dus een aanroeper kan — ook
+// rechtstreeks tegen de REST-API, buiten dit formulier om — onmogelijk een
+// andere rij dan zijn eigen (activity_id, email)-combinatie raken. De
+// eerdere opzet (losse insert-policy + update-policy met `using(true)`, want
+// een bezoeker mag nooit zien wie zich al heeft aangemeld dus een SELECT-
+// policy voor een echte upsert kon er niet zijn) liet zo'n aanroep in
+// theorie wél de naam/bedrijfsnaam van een ANDERE aanmelding overschrijven.
 export async function registerPublicForActivityAction(
   activityId: string,
   _prevState: PublicRegisterState,
@@ -38,22 +41,14 @@ export async function registerPublicForActivityAction(
   }
 
   const supabase = await createClient();
-  const row = { activity_id: activityId, name, email, company_name: companyName };
-  const { error: insertError } = await supabase.from("public_activity_registrations").insert(row);
+  const { error } = await supabase.rpc("upsert_public_activity_registration", {
+    p_activity_id: activityId,
+    p_name: name,
+    p_email: email,
+    p_company_name: companyName,
+  });
 
-  if (insertError?.code === "23505") {
-    const { error: updateError } = await supabase
-      .from("public_activity_registrations")
-      .update({ name, company_name: companyName })
-      .eq("activity_id", activityId)
-      .eq("email", email);
-    if (updateError) {
-      return { error: "Aanmelden is niet gelukt. Probeer het opnieuw." };
-    }
-  } else if (insertError) {
-    // De insert-policy wijst een activiteit af die niet (meer) goedgekeurd
-    // is of geen publieke aanmelding toestaat — dat komt hier als een RLS-
-    // fout binnen, niet als een duidelijke boodschap.
+  if (error) {
     return { error: "Aanmelden is niet gelukt. Mogelijk staat deze activiteit niet (meer) open voor aanmelden." };
   }
 

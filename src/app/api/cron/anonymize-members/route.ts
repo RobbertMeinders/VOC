@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 // Hit once a day by Vercel Cron (see vercel.json). 90 dagen na deactivering
@@ -24,17 +23,20 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const supabase = await createClient();
+  // anonymize_expired_profiles()/delete_expired_prospects() staan sinds
+  // 0060_restrict_cron_only_rpcs_and_registration_update.sql alleen nog open
+  // voor service_role — deze route gebruikte de admin-client toch al voor
+  // de auth.admin-aanroep verderop, dus nu voor alles in één keer.
+  const admin = createAdminClient();
   const [{ data: anonymized, error }, { data: deletedProspects, error: prospectsError }] = await Promise.all([
-    supabase.rpc("anonymize_expired_profiles"),
-    supabase.rpc("delete_expired_prospects"),
+    admin.rpc("anonymize_expired_profiles"),
+    admin.rpc("delete_expired_prospects"),
   ]);
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const admin = createAdminClient();
   let authUpdated = 0;
   for (const row of anonymized ?? []) {
     const { error: authError } = await admin.auth.admin.updateUserById(row.profile_id, {
