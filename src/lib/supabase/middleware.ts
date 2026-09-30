@@ -33,9 +33,8 @@ export async function updateSession(request: NextRequest) {
   let pendingCookies: { name: string; value: string; options: CookieOptions }[] = [];
 
   const supabase = createServerClient<Database>(supabaseUrl(), supabaseAnonKey(), {
-    // Zie dezelfde toelichting in supabase/server.ts — geen httpOnly hier,
-    // de browser-client (client.ts) moet deze cookie zelf kunnen lezen.
-    cookieOptions: { maxAge, secure: process.env.NODE_ENV === "production" },
+    // Zie dezelfde toelichting in supabase/server.ts.
+    cookieOptions: { maxAge, httpOnly: true, secure: process.env.NODE_ENV === "production" },
     cookies: {
       getAll() {
         return request.cookies.getAll();

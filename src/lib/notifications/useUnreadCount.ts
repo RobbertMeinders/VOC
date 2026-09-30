@@ -2,6 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { authenticateRealtime } from "@/lib/realtime/authenticate";
 
 export type UnreadNotification = { id: string; link: string | null };
 
@@ -60,6 +61,7 @@ export function useUnreadNotificationCount(
 
   useEffect(() => {
     const supabase = createClient();
+    const stopRealtimeAuth = authenticateRealtime(supabase);
     const channel = supabase
       .channel(`notifications-${profileId}`)
       .on(
@@ -93,6 +95,7 @@ export function useUnreadNotificationCount(
       .subscribe();
 
     return () => {
+      stopRealtimeAuth();
       supabase.removeChannel(channel);
     };
   }, [profileId]);

@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { MessageSquare } from "lucide-react";
 import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/client";
+import { authenticateRealtime } from "@/lib/realtime/authenticate";
 import { getCommentAction, getPostAction, loadMoreFeedPostsAction, logPostViewAction } from "@/app/(app)/actions";
 import { FEED_PAGE_SIZE } from "@/lib/feed/pagination";
 import { useInfiniteScroll } from "@/lib/dom/useInfiniteScroll";
@@ -115,6 +116,7 @@ export function FeedList({
 
   useEffect(() => {
     const supabase = createClient();
+    const stopRealtimeAuth = authenticateRealtime(supabase);
     const channel = supabase
       .channel("feed-changes")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "feed_posts" }, (payload) => {
@@ -138,6 +140,7 @@ export function FeedList({
       .subscribe();
 
     return () => {
+      stopRealtimeAuth();
       supabase.removeChannel(channel);
     };
   }, []);
