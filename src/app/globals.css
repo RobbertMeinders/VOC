@@ -96,6 +96,18 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  /* Chrome/Edge passen "scroll anchoring" toe: zodra content BOVEN de
+     zichtbare viewport van hoogte verandert (bv. een feed-foto die pas na
+     laden zijn echte formaat krijgt, zie AttachmentCarousel), corrigeert de
+     browser zelf de scrollpositie om te "compenseren" — met een lange feed
+     vol foto's die één voor één binnen laden terwijl je naar een
+     gemarkeerd bericht (via een notificatielink) hebt gescrold, gaf dat
+     precies het gemelde "het bericht verdwijnt even en komt met een
+     kleine duw terug" — de pagina schuift een stukje omdat iets ergens
+     boven in beeld net klaar is met laden, niet omdat het bericht zelf
+     opnieuw gemount wordt. Scroll anchoring hier uitzetten voor de hele
+     pagina i.p.v. dit ergens diep in de feed te patchen.*/
+  overflow-anchor: none;
 }
 
 * {
