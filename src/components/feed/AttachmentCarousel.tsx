@@ -38,10 +38,24 @@ function Cell({
   onClick: () => void;
   className?: string;
 }) {
+  const [loaded, setLoaded] = useState(false);
+
   if (!image.url) return null;
   return (
     <button type="button" onClick={onClick} className={clsx("relative overflow-hidden bg-black/[.03] dark:bg-white/[.03]", className)}>
-      <Image src={image.url} alt={image.fileName} fill sizes="(min-width: 640px) 600px, 100vw" className="object-cover" />
+      {/* opacity-0 -> 100 i.p.v. direct scherp verschijnen: zonder dit kan een
+          foto die pas laat in beeld scrollt (bv. na scrollIntoView vanuit een
+          notificatie-highlight) er als een abrupte "pop"/herlaad-flits uitzien
+          zodra 'm klaar is met laden — zie SingleCell hieronder voor dezelfde
+          reden bij de eerste/enige foto. */}
+      <Image
+        src={image.url}
+        alt={image.fileName}
+        fill
+        sizes="(min-width: 640px) 600px, 100vw"
+        className={clsx("object-cover transition-opacity duration-300", loaded ? "opacity-100" : "opacity-0")}
+        onLoad={() => setLoaded(true)}
+      />
       {Boolean(remainingCount) && (
         <span className="absolute inset-0 flex items-center justify-center bg-black/50 text-lg font-semibold text-white">
           +{remainingCount}
@@ -61,6 +75,7 @@ function Cell({
 // hoogte wordt begrensd (dus weer "breder, niet hoger" i.p.v. cropping).
 function SingleCell({ image, onClick }: { image: FeedAttachment; onClick: () => void }) {
   const [ratio, setRatio] = useState(1);
+  const [loaded, setLoaded] = useState(false);
 
   if (!image.url) return null;
 
@@ -68,7 +83,13 @@ function SingleCell({ image, onClick }: { image: FeedAttachment; onClick: () => 
     <button
       type="button"
       onClick={onClick}
-      style={{ aspectRatio: ratio, maxHeight: MAX_HEIGHT }}
+      // transition op aspect-ratio: zonder dit sprong het kaartje in één
+      // frame van het vierkante startformaat naar de echte beeldverhouding
+      // zodra de foto klaar was met laden — vooral zichtbaar bij een foto
+      // die pas laat in beeld scrolt (bv. via scrollIntoView vanuit een
+      // notificatie-highlight), waar dat als een soort "herlaad"-glitch
+      // oogde. Nu een zachte overgang i.p.v. een abrupte sprong.
+      style={{ aspectRatio: ratio, maxHeight: MAX_HEIGHT, transition: "aspect-ratio 0.3s ease-out" }}
       className="relative w-full overflow-hidden bg-black/[.03] dark:bg-white/[.03]"
     >
       <Image
@@ -76,12 +97,13 @@ function SingleCell({ image, onClick }: { image: FeedAttachment; onClick: () => 
         alt={image.fileName}
         fill
         sizes="(min-width: 640px) 600px, 100vw"
-        className="object-cover"
+        className={clsx("object-cover transition-opacity duration-300", loaded ? "opacity-100" : "opacity-0")}
         onLoad={(e) => {
           const img = e.currentTarget;
           if (img.naturalWidth && img.naturalHeight) {
             setRatio(Math.max(1, img.naturalWidth / img.naturalHeight));
           }
+          setLoaded(true);
         }}
       />
     </button>
