@@ -33,7 +33,9 @@ export async function updateSession(request: NextRequest) {
   let pendingCookies: { name: string; value: string; options: CookieOptions }[] = [];
 
   const supabase = createServerClient<Database>(supabaseUrl(), supabaseAnonKey(), {
-    cookieOptions: { maxAge },
+    // Zie dezelfde toelichting in supabase/server.ts — httpOnly/secure
+    // expliciet aanzetten i.p.v. @supabase/ssr's eigen httpOnly:false-default.
+    cookieOptions: { maxAge, httpOnly: true, secure: process.env.NODE_ENV === "production" },
     cookies: {
       getAll() {
         return request.cookies.getAll();

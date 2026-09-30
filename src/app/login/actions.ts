@@ -21,6 +21,15 @@ export async function signInAction(_prevState: LoginState, formData: FormData): 
     return { error: "Vul je e-mailadres en wachtwoord in." };
   }
 
+  // In tegenstelling tot de magic-link/wachtwoord-reset-flows (die dit al
+  // langer deden) had wachtwoord-inloggen zelf nog geen rate limiting —
+  // precies het klassieke brute-force-doelwit. Zelfde helper/drempel als de
+  // andere twee flows, geteld per e-mailadres, ongeacht of de poging
+  // slaagt of faalt.
+  if (await isEmailRateLimited("password_login_attempted", email)) {
+    return { error: "Te veel inlogpogingen. Probeer het over een kwartier opnieuw." };
+  }
+
   // Set this before creating the Supabase client so it picks the right
   // cookie maxAge for the session cookies it's about to write.
   const cookieStore = await cookies();

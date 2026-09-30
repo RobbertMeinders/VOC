@@ -4,6 +4,21 @@ import { Resend } from "resend";
 import { createClient } from "@/lib/supabase/server";
 import { renderTemplate } from "@/lib/template/render";
 
+// renderTemplate() zelf doet geen escaping (het wordt ook voor kale
+// pushmeldingstekst gebruikt, waar HTML-entities fout zouden zijn) — dus
+// escapen we hier, alleen voor de HTML-e-mailpaden. Zonder dit kon een lid
+// zijn voornaam of een activiteit-titel/locatie (beide vrij, onvalidatie
+// tekst) op bv. `<img src=x onerror=...>` zetten, en dat kwam ongefilterd
+// in de HTML-body van notificatiemails naar andere leden terecht.
+function escapeHtml(value: string): string {
+  return value
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#39;");
+}
+
 // Notificatietypes met een beheerbaar email_templates-record (0039_
 // notification_templates.sql) — de overige types (moderatie, de uitkomst
 // van je eigen aanvraag/inzending, …) hebben geen template en gaan altijd
@@ -44,8 +59,11 @@ export async function sendTemplatedEmail(
   }
 
   const resend = new Resend(apiKey);
+  // Subject is platte tekst (geen HTML-rendering), dus ongewijzigde
+  // variabelen; de HTML-body krijgt elke variabele HTML-geëscaped.
   const subject = renderTemplate(template.subject, variables);
-  const html = renderTemplate(template.body_html, variables);
+  const escapedVariables = Object.fromEntries(Object.entries(variables).map(([key, value]) => [key, escapeHtml(value)]));
+  const html = renderTemplate(template.body_html, escapedVariables);
 
   try {
     const { data, error } = await resend.emails.send({ from, to, subject, html });
@@ -71,8 +89,8 @@ async function sendRawNotificationEmail(
     return { error: "E-mail versturen is niet geconfigureerd (RESEND_API_KEY / EMAIL_FROM ontbreken)." };
   }
 
-  const linkHtml = linkUrl ? `<p><a href="${linkUrl}">Bekijk in het ledenportaal</a></p>` : "";
-  const html = `<p>${body ?? ""}</p>${linkHtml}`;
+  const linkHtml = linkUrl ? `<p><a href="${escapeHtml(linkUrl)}">Bekijk in het ledenportaal</a></p>` : "";
+  const html = `<p>${escapeHtml(body ?? "")}</p>${linkHtml}`;
 
   const resend = new Resend(apiKey);
   try {

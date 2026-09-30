@@ -18,7 +18,12 @@ export async function createClient() {
   const maxAge = cookieStore.get(REMEMBER_ME_COOKIE)?.value === "1" ? REMEMBERED_MAX_AGE : DEFAULT_MAX_AGE;
 
   return createServerClient<Database>(supabaseUrl(), supabaseAnonKey(), {
-    cookieOptions: { maxAge },
+    // @supabase/ssr's eigen default is httpOnly: false (nodig voor sommige
+    // client-side flows die dit package zelf niet gebruikt) — expliciet
+    // overschreven, anders is het sessie-JWT via document.cookie leesbaar
+    // voor elke JavaScript die op de pagina draait. Verkleint de impact van
+    // een eventuele toekomstige XSS-bug van "sessie stelen" naar niets.
+    cookieOptions: { maxAge, httpOnly: true, secure: process.env.NODE_ENV === "production" },
     cookies: {
       getAll() {
         return cookieStore.getAll();
