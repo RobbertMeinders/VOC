@@ -23,8 +23,13 @@ export async function BeheerLedenContent() {
   // requireAdmin hierboven is de echte grens — elke beheerder die hier komt
   // ziet toch al dezelfde, ongefilterde lijst, dus delen tussen beheerders
   // is veilig (zelfde redenering als leden-page-data op /leden).
+  // get_members_directory (0061_masked_contact_fields.sql) i.p.v.
+  // rechtstreeks .from("profiles") — voor beheer/beheerder geeft de RPC
+  // toch alle e-mailadressen/telefoonnummers terug (is_board()-uitzondering
+  // in de maskering), maar dit voorkomt dat de query zelf afwijkt van de
+  // enige toegestane manier om andermans contactgegevens op te vragen.
   const { data: profiles } = await cachedQuery("beheer-leden-page-data", 300_000, () =>
-    supabase.from("profiles").select("*").order("last_name").returns<ProfileRow[]>()
+    supabase.rpc("get_members_directory").returns<ProfileRow[]>()
   );
 
   const avatarUrls = await getSignedStorageUrls(

@@ -40,7 +40,12 @@ export async function MemberProfileContent({ id }: { id: string }) {
   const isOwnProfile = viewer.id === id;
   const canSeePrivate = isOwnProfile || isBoard(viewer.role);
 
-  const { data: member } = await supabase.from("profiles").select("*").eq("id", id).maybeSingle<Profile>();
+  // get_member_profile (0061_masked_contact_fields.sql) i.p.v. rechtstreeks
+  // .from("profiles") — maskeert email/phone naar null tenzij het je eigen
+  // profiel is, de bekeken persoon dat zelf zichtbaar heeft gezet
+  // (show_email/show_phone), of jijzelf bestuur/beheer bent.
+  const { data } = await supabase.rpc("get_member_profile", { p_id: id }).returns<Profile[]>();
+  const member = data?.[0] ?? null;
 
   if (!member) {
     notFound();

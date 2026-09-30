@@ -41,13 +41,21 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
     return { imported: 0, skipped };
   }
 
+  // get_members_directory (0061_masked_contact_fields.sql) i.p.v.
+  // rechtstreeks .from("profiles").select("email") — deze actie draait
+  // altijd als bestuur (requireBoard hierboven), en de RPC geeft bestuur/
+  // beheer toch alle e-mailadressen terug, maar dit voorkomt dat de query
+  // zelf afwijkt van de enige toegestane manier om andermans e-mailadres op
+  // te vragen.
   const [{ data: existingProfiles }, { data: existingInvitations }, { data: companies }] = await Promise.all([
-    supabase.from("profiles").select("email"),
+    supabase.rpc("get_members_directory"),
     supabase.from("invitations").select("email").eq("status", "pending"),
     supabase.from("companies").select("id, name"),
   ]);
 
-  const existingEmails = new Set((existingProfiles ?? []).map((p) => p.email.toLowerCase()));
+  const existingEmails = new Set(
+    (existingProfiles ?? []).flatMap((p) => (p.email ? [p.email.toLowerCase()] : []))
+  );
   const pendingEmails = new Set((existingInvitations ?? []).map((i) => (i.email ?? "").toLowerCase()));
   const companyByName = new Map((companies ?? []).map((c) => [c.name.toLowerCase(), c.id]));
 

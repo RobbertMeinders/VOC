@@ -37,9 +37,14 @@ export const getCurrentProfile = cache(async (): Promise<Profile | null> => {
 
   if (!userId) return null;
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", userId).single();
+  // get_member_profile (0061_masked_contact_fields.sql) i.p.v. rechtstreeks
+  // .from("profiles") — de RPC maskeert email/phone van ANDERE leden op
+  // basis van show_email/show_phone, maar geeft voor je EIGEN rij (id =
+  // auth.uid(), zoals hier) altijd de echte waarden terug, dus dit is voor
+  // getCurrentProfile() functioneel identiek aan de oude query.
+  const { data } = await supabase.rpc("get_member_profile", { p_id: userId }).returns<Profile[]>();
 
-  return profile ?? null;
+  return data?.[0] ?? null;
 });
 
 /**

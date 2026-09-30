@@ -525,6 +525,24 @@ export interface Database {
         Args: { p_activity_id: string; p_name: string; p_email: string; p_company_name: string | null };
         Returns: undefined;
       };
+      get_member_profile: {
+        Args: { p_id: string };
+        // email/phone zijn hier nullable (i.t.t. profiles.Row): 0061_masked_
+        // contact_fields.sql maskeert ze naar null tenzij het je eigen rij is,
+        // de bekeken persoon show_email/show_phone aan heeft, of jij bestuur/
+        // beheer bent — zie get_member_profile in die migratie.
+        Returns: Omit<Database["public"]["Tables"]["profiles"]["Row"], "email" | "phone"> & {
+          email: string | null;
+          phone: string | null;
+        }[];
+      };
+      get_members_directory: {
+        Args: Record<string, never>;
+        Returns: Omit<Database["public"]["Tables"]["profiles"]["Row"], "email" | "phone"> & {
+          email: string | null;
+          phone: string | null;
+        }[];
+      };
       set_company_show_address: {
         Args: { p_company_id: string; p_visible: boolean };
         Returns: void;
