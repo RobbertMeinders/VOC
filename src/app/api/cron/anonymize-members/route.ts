@@ -45,9 +45,24 @@ export async function GET(request: Request) {
     if (!authError) authUpdated++;
   }
 
+  // anonymize_expired_profiles() (0063) nult avatar_url op de rij maar kan
+  // vanuit SQL het onderliggende Storage-bestand niet verwijderen — dat
+  // gebeurt hier, met dezelfde admin-client. Zonder deze stap bleef een
+  // oude profielfoto van een geanonimiseerd lid voor altijd in de
+  // avatars-bucket staan, en (als publicly_visible ooit true was) mogelijk
+  // zelfs voor altijd publiek opvraagbaar via de directe Storage-URL.
+  const avatarPaths = (anonymized ?? []).flatMap((row) => (row.old_avatar_url ? [row.old_avatar_url] : []));
+  if (avatarPaths.length > 0) {
+    const { error: storageError } = await admin.storage.from("avatars").remove(avatarPaths);
+    if (storageError) {
+      console.error("[cron] anonymize-members: avatar cleanup failed:", storageError);
+    }
+  }
+
   return NextResponse.json({
     anonymized: (anonymized ?? []).length,
     authUpdated,
+    avatarsRemoved: avatarPaths.length,
     deletedProspects: prospectsError ? null : deletedProspects,
   });
 }
