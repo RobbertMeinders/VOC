@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { isEmailRateLimited } from "@/lib/auth/rate-limit";
 
 export type PublicRegisterState = { error?: string; success?: boolean };
 
@@ -38,6 +39,14 @@ export async function registerPublicForActivityAction(
   }
   if (!EMAIL_PATTERN.test(email)) {
     return { error: "Vul een geldig e-mailadres in." };
+  }
+
+  // Volledig anoniem bereikbaar (geen sessie nodig), dus zonder rate
+  // limiting kon een script hier ongelimiteerd nepaanmeldingen insturen.
+  // isEmailRateLimited faalt zelf "open" bij een onverwachte fout, dus dit
+  // kan aanmelden nooit blokkeren (zie rate-limit.ts).
+  if (await isEmailRateLimited("public_activity_registration", email)) {
+    return { error: "Te veel pogingen met dit e-mailadres. Probeer het over een kwartier opnieuw." };
   }
 
   const supabase = await createClient();

@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { isEmailRateLimited } from "@/lib/auth/rate-limit";
 
 export type AccessRequestState = { error?: string; success?: boolean };
 
@@ -26,6 +27,13 @@ export async function submitAccessRequestAction(
   }
   if (!consent) {
     return { error: "Ga akkoord met het bewaren van je gegevens om de aanvraag te versturen." };
+  }
+
+  // Volledig anoniem bereikbaar, dus zonder rate limiting kon een script
+  // deze tabel (en de notificatie naar bestuur per aanvraag) ongelimiteerd
+  // laten vollopen. Faalt zelf "open" bij een onverwachte fout (rate-limit.ts).
+  if (await isEmailRateLimited("access_request_submitted", email)) {
+    return { error: "Te veel aanvragen met dit e-mailadres. Probeer het over een kwartier opnieuw." };
   }
 
   const supabase = await createClient();

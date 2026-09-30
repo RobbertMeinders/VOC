@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireBoard, requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { uploadImage } from "@/lib/supabase/upload";
+import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { uploadDocument } from "@/lib/supabase/uploadDocument";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
@@ -244,8 +244,12 @@ export async function updateActivityAction(
     const supabase = await createClient();
 
     let imagePath: string | undefined;
+    let previousImageUrl: string | null = null;
     const image = formData.get("image");
     if (image instanceof File && image.size > 0) {
+      const { data: existing } = await supabase.from("activities").select("image_url").eq("id", activityId).maybeSingle();
+      previousImageUrl = existing?.image_url ?? null;
+
       const result = await uploadImage(supabase, "activity-images", activityId, image);
       if ("error" in result) return { error: result.error };
       imagePath = result.path;
@@ -265,6 +269,10 @@ export async function updateActivityAction(
 
     if (error) {
       return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+    }
+
+    if (imagePath) {
+      await removePreviousImage(supabase, "activity-images", previousImageUrl);
     }
 
     await logAuditAction("activity_updated", "activity", activityId);

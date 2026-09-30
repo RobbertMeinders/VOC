@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { uploadImage } from "@/lib/supabase/upload";
+import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
 import type { UpdateProfileState } from "@/app/(app)/profiel/actions";
@@ -127,8 +127,12 @@ export async function updateMemberProfileAction(
   const supabase = await createClient();
 
   let avatarPath: string | undefined;
+  let previousAvatarUrl: string | null = null;
   const avatarFile = formData.get("avatar");
   if (avatarFile instanceof File && avatarFile.size > 0) {
+    const { data: existing } = await supabase.from("profiles").select("avatar_url").eq("id", memberId).maybeSingle();
+    previousAvatarUrl = existing?.avatar_url ?? null;
+
     const result = await uploadImage(supabase, "avatars", memberId, avatarFile);
     if ("error" in result) return { error: result.error };
     avatarPath = result.path;
@@ -151,6 +155,10 @@ export async function updateMemberProfileAction(
 
   if (error) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+  }
+
+  if (avatarPath) {
+    await removePreviousImage(supabase, "avatars", previousAvatarUrl);
   }
 
   await logAuditAction("member_profile_updated", "profile", memberId);

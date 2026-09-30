@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { uploadImage } from "@/lib/supabase/upload";
+import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
 import { logPushUnsubscribed } from "@/lib/events/log";
@@ -58,6 +58,14 @@ export async function updateProfileAction(
 
   if (error) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+  }
+
+  // Oude avatar pas nu verwijderen (na de geslaagde DB-update) — anders
+  // zou een mislukte update de profielrij naar een al verwijderd bestand
+  // laten wijzen. Blijft anders voor altijd staan (nieuwe upload krijgt
+  // altijd een nieuwe, willekeurige bestandsnaam, nooit upsert).
+  if (avatarPath) {
+    await removePreviousImage(supabase, "avatars", profile.avatar_url);
   }
 
   // Naam/functie/avatar staan ook in de ledenlijst.

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireAdmin, requireBoard, requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { uploadImage } from "@/lib/supabase/upload";
+import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { geocodeAddress } from "@/lib/geo/geocode";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
@@ -56,7 +56,7 @@ export async function updateCompanyAction(
   // slaan we de aanroep over.
   const { data: existing } = await supabase
     .from("companies")
-    .select("address, postal_code, city, latitude, longitude")
+    .select("address, postal_code, city, latitude, longitude, logo_url")
     .eq("id", companyId)
     .maybeSingle();
 
@@ -98,6 +98,10 @@ export async function updateCompanyAction(
 
   if (error) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+  }
+
+  if (logoPath) {
+    await removePreviousImage(supabase, "company-logos", existing?.logo_url);
   }
 
   await logAuditAction("company_updated", "company", companyId);
