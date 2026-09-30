@@ -28,9 +28,37 @@ function isPublicPath(pathname: string) {
  * place session cookies are reliably persisted (Server Components can't
  * write cookies), so keep it wired into middleware.ts.
  */
+// Content-Security-Policy, nonce-based per Next.js' eigen aanbevolen patroon
+// (https://nextjs.org/docs/app/guides/content-security-policy): de nonce
+// wordt hier per request gegenereerd en zowel op het request (zodat Next's
+// eigen server-render 'm kan gebruiken voor de scripts die het zelf
+// injecteert) als op de response (zodat de browser 'm afdwingt) gezet.
+// style-src blijft 'unsafe-inline' toestaan — React's talloze dynamische
+// `style={{...}}`-attributen (transities, berekende kleuren) hebben geen
+// praktisch bruikbaar nonce-mechanisme, en CSS-injectie alleen (zonder
+// script-uitvoering, die wél strikt is afgedwongen) is een veel kleiner
+// risico. img-src/connect-src dekken exact de externe origins die de app
+// daadwerkelijk laadt: Supabase Storage/Realtime, OpenStreetMap-tiles
+// (bedrijvenkaart) en unpkg.com (Leaflet's eigen marker-iconen).
+function buildCsp(nonce: string): string {
+  return [
+    `default-src 'self'`,
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    `style-src 'self' 'unsafe-inline'`,
+    `img-src 'self' data: blob: https://*.supabase.co https://*.tile.openstreetmap.org https://unpkg.com`,
+    `font-src 'self' data:`,
+    `connect-src 'self' https://*.supabase.co wss://*.supabase.co`,
+    `base-uri 'self'`,
+    `form-action 'self'`,
+    `object-src 'none'`,
+  ].join("; ");
+}
+
 export async function updateSession(request: NextRequest) {
   const maxAge = request.cookies.get(REMEMBER_ME_COOKIE)?.value === "1" ? REMEMBERED_MAX_AGE : DEFAULT_MAX_AGE;
   let pendingCookies: { name: string; value: string; options: CookieOptions }[] = [];
+  const nonce = crypto.randomUUID();
+  const csp = buildCsp(nonce);
 
   const supabase = createServerClient<Database>(supabaseUrl(), supabaseAnonKey(), {
     // Zie dezelfde toelichting in supabase/server.ts.
@@ -82,8 +110,16 @@ export async function updateSession(request: NextRequest) {
   } else {
     requestHeaders.delete(VERIFIED_USER_ID_HEADER);
   }
+  // x-nonce: layout.tsx leest dit via headers() en zet het op het ene
+  // inline <script>-tag dat de app zelf rendert (het thema-init-script).
+  // Next.js herkent dezelfde nonce automatisch in de Content-Security-
+  // Policy-header hieronder en past 'm zelf toe op de scripts die het
+  // tijdens het renderen injecteert.
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", csp);
 
   const response = NextResponse.next({ request: { headers: requestHeaders } });
+  response.headers.set("Content-Security-Policy", csp);
   for (const { name, value, options } of pendingCookies) {
     response.cookies.set(name, value, options);
   }

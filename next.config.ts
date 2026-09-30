@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   // Don't let `next dev` regenerate AGENTS.md/CLAUDE.md on every run.
   agentRules: false,
+  poweredByHeader: false,
   async headers() {
     return [
       {
@@ -18,6 +19,19 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+        ],
+      },
+      {
+        // Deze twee beperken niets aan framebaarheid, dus gelden overal,
+        // óók op /embed: HSTS dwingt HTTPS af (geen reden om dat ooit uit
+        // te zetten), en Permissions-Policy schakelt browser-API's uit die
+        // de app nergens gebruikt (camera/microfoon/locatie — de kaart op
+        // de bedrijvenpagina toont alleen het adres dat het lid zelf heeft
+        // ingevuld, geen navigator.geolocation).
+        source: "/(.*)",
+        headers: [
+          { key: "Strict-Transport-Security", value: "max-age=63072000; includeSubDomains" },
+          { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
         ],
       },
     ];

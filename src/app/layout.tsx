@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
+import { headers } from "next/headers";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { THEME_INIT_SCRIPT } from "@/lib/theme/constants";
@@ -40,12 +41,17 @@ export const viewport: Viewport = {
   interactiveWidget: "resizes-content",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Zie middleware.ts (buildCsp) — dit nonce-attribuut is wat het thema-
+  // init-script toestaat te draaien onder een script-src die verder alleen
+  // genonced/strict-dynamic scripts vertrouwt.
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
+
   return (
     <html lang="nl" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
       <head>
         {supabaseStorageOrigin && <link rel="preconnect" href={supabaseStorageOrigin} crossOrigin="anonymous" />}
-        <script dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />
       </head>
       <body className="min-h-full bg-background text-foreground">
         <ServiceWorkerRegister />

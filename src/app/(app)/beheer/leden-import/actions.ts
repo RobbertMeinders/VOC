@@ -9,6 +9,14 @@ import type { ImportRow } from "@/lib/import/parseCsv";
 export type BulkImportSkip = { row: number; email: string; reason: string };
 export type BulkImportResult = { imported: number; skipped: BulkImportSkip[] };
 
+const MAX_ROWS = 1000;
+const MAX_FIELD_LENGTH = 200;
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function truncate(value: string): string {
+  return value.length > MAX_FIELD_LENGTH ? value.slice(0, MAX_FIELD_LENGTH) : value;
+}
+
 /**
  * Creates a pending, prefilled invitation per row — without sending an
  * invite email. A profile only ever gets created when someone actually
@@ -22,12 +30,39 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
   const profile = await requireBoard();
   const supabase = await createClient();
 
+  if (rows.length > MAX_ROWS) {
+    return {
+      imported: 0,
+      skipped: [{ row: 0, email: "", reason: `Maximaal ${MAX_ROWS} rijen per import — splits het bestand op.` }],
+    };
+  }
+
   const skipped: BulkImportSkip[] = [];
   const validRows: { row: number; data: ImportRow }[] = [];
 
-  rows.forEach((data, index) => {
+  rows.forEach((rawData, index) => {
+    // Lengtes begrenzen vóórdat een rij ergens anders in deze functie wordt
+    // gebruikt (o.a. als bedrijfsnaam/-adres bij het aanmaken van een nieuw
+    // bedrijf hieronder) — voorkomt dat één absurd lange cel in een verder
+    // geldige CSV de rest van de import of de UI die deze data later toont
+    // kan verstoren.
+    const data: ImportRow = {
+      firstName: truncate(rawData.firstName),
+      lastName: truncate(rawData.lastName),
+      email: truncate(rawData.email),
+      phone: truncate(rawData.phone),
+      companyName: truncate(rawData.companyName),
+      companyAddress: truncate(rawData.companyAddress),
+      companyPostalCode: truncate(rawData.companyPostalCode),
+      companyCity: truncate(rawData.companyCity),
+    };
+
     if (!data.email) {
       skipped.push({ row: index + 1, email: data.email, reason: "Geen e-mailadres" });
+      return;
+    }
+    if (!EMAIL_PATTERN.test(data.email)) {
+      skipped.push({ row: index + 1, email: data.email, reason: "Ongeldig e-mailadres" });
       return;
     }
     if (!data.firstName || !data.lastName) {
