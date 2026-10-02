@@ -90,29 +90,31 @@ export default async function HomePage() {
       {latestNews && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-foreground">Nieuws</h2>
-          <Link
-            href="/nieuws"
-            className="flex gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm hover:border-voc-red sm:gap-4 sm:p-5"
-          >
+          <Link href="/nieuws" className="group relative block h-56 overflow-hidden rounded-2xl shadow-sm sm:h-72">
             {newsImageUrl ? (
               <Image
                 src={newsImageUrl}
-                alt={latestNews.title}
-                width={96}
-                height={96}
-                className="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-24 sm:w-24"
+                alt=""
+                fill
+                sizes="(max-width: 640px) 100vw, 768px"
+                className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
               />
             ) : (
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red sm:h-24 sm:w-24">
-                <Megaphone size={24} className="sm:hidden" />
-                <Megaphone size={30} className="hidden sm:block" />
+              <div className="absolute inset-0 flex items-center justify-center bg-voc-red">
+                <Megaphone size={72} className="text-white/20" />
               </div>
             )}
-            <div className="min-w-0 flex-1">
-              <p className="line-clamp-2 text-base font-semibold leading-snug text-foreground sm:text-lg">
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
+              <span className="inline-block rounded-full bg-voc-red px-2.5 py-1 text-xs font-semibold text-white">
+                Nieuws
+              </span>
+              <p className="mt-2 line-clamp-2 text-xl font-bold leading-tight text-white sm:text-2xl">
                 {latestNews.title}
               </p>
-              {latestNews.subtitle && <p className="mt-1 line-clamp-2 text-sm text-muted">{latestNews.subtitle}</p>}
+              {latestNews.subtitle && (
+                <p className="mt-1 line-clamp-1 text-sm text-white/80 sm:text-base">{latestNews.subtitle}</p>
+              )}
             </div>
           </Link>
           <Link
