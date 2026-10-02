@@ -4,7 +4,14 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/types/database";
 import { createClient } from "./server";
 
-type Bucket = "avatars" | "company-logos" | "feed-media" | "documents" | "activity-images" | "activity-attachments";
+type Bucket =
+  | "avatars"
+  | "company-logos"
+  | "feed-media"
+  | "documents"
+  | "activity-images"
+  | "activity-attachments"
+  | "news-images";
 
 // Elke signed URL kreeg tot nu toe bij elke aanroep een gloednieuwe, unieke
 // token — ook voor exact hetzelfde bestand. Omdat die URL de cache-sleutel

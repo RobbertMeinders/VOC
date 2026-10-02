@@ -361,6 +361,24 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["documents"]["Row"]>;
         Relationships: [];
       };
+      news_items: {
+        Row: {
+          id: string;
+          title: string;
+          subtitle: string | null;
+          body: string;
+          image_url: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["news_items"]["Row"]> & {
+          title: string;
+          body: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["news_items"]["Row"]>;
+        Relationships: [];
+      };
       notifications: {
         Row: {
           id: string;

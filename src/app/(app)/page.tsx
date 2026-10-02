@@ -2,18 +2,17 @@ import type { Metadata } from "next";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { Building2, CalendarDays, FileText, MapPin, MessageCircle, Users } from "lucide-react";
+import { ArrowRight, Building2, CalendarDays, FileText, MapPin, Megaphone, MessageCircle, Users } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { formatActivityDate } from "@/lib/format/date";
-import { fetchFeedPosts } from "@/lib/feed/queries";
-import { RecentPostPreview } from "@/components/feed/RecentPostPreview";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Home" };
 
 type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
+type NewsItemRow = Database["public"]["Tables"]["news_items"]["Row"];
 
 function ShortcutButton({
   href,
@@ -29,15 +28,19 @@ function ShortcutButton({
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-500 ease-out hover:scale-[1.008] hover:border-voc-red hover:text-voc-red hover:shadow-md"
+      className="group flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-500 ease-out hover:-translate-y-0.5 hover:border-voc-red hover:shadow-md"
     >
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red">
-        <Icon size={20} />
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-voc-red-light text-voc-red transition-transform duration-500 ease-out group-hover:scale-105">
+        <Icon size={22} />
       </span>
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-medium text-foreground">{label}</span>
+        <span className="block truncate text-sm font-semibold text-foreground group-hover:text-voc-red">{label}</span>
         {typeof count === "number" && <span className="block text-xs text-muted">{count} bedrijven</span>}
       </span>
+      <ArrowRight
+        size={16}
+        className="shrink-0 text-muted opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-voc-red group-hover:opacity-100"
+      />
     </Link>
   );
 }
@@ -46,7 +49,7 @@ export default async function HomePage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: activities }, { count: companyCount }, recentPosts] = await Promise.all([
+  const [{ data: activities }, { count: companyCount }, { data: newsItems }] = await Promise.all([
     supabase
       .from("activities")
       .select("*")
@@ -56,12 +59,13 @@ export default async function HomePage() {
       .limit(1)
       .returns<ActivityRow[]>(),
     supabase.from("companies").select("id", { count: "exact", head: true }),
-    fetchFeedPosts(supabase, profile.id, 3),
+    supabase.from("news_items").select("*").order("created_at", { ascending: false }).limit(1).returns<NewsItemRow[]>(),
   ]);
 
   const nextActivity = activities?.[0] ?? null;
+  const latestNews = newsItems?.[0] ?? null;
 
-  const [nextActivityImageUrl, myRegistration] = await Promise.all([
+  const [nextActivityImageUrl, myRegistration, newsImageUrl] = await Promise.all([
     nextActivity ? getSignedStorageUrl("activity-images", nextActivity.image_url) : Promise.resolve(null),
     nextActivity
       ? supabase
@@ -71,6 +75,7 @@ export default async function HomePage() {
           .eq("profile_id", profile.id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
+    latestNews ? getSignedStorageUrl("news-images", latestNews.image_url) : Promise.resolve(null),
   ]);
 
   return (
@@ -81,6 +86,43 @@ export default async function HomePage() {
           Het laatste nieuws en de eerstvolgende activiteit van het ledenportaal, overzichtelijk bij elkaar.
         </p>
       </div>
+
+      {latestNews && (
+        <section>
+          <h2 className="mb-2 text-sm font-semibold text-foreground">Nieuws</h2>
+          <Link
+            href="/nieuws"
+            className="flex gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm hover:border-voc-red sm:gap-4 sm:p-5"
+          >
+            {newsImageUrl ? (
+              <Image
+                src={newsImageUrl}
+                alt={latestNews.title}
+                width={96}
+                height={96}
+                className="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-24 sm:w-24"
+              />
+            ) : (
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red sm:h-24 sm:w-24">
+                <Megaphone size={24} className="sm:hidden" />
+                <Megaphone size={30} className="hidden sm:block" />
+              </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="line-clamp-2 text-base font-semibold leading-snug text-foreground sm:text-lg">
+                {latestNews.title}
+              </p>
+              {latestNews.subtitle && <p className="mt-1 line-clamp-2 text-sm text-muted">{latestNews.subtitle}</p>}
+            </div>
+          </Link>
+          <Link
+            href="/nieuws"
+            className="mt-3 flex h-10 w-full items-center justify-center rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-all duration-150 hover:bg-black/[.03] active:scale-95 dark:hover:bg-white/[.06]"
+          >
+            Alle nieuws
+          </Link>
+        </section>
+      )}
 
       <section>
         <h2 className="mb-2 text-sm font-semibold text-foreground">Eerstvolgende activiteit</h2>
@@ -144,28 +186,11 @@ export default async function HomePage() {
         <h2 className="mb-2 text-sm font-semibold text-foreground">Snelle toegang</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
           <ShortcutButton href="/leden" icon={Users} label="Leden" />
-        <ShortcutButton href="/bedrijven" icon={Building2} label="Bedrijven" count={companyCount ?? undefined} />
+          <ShortcutButton href="/bedrijven" icon={Building2} label="Bedrijven" count={companyCount ?? undefined} />
           <ShortcutButton href="/documenten" icon={FileText} label="Documenten" />
           <ShortcutButton href="/community" icon={MessageCircle} label="Community" />
         </div>
       </section>
-
-      {recentPosts.length > 0 && (
-        <section>
-          <h2 className="mb-2 text-sm font-semibold text-foreground">Laatste in de community</h2>
-          <div className="flex flex-col gap-3">
-            {recentPosts.map((post) => (
-              <RecentPostPreview key={post.id} post={post} />
-            ))}
-          </div>
-          <Link
-            href="/community"
-            className="mt-3 flex h-10 w-full items-center justify-center rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-all duration-150 hover:bg-black/[.03] active:scale-95 dark:hover:bg-white/[.06]"
-          >
-            Naar Community
-          </Link>
-        </section>
-      )}
     </div>
   );
 }

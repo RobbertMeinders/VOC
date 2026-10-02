@@ -10,6 +10,7 @@ import {
   Inbox,
   LayoutDashboard,
   Mail,
+  Newspaper,
   Send,
   Upload,
   UserPlus,
@@ -43,6 +44,7 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
   {
     title: "Content",
     items: [
+      { href: "/beheer/nieuws", label: "Nieuws", icon: Newspaper },
       { href: "/beheer/agenda", label: "Activiteiten", icon: CalendarDays },
       { href: "/beheer/documenten", label: "Documenten", icon: FileText },
       { href: "/beheer/rapportages", label: "Rapportages", icon: Flag },
