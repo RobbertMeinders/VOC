@@ -90,7 +90,7 @@ export default async function HomePage() {
       {latestNews && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-foreground">Nieuws</h2>
-          <Link href="/nieuws" className="group relative block h-56 overflow-hidden rounded-2xl shadow-sm sm:h-72">
+          <Link href="/nieuws" className="group relative block h-72 overflow-hidden rounded-2xl shadow-sm sm:h-96">
             {newsImageUrl ? (
               <Image
                 src={newsImageUrl}
@@ -125,6 +125,16 @@ export default async function HomePage() {
           </Link>
         </section>
       )}
+
+      <section>
+        <h2 className="mb-2 text-sm font-semibold text-foreground">Snelle toegang</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <ShortcutButton href="/leden" icon={Users} label="Leden" />
+          <ShortcutButton href="/bedrijven" icon={Building2} label="Bedrijven" count={companyCount ?? undefined} />
+          <ShortcutButton href="/documenten" icon={FileText} label="Documenten" />
+          <ShortcutButton href="/community" icon={MessageCircle} label="Community" />
+        </div>
+      </section>
 
       <section>
         <h2 className="mb-2 text-sm font-semibold text-foreground">Eerstvolgende activiteit</h2>
@@ -182,16 +192,6 @@ export default async function HomePage() {
         >
           Hele agenda
         </Link>
-      </section>
-
-      <section>
-        <h2 className="mb-2 text-sm font-semibold text-foreground">Snelle toegang</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <ShortcutButton href="/leden" icon={Users} label="Leden" />
-          <ShortcutButton href="/bedrijven" icon={Building2} label="Bedrijven" count={companyCount ?? undefined} />
-          <ShortcutButton href="/documenten" icon={FileText} label="Documenten" />
-          <ShortcutButton href="/community" icon={MessageCircle} label="Community" />
-        </div>
       </section>
     </div>
   );

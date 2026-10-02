@@ -50,7 +50,7 @@ export default async function NieuwsPage() {
                     alt=""
                     width={640}
                     height={320}
-                    className="h-40 w-full object-cover sm:h-52"
+                    className="h-56 w-full object-cover sm:h-72"
                   />
                 )}
                 <div className="p-4 sm:p-5">
