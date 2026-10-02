@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Building2, CalendarDays, FileText, MapPin, Megaphone, MessageCircle, Users } from "lucide-react";
+import { Building2, CalendarDays, FileText, MapPin, Megaphone, MessageCircle, Users } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
@@ -28,19 +28,15 @@ function ShortcutButton({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-500 ease-out hover:-translate-y-0.5 hover:border-voc-red hover:shadow-md"
+      className="group flex flex-col items-center gap-2.5 rounded-2xl border border-border bg-surface px-3 py-5 text-center shadow-sm transition-all duration-500 ease-out hover:-translate-y-0.5 hover:border-voc-red hover:shadow-md"
     >
-      <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-voc-red-light text-voc-red transition-transform duration-500 ease-out group-hover:scale-105">
-        <Icon size={22} />
+      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-voc-red-light text-voc-red transition-transform duration-500 ease-out group-hover:scale-105">
+        <Icon size={26} />
       </span>
-      <span className="min-w-0 flex-1">
+      <span className="min-w-0">
         <span className="block truncate text-sm font-semibold text-foreground group-hover:text-voc-red">{label}</span>
         {typeof count === "number" && <span className="block text-xs text-muted">{count} bedrijven</span>}
       </span>
-      <ArrowRight
-        size={16}
-        className="shrink-0 text-muted opacity-0 transition-all duration-300 group-hover:translate-x-0.5 group-hover:text-voc-red group-hover:opacity-100"
-      />
     </Link>
   );
 }
@@ -90,31 +86,32 @@ export default async function HomePage() {
       {latestNews && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-foreground">Nieuws</h2>
-          <Link href="/nieuws" className="group relative block h-72 overflow-hidden rounded-2xl shadow-sm sm:h-96">
+          <Link href="/nieuws" className="group relative block h-80 overflow-hidden rounded-2xl shadow-sm sm:h-[28rem]">
             {newsImageUrl ? (
               <Image
                 src={newsImageUrl}
                 alt=""
                 fill
                 sizes="(max-width: 640px) 100vw, 768px"
-                className="object-cover transition-transform duration-700 ease-out group-hover:scale-105"
+                className="object-cover object-[center_30%] transition-transform duration-700 ease-out group-hover:scale-105"
               />
             ) : (
               <div className="absolute inset-0 flex items-center justify-center bg-voc-red">
                 <Megaphone size={72} className="text-white/20" />
               </div>
             )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-black/0" />
             <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
               <span className="inline-block rounded-full bg-voc-red px-2.5 py-1 text-xs font-semibold text-white">
                 Nieuws
               </span>
-              <p className="mt-2 line-clamp-2 text-xl font-bold leading-tight text-white sm:text-2xl">
+              <p className="mt-2 line-clamp-2 text-xl font-bold leading-tight text-white sm:text-3xl">
                 {latestNews.title}
               </p>
               {latestNews.subtitle && (
-                <p className="mt-1 line-clamp-1 text-sm text-white/80 sm:text-base">{latestNews.subtitle}</p>
+                <p className="mt-1 line-clamp-1 text-sm font-medium text-white/90 sm:text-base">{latestNews.subtitle}</p>
               )}
+              <p className="mt-1.5 line-clamp-2 text-sm text-white/70 sm:line-clamp-1">{latestNews.body}</p>
             </div>
           </Link>
           <Link
