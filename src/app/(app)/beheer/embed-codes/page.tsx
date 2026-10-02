@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { requireBoard } from "@/lib/auth/session";
-import { BackLink } from "@/components/ui/BackLink";
 import { CopyEmbedCode } from "@/components/beheer/CopyEmbedCode";
 
 export const metadata: Metadata = { title: "Embed-codes" };
@@ -39,7 +38,6 @@ export default async function EmbedCodesPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <BackLink href="/beheer" label="Terug naar Beheer" />
       <div>
         <h1 className="text-xl font-semibold text-foreground">Embed-codes</h1>
         <p className="text-sm text-muted">

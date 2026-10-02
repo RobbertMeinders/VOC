@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { BackLink } from "@/components/ui/BackLink";
 import { EmailTemplateForm } from "@/components/beheer/EmailTemplateForm";
 import { PushTemplateForm } from "@/components/beheer/PushTemplateForm";
 import type { Database } from "@/lib/types/database";
@@ -71,7 +70,6 @@ export default async function EmailTemplatesPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <BackLink href="/beheer" label="Terug naar Beheer" />
       <div>
         <h1 className="text-xl font-semibold text-foreground">E-mailtemplates</h1>
         <p className="text-sm text-muted">

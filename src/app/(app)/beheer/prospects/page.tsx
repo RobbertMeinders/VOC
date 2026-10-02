@@ -3,7 +3,6 @@ import { UserSearch } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
-import { BackLink } from "@/components/ui/BackLink";
 import { ProspectRow, type Prospect } from "@/components/beheer/ProspectRow";
 
 export const metadata: Metadata = { title: "Potentiële leden" };
@@ -20,7 +19,6 @@ export default async function ProspectsPage() {
 
   return (
     <div>
-      <BackLink href="/beheer" label="Terug naar Beheer" />
       <h1 className="mb-1 text-xl font-semibold text-foreground">Potentiële leden</h1>
       <p className="mb-2 text-sm text-muted">
         Niet-leden die zich via de openbare agenda-embed hebben aangemeld voor een activiteit. Wordt automatisch

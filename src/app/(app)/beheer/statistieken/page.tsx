@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { requireBoard } from "@/lib/auth/session";
-import { BackLink } from "@/components/ui/BackLink";
 import { LineTrend, BarTrend, Funnel } from "@/components/beheer/statistics/Charts";
 import {
   getActivityStats,
@@ -362,7 +361,6 @@ export default async function StatistiekenPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <BackLink href="/beheer" label="Terug naar Beheer" />
       <div>
         <h1 className="text-xl font-semibold text-foreground">Statistieken</h1>
         <p className="text-sm text-muted">Belangrijkste cijfers over leden, community, activiteiten, e-mail en push.</p>

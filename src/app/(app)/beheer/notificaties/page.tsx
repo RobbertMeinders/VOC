@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Check, Minus } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { BackLink } from "@/components/ui/BackLink";
 import type { Database } from "@/lib/types/database";
 
 type Notification = Database["public"]["Tables"]["notifications"]["Row"];
@@ -44,7 +43,6 @@ export default async function BeheerNotificatiesPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <BackLink href="/beheer" label="Terug naar Beheer" />
       <div>
         <h1 className="text-xl font-semibold text-foreground">Notificaties</h1>
         <p className="text-sm text-muted">
