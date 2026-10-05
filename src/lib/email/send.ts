@@ -10,7 +10,7 @@ import { renderTemplate } from "@/lib/template/render";
 // zijn voornaam of een activiteit-titel/locatie (beide vrij, onvalidatie
 // tekst) op bv. `<img src=x onerror=...>` zetten, en dat kwam ongefilterd
 // in de HTML-body van notificatiemails naar andere leden terecht.
-function escapeHtml(value: string): string {
+export function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")

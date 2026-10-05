@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { uploadImage } from "@/lib/supabase/upload";
 import { logAuditAction } from "@/lib/audit/log";
 
 // next/navigation's redirect() throws internally to unwind the render; that
@@ -67,4 +68,71 @@ export async function deleteCommunicationAction(communicationId: string): Promis
   });
 
   revalidatePath("/beheer/communicatie");
+}
+
+export type CommunicationFormState = { error?: string; success?: boolean };
+
+export async function updateCommunicationAction(
+  communicationId: string,
+  _prevState: CommunicationFormState,
+  formData: FormData
+): Promise<CommunicationFormState> {
+  await requireBoard();
+
+  const subject = String(formData.get("subject") ?? "").trim();
+  const preheader = String(formData.get("preheader") ?? "").trim();
+  const senderName = String(formData.get("sender_name") ?? "").trim();
+  const contentRaw = String(formData.get("content") ?? "[]");
+
+  if (!subject) {
+    return { error: "Onderwerp is verplicht." };
+  }
+
+  let content: unknown;
+  try {
+    content = JSON.parse(contentRaw);
+  } catch {
+    return { error: "Er ging iets mis bij het opslaan van de inhoud. Probeer het opnieuw." };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("communications")
+    .update({ subject, preheader: preheader || null, sender_name: senderName || null, content })
+    .eq("id", communicationId);
+
+  if (error) {
+    return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+  }
+
+  revalidatePath(`/beheer/communicatie/${communicationId}`);
+  revalidatePath("/beheer/communicatie");
+  return { success: true };
+}
+
+export type UploadImageState = { error?: string; url?: string };
+
+// Upload naar de publieke email-assets-bucket (zelfde als de bestaande
+// e-mailtemplate-afbeeldingen) — een nieuwsbriefafbeelding moet een URL
+// hebben die niet verloopt en zonder sessie leesbaar is, in tegenstelling
+// tot de signed URLs die de rest van de app voor privé-buckets gebruikt.
+export async function uploadNewsletterImageAction(
+  _prevState: UploadImageState,
+  formData: FormData
+): Promise<UploadImageState> {
+  await requireBoard();
+
+  const file = formData.get("image");
+  if (!(file instanceof File) || file.size === 0) {
+    return { error: "Kies een afbeelding." };
+  }
+
+  const supabase = await createClient();
+  const result = await uploadImage(supabase, "email-assets", "nieuwsbrieven", file);
+  if ("error" in result) {
+    return { error: result.error };
+  }
+
+  const { data } = supabase.storage.from("email-assets").getPublicUrl(result.path);
+  return { url: data.publicUrl };
 }
