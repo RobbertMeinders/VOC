@@ -292,3 +292,20 @@ button:not(:disabled) {
     transition: none;
   }
 }
+
+/* Clustergetal-bubbels op de bedrijvenkaart (CompanyMap.tsx,
+   react-leaflet-cluster) in de VOC-huiskleur i.p.v. leaflet.markercluster's
+   standaard geel/oranje — de buitenste ring is een lichtere, transparante
+   laag om de bubbel ook tegen een rode kaartpin nog te onderscheiden. */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background-color: color-mix(in srgb, var(--voc-red) 20%, transparent);
+}
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background-color: var(--voc-red);
+  color: #ffffff;
+  font-weight: 600;
+}

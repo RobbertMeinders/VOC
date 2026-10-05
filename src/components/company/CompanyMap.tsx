@@ -2,8 +2,11 @@
 
 import Link from "next/link";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
+import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import "react-leaflet-cluster/dist/assets/MarkerCluster.css";
+import "react-leaflet-cluster/dist/assets/MarkerCluster.Default.css";
 import type { CompanyListItem } from "./CompanyCard";
 
 // react-leaflet's default marker icon references image files that a
@@ -53,20 +56,25 @@ export function CompanyMap({
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-auteurs'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      {companies.map((company) => (
-        <Marker key={company.id} position={[company.latitude, company.longitude]} icon={markerIcon}>
-          <Popup>
-            <Link
-              href={company.href ?? `/bedrijven/${company.id}`}
-              onClick={company.onClick}
-              className="font-medium text-voc-red hover:underline"
-            >
-              {company.name}
-            </Link>
-            {company.city && <p className="mt-0.5 text-xs text-gray-600">{company.city}</p>}
-          </Popup>
-        </Marker>
-      ))}
+      {/* Bij veel bedrijven dicht bij elkaar (bv. hele binnenstad) groepeert
+          dit tot één getal-bubbel i.p.v. een onleesbare stapel spelden —
+          inzoomen of erop klikken splitst 'm vanzelf weer op. */}
+      <MarkerClusterGroup chunkedLoading maxClusterRadius={50} spiderfyOnMaxZoom>
+        {companies.map((company) => (
+          <Marker key={company.id} position={[company.latitude, company.longitude]} icon={markerIcon}>
+            <Popup>
+              <Link
+                href={company.href ?? `/bedrijven/${company.id}`}
+                onClick={company.onClick}
+                className="font-medium text-voc-red hover:underline"
+              >
+                {company.name}
+              </Link>
+              {company.city && <p className="mt-0.5 text-xs text-gray-600">{company.city}</p>}
+            </Popup>
+          </Marker>
+        ))}
+      </MarkerClusterGroup>
     </MapContainer>
   );
 }
