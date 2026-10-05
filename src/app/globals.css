@@ -293,19 +293,13 @@ button:not(:disabled) {
   }
 }
 
-/* Clustergetal-bubbels op de bedrijvenkaart (CompanyMap.tsx,
-   react-leaflet-cluster) in de VOC-huiskleur i.p.v. leaflet.markercluster's
-   standaard geel/oranje — de buitenste ring is een lichtere, transparante
-   laag om de bubbel ook tegen een rode kaartpin nog te onderscheiden. */
-.marker-cluster-small,
-.marker-cluster-medium,
-.marker-cluster-large {
-  background-color: color-mix(in srgb, var(--voc-red) 20%, transparent);
-}
-.marker-cluster-small div,
-.marker-cluster-medium div,
-.marker-cluster-large div {
-  background-color: var(--voc-red);
-  color: #ffffff;
-  font-weight: 600;
+/* Clustergetal-bubbels op de bedrijvenkaart (CompanyMap.tsx) — eigen
+   iconCreateFunction met een losse <div> in VOC-rood i.p.v. leaflet.
+   markercluster's standaard marker-cluster-small/medium/large-klassen.
+   Leaflets eigen .leaflet-div-icon zet standaard een wit vlak + grijze rand
+   op elk divIcon; die moet hier weg zodat alleen de eigen rode bubbel
+   overblijft. */
+.voc-cluster-icon {
+  background: transparent;
+  border: none;
 }
