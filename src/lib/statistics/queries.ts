@@ -592,3 +592,86 @@ export async function getNotificationBreakdown(): Promise<NotificationBreakdownR
     return [...byKey.values()].sort((a, b) => (a.firstSentAt < b.firstSentAt ? 1 : -1));
   });
 }
+
+// ---------------------------------------------------------------------------
+// Nieuwsbrief
+// ---------------------------------------------------------------------------
+
+export type NewsletterBreakdownRow = {
+  id: string;
+  subject: string;
+  sentAt: string | null;
+  sent: number;
+  opened: number;
+  clicked: number;
+};
+
+export type NewsletterStats = {
+  totalNewsletters: number;
+  totalSent: number;
+  totalOpened: number;
+  totalClicked: number;
+  openRatePercentage: number | null;
+  clickRatePercentage: number | null;
+  newsletters: NewsletterBreakdownRow[];
+};
+
+// Alle-tijd, net als getNotificationBreakdown — een nieuwsbrief verschijnt
+// hooguit een paar keer per maand, dus een periodefilter voegt hier weinig
+// toe. Groepeert via notifications.communication_id (één rij per ontvanger,
+// 0065_communications.sql) i.p.v. een eigen teller op communications zelf,
+// zodat open/klik-cijfers altijd uit dezelfde events-bron komen als de
+// E-mail- en Push-tabbladen.
+export async function getNewsletterStats(): Promise<NewsletterStats> {
+  return cachedQuery("statistieken-nieuwsbrief", TTL_MS, async () => {
+    const supabase = await createClient();
+
+    const [{ data: communications }, { data: notifications }, { data: openEvents }, { data: clickEvents }] = await Promise.all([
+      supabase
+        .from("communications")
+        .select("id, subject, status, sent_at")
+        .eq("status", "verzonden")
+        .order("sent_at", { ascending: false }),
+      supabase.from("notifications").select("id, communication_id").not("communication_id", "is", null),
+      supabase.from("events").select("target_id").eq("event_type", "notification_opened").contains("metadata", { channel: "email" }),
+      supabase.from("events").select("target_id").eq("event_type", "notification_clicked").contains("metadata", { channel: "email" }),
+    ]);
+
+    const openedIds = new Set((openEvents ?? []).map((e) => e.target_id).filter((id): id is string => Boolean(id)));
+    const clickedIds = new Set((clickEvents ?? []).map((e) => e.target_id).filter((id): id is string => Boolean(id)));
+
+    const notificationIdsByCommunication = new Map<string, string[]>();
+    for (const n of notifications ?? []) {
+      if (!n.communication_id) continue;
+      const list = notificationIdsByCommunication.get(n.communication_id) ?? [];
+      list.push(n.id);
+      notificationIdsByCommunication.set(n.communication_id, list);
+    }
+
+    const newsletters: NewsletterBreakdownRow[] = (communications ?? []).map((c) => {
+      const notificationIds = notificationIdsByCommunication.get(c.id) ?? [];
+      return {
+        id: c.id,
+        subject: c.subject,
+        sentAt: c.sent_at,
+        sent: notificationIds.length,
+        opened: notificationIds.filter((id) => openedIds.has(id)).length,
+        clicked: notificationIds.filter((id) => clickedIds.has(id)).length,
+      };
+    });
+
+    const totalSent = newsletters.reduce((sum, n) => sum + n.sent, 0);
+    const totalOpened = newsletters.reduce((sum, n) => sum + n.opened, 0);
+    const totalClicked = newsletters.reduce((sum, n) => sum + n.clicked, 0);
+
+    return {
+      totalNewsletters: newsletters.length,
+      totalSent,
+      totalOpened,
+      totalClicked,
+      openRatePercentage: totalSent ? Math.round((totalOpened / totalSent) * 100) : null,
+      clickRatePercentage: totalSent ? Math.round((totalClicked / totalSent) * 100) : null,
+      newsletters,
+    };
+  });
+}

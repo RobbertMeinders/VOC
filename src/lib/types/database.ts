@@ -723,6 +723,10 @@ export interface Database {
         Args: { p_provider_id: string };
         Returns: undefined;
       };
+      log_email_clicked: {
+        Args: { p_provider_id: string; p_link?: string | null };
+        Returns: undefined;
+      };
     };
     Enums: {
       user_role: UserRole;

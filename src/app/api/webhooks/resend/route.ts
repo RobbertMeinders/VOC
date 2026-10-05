@@ -43,20 +43,28 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
   }
 
-  let event: { type?: string; data?: { email_id?: string } };
+  let event: { type?: string; data?: { email_id?: string; link?: string } };
   try {
     event = JSON.parse(payload);
   } catch {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  // log_email_opened/log_email_clicked staan sinds resp. 0060 en 0066
+  // alleen nog open voor service_role — deze route heeft toch geen
+  // gebruikerssessie (de handtekeningcontrole hierboven is de enige, wél
+  // toereikende, verificatie).
+  const supabase = createAdminClient();
+
   if (event.type === "email.opened" && event.data?.email_id) {
-    // log_email_opened staat sinds 0060_restrict_cron_only_rpcs_and_
-    // registration_update.sql alleen nog open voor service_role — deze
-    // route heeft toch geen gebruikerssessie (de handtekeningcontrole
-    // hierboven is de enige, wél toereikende, verificatie).
-    const supabase = createAdminClient();
     await supabase.rpc("log_email_opened", { p_provider_id: event.data.email_id });
+  }
+
+  if (event.type === "email.clicked" && event.data?.email_id) {
+    // Vereist dat click tracking is aangezet op het verzenddomein bij
+    // Resend (zie 0065_communications.sql) — zonder dat komt dit event
+    // nooit binnen en blijven nieuwsbriefklikken simpelweg op 0 staan.
+    await supabase.rpc("log_email_clicked", { p_provider_id: event.data.email_id, p_link: event.data.link ?? null });
   }
 
   return NextResponse.json({ ok: true });
