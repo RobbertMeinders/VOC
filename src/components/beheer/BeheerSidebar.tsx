@@ -78,7 +78,10 @@ export function BeheerSidebar() {
         )}
       </div>
 
-      <nav className="hidden md:flex md:w-56 md:shrink-0 md:flex-col md:gap-5">
+      {/* -ml-8 trekt deze kolom over de standaard paginarand (md:px-8 in
+          AppShell) heen, zodat hij vlak tegen de hoofd-Sidebar aan ligt
+          i.p.v. er met een zichtbaar gaatje los van te staan. */}
+      <nav className="hidden md:-ml-8 md:flex md:w-60 md:shrink-0 md:flex-col md:gap-5 md:border-r md:border-border md:px-4 md:py-1">
         {BEHEER_SECTIONS.map((section) => (
           <div key={section.title} className="flex flex-col gap-1">
             <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">{section.title}</p>
