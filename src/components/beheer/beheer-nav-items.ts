@@ -28,18 +28,12 @@ export type BeheerNavSection = { title: string; items: BeheerNavItem[] };
 // permanent zij-menu, net als de hoofdnavigatie zelf.
 export const BEHEER_SECTIONS: BeheerNavSection[] = [
   {
-    title: "Overzicht",
-    items: [{ href: "/beheer", label: "Dashboard", icon: LayoutDashboard }],
-  },
-  {
-    title: "Leden & bedrijven",
+    title: "Communicatie",
     items: [
-      { href: "/beheer/uitnodigingen", label: "Uitnodigingen", icon: UserPlus },
-      { href: "/beheer/leden-import", label: "Leden importeren", icon: Upload },
-      { href: "/beheer/aanvragen", label: "Toegangsaanvragen", icon: Inbox },
-      { href: "/beheer/leden", label: "Leden", icon: Users },
-      { href: "/beheer/bedrijven", label: "Bedrijven", icon: Building2 },
-      { href: "/beheer/prospects", label: "Potentiële leden", icon: UserSearch },
+      { href: "/beheer/communicatie", label: "Nieuwsbrieven", icon: Megaphone },
+      { href: "/beheer/notificaties", label: "Notificaties", icon: Bell },
+      { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail },
+      { href: "/beheer/pushbericht", label: "Handmatig pushbericht", icon: Send },
     ],
   },
   {
@@ -52,12 +46,18 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     ],
   },
   {
-    title: "Communicatie",
+    title: "Overzicht",
+    items: [{ href: "/beheer", label: "Dashboard", icon: LayoutDashboard }],
+  },
+  {
+    title: "Leden & bedrijven",
     items: [
-      { href: "/beheer/communicatie", label: "Nieuwsbrieven", icon: Megaphone },
-      { href: "/beheer/notificaties", label: "Notificaties", icon: Bell },
-      { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail },
-      { href: "/beheer/pushbericht", label: "Handmatig pushbericht", icon: Send },
+      { href: "/beheer/uitnodigingen", label: "Uitnodigingen", icon: UserPlus },
+      { href: "/beheer/leden-import", label: "Leden importeren", icon: Upload },
+      { href: "/beheer/aanvragen", label: "Toegangsaanvragen", icon: Inbox },
+      { href: "/beheer/leden", label: "Leden", icon: Users },
+      { href: "/beheer/bedrijven", label: "Bedrijven", icon: Building2 },
+      { href: "/beheer/prospects", label: "Potentiële leden", icon: UserSearch },
     ],
   },
   {

@@ -47,8 +47,8 @@ export const BEHEER_NAV_ITEM: NavItem = { href: "/beheer", label: "Beheer", icon
 // keuze (Bedrijven | Leden) i.p.v. direct te navigeren — zie BottomNav.tsx.
 export const MOBILE_PRIMARY_NAV_ITEMS: NavItem[] = [
   HOME_NAV_ITEM,
-  COMMUNITY_NAV_ITEM,
   AGENDA_NAV_ITEM,
+  COMMUNITY_NAV_ITEM,
   NETWERK_NAV_ITEM,
 ];
 
@@ -60,8 +60,8 @@ export const MOBILE_PRIMARY_NAV_ITEMS: NavItem[] = [
 // rest van het menu.
 export const DESKTOP_NAV_ITEMS: NavItem[] = [
   HOME_NAV_ITEM,
-  COMMUNITY_NAV_ITEM,
   AGENDA_NAV_ITEM,
+  COMMUNITY_NAV_ITEM,
   NETWERK_NAV_ITEM,
   DOCUMENTEN_NAV_ITEM,
 ];

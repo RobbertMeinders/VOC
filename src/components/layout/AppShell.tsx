@@ -97,7 +97,7 @@ function AppShellBody({
         <div
           className={clsx(
             "w-full px-4 py-6",
-            wide ? "md:px-12 md:py-10" : "mx-auto max-w-2xl md:max-w-6xl md:px-8 md:py-10"
+            wide ? "md:px-16 md:py-10" : "mx-auto max-w-2xl md:max-w-6xl md:px-8 md:py-10"
           )}
         >
           {children}

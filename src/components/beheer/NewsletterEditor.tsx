@@ -333,7 +333,7 @@ export function NewsletterEditor({ communication }: { communication: Communicati
   const readOnly = communication.status === "verzonden";
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_680px]">
+    <div className="grid gap-6 lg:grid-cols-2">
       <div className="flex flex-col gap-6">
         <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
           <div className="flex flex-col gap-4">
