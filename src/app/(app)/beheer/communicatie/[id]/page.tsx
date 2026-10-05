@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { DeleteButton } from "@/components/feed/DeleteButton";
-import { FullWidthPage } from "@/components/layout/FullWidthPage";
 import { NewsletterEditor } from "@/components/beheer/NewsletterEditor";
 import { deleteCommunicationAction } from "../actions";
 
@@ -22,7 +21,6 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
 
   return (
     <div className="flex flex-col gap-4">
-      <FullWidthPage />
       <div className="flex items-start justify-between gap-3">
         <div>
           <h1 className="text-xl font-semibold text-foreground">{communication.subject}</h1>

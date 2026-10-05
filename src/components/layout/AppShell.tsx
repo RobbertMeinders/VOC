@@ -79,10 +79,14 @@ function AppShellBody({
   children: ReactNode;
   modal?: ReactNode;
 }) {
-  // Standaard max-w-6xl, maar een pagina kan via <FullWidthPage /> (ergens
-  // in zijn eigen boom) die begrenzing loslaten — bedoeld voor
-  // contentzware editors (zoals de nieuwsbriefeditor) die anders te krap
-  // staan.
+  // Standaard max-w-6xl + mx-auto (gecentreerd), maar een pagina kan via
+  // <FullWidthPage /> (ergens in zijn eigen boom) die begrenzing loslaten.
+  // Belangrijk: "breed" laat ook mx-auto los i.p.v. alleen de max-breedte
+  // te vergroten — met mx-auto blijft er op een breed scherm namelijk nog
+  // steeds een leeg stuk over tussen de sidebar en de inhoud (het
+  // centreert immers binnen de resterende ruimte), wat precies het
+  // probleem was dat het Beheer-zijmenu niet overal vlak tegen de
+  // hoofdnavigatie aan liet staan.
   const { wide } = usePageWidth();
 
   return (
@@ -91,12 +95,7 @@ function AppShellBody({
       <Sidebar profile={profile} unread={unread} avatarUrl={avatarUrl} companyId={companyId} companyName={companyName} />
       <MobileHeader unread={unread} />
       <main className="pb-20 md:ml-72 md:pb-0">
-        <div
-          className={clsx(
-            "mx-auto w-full px-4 py-6 md:px-8 md:py-10",
-            wide ? "max-w-[1600px]" : "max-w-2xl md:max-w-6xl"
-          )}
-        >
+        <div className={clsx("w-full px-4 py-6 md:px-8 md:py-10", wide ? "" : "mx-auto max-w-2xl md:max-w-6xl")}>
           {children}
         </div>
       </main>
