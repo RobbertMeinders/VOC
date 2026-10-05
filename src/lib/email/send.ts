@@ -3,21 +3,9 @@ import "server-only";
 import { Resend } from "resend";
 import { createClient } from "@/lib/supabase/server";
 import { renderTemplate } from "@/lib/template/render";
+import { escapeHtml } from "@/lib/text/escape-html";
 
-// renderTemplate() zelf doet geen escaping (het wordt ook voor kale
-// pushmeldingstekst gebruikt, waar HTML-entities fout zouden zijn) — dus
-// escapen we hier, alleen voor de HTML-e-mailpaden. Zonder dit kon een lid
-// zijn voornaam of een activiteit-titel/locatie (beide vrij, onvalidatie
-// tekst) op bv. `<img src=x onerror=...>` zetten, en dat kwam ongefilterd
-// in de HTML-body van notificatiemails naar andere leden terecht.
-export function escapeHtml(value: string): string {
-  return value
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#39;");
-}
+export { escapeHtml };
 
 // Notificatietypes met een beheerbaar email_templates-record (0039_
 // notification_templates.sql) — de overige types (moderatie, de uitkomst

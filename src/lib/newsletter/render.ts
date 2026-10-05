@@ -1,7 +1,9 @@
-import "server-only";
-
-import { escapeHtml } from "@/lib/email/send";
+import { escapeHtml } from "@/lib/text/escape-html";
 import type { NewsletterBlock } from "./types";
+
+// Bewust geen "server-only" hier: dezelfde functie rendert zowel de
+// definitieve verzending (server) als de live preview in de beheereditor
+// (client), zodat die twee nooit kunnen uiteenlopen.
 
 // Hardcoded i.p.v. de CSS-variabelen uit globals.css — e-mailclients lezen
 // geen CSS-variabelen, en een nieuwsbrief wordt altijd in het lichte thema

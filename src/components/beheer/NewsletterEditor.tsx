@@ -1,9 +1,9 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Image from "next/image";
-import { ArrowDown, ArrowUp, Image as ImageIcon, Link2, Minus, Trash2, Type } from "lucide-react";
+import { ArrowDown, ArrowUp, Image as ImageIcon, Laptop, Link2, Minus, Smartphone, Trash2, Type } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { compressInputFile } from "@/lib/image/compress";
@@ -13,6 +13,7 @@ import {
   type CommunicationFormState,
   type UploadImageState,
 } from "@/app/(app)/beheer/communicatie/actions";
+import { renderNewsletterHtml } from "@/lib/newsletter/render";
 import type { NewsletterBlock } from "@/lib/newsletter/types";
 import type { Database } from "@/lib/types/database";
 
@@ -250,11 +251,41 @@ function BlockEditor({
   );
 }
 
+function PreviewToggleButton({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
+        active ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function NewsletterEditor({ communication }: { communication: Communication }) {
   const updateWithId = updateCommunicationAction.bind(null, communication.id);
   const [state, formAction] = useActionState(updateWithId, initialState);
+  const [subject, setSubject] = useState(communication.subject);
+  const [preheader, setPreheader] = useState(communication.preheader ?? "");
   const [blocks, setBlocks] = useState<NewsletterBlock[]>(
     Array.isArray(communication.content) ? (communication.content as unknown as NewsletterBlock[]) : []
+  );
+  const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
+
+  const previewHtml = useMemo(
+    () => renderNewsletterHtml(blocks, { subject, preheader }),
+    [blocks, subject, preheader]
   );
 
   function addBlock(type: NewsletterBlock["type"]) {
@@ -291,115 +322,147 @@ export function NewsletterEditor({ communication }: { communication: Communicati
   const readOnly = communication.status === "verzonden";
 
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    <form action={formAction} className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
       <input type="hidden" name="content" value={JSON.stringify(blocks)} />
+      <input type="hidden" name="subject" value={subject} />
+      <input type="hidden" name="preheader" value={preheader} />
 
-      <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+      <div className="flex flex-col gap-5">
+        <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+          <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="subject-input" className="text-sm font-medium text-foreground">
+                Onderwerp
+              </label>
+              <Input
+                id="subject-input"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                required
+                disabled={readOnly}
+                placeholder="De hoofdregel die leden in hun inbox zien"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="preheader-input" className="text-sm font-medium text-foreground">
+                Pre-header <span className="font-normal text-muted">(optioneel)</span>
+              </label>
+              <Input
+                id="preheader-input"
+                value={preheader}
+                onChange={(e) => setPreheader(e.target.value)}
+                disabled={readOnly}
+                placeholder="Korte aanvullende tekst, zichtbaar naast het onderwerp in de inbox"
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="sender_name" className="text-sm font-medium text-foreground">
+                Afzendernaam <span className="font-normal text-muted">(optioneel)</span>
+              </label>
+              <Input
+                id="sender_name"
+                name="sender_name"
+                defaultValue={communication.sender_name ?? ""}
+                disabled={readOnly}
+                placeholder="Veendammer Ondernemer Compagnie"
+              />
+            </div>
+          </div>
+        </div>
+
         <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="subject" className="text-sm font-medium text-foreground">
-              Onderwerp
-            </label>
-            <Input
-              id="subject"
-              name="subject"
-              defaultValue={communication.subject}
-              required
-              disabled={readOnly}
-              placeholder="De hoofdregel die leden in hun inbox zien"
+          {blocks.map((block, index) => (
+            <BlockEditor
+              key={block.id}
+              block={block}
+              onChange={(next) => updateBlock(index, next)}
+              onMoveUp={() => moveBlock(index, -1)}
+              onMoveDown={() => moveBlock(index, 1)}
+              onRemove={() => removeBlock(index)}
+              canMoveUp={index > 0}
+              canMoveDown={index < blocks.length - 1}
             />
+          ))}
+        </div>
+
+        {!readOnly && (
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => addBlock("text")}
+              className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+            >
+              <Type size={16} />
+              Tekst
+            </button>
+            <button
+              type="button"
+              onClick={() => addBlock("image")}
+              className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+            >
+              <ImageIcon size={16} />
+              Afbeelding
+            </button>
+            <button
+              type="button"
+              onClick={() => addBlock("button")}
+              className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+            >
+              <Link2 size={16} />
+              Knop
+            </button>
+            <button
+              type="button"
+              onClick={() => addBlock("divider")}
+              className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+            >
+              <Minus size={16} />
+              Scheidingslijn
+            </button>
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="preheader" className="text-sm font-medium text-foreground">
-              Pre-header <span className="font-normal text-muted">(optioneel)</span>
-            </label>
-            <Input
-              id="preheader"
-              name="preheader"
-              defaultValue={communication.preheader ?? ""}
-              disabled={readOnly}
-              placeholder="Korte aanvullende tekst, zichtbaar naast het onderwerp in de inbox"
-            />
+        )}
+
+        {state.error && (
+          <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+            {state.error}
+          </p>
+        )}
+        {state.success && <p className="text-sm text-green-600">Opgeslagen.</p>}
+
+        {!readOnly && (
+          <div>
+            <SubmitButton />
           </div>
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor="sender_name" className="text-sm font-medium text-foreground">
-              Afzendernaam <span className="font-normal text-muted">(optioneel)</span>
-            </label>
-            <Input
-              id="sender_name"
-              name="sender_name"
-              defaultValue={communication.sender_name ?? ""}
-              disabled={readOnly}
-              placeholder="Veendammer Ondernemer Compagnie"
+        )}
+      </div>
+
+      <div className="lg:sticky lg:top-4 lg:self-start">
+        <div className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-foreground">Voorbeeld</p>
+            <div className="flex gap-1.5">
+              <PreviewToggleButton active={previewDevice === "desktop"} onClick={() => setPreviewDevice("desktop")}>
+                <Laptop size={13} />
+                Desktop
+              </PreviewToggleButton>
+              <PreviewToggleButton active={previewDevice === "mobile"} onClick={() => setPreviewDevice("mobile")}>
+                <Smartphone size={13} />
+                Mobiel
+              </PreviewToggleButton>
+            </div>
+          </div>
+          <div className="flex justify-center rounded-xl bg-black/[.03] p-3 dark:bg-white/[.04]">
+            <iframe
+              title="Voorbeeld nieuwsbrief"
+              srcDoc={previewHtml}
+              sandbox=""
+              className={`h-[560px] rounded-lg border border-border bg-white transition-[width] ${
+                previewDevice === "desktop" ? "w-full" : "w-[375px]"
+              }`}
             />
           </div>
         </div>
       </div>
-
-      <div className="flex flex-col gap-3">
-        {blocks.map((block, index) => (
-          <BlockEditor
-            key={block.id}
-            block={block}
-            onChange={(next) => updateBlock(index, next)}
-            onMoveUp={() => moveBlock(index, -1)}
-            onMoveDown={() => moveBlock(index, 1)}
-            onRemove={() => removeBlock(index)}
-            canMoveUp={index > 0}
-            canMoveDown={index < blocks.length - 1}
-          />
-        ))}
-      </div>
-
-      {!readOnly && (
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() => addBlock("text")}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
-          >
-            <Type size={16} />
-            Tekst
-          </button>
-          <button
-            type="button"
-            onClick={() => addBlock("image")}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
-          >
-            <ImageIcon size={16} />
-            Afbeelding
-          </button>
-          <button
-            type="button"
-            onClick={() => addBlock("button")}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
-          >
-            <Link2 size={16} />
-            Knop
-          </button>
-          <button
-            type="button"
-            onClick={() => addBlock("divider")}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
-          >
-            <Minus size={16} />
-            Scheidingslijn
-          </button>
-        </div>
-      )}
-
-      {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
-          {state.error}
-        </p>
-      )}
-      {state.success && <p className="text-sm text-green-600">Opgeslagen.</p>}
-
-      {!readOnly && (
-        <div>
-          <SubmitButton />
-        </div>
-      )}
     </form>
   );
 }
