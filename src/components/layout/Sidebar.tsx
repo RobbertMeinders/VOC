@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
-import { ArrowLeft, Building2, LayoutDashboard, Settings, User as UserIcon, type LucideIcon } from "lucide-react";
+import { Building2, LayoutDashboard, Settings, User as UserIcon, type LucideIcon } from "lucide-react";
 import { DESKTOP_NAV_ITEMS, isNavItemActive, type NavItem } from "./nav-items";
 import { NavBadge } from "./NavBadge";
 import { Logo } from "@/components/ui/Logo";
@@ -13,7 +13,6 @@ import { NotificationCenter } from "@/components/notifications/NotificationCente
 import { SearchOverlay } from "@/components/search/SearchOverlay";
 import { VocSocialLinks } from "@/components/ui/VocSocialLinks";
 import { isBoard } from "@/lib/auth/roles";
-import { BEHEER_SECTIONS, type BeheerNavItem } from "@/components/beheer/beheer-nav-items";
 import type { Profile } from "@/lib/auth/session";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
@@ -31,7 +30,6 @@ export function Sidebar({
   companyName: string | null;
 }) {
   const pathname = usePathname();
-  const inBeheer = pathname.startsWith("/beheer");
 
   function renderItem(item: NavItem, indented = false) {
     const { href, label, icon: Icon, badgeKey } = item;
@@ -61,41 +59,13 @@ export function Sidebar({
 
   // Mijn profiel/Mijn bedrijfsprofiel/Instellingen/Beheer staan op desktop
   // altijd zichtbaar i.p.v. achter het klikken op de profielfoto — die knop
-  // opent alleen nog Uitloggen (SidebarProfileMenu). "Beheer" zelf vervalt
-  // hier zodra je er al in zit: de hoofdnavigatie erboven is dan al
-  // omgeschakeld naar het Beheer-menu, inclusief een "Terug"-link.
+  // opent alleen nog Uitloggen (SidebarProfileMenu).
   const accountItems: { href: string; label: string; icon: LucideIcon; badge?: number }[] = [
     { href: `/leden/${profile.id}`, label: "Mijn profiel", icon: UserIcon },
     ...(companyId ? [{ href: `/bedrijven/${companyId}`, label: "Mijn bedrijfsprofiel", icon: Building2 }] : []),
     { href: "/instellingen", label: "Instellingen", icon: Settings },
-    ...(isBoard(profile.role) && !inBeheer
-      ? [{ href: "/beheer", label: "Beheer", icon: LayoutDashboard, badge: unread.beheer }]
-      : []),
+    ...(isBoard(profile.role) ? [{ href: "/beheer", label: "Beheer", icon: LayoutDashboard, badge: unread.beheer }] : []),
   ];
-
-  function isBeheerItemActive(href: string) {
-    return href === "/beheer" ? pathname === "/beheer" : pathname === href || pathname.startsWith(`${href}/`);
-  }
-
-  function renderBeheerItem(item: BeheerNavItem) {
-    const active = isBeheerItemActive(item.href);
-    const Icon = item.icon;
-    return (
-      <Link
-        key={item.href}
-        href={item.href}
-        className={clsx(
-          "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
-          active
-            ? "bg-voc-red-light text-voc-red"
-            : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-        )}
-      >
-        <Icon size={16} strokeWidth={active ? 2.5 : 2} />
-        {item.label}
-      </Link>
-    );
-  }
 
   function renderAccountItem({ href, label, icon: Icon, badge }: (typeof accountItems)[number]) {
     const active = pathname === href || (href !== "/instellingen" && pathname.startsWith(href));
@@ -140,40 +110,16 @@ export function Sidebar({
         </div>
       </div>
 
-      {inBeheer ? (
-        // Beheer heeft te veel secties/items (6 secties, 14 items) om naast
-        // de gewone hoofdnavigatie te blijven staan — dat was eerder een
-        // aparte, permanente kolom binnen de paginainhoud zelf (BeheerSidebar),
-        // wat bij een contentzware pagina zoals de nieuwsbriefeditor veel
-        // breedte opsoupeert. Schakelt de hoofdnavigatie hier dus om naar het
-        // Beheer-menu i.p.v. een tweede kolom ernaast te tonen.
-        <nav className="flex flex-1 flex-col gap-5 overflow-y-auto">
-          <Link
-            href="/"
-            className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]"
-          >
-            <ArrowLeft size={16} />
-            Terug naar ledenportaal
-          </Link>
-          {BEHEER_SECTIONS.map((section) => (
-            <div key={section.title} className="flex flex-col gap-1">
-              <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">{section.title}</p>
-              {section.items.map(renderBeheerItem)}
-            </div>
-          ))}
-        </nav>
-      ) : (
-        <nav className="flex flex-1 flex-col gap-1">
-          {DESKTOP_NAV_ITEMS.map((item) => {
-            if (item.label === "Netwerk") {
-              // Klik opent een popover (Leden/Bedrijven) net als het
-              // accountmenu, i.p.v. een altijd-uitgeklapt submenu.
-              return <NetworkChooser key={item.href} badgeCount={unread.netwerk} variant="sidebar" />;
-            }
-            return renderItem(item);
-          })}
-        </nav>
-      )}
+      <nav className="flex flex-1 flex-col gap-1">
+        {DESKTOP_NAV_ITEMS.map((item) => {
+          if (item.label === "Netwerk") {
+            // Klik opent een popover (Leden/Bedrijven) net als het
+            // accountmenu, i.p.v. een altijd-uitgeklapt submenu.
+            return <NetworkChooser key={item.href} badgeCount={unread.netwerk} variant="sidebar" />;
+          }
+          return renderItem(item);
+        })}
+      </nav>
 
       <nav className="mt-2 flex flex-col gap-1 border-t border-border pt-2">{accountItems.map(renderAccountItem)}</nav>
 

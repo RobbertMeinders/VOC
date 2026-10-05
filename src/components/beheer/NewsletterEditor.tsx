@@ -170,12 +170,6 @@ function BlockEditor({
             onChange={(e) => onChange({ ...block, title: e.target.value })}
             className={inputSizeClass()}
           />
-          <Input
-            placeholder="Subtitel (optioneel)"
-            value={block.subtitle ?? ""}
-            onChange={(e) => onChange({ ...block, subtitle: e.target.value })}
-            className={inputSizeClass()}
-          />
           <textarea
             rows={5}
             placeholder="Tekst"
@@ -339,7 +333,7 @@ export function NewsletterEditor({ communication }: { communication: Communicati
   const readOnly = communication.status === "verzonden";
 
   return (
-    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_680px]">
       <div className="flex flex-col gap-6">
         <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
           <div className="flex flex-col gap-4">
@@ -483,8 +477,8 @@ export function NewsletterEditor({ communication }: { communication: Communicati
               title="Voorbeeld nieuwsbrief"
               srcDoc={previewHtml}
               sandbox=""
-              className={`h-[560px] rounded-lg border border-border bg-white transition-[width] ${
-                previewDevice === "desktop" ? "w-full" : "w-[375px]"
+              className={`h-[min(78vh,900px)] rounded-lg border border-border bg-white transition-[width] ${
+                previewDevice === "desktop" ? "w-full" : "w-[390px]"
               }`}
             />
           </div>

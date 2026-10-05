@@ -27,8 +27,7 @@ function nl2br(text: string): string {
 
 function renderTextBlock(block: Extract<NewsletterBlock, { type: "text" }>): string {
   return `<tr><td style="padding:0 24px 24px;">
-    ${block.title ? `<h2 style="margin:0 0 4px;font-size:20px;line-height:1.3;color:${COLORS.foreground};font-family:${FONT};">${escapeHtml(block.title)}</h2>` : ""}
-    ${block.subtitle ? `<p style="margin:0 0 8px;font-size:14px;font-weight:600;color:${COLORS.muted};font-family:${FONT};">${escapeHtml(block.subtitle)}</p>` : ""}
+    ${block.title ? `<h2 style="margin:0 0 8px;font-size:20px;line-height:1.3;color:${COLORS.foreground};font-family:${FONT};">${escapeHtml(block.title)}</h2>` : ""}
     <p style="margin:0;font-size:14px;line-height:1.6;color:${COLORS.foreground};font-family:${FONT};">${nl2br(block.body)}</p>
   </td></tr>`;
 }

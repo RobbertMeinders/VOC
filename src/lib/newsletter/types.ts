@@ -2,7 +2,6 @@ export type NewsletterTextBlock = {
   id: string;
   type: "text";
   title?: string;
-  subtitle?: string;
   body: string;
 };
 
