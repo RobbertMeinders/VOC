@@ -91,6 +91,39 @@ async function sendRawNotificationEmail(
 }
 
 /**
+ * Verstuurt losse, al-gerenderde HTML rechtstreeks via Resend — gebruikt
+ * door de nieuwsbrief (testmail én, later, de definitieve verzending), die
+ * zijn eigen HTML bouwt via renderNewsletterHtml() in plaats van via een
+ * {{var}}-template. senderName overschrijft alleen de weergavenaam, niet
+ * het onderliggende, geverifieerde afzenderadres uit EMAIL_FROM.
+ */
+export async function sendRawHtmlEmail(
+  to: string,
+  subject: string,
+  html: string,
+  senderName?: string | null
+): Promise<{ error?: string; providerId?: string }> {
+  const apiKey = process.env.RESEND_API_KEY;
+  const defaultFrom = process.env.EMAIL_FROM;
+  if (!apiKey || !defaultFrom) {
+    return { error: "E-mail versturen is niet geconfigureerd (RESEND_API_KEY / EMAIL_FROM ontbreken)." };
+  }
+
+  const fromAddressMatch = defaultFrom.match(/<([^>]+)>/);
+  const fromAddress = fromAddressMatch ? fromAddressMatch[1] : defaultFrom;
+  const from = senderName ? `${senderName} <${fromAddress}>` : defaultFrom;
+
+  const resend = new Resend(apiKey);
+  try {
+    const { data, error } = await resend.emails.send({ from, to, subject, html });
+    if (error) return { error: "Versturen van de e-mail is niet gelukt." };
+    return { providerId: data?.id };
+  } catch {
+    return { error: "Versturen van de e-mail is niet gelukt." };
+  }
+}
+
+/**
  * Verstuurt een notificatie (uit de notifications-tabel) als e-mail —
  * gebruikt door /api/cron/send-email-notifications. Rendert het
  * bijbehorende beheerbare template (email_templates, zie

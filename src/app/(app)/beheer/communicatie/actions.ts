@@ -6,8 +6,10 @@ import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
 import { logAuditAction } from "@/lib/audit/log";
+import { sendRawHtmlEmail } from "@/lib/email/send";
+import { renderNewsletterHtml } from "@/lib/newsletter/render";
 import { buildEventSnapshot } from "@/lib/newsletter/eventSnapshot";
-import type { NewsletterEventBlock } from "@/lib/newsletter/types";
+import type { NewsletterBlock, NewsletterEventBlock } from "@/lib/newsletter/types";
 
 // next/navigation's redirect() throws internally to unwind the render; that
 // throw must always be allowed through, never caught as a "real" error.
@@ -181,6 +183,35 @@ export async function createCommunicationFromActivityAction(activityId: string):
     if (isNextRedirectError(cause)) throw cause;
     console.error("[communicatie] createCommunicationFromActivityAction threw:", cause);
   }
+}
+
+export type TestSendState = { error?: string; success?: boolean };
+
+// Testmail: rendert de huidige (mogelijk nog niet opgeslagen) staat van de
+// editor en stuurt 'm alleen naar het eigen e-mailadres van het bestuurslid
+// dat op de knop klikt — nooit naar leden, en zonder notifications/stats-
+// rijen aan te maken (dat is pas aan de orde bij de écht definitieve
+// verzending, fase 8, die apart akkoord moet krijgen).
+export async function sendTestNewsletterAction(
+  subject: string,
+  preheader: string,
+  senderName: string,
+  content: NewsletterBlock[]
+): Promise<TestSendState> {
+  const profile = await requireBoard();
+
+  if (!subject.trim()) {
+    return { error: "Onderwerp is verplicht." };
+  }
+
+  const html = renderNewsletterHtml(content, { subject, preheader: preheader || null });
+  const result = await sendRawHtmlEmail(profile.email, `[TEST] ${subject}`, html, senderName || null);
+
+  if (result.error) {
+    return { error: result.error };
+  }
+
+  return { success: true };
 }
 
 export type UploadImageState = { error?: string; url?: string };

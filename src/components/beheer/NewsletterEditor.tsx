@@ -12,6 +12,7 @@ import {
   Link2,
   Minus,
   RefreshCw,
+  Send,
   Smartphone,
   Trash2,
   Type,
@@ -23,6 +24,7 @@ import {
   updateCommunicationAction,
   uploadNewsletterImageAction,
   getEventSnapshotAction,
+  sendTestNewsletterAction,
   type CommunicationFormState,
   type UploadImageState,
 } from "@/app/(app)/beheer/communicatie/actions";
@@ -418,10 +420,21 @@ export function NewsletterEditor({
   const [state, formAction] = useActionState(updateWithId, initialState);
   const [subject, setSubject] = useState(communication.subject);
   const [preheader, setPreheader] = useState(communication.preheader ?? "");
+  const [senderName, setSenderName] = useState(communication.sender_name ?? "");
   const [blocks, setBlocks] = useState<NewsletterBlock[]>(
     Array.isArray(communication.content) ? (communication.content as unknown as NewsletterBlock[]) : []
   );
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
+  const [testSendPending, setTestSendPending] = useState(false);
+  const [testSendResult, setTestSendResult] = useState<{ error?: string; success?: boolean } | null>(null);
+
+  async function handleTestSend() {
+    setTestSendPending(true);
+    setTestSendResult(null);
+    const result = await sendTestNewsletterAction(subject, preheader, senderName, blocks);
+    setTestSendPending(false);
+    setTestSendResult(result);
+  }
 
   const previewHtml = useMemo(
     () => renderNewsletterHtml(blocks, { subject, preheader }),
@@ -514,7 +527,8 @@ export function NewsletterEditor({
                 id="sender_name"
                 name="sender_name"
                 form={formId}
-                defaultValue={communication.sender_name ?? ""}
+                value={senderName}
+                onChange={(e) => setSenderName(e.target.value)}
                 disabled={readOnly}
                 placeholder="Veendammer Ondernemer Compagnie"
                 className="h-11 text-base"
@@ -632,6 +646,14 @@ export function NewsletterEditor({
                 previewDevice === "desktop" ? "w-full" : "w-[390px]"
               }`}
             />
+          </div>
+          <div className="flex flex-wrap items-center gap-3 border-t border-border pt-3">
+            <Button type="button" variant="secondary" onClick={handleTestSend} disabled={testSendPending}>
+              <Send size={16} />
+              {testSendPending ? "Versturen…" : "Testmail versturen naar mij"}
+            </Button>
+            {testSendResult?.success && <p className="text-sm text-green-600">Testmail verstuurd.</p>}
+            {testSendResult?.error && <p className="text-sm text-voc-red">{testSendResult.error}</p>}
           </div>
         </div>
       </div>
