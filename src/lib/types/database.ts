@@ -379,6 +379,30 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["news_items"]["Row"]>;
         Relationships: [];
       };
+      communications: {
+        Row: {
+          id: string;
+          type: string;
+          subject: string;
+          preheader: string | null;
+          sender_name: string | null;
+          status: string;
+          content: unknown;
+          template_key: string | null;
+          linked_activity_id: string | null;
+          recipient_filter: string;
+          total_recipients: number | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+          sent_at: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["communications"]["Row"]> & {
+          subject: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["communications"]["Row"]>;
+        Relationships: [];
+      };
       notifications: {
         Row: {
           id: string;
@@ -393,6 +417,7 @@ export interface Database {
           channel_push_allowed: boolean;
           channel_email_allowed: boolean;
           email_provider_id: string | null;
+          communication_id: string | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["notifications"]["Row"]> & {
