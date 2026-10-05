@@ -116,7 +116,7 @@ export default async function HomePage() {
           </Link>
           <Link
             href="/nieuws"
-            className="mx-auto mt-3 flex h-10 w-fit items-center justify-center rounded-full border border-border bg-surface px-6 text-sm font-medium text-foreground transition-all duration-150 hover:bg-black/[.03] active:scale-95 dark:hover:bg-white/[.06]"
+            className="mx-auto mt-3 flex h-11 w-full max-w-72 items-center justify-center rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-all duration-150 hover:bg-black/[.03] active:scale-95 dark:hover:bg-white/[.06]"
           >
             Alle nieuws
           </Link>
@@ -185,7 +185,7 @@ export default async function HomePage() {
         )}
         <Link
           href="/agenda"
-          className="mx-auto mt-3 flex h-10 w-fit items-center justify-center rounded-full border border-border bg-surface px-6 text-sm font-medium text-foreground transition-all duration-150 hover:bg-black/[.03] active:scale-95 dark:hover:bg-white/[.06]"
+          className="mx-auto mt-3 flex h-11 w-full max-w-72 items-center justify-center rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-all duration-150 hover:bg-black/[.03] active:scale-95 dark:hover:bg-white/[.06]"
         >
           Hele agenda
         </Link>

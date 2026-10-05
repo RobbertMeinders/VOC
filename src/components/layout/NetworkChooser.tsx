@@ -14,8 +14,8 @@ const PANEL_WIDTH = 192; // w-48
 const EDGE_MARGIN = 16;
 
 const OPTIONS = [
-  { href: "/bedrijven", label: "Bedrijven", icon: Building2 },
   { href: "/leden", label: "Leden", icon: Users },
+  { href: "/bedrijven", label: "Bedrijven", icon: Building2 },
 ];
 
 // Netwerk tikken/klikken navigeert niet direct, maar toont eerst een
