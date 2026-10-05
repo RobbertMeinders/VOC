@@ -10,6 +10,7 @@ import {
   Inbox,
   LayoutDashboard,
   Mail,
+  Megaphone,
   Newspaper,
   Send,
   Upload,
@@ -53,6 +54,7 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
   {
     title: "Communicatie",
     items: [
+      { href: "/beheer/communicatie", label: "Nieuwsbrieven", icon: Megaphone },
       { href: "/beheer/notificaties", label: "Notificaties", icon: Bell },
       { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail },
       { href: "/beheer/pushbericht", label: "Handmatig pushbericht", icon: Send },
