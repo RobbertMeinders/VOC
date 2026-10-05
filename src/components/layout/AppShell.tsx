@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import type { Profile } from "@/lib/auth/session";
 import {
@@ -11,7 +12,6 @@ import {
 } from "@/lib/notifications/useUnreadCount";
 import { OverlayProvider } from "@/lib/ui/OverlayContext";
 import { OverlayOriginProvider } from "@/lib/ui/OverlayOriginContext";
-import { PageWidthProvider, usePageWidth } from "@/lib/ui/PageWidthContext";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { MobileHeader } from "./MobileHeader";
@@ -44,18 +44,16 @@ export function AppShell({
     <OverlayProvider>
       <OverlayOriginProvider>
         <MarkNotificationReadProvider value={markRead}>
-          <PageWidthProvider>
-            <AppShellBody
-              profile={profile}
-              unread={unread}
-              avatarUrl={avatarUrl}
-              companyId={companyId}
-              companyName={companyName}
-              modal={modal}
-            >
-              {children}
-            </AppShellBody>
-          </PageWidthProvider>
+          <AppShellBody
+            profile={profile}
+            unread={unread}
+            avatarUrl={avatarUrl}
+            companyId={companyId}
+            companyName={companyName}
+            modal={modal}
+          >
+            {children}
+          </AppShellBody>
         </MarkNotificationReadProvider>
       </OverlayOriginProvider>
     </OverlayProvider>
@@ -79,15 +77,16 @@ function AppShellBody({
   children: ReactNode;
   modal?: ReactNode;
 }) {
-  // Standaard max-w-6xl + mx-auto (gecentreerd), maar een pagina kan via
-  // <FullWidthPage /> (ergens in zijn eigen boom) die begrenzing loslaten.
-  // Belangrijk: "breed" laat ook mx-auto los i.p.v. alleen de max-breedte
-  // te vergroten — met mx-auto blijft er op een breed scherm namelijk nog
-  // steeds een leeg stuk over tussen de sidebar en de inhoud (het
-  // centreert immers binnen de resterende ruimte), wat precies het
-  // probleem was dat het Beheer-zijmenu niet overal vlak tegen de
-  // hoofdnavigatie aan liet staan.
-  const { wide } = usePageWidth();
+  // Beheer-pagina's laten de standaard gecentreerde max-w-6xl los: met
+  // mx-auto bleef er op een breed scherm namelijk een leeg stuk over tussen
+  // de hoofdsidebar en het Beheer-zijmenu (het centreert binnen de
+  // resterende ruimte), waardoor dat menu niet overal consistent vlak
+  // tegen de hoofdnavigatie aan stond. Rechtstreeks op de pathname bepaald
+  // (i.p.v. via een losse context + useEffect die pas ná de eerste render
+  // "breed" zet) zodat er geen zichtbare sprong van gecentreerd naar links
+  // optreedt bij het laden van de pagina.
+  const pathname = usePathname();
+  const wide = pathname.startsWith("/beheer");
 
   return (
     <div className="min-h-dvh bg-background">
@@ -95,7 +94,12 @@ function AppShellBody({
       <Sidebar profile={profile} unread={unread} avatarUrl={avatarUrl} companyId={companyId} companyName={companyName} />
       <MobileHeader unread={unread} />
       <main className="pb-20 md:ml-72 md:pb-0">
-        <div className={clsx("w-full px-4 py-6 md:px-8 md:py-10", wide ? "" : "mx-auto max-w-2xl md:max-w-6xl")}>
+        <div
+          className={clsx(
+            "w-full px-4 py-6",
+            wide ? "md:px-12 md:py-10" : "mx-auto max-w-2xl md:max-w-6xl md:px-8 md:py-10"
+          )}
+        >
           {children}
         </div>
       </main>
