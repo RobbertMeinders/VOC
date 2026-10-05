@@ -8,14 +8,13 @@ import { ChevronDown } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { BEHEER_SECTIONS, type BeheerNavItem } from "./beheer-nav-items";
 
-// Permanent zij-menu voor alle /beheer/*-pagina's (zie BeheerLayout) i.p.v.
-// een los kaartjes-overzicht op /beheer zelf. Op desktop een altijd
-// zichtbare verticale kolom (net als de hoofdnavigatie). Op mobiel bleek
-// een horizontaal scrollbare pillenrij met 14 items over 6 secties
-// onhandig (geen sectiekoppen zichtbaar, veel heen-en-weer scrollen om iets
-// te vinden) — daarom daar in plaats daarvan een knop met de huidige
+// Beheer-navigatie voor mobiel (zie BeheerLayout): een knop met de huidige
 // sectie die de volledige, gegroepeerde lijst uitklapt, net als
-// NetworkChooser's sidebar-variant.
+// NetworkChooser's sidebar-variant — een horizontaal scrollbare pillenrij
+// met 14 items over 6 secties bleek onhandig (geen sectiekoppen zichtbaar,
+// veel heen-en-weer scrollen om iets te vinden). Op desktop zit dezelfde
+// navigatie in de hoofd-Sidebar zelf (die schakelt om naar het Beheer-menu
+// zodra je in /beheer/* zit) — hier dus alleen nog de mobiele variant.
 export function BeheerSidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -49,43 +48,32 @@ export function BeheerSidebar() {
   }
 
   return (
-    <>
-      <div className="relative md:hidden">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          className="flex w-full items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5 text-sm font-medium text-foreground shadow-sm"
-        >
-          {activeItem && <activeItem.icon size={16} className="text-voc-red" />}
-          {activeItem?.label ?? "Beheer"}
-          <ChevronDown size={16} className={clsx("ml-auto transition-transform duration-200", open && "rotate-180")} />
-        </button>
-        {open && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-            <div className="animate-fade-in absolute z-50 mt-2 flex max-h-[70vh] w-full flex-col gap-3 overflow-y-auto rounded-xl border border-border bg-surface p-2 shadow-lg">
-              {BEHEER_SECTIONS.map((section) => (
-                <div key={section.title}>
-                  <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">{section.title}</p>
-                  <div className="flex flex-col gap-0.5">
-                    {section.items.map((item) => renderItem(item, () => setOpen(false)))}
-                  </div>
+    <div className="relative md:hidden">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex w-full items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5 text-sm font-medium text-foreground shadow-sm"
+      >
+        {activeItem && <activeItem.icon size={16} className="text-voc-red" />}
+        {activeItem?.label ?? "Beheer"}
+        <ChevronDown size={16} className={clsx("ml-auto transition-transform duration-200", open && "rotate-180")} />
+      </button>
+      {open && (
+        <>
+          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+          <div className="animate-fade-in absolute z-50 mt-2 flex max-h-[70vh] w-full flex-col gap-3 overflow-y-auto rounded-xl border border-border bg-surface p-2 shadow-lg">
+            {BEHEER_SECTIONS.map((section) => (
+              <div key={section.title}>
+                <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">{section.title}</p>
+                <div className="flex flex-col gap-0.5">
+                  {section.items.map((item) => renderItem(item, () => setOpen(false)))}
                 </div>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-
-      <nav className="hidden md:flex md:w-56 md:shrink-0 md:flex-col md:gap-5">
-        {BEHEER_SECTIONS.map((section) => (
-          <div key={section.title} className="flex flex-col gap-1">
-            <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">{section.title}</p>
-            {section.items.map((item) => renderItem(item))}
+              </div>
+            ))}
           </div>
-        ))}
-      </nav>
-    </>
+        </>
+      )}
+    </div>
   );
 }
