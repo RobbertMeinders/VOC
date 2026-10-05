@@ -19,7 +19,7 @@ export function CompanyLogo({
   size?: number;
   wide?: boolean;
 }) {
-  const width = wide ? Math.round(size * 1.6) : size;
+  const width = wide ? Math.round(size * 1.35) : size;
   return (
     <div
       className="flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white"
