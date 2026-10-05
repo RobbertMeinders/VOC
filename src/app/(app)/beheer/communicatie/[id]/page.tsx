@@ -13,7 +13,17 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
   const { id } = await params;
   const supabase = await createClient();
 
-  const { data: communication } = await supabase.from("communications").select("*").eq("id", id).maybeSingle();
+  const [{ data: communication }, { data: activities }] = await Promise.all([
+    supabase.from("communications").select("*").eq("id", id).maybeSingle(),
+    // Voor de Evenement-blok-kiezer in de editor — toekomstige activiteiten
+    // eerst (meest relevant om over te communiceren), dan recent verlopen.
+    supabase
+      .from("activities")
+      .select("id, title, starts_at")
+      .eq("status", "approved")
+      .order("starts_at", { ascending: false })
+      .limit(100),
+  ]);
 
   if (!communication) {
     notFound();
@@ -36,7 +46,7 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
         )}
       </div>
 
-      <NewsletterEditor communication={communication} />
+      <NewsletterEditor communication={communication} activities={activities ?? []} />
     </div>
   );
 }

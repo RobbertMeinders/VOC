@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { CalendarDays, Download, MapPin, Pencil, Users } from "lucide-react";
+import { CalendarDays, Download, MapPin, Megaphone, Pencil, Users } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
@@ -14,6 +14,7 @@ import { ActivityAttachmentRow } from "@/components/agenda/ActivityAttachmentRow
 import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
 import { ApproveActivityForm } from "@/components/agenda/ApproveActivityForm";
 import { deleteActivityAction, decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
+import { createCommunicationFromActivityAction } from "@/app/(app)/beheer/communicatie/actions";
 import { logEvent } from "@/lib/events/log";
 import type { Database } from "@/lib/types/database";
 
@@ -314,7 +315,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
       )}
 
       {isBoard(profile.role) && (
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/agenda/${activity.id}/bewerken`}
             className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red"
@@ -322,6 +323,15 @@ export async function ActivityDetailContent({ id }: { id: string }) {
             <Pencil size={14} />
             Bewerken
           </Link>
+          <form action={createCommunicationFromActivityAction.bind(null, activity.id)}>
+            <button
+              type="submit"
+              className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red"
+            >
+              <Megaphone size={14} />
+              Communiceer over dit evenement
+            </button>
+          </form>
           <DeleteButton
             onDelete={deleteActivityAction.bind(null, activity.id)}
             confirmMessage="Weet je zeker dat je deze activiteit wilt verwijderen? Aanmeldingen worden ook verwijderd."

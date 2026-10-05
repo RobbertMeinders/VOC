@@ -3,21 +3,36 @@
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Image from "next/image";
-import { ArrowDown, ArrowUp, Image as ImageIcon, Laptop, Link2, Minus, Smartphone, Trash2, Type } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  CalendarDays,
+  Image as ImageIcon,
+  Laptop,
+  Link2,
+  Minus,
+  RefreshCw,
+  Smartphone,
+  Trash2,
+  Type,
+} from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { compressInputFile } from "@/lib/image/compress";
 import {
   updateCommunicationAction,
   uploadNewsletterImageAction,
+  getEventSnapshotAction,
   type CommunicationFormState,
   type UploadImageState,
 } from "@/app/(app)/beheer/communicatie/actions";
 import { renderNewsletterHtml } from "@/lib/newsletter/render";
+import { formatActivityDate } from "@/lib/format/date";
 import type { NewsletterBlock } from "@/lib/newsletter/types";
 import type { Database } from "@/lib/types/database";
 
 type Communication = Database["public"]["Tables"]["communications"]["Row"];
+type ActivityOption = { id: string; title: string; starts_at: string };
 
 const initialState: CommunicationFormState = {};
 const uploadInitialState: UploadImageState = {};
@@ -141,6 +156,104 @@ function BlockShell({
   );
 }
 
+function EventBlockEditor({
+  block,
+  onChange,
+  activities,
+}: {
+  block: Extract<NewsletterBlock, { type: "event" }>;
+  onChange: (block: NewsletterBlock) => void;
+  activities: ActivityOption[];
+}) {
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function applySnapshot(activityId: string) {
+    setPending(true);
+    setError(null);
+    const result = await getEventSnapshotAction(activityId, block.id);
+    setPending(false);
+    if (result.error || !result.block) {
+      setError(result.error ?? "Er ging iets mis bij het laden van de activiteit.");
+      return;
+    }
+    onChange(result.block);
+  }
+
+  if (!block.activityId) {
+    return (
+      <div className="flex flex-col gap-2">
+        <select
+          defaultValue=""
+          disabled={pending}
+          onChange={(e) => {
+            if (e.target.value) applySnapshot(e.target.value);
+          }}
+          className="h-11 w-full rounded-lg border border-border bg-surface px-3.5 text-base text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        >
+          <option value="" disabled>
+            {pending ? "Laden…" : "Kies een activiteit…"}
+          </option>
+          {activities.map((activity) => (
+            <option key={activity.id} value={activity.id}>
+              {activity.title} — {formatActivityDate(activity.starts_at)}
+            </option>
+          ))}
+        </select>
+        {error && <p className="text-sm text-voc-red">{error}</p>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex gap-3">
+        {block.imageUrl && (
+          <Image
+            src={block.imageUrl}
+            alt=""
+            width={96}
+            height={96}
+            className="h-24 w-24 shrink-0 rounded-lg object-cover"
+            unoptimized
+          />
+        )}
+        <div className="flex flex-col gap-0.5">
+          <p className="text-base font-semibold text-foreground">{block.title}</p>
+          <p className="text-sm text-muted">{formatActivityDate(block.startsAtIso)}</p>
+          {block.location && <p className="text-sm text-muted">{block.location}</p>}
+        </div>
+      </div>
+      {error && <p className="text-sm text-voc-red">{error}</p>}
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="button" variant="secondary" onClick={() => applySnapshot(block.activityId)} disabled={pending}>
+          <RefreshCw size={16} />
+          {pending ? "Verversen…" : "Ververs"}
+        </Button>
+        <button
+          type="button"
+          onClick={() =>
+            onChange({
+              ...block,
+              activityId: "",
+              title: "",
+              startsAtIso: "",
+              endsAtIso: null,
+              location: null,
+              description: null,
+              imageUrl: null,
+              linkUrl: "",
+            })
+          }
+          className="text-sm font-medium text-muted hover:text-foreground"
+        >
+          Andere activiteit kiezen
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function BlockEditor({
   block,
   onChange,
@@ -149,6 +262,7 @@ function BlockEditor({
   onRemove,
   canMoveUp,
   canMoveDown,
+  activities,
 }: {
   block: NewsletterBlock;
   onChange: (block: NewsletterBlock) => void;
@@ -157,6 +271,7 @@ function BlockEditor({
   onRemove: () => void;
   canMoveUp: boolean;
   canMoveDown: boolean;
+  activities: ActivityOption[];
 }) {
   const shellProps = { onMoveUp, onMoveDown, onRemove, canMoveUp, canMoveDown };
 
@@ -254,6 +369,14 @@ function BlockEditor({
     );
   }
 
+  if (block.type === "event") {
+    return (
+      <BlockShell label="Evenement" {...shellProps}>
+        <EventBlockEditor block={block} onChange={onChange} activities={activities} />
+      </BlockShell>
+    );
+  }
+
   return (
     <BlockShell label="Scheidingslijn" {...shellProps}>
       <p className="text-sm text-muted">Een nette, dunne lijn tussen twee blokken — geen verdere instellingen.</p>
@@ -283,7 +406,13 @@ function PreviewToggleButton({
   );
 }
 
-export function NewsletterEditor({ communication }: { communication: Communication }) {
+export function NewsletterEditor({
+  communication,
+  activities,
+}: {
+  communication: Communication;
+  activities: ActivityOption[];
+}) {
   const formId = `newsletter-editor-${communication.id}`;
   const updateWithId = updateCommunicationAction.bind(null, communication.id);
   const [state, formAction] = useActionState(updateWithId, initialState);
@@ -308,7 +437,20 @@ export function NewsletterEditor({ communication }: { communication: Communicati
           ? { ...base, type: "image", url: "", layout: "full" }
           : type === "button"
             ? { ...base, type: "button", label: "", url: "" }
-            : { ...base, type: "divider" };
+            : type === "event"
+              ? {
+                  ...base,
+                  type: "event",
+                  activityId: "",
+                  title: "",
+                  startsAtIso: "",
+                  endsAtIso: null,
+                  location: null,
+                  description: null,
+                  imageUrl: null,
+                  linkUrl: "",
+                }
+              : { ...base, type: "divider" };
     setBlocks((prev) => [...prev, block]);
   }
 
@@ -392,6 +534,7 @@ export function NewsletterEditor({ communication }: { communication: Communicati
               onRemove={() => removeBlock(index)}
               canMoveUp={index > 0}
               canMoveDown={index < blocks.length - 1}
+              activities={activities}
             />
           ))}
         </div>
@@ -421,6 +564,14 @@ export function NewsletterEditor({ communication }: { communication: Communicati
             >
               <Link2 size={18} />
               Knop
+            </button>
+            <button
+              type="button"
+              onClick={() => addBlock("event")}
+              className="flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+            >
+              <CalendarDays size={18} />
+              Evenement
             </button>
             <button
               type="button"

@@ -1,4 +1,5 @@
 import { escapeHtml } from "@/lib/text/escape-html";
+import { formatActivityDate } from "@/lib/format/date";
 import type { NewsletterBlock } from "./types";
 
 // Bewust geen "server-only" hier: dezelfde functie rendert zowel de
@@ -63,6 +64,38 @@ function renderDividerBlock(): string {
   return `<tr><td style="padding:0 24px 24px;"><hr style="border:none;border-top:1px solid ${COLORS.border};margin:0;" /></td></tr>`;
 }
 
+function renderEventBlock(block: Extract<NewsletterBlock, { type: "event" }>): string {
+  if (!block.activityId) {
+    return `<tr><td style="padding:0 24px 24px;">
+      <div style="border:1px dashed ${COLORS.border};border-radius:12px;padding:20px;text-align:center;">
+        <p style="margin:0;font-size:14px;color:${COLORS.muted};font-family:${FONT};">Nog geen evenement gekozen</p>
+      </div>
+    </td></tr>`;
+  }
+
+  const img = block.imageUrl
+    ? `<img src="${escapeHtml(block.imageUrl)}" alt="" width="552" style="width:100%;max-width:552px;height:auto;border-radius:12px;display:block;margin:0 0 12px;" />`
+    : "";
+  const dateLine = `<p style="margin:0 0 2px;font-size:14px;font-weight:600;color:${COLORS.red};font-family:${FONT};">${escapeHtml(formatActivityDate(block.startsAtIso))}</p>`;
+  const locationLine = block.location
+    ? `<p style="margin:0 0 10px;font-size:14px;color:${COLORS.muted};font-family:${FONT};">${escapeHtml(block.location)}</p>`
+    : "";
+  const description = block.description
+    ? `<p style="margin:10px 0 0;font-size:14px;line-height:1.6;color:${COLORS.foreground};font-family:${FONT};">${nl2br(block.description)}</p>`
+    : "";
+
+  return `<tr><td style="padding:0 24px 24px;">
+    <div style="border:1px solid ${COLORS.border};border-radius:12px;padding:16px;">
+      ${img}
+      <h2 style="margin:0 0 6px;font-size:18px;line-height:1.3;color:${COLORS.foreground};font-family:${FONT};">${escapeHtml(block.title)}</h2>
+      ${dateLine}
+      ${locationLine}
+      ${description}
+      <a href="${escapeHtml(block.linkUrl)}" style="display:inline-block;margin-top:14px;background:${COLORS.red};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:999px;font-family:${FONT};">Bekijk evenement</a>
+    </div>
+  </td></tr>`;
+}
+
 function renderBlock(block: NewsletterBlock): string {
   switch (block.type) {
     case "text":
@@ -73,6 +106,8 @@ function renderBlock(block: NewsletterBlock): string {
       return renderButtonBlock(block);
     case "divider":
       return renderDividerBlock();
+    case "event":
+      return renderEventBlock(block);
   }
 }
 

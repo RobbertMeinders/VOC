@@ -26,11 +26,38 @@ export type NewsletterDividerBlock = {
   type: "divider";
 };
 
-export type NewsletterBlock = NewsletterTextBlock | NewsletterImageBlock | NewsletterButtonBlock | NewsletterDividerBlock;
+// Een momentopname van een activiteit op het moment van toevoegen/verversen
+// — geen live koppeling. Zo blijft een concept stabiel als de activiteit
+// zelf nog wijzigt, en is het resultaat na verzending nooit met
+// terugwerkende kracht anders dan wat er daadwerkelijk verstuurd is.
+// imageUrl verwijst naar een kopie in de publieke email-assets-bucket (het
+// origineel staat in de besloten activity-images-bucket), nodig omdat een
+// nieuwsbrief weken later geopend kan worden terwijl een signed URL allang
+// verlopen is.
+export type NewsletterEventBlock = {
+  id: string;
+  type: "event";
+  activityId: string;
+  title: string;
+  startsAtIso: string;
+  endsAtIso: string | null;
+  location: string | null;
+  description: string | null;
+  imageUrl: string | null;
+  linkUrl: string;
+};
+
+export type NewsletterBlock =
+  | NewsletterTextBlock
+  | NewsletterImageBlock
+  | NewsletterButtonBlock
+  | NewsletterDividerBlock
+  | NewsletterEventBlock;
 
 export const BLOCK_TYPE_LABELS: Record<NewsletterBlock["type"], string> = {
   text: "Tekst",
   image: "Afbeelding",
   button: "Knop",
   divider: "Scheidingslijn",
+  event: "Evenement",
 };

@@ -6,6 +6,8 @@ import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
 import { logAuditAction } from "@/lib/audit/log";
+import { buildEventSnapshot } from "@/lib/newsletter/eventSnapshot";
+import type { NewsletterEventBlock } from "@/lib/newsletter/types";
 
 // next/navigation's redirect() throws internally to unwind the render; that
 // throw must always be allowed through, never caught as a "real" error.
@@ -112,6 +114,73 @@ export async function updateCommunicationAction(
   revalidatePath(`/beheer/communicatie/${communicationId}`);
   revalidatePath("/beheer/communicatie");
   return { success: true };
+}
+
+export type EventSnapshotState = { block?: NewsletterEventBlock; error?: string };
+
+// Gebruikt zowel om een Evenement-blok voor het eerst te vullen (vanuit de
+// activiteiten-kiezer in de editor) als om een bestaand blok te verversen
+// (existingBlockId behoudt dan hetzelfde blok-id, zodat React het niet als
+// een nieuw blok behandelt).
+export async function getEventSnapshotAction(
+  activityId: string,
+  existingBlockId?: string
+): Promise<EventSnapshotState> {
+  await requireBoard();
+  const supabase = await createClient();
+
+  const { data: activity } = await supabase.from("activities").select("*").eq("id", activityId).maybeSingle();
+  if (!activity) {
+    return { error: "Deze activiteit bestaat niet (meer)." };
+  }
+
+  const block = await buildEventSnapshot(supabase, activity, existingBlockId);
+  return { block };
+}
+
+// "Communiceer over dit evenement"-knop op de activiteitpagina: maakt een
+// nieuwe conceptnieuwsbrief aan met één Evenement-blok, al gevuld met de
+// huidige gegevens van deze activiteit.
+export async function createCommunicationFromActivityAction(activityId: string): Promise<void> {
+  const profile = await requireBoard();
+  const supabase = await createClient();
+
+  try {
+    const { data: activity } = await supabase.from("activities").select("*").eq("id", activityId).maybeSingle();
+    if (!activity) {
+      console.error("[communicatie] createCommunicationFromActivityAction: activiteit niet gevonden", activityId);
+      return;
+    }
+
+    const eventBlock = await buildEventSnapshot(supabase, activity);
+
+    const { data: communication, error } = await supabase
+      .from("communications")
+      .insert({
+        subject: activity.title,
+        sender_name: "Veendammer Ondernemer Compagnie",
+        content: [eventBlock],
+        linked_activity_id: activity.id,
+        created_by: profile.id,
+      })
+      .select("id")
+      .single();
+
+    if (error || !communication) {
+      console.error("[communicatie] createCommunicationFromActivityAction failed:", error);
+      return;
+    }
+
+    await logAuditAction("communication_created", "communication", communication.id, {
+      fromActivity: activity.id,
+    });
+
+    revalidatePath("/beheer/communicatie");
+    redirect(`/beheer/communicatie/${communication.id}`);
+  } catch (cause) {
+    if (isNextRedirectError(cause)) throw cause;
+    console.error("[communicatie] createCommunicationFromActivityAction threw:", cause);
+  }
 }
 
 export type UploadImageState = { error?: string; url?: string };
