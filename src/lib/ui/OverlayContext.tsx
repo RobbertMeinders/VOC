@@ -53,3 +53,12 @@ export function useOverlay(key: OverlayKey) {
     close: ctx.closeOverlay,
   };
 }
+
+// Voor ScrollLockGuard: of een van de vier menu-overlays (die geen eigen
+// route hebben, dus niet via isOverlayRoute() te herkennen zijn) nu open
+// staat.
+export function useAnyOverlayOpen(): boolean {
+  const ctx = useContext(OverlayContext);
+  if (!ctx) throw new Error("useAnyOverlayOpen must be used within an OverlayProvider");
+  return ctx.openOverlay !== null;
+}

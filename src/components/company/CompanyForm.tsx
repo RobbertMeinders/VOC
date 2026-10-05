@@ -39,6 +39,22 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
   const [showAddress, setShowAddress] = useState(company.show_address);
   const [isPubliclyVisible, setIsPubliclyVisible] = useState(company.is_publicly_visible);
 
+  // useState's initiële waarde draait alleen bij de allereerste mount —
+  // revalidatePath() ná een geslaagde update levert deze Server Component
+  // een verse `company`-prop, maar de hierboven al bestaande, gecontroleerde
+  // CompanyForm-instance blijft gewoon staan. Zonder deze sync bleef de
+  // dropdown daardoor op de waarde van vóór het opslaan hangen zodra er
+  // ergens tussen opslaan en de revalidatie toch een her-render met de oude
+  // company-prop plaatsvond — pas een volledige page reload (nieuwe mount)
+  // liet de echte, opgeslagen waarde zien. State tijdens het renderen
+  // aanpassen (React's eigen "adjusting state" patroon) i.p.v. een effect,
+  // want een effect zou hier een overbodige extra render-cyclus toevoegen.
+  const [prevIndustryProp, setPrevIndustryProp] = useState(company.industry);
+  if (company.industry !== prevIndustryProp) {
+    setPrevIndustryProp(company.industry);
+    setIndustry(company.industry ?? "");
+  }
+
   return (
     <form action={formAction} className="flex flex-col gap-5">
       <div className="flex items-center gap-4">

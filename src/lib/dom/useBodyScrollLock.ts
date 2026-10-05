@@ -57,3 +57,13 @@ export function useBodyScrollLock(active: boolean) {
     };
   }, [active, id]);
 }
+
+// Noodklep voor ScrollLockGuard: als er bij het landen op een gewone,
+// niet-overlay pagina tóch nog een lock blijkt te staan (bv. een
+// client-side navigatie die de unmount-cleanup van een sluitend overlay
+// net niet op tijd liet lopen), is dat per definitie een weeskind — een
+// gewone pagina hoort nooit vergrendeld te zijn.
+export function clearAllLocks() {
+  getLocks().clear();
+  applyLockState();
+}

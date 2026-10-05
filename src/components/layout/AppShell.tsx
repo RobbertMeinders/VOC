@@ -16,6 +16,7 @@ import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { MobileHeader } from "./MobileHeader";
 import { OnlineHeartbeat } from "./OnlineHeartbeat";
+import { ScrollLockGuard } from "./ScrollLockGuard";
 
 export function AppShell({
   profile,
@@ -91,6 +92,7 @@ function AppShellBody({
   return (
     <div className="min-h-dvh bg-background">
       <OnlineHeartbeat />
+      <ScrollLockGuard />
       <Sidebar profile={profile} unread={unread} avatarUrl={avatarUrl} companyId={companyId} companyName={companyName} />
       <MobileHeader unread={unread} />
       <main className="pb-20 md:ml-72 md:pb-0">
