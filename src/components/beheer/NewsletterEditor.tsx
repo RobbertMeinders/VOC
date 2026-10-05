@@ -107,6 +107,7 @@ function BlockShell({
   onRemove,
   canMoveUp,
   canMoveDown,
+  readOnly,
   children,
 }: {
   label: string;
@@ -115,45 +116,55 @@ function BlockShell({
   onRemove: () => void;
   canMoveUp: boolean;
   canMoveDown: boolean;
+  readOnly: boolean;
   children: React.ReactNode;
 }) {
   return (
     <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
       <div className="mb-3 flex items-center justify-between">
         <span className="text-sm font-semibold uppercase tracking-wide text-muted">{label}</span>
-        <div className="flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={onMoveUp}
-            disabled={!canMoveUp}
-            title="Omhoog"
-            aria-label="Omhoog"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground disabled:opacity-30 dark:hover:bg-white/[.08]"
-          >
-            <ArrowUp size={18} />
-          </button>
-          <button
-            type="button"
-            onClick={onMoveDown}
-            disabled={!canMoveDown}
-            title="Omlaag"
-            aria-label="Omlaag"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground disabled:opacity-30 dark:hover:bg-white/[.08]"
-          >
-            <ArrowDown size={18} />
-          </button>
-          <button
-            type="button"
-            onClick={onRemove}
-            title="Verwijderen"
-            aria-label="Verwijderen"
-            className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
-          >
-            <Trash2 size={18} />
-          </button>
-        </div>
+        {!readOnly && (
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={onMoveUp}
+              disabled={!canMoveUp}
+              title="Omhoog"
+              aria-label="Omhoog"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground disabled:opacity-30 dark:hover:bg-white/[.08]"
+            >
+              <ArrowUp size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={onMoveDown}
+              disabled={!canMoveDown}
+              title="Omlaag"
+              aria-label="Omlaag"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground disabled:opacity-30 dark:hover:bg-white/[.08]"
+            >
+              <ArrowDown size={18} />
+            </button>
+            <button
+              type="button"
+              onClick={onRemove}
+              title="Verwijderen"
+              aria-label="Verwijderen"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+            >
+              <Trash2 size={18} />
+            </button>
+          </div>
+        )}
       </div>
-      {children}
+      {/* Een fieldset schakelt elk invoerveld/knop binnen een blok in één
+          keer uit voor een verzonden (dus onveranderlijke) campagne — veiliger
+          dan elk veld apart een disabled-prop meegeven, en dekt ook
+          BlockImageUpload's eigen, losse formulier mee (fieldset-disabled
+          werkt op DOM-nesting, niet op form-lidmaatschap). */}
+      <fieldset disabled={readOnly} className="contents">
+        {children}
+      </fieldset>
     </div>
   );
 }
@@ -265,6 +276,7 @@ function BlockEditor({
   canMoveUp,
   canMoveDown,
   activities,
+  readOnly,
 }: {
   block: NewsletterBlock;
   onChange: (block: NewsletterBlock) => void;
@@ -274,8 +286,9 @@ function BlockEditor({
   canMoveUp: boolean;
   canMoveDown: boolean;
   activities: ActivityOption[];
+  readOnly: boolean;
 }) {
-  const shellProps = { onMoveUp, onMoveDown, onRemove, canMoveUp, canMoveDown };
+  const shellProps = { onMoveUp, onMoveDown, onRemove, canMoveUp, canMoveDown, readOnly };
 
   if (block.type === "text") {
     return (
@@ -549,6 +562,7 @@ export function NewsletterEditor({
               canMoveUp={index > 0}
               canMoveDown={index < blocks.length - 1}
               activities={activities}
+              readOnly={readOnly}
             />
           ))}
         </div>

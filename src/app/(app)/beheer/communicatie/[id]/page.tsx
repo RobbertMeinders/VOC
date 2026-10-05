@@ -13,17 +13,30 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
   const { id } = await params;
   const supabase = await createClient();
 
-  const [{ data: communication }, { data: activities }] = await Promise.all([
+  const nowIso = new Date().toISOString();
+  // Voor de Evenement-blok-kiezer in de editor — eerst de eerstvolgende
+  // aankomende activiteit (meest relevant om over te communiceren), dan de
+  // meest recent verlopen. Eén "order by starts_at desc"-query zou juist de
+  // verst-in-de-toekomst liggende activiteit bovenaan zetten, dus twee
+  // losse, tegengesteld gesorteerde queries i.p.v. één.
+  const [{ data: communication }, { data: upcomingActivities }, { data: pastActivities }] = await Promise.all([
     supabase.from("communications").select("*").eq("id", id).maybeSingle(),
-    // Voor de Evenement-blok-kiezer in de editor — toekomstige activiteiten
-    // eerst (meest relevant om over te communiceren), dan recent verlopen.
     supabase
       .from("activities")
       .select("id, title, starts_at")
       .eq("status", "approved")
+      .gte("starts_at", nowIso)
+      .order("starts_at", { ascending: true })
+      .limit(50),
+    supabase
+      .from("activities")
+      .select("id, title, starts_at")
+      .eq("status", "approved")
+      .lt("starts_at", nowIso)
       .order("starts_at", { ascending: false })
-      .limit(100),
+      .limit(50),
   ]);
+  const activities = [...(upcomingActivities ?? []), ...(pastActivities ?? [])];
 
   if (!communication) {
     notFound();
@@ -46,7 +59,7 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
         )}
       </div>
 
-      <NewsletterEditor communication={communication} activities={activities ?? []} />
+      <NewsletterEditor communication={communication} activities={activities} />
     </div>
   );
 }
