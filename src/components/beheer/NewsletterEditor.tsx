@@ -27,7 +27,11 @@ function newBlockId(): string {
 }
 
 function textAreaClass() {
-  return "w-full rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20";
+  return "w-full rounded-lg border border-border bg-surface px-3.5 py-3 text-base text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20";
+}
+
+function inputSizeClass() {
+  return "h-11 text-base";
 }
 
 function SubmitButton() {
@@ -62,10 +66,10 @@ function BlockImageUpload({ onUploaded }: { onUploaded: (url: string) => void })
         onChange={async (e) => {
           await compressInputFile(e.target);
         }}
-        className="text-xs text-foreground file:mr-2 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
+        className="text-sm text-foreground file:mr-2 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3.5 file:py-2 file:text-sm file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
       />
       <UploadButtonSmall />
-      {state.error && <span className="text-xs text-voc-red">{state.error}</span>}
+      {state.error && <span className="text-sm text-voc-red">{state.error}</span>}
     </form>
   );
 }
@@ -73,7 +77,7 @@ function BlockImageUpload({ onUploaded }: { onUploaded: (url: string) => void })
 function UploadButtonSmall() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" size="sm" variant="secondary" disabled={pending}>
+    <Button type="submit" variant="secondary" disabled={pending}>
       {pending ? "Uploaden…" : "Uploaden"}
     </Button>
   );
@@ -97,19 +101,19 @@ function BlockShell({
   children: React.ReactNode;
 }) {
   return (
-    <div className="rounded-xl border border-border bg-surface p-3 shadow-sm">
-      <div className="mb-2 flex items-center justify-between">
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</span>
-        <div className="flex items-center gap-1">
+    <div className="rounded-xl border border-border bg-surface p-5 shadow-sm">
+      <div className="mb-3 flex items-center justify-between">
+        <span className="text-sm font-semibold uppercase tracking-wide text-muted">{label}</span>
+        <div className="flex items-center gap-1.5">
           <button
             type="button"
             onClick={onMoveUp}
             disabled={!canMoveUp}
             title="Omhoog"
             aria-label="Omhoog"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground disabled:opacity-30 dark:hover:bg-white/[.08]"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground disabled:opacity-30 dark:hover:bg-white/[.08]"
           >
-            <ArrowUp size={14} />
+            <ArrowUp size={18} />
           </button>
           <button
             type="button"
@@ -117,18 +121,18 @@ function BlockShell({
             disabled={!canMoveDown}
             title="Omlaag"
             aria-label="Omlaag"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground disabled:opacity-30 dark:hover:bg-white/[.08]"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground disabled:opacity-30 dark:hover:bg-white/[.08]"
           >
-            <ArrowDown size={14} />
+            <ArrowDown size={18} />
           </button>
           <button
             type="button"
             onClick={onRemove}
             title="Verwijderen"
             aria-label="Verwijderen"
-            className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
           >
-            <Trash2 size={14} />
+            <Trash2 size={18} />
           </button>
         </div>
       </div>
@@ -159,19 +163,21 @@ function BlockEditor({
   if (block.type === "text") {
     return (
       <BlockShell label="Tekst" {...shellProps}>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <Input
             placeholder="Titel (optioneel)"
             value={block.title ?? ""}
             onChange={(e) => onChange({ ...block, title: e.target.value })}
+            className={inputSizeClass()}
           />
           <Input
             placeholder="Subtitel (optioneel)"
             value={block.subtitle ?? ""}
             onChange={(e) => onChange({ ...block, subtitle: e.target.value })}
+            className={inputSizeClass()}
           />
           <textarea
-            rows={4}
+            rows={5}
             placeholder="Tekst"
             value={block.body}
             onChange={(e) => onChange({ ...block, body: e.target.value })}
@@ -185,18 +191,25 @@ function BlockEditor({
   if (block.type === "image") {
     return (
       <BlockShell label="Afbeelding" {...shellProps}>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           {block.url && (
-            <Image src={block.url} alt="" width={160} height={100} className="h-[100px] w-[160px] rounded-lg object-cover" unoptimized />
+            <Image
+              src={block.url}
+              alt=""
+              width={240}
+              height={150}
+              className="h-[150px] w-[240px] rounded-lg object-cover"
+              unoptimized
+            />
           )}
           <BlockImageUpload onUploaded={(url) => onChange({ ...block, url })} />
-          <div className="flex gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {(["full", "left", "right"] as const).map((layout) => (
               <button
                 key={layout}
                 type="button"
                 onClick={() => onChange({ ...block, layout })}
-                className={`rounded-full px-3 py-1 text-xs font-medium ${
+                className={`rounded-full px-4 py-2 text-sm font-medium ${
                   block.layout === layout ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
                 }`}
               >
@@ -210,6 +223,7 @@ function BlockEditor({
                 placeholder="Titel bij de foto (optioneel)"
                 value={block.title ?? ""}
                 onChange={(e) => onChange({ ...block, title: e.target.value })}
+                className={inputSizeClass()}
               />
               <textarea
                 rows={3}
@@ -228,16 +242,18 @@ function BlockEditor({
   if (block.type === "button") {
     return (
       <BlockShell label="Knop" {...shellProps}>
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-3">
           <Input
             placeholder="Knoptekst, bv. “Bekijk evenement”"
             value={block.label}
             onChange={(e) => onChange({ ...block, label: e.target.value })}
+            className={inputSizeClass()}
           />
           <Input
             placeholder="Link (https://...)"
             value={block.url}
             onChange={(e) => onChange({ ...block, url: e.target.value })}
+            className={inputSizeClass()}
           />
         </div>
       </BlockShell>
@@ -246,7 +262,7 @@ function BlockEditor({
 
   return (
     <BlockShell label="Scheidingslijn" {...shellProps}>
-      <p className="text-xs text-muted">Een nette, dunne lijn tussen twee blokken — geen verdere instellingen.</p>
+      <p className="text-sm text-muted">Een nette, dunne lijn tussen twee blokken — geen verdere instellingen.</p>
     </BlockShell>
   );
 }
@@ -274,6 +290,7 @@ function PreviewToggleButton({
 }
 
 export function NewsletterEditor({ communication }: { communication: Communication }) {
+  const formId = `newsletter-editor-${communication.id}`;
   const updateWithId = updateCommunicationAction.bind(null, communication.id);
   const [state, formAction] = useActionState(updateWithId, initialState);
   const [subject, setSubject] = useState(communication.subject);
@@ -322,14 +339,10 @@ export function NewsletterEditor({ communication }: { communication: Communicati
   const readOnly = communication.status === "verzonden";
 
   return (
-    <form action={formAction} className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_380px]">
-      <input type="hidden" name="content" value={JSON.stringify(blocks)} />
-      <input type="hidden" name="subject" value={subject} />
-      <input type="hidden" name="preheader" value={preheader} />
-
-      <div className="flex flex-col gap-5">
-        <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
-          <div className="flex flex-col gap-3">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">
+      <div className="flex flex-col gap-6">
+        <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+          <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="subject-input" className="text-sm font-medium text-foreground">
                 Onderwerp
@@ -341,6 +354,7 @@ export function NewsletterEditor({ communication }: { communication: Communicati
                 required
                 disabled={readOnly}
                 placeholder="De hoofdregel die leden in hun inbox zien"
+                className="h-11 text-base"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -353,6 +367,7 @@ export function NewsletterEditor({ communication }: { communication: Communicati
                 onChange={(e) => setPreheader(e.target.value)}
                 disabled={readOnly}
                 placeholder="Korte aanvullende tekst, zichtbaar naast het onderwerp in de inbox"
+                className="h-11 text-base"
               />
             </div>
             <div className="flex flex-col gap-1.5">
@@ -362,15 +377,17 @@ export function NewsletterEditor({ communication }: { communication: Communicati
               <Input
                 id="sender_name"
                 name="sender_name"
+                form={formId}
                 defaultValue={communication.sender_name ?? ""}
                 disabled={readOnly}
                 placeholder="Veendammer Ondernemer Compagnie"
+                className="h-11 text-base"
               />
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {blocks.map((block, index) => (
             <BlockEditor
               key={block.id}
@@ -386,54 +403,64 @@ export function NewsletterEditor({ communication }: { communication: Communicati
         </div>
 
         {!readOnly && (
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
             <button
               type="button"
               onClick={() => addBlock("text")}
-              className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+              className="flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
             >
-              <Type size={16} />
+              <Type size={18} />
               Tekst
             </button>
             <button
               type="button"
               onClick={() => addBlock("image")}
-              className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+              className="flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
             >
-              <ImageIcon size={16} />
+              <ImageIcon size={18} />
               Afbeelding
             </button>
             <button
               type="button"
               onClick={() => addBlock("button")}
-              className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+              className="flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
             >
-              <Link2 size={16} />
+              <Link2 size={18} />
               Knop
             </button>
             <button
               type="button"
               onClick={() => addBlock("divider")}
-              className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+              className="flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
             >
-              <Minus size={16} />
+              <Minus size={18} />
               Scheidingslijn
             </button>
           </div>
         )}
 
-        {state.error && (
-          <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
-            {state.error}
-          </p>
-        )}
-        {state.success && <p className="text-sm text-green-600">Opgeslagen.</p>}
+        {/* Los van de blokkeneditor hierboven: elk blok heeft eventueel een
+            eigen afbeelding-uploadformulier, en formulieren mogen niet in
+            elkaar genest zijn. Onderwerp/pre-header/afzender/inhoud koppelen
+            daarom via het HTML5 form="..."-attribuut aan dit formulier. */}
+        <form id={formId} action={formAction} className="flex flex-col gap-4">
+          <input type="hidden" name="content" value={JSON.stringify(blocks)} />
+          <input type="hidden" name="subject" value={subject} />
+          <input type="hidden" name="preheader" value={preheader} />
 
-        {!readOnly && (
-          <div>
-            <SubmitButton />
-          </div>
-        )}
+          {state.error && (
+            <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+              {state.error}
+            </p>
+          )}
+          {state.success && <p className="text-sm text-green-600">Opgeslagen.</p>}
+
+          {!readOnly && (
+            <div>
+              <SubmitButton />
+            </div>
+          )}
+        </form>
       </div>
 
       <div className="lg:sticky lg:top-4 lg:self-start">
@@ -463,6 +490,6 @@ export function NewsletterEditor({ communication }: { communication: Communicati
           </div>
         </div>
       </div>
-    </form>
+    </div>
   );
 }
