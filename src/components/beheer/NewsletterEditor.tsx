@@ -330,7 +330,7 @@ export function NewsletterEditor({ communication }: { communication: Communicati
               name="sender_name"
               defaultValue={communication.sender_name ?? ""}
               disabled={readOnly}
-              placeholder="VOC Veendam"
+              placeholder="Veendammer Ondernemer Compagnie"
             />
           </div>
         </div>

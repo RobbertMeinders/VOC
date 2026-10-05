@@ -26,7 +26,11 @@ export async function createCommunicationAction(): Promise<void> {
   try {
     const { data: communication, error } = await supabase
       .from("communications")
-      .insert({ subject: "Nieuwe nieuwsbrief", created_by: profile.id })
+      .insert({
+        subject: "Nieuwe nieuwsbrief",
+        sender_name: "Veendammer Ondernemer Compagnie",
+        created_by: profile.id,
+      })
       .select("id")
       .single();
 
