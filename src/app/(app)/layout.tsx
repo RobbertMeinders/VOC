@@ -9,7 +9,15 @@ export default async function AppLayout({ children, modal }: { children: ReactNo
   const supabase = await createClient();
 
   const [{ data: unreadNotifications }, avatarUrl, { data: membership }] = await Promise.all([
-    supabase.from("notifications").select("id, link").eq("profile_id", profile.id).eq("is_read", false),
+    // type 'newsletter' uitsluiten: die rijen zijn puur verzendadministratie
+    // voor de nieuwsbrief (zie 0067_newsletter_send.sql) — een lid leest de
+    // inhoud al via e-mail, dus geen extra bel-badge zonder bruikbare link.
+    supabase
+      .from("notifications")
+      .select("id, link")
+      .eq("profile_id", profile.id)
+      .eq("is_read", false)
+      .neq("type", "newsletter"),
     getSignedStorageUrl("avatars", profile.avatar_url),
     supabase
       .from("company_members")

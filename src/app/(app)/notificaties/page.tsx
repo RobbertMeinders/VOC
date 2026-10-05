@@ -14,10 +14,14 @@ export default async function NotificatiesPage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
+  // type 'newsletter' uitsluiten: die rijen zijn puur verzendadministratie
+  // voor de nieuwsbrief (zie 0067_newsletter_send.sql), nooit bedoeld om
+  // hier te verschijnen — een lid leest de inhoud al via e-mail zelf.
   const { data: notifications } = await supabase
     .from("notifications")
     .select("*")
     .eq("profile_id", profile.id)
+    .neq("type", "newsletter")
     .order("created_at", { ascending: false })
     .limit(50)
     .returns<Notification[]>();

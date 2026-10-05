@@ -727,6 +727,18 @@ export interface Database {
         Args: { p_provider_id: string; p_link?: string | null };
         Returns: undefined;
       };
+      claim_newsletter_recipients: {
+        Args: { p_communication_id: string };
+        Returns: { notification_id: string; profile_id: string; email: string }[];
+      };
+      mark_newsletter_notification_sent: {
+        Args: { p_notification_id: string; p_provider_id?: string | null };
+        Returns: undefined;
+      };
+      finalize_newsletter_send: {
+        Args: { p_communication_id: string };
+        Returns: { total: number; sent: number }[];
+      };
     };
     Enums: {
       user_role: UserRole;

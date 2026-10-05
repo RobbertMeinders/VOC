@@ -2,6 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
   ArrowDown,
@@ -25,6 +26,7 @@ import {
   uploadNewsletterImageAction,
   getEventSnapshotAction,
   sendTestNewsletterAction,
+  sendNewsletterAction,
   type CommunicationFormState,
   type UploadImageState,
 } from "@/app/(app)/beheer/communicatie/actions";
@@ -424,10 +426,15 @@ function PreviewToggleButton({
 export function NewsletterEditor({
   communication,
   activities,
+  activeMemberCount,
+  sentCount,
 }: {
   communication: Communication;
   activities: ActivityOption[];
+  activeMemberCount: number;
+  sentCount: number;
 }) {
+  const router = useRouter();
   const formId = `newsletter-editor-${communication.id}`;
   const updateWithId = updateCommunicationAction.bind(null, communication.id);
   const [state, formAction] = useActionState(updateWithId, initialState);
@@ -447,6 +454,24 @@ export function NewsletterEditor({
     const result = await sendTestNewsletterAction(subject, preheader, senderName, blocks);
     setTestSendPending(false);
     setTestSendResult(result);
+  }
+
+  const [sendPending, setSendPending] = useState(false);
+  const [sendResult, setSendResult] = useState<{ error?: string; total?: number; sent?: number } | null>(null);
+
+  async function handleSend() {
+    const isRetry = communication.status === "verzenden_mislukt";
+    const confirmMessage = isRetry
+      ? `Opnieuw proberen te versturen aan de ${activeMemberCount - sentCount} leden die 'm nog niet ontvingen. Dit kan niet ongedaan worden gemaakt. Doorgaan?`
+      : `Dit verstuurt "${communication.subject}" naar ${activeMemberCount} actieve leden. Dit kan niet ongedaan worden gemaakt. Doorgaan?`;
+    if (!window.confirm(confirmMessage)) return;
+
+    setSendPending(true);
+    setSendResult(null);
+    const result = await sendNewsletterAction(communication.id);
+    setSendPending(false);
+    setSendResult(result);
+    router.refresh();
   }
 
   const previewHtml = useMemo(
@@ -498,7 +523,11 @@ export function NewsletterEditor({
     });
   }
 
-  const readOnly = communication.status === "verzonden";
+  // Vanaf het eerste verzendmoment ligt de inhoud vast — ook bij een
+  // gedeeltelijk mislukte verzending ('verzenden_mislukt'). Zonder deze
+  // slotgrendel zou "Opnieuw proberen" de al-verstuurde ontvangers een
+  // andere versie laten lezen dan wie de retry nog moet bereiken.
+  const readOnly = communication.status !== "concept";
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
@@ -634,6 +663,30 @@ export function NewsletterEditor({
             </div>
           )}
         </form>
+
+        {communication.status !== "verzonden" && (
+          <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+            <p className="text-sm font-medium text-foreground">Versturen</p>
+            <p className="mt-1 text-sm text-muted">
+              {communication.status === "verzenden_mislukt"
+                ? `${sentCount} van ${activeMemberCount} actieve leden ontvingen 'm al — de rest nog niet.`
+                : `Gaat naar alle ${activeMemberCount} actieve leden.`}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <Button type="button" onClick={handleSend} disabled={sendPending}>
+                <Send size={16} />
+                {sendPending ? "Versturen…" : communication.status === "verzenden_mislukt" ? "Opnieuw proberen" : "Versturen"}
+              </Button>
+              {sendResult?.error && <p className="text-sm text-voc-red">{sendResult.error}</p>}
+              {sendResult && sendResult.total !== undefined && sendResult.sent !== undefined && (
+                <p className={`text-sm ${sendResult.sent >= sendResult.total ? "text-green-600" : "text-voc-red"}`}>
+                  {sendResult.sent} van {sendResult.total} verzonden
+                  {sendResult.sent < sendResult.total && " — probeer het later opnieuw voor de rest."}
+                </p>
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="lg:sticky lg:top-4 lg:self-start">

@@ -190,8 +190,8 @@ export type TestSendState = { error?: string; success?: boolean };
 // Testmail: rendert de huidige (mogelijk nog niet opgeslagen) staat van de
 // editor en stuurt 'm alleen naar het eigen e-mailadres van het bestuurslid
 // dat op de knop klikt — nooit naar leden, en zonder notifications/stats-
-// rijen aan te maken (dat is pas aan de orde bij de écht definitieve
-// verzending, fase 8, die apart akkoord moet krijgen).
+// rijen aan te maken (dat gebeurt alleen bij de écht definitieve verzending,
+// zie sendNewsletterAction verderop in dit bestand).
 export async function sendTestNewsletterAction(
   subject: string,
   preheader: string,
@@ -239,4 +239,75 @@ export async function uploadNewsletterImageAction(
 
   const { data } = supabase.storage.from("email-assets").getPublicUrl(result.path);
   return { url: data.publicUrl };
+}
+
+export type SendNewsletterState = { error?: string; total?: number; sent?: number; failed?: number; done?: boolean };
+
+// De daadwerkelijke verzending (fase 8, "Verzendarchitectuur" sectie J).
+// Kernregel: nooit een halve verzending als succesvol rapporteren. Elke
+// ontvanger krijgt zijn eigen notifications-rij (claim_newsletter_recipients,
+// 0067_newsletter_send.sql) die hier, direct na de individuele
+// Resend-aanroep, pas als verstuurd wordt gemarkeerd — nooit vooraf, nooit
+// in bulk. Breekt deze functie halverwege af (bv. door een functie-timeout
+// bij een groot ledenaantal), dan staat alles wat al écht verstuurd is ook
+// al als zodanig vastgelegd; nogmaals op "Versturen" klikken (of "Opnieuw
+// proberen" na een gedeeltelijke mislukking) berekent via dezelfde
+// claim-aanroep vanzelf opnieuw wie nog een lege emailed_at heeft en
+// verstuurt alléén aan hen — nooit een dubbele e-mail aan wie al iets
+// ontving.
+export async function sendNewsletterAction(communicationId: string): Promise<SendNewsletterState> {
+  await requireBoard();
+  const supabase = await createClient();
+
+  const { data: communication } = await supabase.from("communications").select("*").eq("id", communicationId).maybeSingle();
+  if (!communication) {
+    return { error: "Nieuwsbrief niet gevonden." };
+  }
+  if (communication.status === "verzonden") {
+    return { error: "Deze nieuwsbrief is al volledig verzonden." };
+  }
+  if (!communication.subject.trim()) {
+    return { error: "Onderwerp is verplicht voor je kunt versturen." };
+  }
+  const content = Array.isArray(communication.content) ? (communication.content as unknown as NewsletterBlock[]) : [];
+  if (content.length === 0) {
+    return { error: "Voeg eerst inhoud toe voor je kunt versturen." };
+  }
+
+  const { data: recipients, error: claimError } = await supabase.rpc("claim_newsletter_recipients", {
+    p_communication_id: communicationId,
+  });
+  if (claimError) {
+    return { error: "Ontvangerslijst ophalen is niet gelukt. Probeer het opnieuw." };
+  }
+
+  const html = renderNewsletterHtml(content, { subject: communication.subject, preheader: communication.preheader });
+
+  for (const recipient of recipients ?? []) {
+    const result = await sendRawHtmlEmail(recipient.email, communication.subject, html, communication.sender_name);
+    if (!result.error) {
+      // Direct na elke individuele, al-geslaagde verzending — nooit
+      // gebufferd tot het einde van de lus, zie de uitleg hierboven.
+      await supabase.rpc("mark_newsletter_notification_sent", {
+        p_notification_id: recipient.notification_id,
+        p_provider_id: result.providerId ?? null,
+      });
+    }
+    // Bij een mislukte losse verzending: niets markeren. De rij blijft
+    // "nog te doen" (emailed_at is null) voor een volgende poging.
+  }
+
+  const { data: finalized } = await supabase.rpc("finalize_newsletter_send", { p_communication_id: communicationId });
+  const total = finalized?.[0]?.total ?? 0;
+  const sent = finalized?.[0]?.sent ?? 0;
+
+  if (sent > 0) {
+    await logAuditAction("communication_sent", "communication", communicationId, { total, sent, subject: communication.subject });
+  }
+
+  revalidatePath(`/beheer/communicatie/${communicationId}`);
+  revalidatePath("/beheer/communicatie");
+  revalidatePath("/beheer/statistieken");
+
+  return { total, sent, failed: total - sent, done: total > 0 && sent >= total };
 }
