@@ -24,7 +24,7 @@ export type MappableCompany = CompanyListItem & { latitude: number; longitude: n
 
 export function CompanyMap({
   companies,
-  heightClass = "h-[500px]",
+  heightClass = "h-[640px]",
   zoom = 12,
 }: {
   companies: MappableCompany[];
