@@ -7,6 +7,7 @@ import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { getOverlayCloseHref, isOverlayRoute } from "@/lib/ui/overlayRoutes";
 import { useOverlayOrigin } from "@/lib/ui/OverlayOriginContext";
+import { useUnsavedChanges } from "@/lib/ui/UnsavedChangesContext";
 import type { ReactNode } from "react";
 
 const DISMISS_THRESHOLD = 100;
@@ -28,6 +29,7 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const overlayHistory = useOverlayOrigin();
+  const { confirmDiscard, setDirty } = useUnsavedChanges();
   const [dismissed, setDismissed] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
   // Naar-beneden-vegen om te sluiten — alleen vanaf het grijpstrookje, niet
@@ -57,6 +59,12 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
   }
 
   function close() {
+    // Een formulier met niet-opgeslagen wijzigingen (bv. een half ingevuld
+    // activiteitformulier) mag niet zomaar verdwijnen op Esc/kruisje/
+    // naar-beneden-vegen — eerst een bevestiging.
+    if (!confirmDiscard()) return;
+    setDirty(false);
+
     // pop() geeft de vorige stap in de overlay-navigatie terug (bv. het
     // ledenprofiel waarvandaan je een bijgewoonde activiteit opende) — geneste
     // overlay's sluiten zo stap voor stap terug i.p.v. in één keer helemaal

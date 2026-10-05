@@ -1,12 +1,13 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Switch } from "@/components/ui/Switch";
 import { compressInputFile } from "@/lib/image/compress";
+import { useUnsavedChanges } from "@/lib/ui/UnsavedChangesContext";
 import type { ActivityFormState } from "@/app/(app)/agenda/actions";
 import type { Database } from "@/lib/types/database";
 
@@ -82,6 +83,14 @@ export function ActivityForm({
   initialSource?: "voc" | "lid";
 }) {
   const [state, formAction] = useActionState(action, initialState);
+  const { setDirty } = useUnsavedChanges();
+  // Gereset na een geslaagde submit en bij het verlaten van het formulier
+  // (unmount) — zonder dit zou "niet-opgeslagen wijzigingen" blijven hangen
+  // voor het volgende overlay dat open gaat.
+  useEffect(() => {
+    if (state.success) setDirty(false);
+  }, [state.success, setDirty]);
+  useEffect(() => () => setDirty(false), [setDirty]);
   const [preview, setPreview] = useState<string | null>(null);
   const shownImage = preview ?? imageUrl;
   const [source, setSource] = useState<"voc" | "lid">(
@@ -107,7 +116,11 @@ export function ActivityForm({
   const deadlineIso = deadline ? new Date(deadline).toISOString() : "";
 
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    // onChange vangt (via bubbling) elke native invoer — tekst/tekstvlak/
+    // bestand/checkbox — in één keer op; de niet-native schakelaars (Switch,
+    // de type-pillen hieronder) markeren zichzelf expliciet, want een
+    // <button onClick> bubbelt niet als een change-event.
+    <form action={formAction} onChange={() => setDirty(true)} className="flex flex-col gap-5">
       <input type="hidden" name="source" value={source} />
       {showTypePicker && (
         <div className="flex flex-col gap-1.5">
@@ -115,7 +128,10 @@ export function ActivityForm({
           <div className="flex gap-1.5">
             <button
               type="button"
-              onClick={() => setSource("voc")}
+              onClick={() => {
+                setSource("voc");
+                setDirty(true);
+              }}
               className={`rounded-full px-3 py-1.5 text-sm font-medium ${
                 source === "voc" ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
               }`}
@@ -124,7 +140,10 @@ export function ActivityForm({
             </button>
             <button
               type="button"
-              onClick={() => setSource("lid")}
+              onClick={() => {
+                setSource("lid");
+                setDirty(true);
+              }}
               className={`rounded-full px-3 py-1.5 text-sm font-medium ${
                 source === "lid" ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
               }`}
@@ -236,7 +255,10 @@ export function ActivityForm({
         <input type="hidden" name="allow_public_registration" value={allowPublicRegistration ? "on" : ""} />
         <Switch
           checked={allowPublicRegistration}
-          onChange={() => setAllowPublicRegistration((v) => !v)}
+          onChange={() => {
+            setAllowPublicRegistration((v) => !v);
+            setDirty(true);
+          }}
           label="Aanmelden door niet-leden toestaan"
         />
       </div>
@@ -321,12 +343,26 @@ export function ActivityForm({
           <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3 py-2.5">
             <p className="text-sm text-foreground">Pushmelding versturen</p>
             <input type="hidden" name="notify_push" value={notifyPush ? "on" : ""} />
-            <Switch checked={notifyPush} onChange={() => setNotifyPush((v) => !v)} label="Pushmelding versturen" />
+            <Switch
+              checked={notifyPush}
+              onChange={() => {
+                setNotifyPush((v) => !v);
+                setDirty(true);
+              }}
+              label="Pushmelding versturen"
+            />
           </div>
           <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3 py-2.5">
             <p className="text-sm text-foreground">E-mail versturen</p>
             <input type="hidden" name="notify_email" value={notifyEmail ? "on" : ""} />
-            <Switch checked={notifyEmail} onChange={() => setNotifyEmail((v) => !v)} label="E-mail versturen" />
+            <Switch
+              checked={notifyEmail}
+              onChange={() => {
+                setNotifyEmail((v) => !v);
+                setDirty(true);
+              }}
+              label="E-mail versturen"
+            />
           </div>
         </div>
       )}

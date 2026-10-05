@@ -12,6 +12,7 @@ import {
 } from "@/lib/notifications/useUnreadCount";
 import { OverlayProvider } from "@/lib/ui/OverlayContext";
 import { OverlayOriginProvider } from "@/lib/ui/OverlayOriginContext";
+import { UnsavedChangesProvider } from "@/lib/ui/UnsavedChangesContext";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { MobileHeader } from "./MobileHeader";
@@ -45,16 +46,18 @@ export function AppShell({
     <OverlayProvider>
       <OverlayOriginProvider>
         <MarkNotificationReadProvider value={markRead}>
-          <AppShellBody
-            profile={profile}
-            unread={unread}
-            avatarUrl={avatarUrl}
-            companyId={companyId}
-            companyName={companyName}
-            modal={modal}
-          >
-            {children}
-          </AppShellBody>
+          <UnsavedChangesProvider>
+            <AppShellBody
+              profile={profile}
+              unread={unread}
+              avatarUrl={avatarUrl}
+              companyId={companyId}
+              companyName={companyName}
+              modal={modal}
+            >
+              {children}
+            </AppShellBody>
+          </UnsavedChangesProvider>
         </MarkNotificationReadProvider>
       </OverlayOriginProvider>
     </OverlayProvider>
