@@ -310,3 +310,18 @@ button:not(:disabled) {
   background: transparent;
   border: none;
 }
+
+/* Bedrijvenkaart-popup (CompanyMap.tsx) in huisstijl i.p.v. Leaflet's
+   kale standaardballon — vooral de link-kleur moet hier met !important:
+   leaflet.css zet zelf `.leaflet-container a { color: #0078A8 }`, wat
+   anders wint van Tailwinds text-voc-red door importvolgorde. */
+.voc-company-popup .leaflet-popup-content-wrapper {
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+.voc-company-popup .leaflet-popup-content {
+  margin: 10px 12px;
+}
+.voc-company-popup a {
+  color: var(--voc-red) !important;
+}

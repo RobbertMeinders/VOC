@@ -95,15 +95,30 @@ export function CompanyMap({
             position={[company.latitude, company.longitude]}
             icon={createCompanyIcon({ name: company.name, logoUrl: company.logoUrl })}
           >
-            <Popup>
-              <Link
-                href={company.href ?? `/bedrijven/${company.id}`}
-                onClick={company.onClick}
-                className="font-medium text-voc-red hover:underline"
-              >
-                {company.name}
-              </Link>
-              {company.city && <p className="mt-0.5 text-xs text-gray-600">{company.city}</p>}
+            <Popup className="voc-company-popup" minWidth={180}>
+              <div className="flex items-center gap-2.5">
+                {company.logoUrl ? (
+                  <img
+                    src={company.logoUrl}
+                    alt=""
+                    className="h-9 w-9 shrink-0 rounded-lg border border-border bg-white object-contain p-0.5"
+                  />
+                ) : (
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-border bg-white text-sm font-bold text-voc-red">
+                    {company.name.charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div className="min-w-0">
+                  <Link
+                    href={company.href ?? `/bedrijven/${company.id}`}
+                    onClick={company.onClick}
+                    className="block truncate font-medium text-voc-red hover:underline"
+                  >
+                    {company.name}
+                  </Link>
+                  {company.city && <p className="truncate text-xs text-gray-600">{company.city}</p>}
+                </div>
+              </div>
             </Popup>
           </Marker>
         ))}
