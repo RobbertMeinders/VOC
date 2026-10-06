@@ -64,10 +64,7 @@ export function LineTrend({
       <path d={linePath} fill="none" stroke="var(--voc-red)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
       {points.map((p, i) => (
         <circle key={p.month} cx={x(i)} cy={y(p.value)} r={3} fill="var(--voc-red)">
-          <title>
-            {p.label}: {p.value}
-            {suffix}
-          </title>
+          <title>{`${p.label}: ${p.value}${suffix}`}</title>
         </circle>
       ))}
       <text x={x(points.length - 1)} y={y(last.value) - 8} textAnchor="end" fontSize={11} fontWeight={600} fill="var(--foreground)">
@@ -148,9 +145,7 @@ export function BarTrend({
                     rx={2.5}
                     fill={s.color}
                   >
-                    <title>
-                      {m.label} — {s.label}: {v}
-                    </title>
+                    <title>{`${m.label} — ${s.label}: ${v}`}</title>
                   </rect>
                 );
               })}
