@@ -7,22 +7,34 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.Default.css";
+import { escapeHtml } from "@/lib/text/escape-html";
 import type { CompanyListItem } from "./CompanyCard";
 
-// Een eigen, in VOC-rood gestylede speld i.p.v. Leaflets standaard blauwe
-// marker-afbeelding — een losse SVG als data-URI heeft geen externe
-// CDN-afhankelijkheid nodig en blijft op elk schermformaat scherp.
-const PIN_SVG = `<svg width="27" height="38" viewBox="0 0 27 38" xmlns="http://www.w3.org/2000/svg">
-  <path d="M13.5 0C6.04 0 0 6.04 0 13.5 0 23.63 13.5 38 13.5 38S27 23.63 27 13.5C27 6.04 20.96 0 13.5 0z" fill="#e8000f"/>
-  <circle cx="13.5" cy="13.5" r="5.5" fill="#ffffff"/>
-</svg>`;
+// Vierkante "foto-speld" i.p.v. de vorige ronde VOC-rode speld — toont het
+// bedrijfslogo zelf (of, zonder logo, de eerste letter van de naam, zelfde
+// terugval als CompanyLogo.tsx) in een afgeronde rechthoek met een puntje
+// eronder. Bewust vierkant en niet rond: de clusterbubbels (hieronder,
+// createClusterIcon) zijn wél rond, dus je ziet in één oogopslag het
+// verschil tussen "dit is een getal-cluster" en "dit is een los bedrijf".
+const PIN_SIZE = 34;
+const PIN_TAIL = 9;
 
-const markerIcon = L.icon({
-  iconUrl: `data:image/svg+xml;base64,${btoa(PIN_SVG)}`,
-  iconSize: [27, 38],
-  iconAnchor: [13.5, 38],
-  popupAnchor: [0, -34],
-});
+function createCompanyIcon(company: { name: string; logoUrl: string | null }) {
+  const content = company.logoUrl
+    ? `<img src="${escapeHtml(company.logoUrl)}" alt="" style="width:100%;height:100%;object-fit:contain;padding:3px;box-sizing:border-box;" />`
+    : `<span style="font-size:15px;font-weight:700;color:#e8000f;font-family:-apple-system,'Segoe UI',Arial,sans-serif;">${escapeHtml(company.name.charAt(0).toUpperCase())}</span>`;
+
+  return L.divIcon({
+    html: `<div style="position:relative;width:${PIN_SIZE}px;height:${PIN_SIZE + PIN_TAIL}px;">
+      <div style="width:${PIN_SIZE}px;height:${PIN_SIZE}px;border-radius:9px;background:#ffffff;border:2px solid #e8000f;box-shadow:0 1px 4px rgba(0,0,0,.35);overflow:hidden;display:flex;align-items:center;justify-content:center;">${content}</div>
+      <div style="position:absolute;left:50%;top:${PIN_SIZE - 2}px;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:${PIN_TAIL}px solid #e8000f;"></div>
+    </div>`,
+    className: "voc-company-icon",
+    iconSize: [PIN_SIZE, PIN_SIZE + PIN_TAIL],
+    iconAnchor: [PIN_SIZE / 2, PIN_SIZE + PIN_TAIL],
+    popupAnchor: [0, -(PIN_SIZE + PIN_TAIL)],
+  });
+}
 
 // Eigen clusterbubbel i.p.v. leaflet.markercluster's standaard geel/oranje
 // — drie oplopende maten naar aantal bedrijven, altijd in VOC-rood.
@@ -78,7 +90,11 @@ export function CompanyMap({
           het ook gewoon wat drukker ogen met losse spelden. */}
       <MarkerClusterGroup chunkedLoading maxClusterRadius={25} disableClusteringAtZoom={15} iconCreateFunction={createClusterIcon}>
         {companies.map((company) => (
-          <Marker key={company.id} position={[company.latitude, company.longitude]} icon={markerIcon}>
+          <Marker
+            key={company.id}
+            position={[company.latitude, company.longitude]}
+            icon={createCompanyIcon({ name: company.name, logoUrl: company.logoUrl })}
+          >
             <Popup>
               <Link
                 href={company.href ?? `/bedrijven/${company.id}`}

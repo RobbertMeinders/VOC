@@ -303,3 +303,10 @@ button:not(:disabled) {
   background: transparent;
   border: none;
 }
+
+/* Zelfde reden als .voc-cluster-icon hierboven, nu voor de vierkante
+   logo-spelden per los bedrijf (createCompanyIcon). */
+.voc-company-icon {
+  background: transparent;
+  border: none;
+}
