@@ -1,13 +1,63 @@
 "use client";
 
+import { useMemo } from "react";
 import Link from "next/link";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { deleteCommunicationAction } from "@/app/(app)/beheer/communicatie/actions";
+import { renderNewsletterHtml } from "@/lib/newsletter/render";
+import type { NewsletterBlock } from "@/lib/newsletter/types";
 import type { Database } from "@/lib/types/database";
 
 type Communication = Database["public"]["Tables"]["communications"]["Row"] & {
   activity?: { title: string } | null;
 };
+
+// Een echte (sterk verkleinde) weergave van de campagne i.p.v. de platte
+// onderwerp/pre-header-tekst — hergebruikt dezelfde renderfunctie als de
+// editor-preview en de verzending zelf, dus loopt nooit uit de pas met hoe
+// de e-mail er daadwerkelijk uitziet. De iframe rendert op volledige
+// e-mailbreedte (600px) en wordt daarna met een CSS-transform verkleind —
+// goedkoper en altijd actueel, in tegenstelling tot een losse
+// screenshot-service.
+const THUMB_WIDTH = 112;
+const THUMB_HEIGHT = 84;
+const SOURCE_WIDTH = 600;
+const SOURCE_HEIGHT = 450;
+const THUMB_SCALE = THUMB_WIDTH / SOURCE_WIDTH;
+
+function CampaignThumbnail({ communication }: { communication: Communication }) {
+  const html = useMemo(() => {
+    const content = Array.isArray(communication.content) ? (communication.content as unknown as NewsletterBlock[]) : [];
+    return renderNewsletterHtml(content, {
+      subject: communication.subject,
+      preheader: communication.preheader,
+      showHeader: communication.show_header,
+      showFooter: communication.show_footer,
+    });
+  }, [communication.content, communication.subject, communication.preheader, communication.show_header, communication.show_footer]);
+
+  return (
+    <div
+      className="shrink-0 overflow-hidden rounded-lg border border-border bg-white"
+      style={{ width: THUMB_WIDTH, height: THUMB_HEIGHT }}
+    >
+      <iframe
+        title={`Voorbeeld ${communication.subject}`}
+        srcDoc={html}
+        sandbox=""
+        scrolling="no"
+        style={{
+          width: SOURCE_WIDTH,
+          height: SOURCE_HEIGHT,
+          transform: `scale(${THUMB_SCALE})`,
+          transformOrigin: "top left",
+          pointerEvents: "none",
+          border: "none",
+        }}
+      />
+    </div>
+  );
+}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" });
@@ -36,6 +86,9 @@ export function CommunicationRow({ communication }: { communication: Communicati
 
   return (
     <div className="flex items-start gap-3 rounded-xl border border-border bg-surface p-3 shadow-sm">
+      <Link href={`/beheer/communicatie/${communication.id}`} className="shrink-0">
+        <CampaignThumbnail communication={communication} />
+      </Link>
       <div className="min-w-0 flex-1">
         <Link href={`/beheer/communicatie/${communication.id}`} className="truncate text-sm font-medium text-foreground hover:underline">
           {communication.subject}

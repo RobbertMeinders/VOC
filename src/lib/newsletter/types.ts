@@ -1,8 +1,13 @@
+export type NewsletterAlign = "left" | "center" | "right";
+
 export type NewsletterTextBlock = {
   id: string;
   type: "text";
   title?: string;
   body: string;
+  // Ontbreekt (undefined) bij elk blok van vóór dit veld bestond — render.ts
+  // valt dan terug op "left", hetzelfde als de oude, vaste opmaak.
+  align?: NewsletterAlign;
 };
 
 export type NewsletterImageBlock = {
@@ -12,6 +17,10 @@ export type NewsletterImageBlock = {
   layout: "full" | "left" | "right";
   title?: string;
   body?: string;
+  // Alleen van toepassing bij layout "left"/"right" — hoeveel procent van de
+  // blokbreedte de afbeelding krijgt, de rest is voor title/body. Ontbreekt
+  // bij oudere blokken; render.ts valt dan terug op de oude vaste 33%.
+  imageWidthPercent?: number;
 };
 
 export type NewsletterButtonBlock = {
@@ -19,6 +28,7 @@ export type NewsletterButtonBlock = {
   type: "button";
   label: string;
   url: string;
+  align?: NewsletterAlign;
 };
 
 export type NewsletterDividerBlock = {

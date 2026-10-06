@@ -5,10 +5,15 @@ import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
+  AlignCenter,
+  AlignLeft,
+  AlignRight,
   ArrowDown,
   ArrowUp,
+  Bold,
   CalendarDays,
   Image as ImageIcon,
+  Italic,
   Laptop,
   Link2,
   Minus,
@@ -33,7 +38,7 @@ import {
 } from "@/app/(app)/beheer/communicatie/actions";
 import { renderNewsletterHtml } from "@/lib/newsletter/render";
 import { formatActivityDate } from "@/lib/format/date";
-import type { NewsletterBlock } from "@/lib/newsletter/types";
+import type { NewsletterAlign, NewsletterBlock } from "@/lib/newsletter/types";
 import type { Database } from "@/lib/types/database";
 
 type Communication = Database["public"]["Tables"]["communications"]["Row"];
@@ -52,6 +57,101 @@ function textAreaClass() {
 
 function inputSizeClass() {
   return "h-11 text-base";
+}
+
+// Bewust geen contentEditable/rich-text-editor — wrapt de geselecteerde
+// tekst in **/* (gelezen door formatInlineText in render.ts) zodat de
+// opgeslagen inhoud gewoon leesbare platte tekst blijft, veilig genoeg om
+// zonder verdere validatie in e-mailveilige HTML te zetten.
+function RichTextarea({
+  value,
+  onChange,
+  rows,
+  placeholder,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+  rows: number;
+  placeholder?: string;
+}) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+
+  function wrapSelection(marker: string) {
+    const el = ref.current;
+    if (!el) return;
+    const start = el.selectionStart;
+    const end = el.selectionEnd;
+    if (start === end) return;
+    const next = value.slice(0, start) + marker + value.slice(start, end) + marker + value.slice(end);
+    onChange(next);
+    requestAnimationFrame(() => {
+      el.focus();
+      el.setSelectionRange(start + marker.length, end + marker.length);
+    });
+  }
+
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => wrapSelection("**")}
+          title="Selecteer tekst en klik hierop om 'm vet te maken"
+          aria-label="Vet"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-black/[.06] hover:text-foreground dark:hover:bg-white/[.08]"
+        >
+          <Bold size={15} />
+        </button>
+        <button
+          type="button"
+          onMouseDown={(e) => e.preventDefault()}
+          onClick={() => wrapSelection("*")}
+          title="Selecteer tekst en klik hierop om 'm cursief te maken"
+          aria-label="Cursief"
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-muted hover:bg-black/[.06] hover:text-foreground dark:hover:bg-white/[.08]"
+        >
+          <Italic size={15} />
+        </button>
+        <span className="text-xs text-muted">Selecteer een woord of zin, klik dan op B of I</span>
+      </div>
+      <textarea
+        ref={ref}
+        rows={rows}
+        placeholder={placeholder}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={textAreaClass()}
+      />
+    </div>
+  );
+}
+
+function AlignButtons({ value, onChange }: { value: NewsletterAlign | undefined; onChange: (align: NewsletterAlign) => void }) {
+  const options: { key: NewsletterAlign; Icon: typeof AlignLeft; label: string }[] = [
+    { key: "left", Icon: AlignLeft, label: "Links uitlijnen" },
+    { key: "center", Icon: AlignCenter, label: "Centreren" },
+    { key: "right", Icon: AlignRight, label: "Rechts uitlijnen" },
+  ];
+  const active = value ?? "left";
+  return (
+    <div className="flex items-center gap-1.5">
+      {options.map(({ key, Icon, label }) => (
+        <button
+          key={key}
+          type="button"
+          onClick={() => onChange(key)}
+          title={label}
+          aria-label={label}
+          className={`flex h-9 w-9 items-center justify-center rounded-full ${
+            active === key ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
+          }`}
+        >
+          <Icon size={16} />
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function SubmitButton() {
@@ -249,12 +349,11 @@ function EventBlockEditor({
         onChange={(e) => onChange({ ...block, location: e.target.value || null })}
         className={inputSizeClass()}
       />
-      <textarea
+      <RichTextarea
         rows={4}
         placeholder="Omschrijving"
         value={block.description ?? ""}
-        onChange={(e) => onChange({ ...block, description: e.target.value || null })}
-        className={textAreaClass()}
+        onChange={(value) => onChange({ ...block, description: value || null })}
       />
       <Input
         placeholder="Knoptekst, bv. “Bekijk evenement”"
@@ -332,13 +431,13 @@ function BlockEditor({
             onChange={(e) => onChange({ ...block, title: e.target.value })}
             className={inputSizeClass()}
           />
-          <textarea
+          <RichTextarea
             rows={5}
             placeholder="Tekst"
             value={block.body}
-            onChange={(e) => onChange({ ...block, body: e.target.value })}
-            className={textAreaClass()}
+            onChange={(value) => onChange({ ...block, body: value })}
           />
+          <AlignButtons value={block.align} onChange={(align) => onChange({ ...block, align })} />
         </div>
       </BlockShell>
     );
@@ -381,13 +480,24 @@ function BlockEditor({
                 onChange={(e) => onChange({ ...block, title: e.target.value })}
                 className={inputSizeClass()}
               />
-              <textarea
+              <RichTextarea
                 rows={3}
                 placeholder="Tekst bij de foto (optioneel)"
                 value={block.body ?? ""}
-                onChange={(e) => onChange({ ...block, body: e.target.value })}
-                className={textAreaClass()}
+                onChange={(value) => onChange({ ...block, body: value })}
               />
+              <div className="flex flex-col gap-1.5">
+                <label className="text-sm text-muted">Breedte afbeelding: {block.imageWidthPercent ?? 33}%</label>
+                <input
+                  type="range"
+                  min={20}
+                  max={80}
+                  step={5}
+                  value={block.imageWidthPercent ?? 33}
+                  onChange={(e) => onChange({ ...block, imageWidthPercent: Number(e.target.value) })}
+                  className="w-full accent-voc-red"
+                />
+              </div>
             </>
           )}
         </div>
@@ -411,6 +521,7 @@ function BlockEditor({
             onChange={(e) => onChange({ ...block, url: e.target.value })}
             className={inputSizeClass()}
           />
+          <AlignButtons value={block.align} onChange={(align) => onChange({ ...block, align })} />
         </div>
       </BlockShell>
     );

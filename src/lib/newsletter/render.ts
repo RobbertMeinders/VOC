@@ -1,6 +1,6 @@
 import { escapeHtml } from "@/lib/text/escape-html";
 import { formatActivityDate } from "@/lib/format/date";
-import type { NewsletterBlock } from "./types";
+import type { NewsletterAlign, NewsletterBlock } from "./types";
 
 // Bewust geen "server-only" hier: dezelfde functie rendert zowel de
 // definitieve verzending (server) als de live preview in de beheereditor
@@ -37,13 +37,33 @@ function nl2br(text: string): string {
   return escapeHtml(text).replace(/\n/g, "<br>");
 }
 
+// Bewust geen vrije HTML-invoer (geen contentEditable/rich-text-editor) —
+// alleen **vet** en *cursief* per woord/zin, op dezelfde escaped tekst als
+// nl2br. De bold-regex loopt eerst zodat de buitenste **-paren nooit per
+// ongeluk als twee losse *cursief*-markeringen worden gelezen.
+function formatInlineText(text: string): string {
+  return nl2br(text)
+    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\*(.+?)\*/g, "<em>$1</em>");
+}
+
+function alignStyle(align: NewsletterAlign | undefined): string {
+  return `text-align:${align ?? "left"};`;
+}
+
 function renderTextBlock(block: Extract<NewsletterBlock, { type: "text" }>): string {
-  return `<tr><td style="padding:0 24px 24px;">
-    ${block.title ? `<h2 style="margin:0 0 8px;font-size:20px;line-height:1.3;color:${COLORS.foreground};font-family:${FONT};">${escapeHtml(block.title)}</h2>` : ""}
-    <p style="margin:0;font-size:14px;line-height:1.6;color:${COLORS.foreground};font-family:${FONT};">${nl2br(block.body)}</p>
+  const align = alignStyle(block.align);
+  return `<tr><td style="padding:0 24px 24px;${align}">
+    ${block.title ? `<h2 style="margin:0 0 8px;font-size:20px;line-height:1.3;color:${COLORS.foreground};font-family:${FONT};${align}">${escapeHtml(block.title)}</h2>` : ""}
+    <p style="margin:0;font-size:14px;line-height:1.6;color:${COLORS.foreground};font-family:${FONT};${align}">${formatInlineText(block.body)}</p>
   </td></tr>`;
 }
 
+// Was een vaste 180px thumbnail naast de rest — nu een zelf te kiezen
+// percentage (editor: schuifje 20-80%), zodat een bestuurslid zelf bepaalt
+// hoeveel ruimte de foto t.o.v. de tekst krijgt. Percentages i.p.v. pixels
+// omdat tabel-kolombreedtes in e-mailclients daar betrouwbaarder mee
+// meeschalen dan met een vaste pixelbreedte plus losse max-width.
 function renderImageBlock(block: Extract<NewsletterBlock, { type: "image" }>): string {
   const img = `<img src="${escapeHtml(block.url)}" alt="" width="552" style="width:100%;max-width:552px;height:auto;border-radius:12px;display:block;" />`;
 
@@ -51,22 +71,25 @@ function renderImageBlock(block: Extract<NewsletterBlock, { type: "image" }>): s
     return `<tr><td style="padding:0 24px 24px;">${img}</td></tr>`;
   }
 
-  const thumb = `<img src="${escapeHtml(block.url)}" alt="" width="180" style="width:100%;max-width:180px;height:auto;border-radius:8px;display:block;" />`;
+  const imgPct = Math.min(80, Math.max(20, block.imageWidthPercent ?? 33));
+  const textPct = 100 - imgPct;
+  const thumb = `<img src="${escapeHtml(block.url)}" alt="" style="width:100%;height:auto;border-radius:8px;display:block;" />`;
   const text = `${block.title ? `<h3 style="margin:0 0 4px;font-size:16px;color:${COLORS.foreground};font-family:${FONT};">${escapeHtml(block.title)}</h3>` : ""}${
-    block.body ? `<p style="margin:0;font-size:14px;line-height:1.5;color:${COLORS.foreground};font-family:${FONT};">${nl2br(block.body)}</p>` : ""
+    block.body ? `<p style="margin:0;font-size:14px;line-height:1.5;color:${COLORS.foreground};font-family:${FONT};">${formatInlineText(block.body)}</p>` : ""
   }`;
-  const imgCell = `<td class="vocnl-stack" width="180" style="padding:0;vertical-align:top;">${thumb}</td>`;
-  const textCell = `<td class="vocnl-stack" style="padding:0 0 0 16px;vertical-align:top;">${text}</td>`;
+  const imgCell = `<td class="vocnl-stack" width="${imgPct}%" style="width:${imgPct}%;padding:0;vertical-align:top;">${thumb}</td>`;
+  const textCellLeft = `<td class="vocnl-stack" width="${textPct}%" style="width:${textPct}%;padding:0 0 0 16px;vertical-align:top;">${text}</td>`;
+  const textCellRight = `<td class="vocnl-stack" width="${textPct}%" style="width:${textPct}%;padding:0 16px 0 0;vertical-align:top;">${text}</td>`;
 
   return `<tr><td style="padding:0 24px 24px;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="width:100%;">
-      <tr>${block.layout === "left" ? imgCell + textCell : textCell.replace("padding:0 0 0 16px", "padding:0 16px 0 0") + imgCell}</tr>
+      <tr>${block.layout === "left" ? imgCell + textCellLeft : textCellRight + imgCell}</tr>
     </table>
   </td></tr>`;
 }
 
 function renderButtonBlock(block: Extract<NewsletterBlock, { type: "button" }>): string {
-  return `<tr><td style="padding:0 24px 28px;">
+  return `<tr><td align="${block.align ?? "left"}" style="padding:0 24px 28px;${alignStyle(block.align)}">
     <a href="${escapeHtml(block.url)}" style="display:inline-block;background:${COLORS.green};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:${BUTTON_RADIUS};font-family:${FONT};">${escapeHtml(block.label)}</a>
   </td></tr>`;
 }
