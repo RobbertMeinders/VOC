@@ -19,11 +19,13 @@ function ShortcutButton({
   icon: Icon,
   label,
   count,
+  countLabel,
 }: {
   href: string;
   icon: LucideIcon;
   label: string;
   count?: number;
+  countLabel?: string;
 }) {
   return (
     <Link
@@ -35,7 +37,11 @@ function ShortcutButton({
       </span>
       <span className="min-w-0">
         <span className="block truncate text-sm font-semibold text-foreground group-hover:text-voc-red">{label}</span>
-        {typeof count === "number" && <span className="block text-xs text-muted">{count} bedrijven</span>}
+        {typeof count === "number" && (
+          <span className="block text-xs text-muted">
+            {count} {countLabel}
+          </span>
+        )}
       </span>
     </Link>
   );
@@ -45,7 +51,7 @@ export default async function HomePage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: activities }, { count: companyCount }, { data: newsItems }] = await Promise.all([
+  const [{ data: activities }, { count: companyCount }, { count: memberCount }, { data: newsItems }] = await Promise.all([
     supabase
       .from("activities")
       .select("*")
@@ -55,6 +61,7 @@ export default async function HomePage() {
       .limit(1)
       .returns<ActivityRow[]>(),
     supabase.from("companies").select("id", { count: "exact", head: true }),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
     supabase.from("news_items").select("*").order("created_at", { ascending: false }).limit(1).returns<NewsItemRow[]>(),
   ]);
 
@@ -126,8 +133,14 @@ export default async function HomePage() {
       <section>
         <h2 className="mb-2 text-sm font-semibold text-foreground">Snelle toegang</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <ShortcutButton href="/leden" icon={Users} label="Leden" />
-          <ShortcutButton href="/bedrijven" icon={Building2} label="Bedrijven" count={companyCount ?? undefined} />
+          <ShortcutButton href="/leden" icon={Users} label="Leden" count={memberCount ?? undefined} countLabel="leden" />
+          <ShortcutButton
+            href="/bedrijven"
+            icon={Building2}
+            label="Bedrijven"
+            count={companyCount ?? undefined}
+            countLabel="bedrijven"
+          />
           <ShortcutButton href="/documenten" icon={FileText} label="Documenten" />
           <ShortcutButton href="/community" icon={MessageCircle} label="Community" />
         </div>
