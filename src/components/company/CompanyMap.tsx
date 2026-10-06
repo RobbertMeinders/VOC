@@ -32,7 +32,7 @@ function createCompanyIcon(company: { name: string; logoUrl: string | null }) {
     className: "voc-company-icon",
     iconSize: [PIN_SIZE, PIN_SIZE + PIN_TAIL],
     iconAnchor: [PIN_SIZE / 2, PIN_SIZE + PIN_TAIL],
-    popupAnchor: [0, -(PIN_SIZE + PIN_TAIL)],
+    popupAnchor: [0, -(PIN_SIZE + PIN_TAIL + 8)],
   });
 }
 
