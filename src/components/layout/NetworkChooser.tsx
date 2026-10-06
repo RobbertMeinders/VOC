@@ -71,6 +71,7 @@ export function NetworkChooser({
               <Link
                 key={href}
                 href={href}
+                onClick={close}
                 className={clsx(
                   "flex items-center gap-3 rounded-lg py-2.5 pl-10 pr-3 text-sm font-medium transition-all duration-150",
                   pathname.startsWith(href)

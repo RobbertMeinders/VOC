@@ -91,7 +91,21 @@ export function MemberPostsOverlay({
             <X size={16} />
           </button>
         </div>
-        <div className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 overflow-y-auto p-4">
+        <div
+          className="mx-auto flex w-full max-w-xl flex-1 flex-col gap-4 overflow-y-auto p-4"
+          onClick={(e) => {
+            // PostCard linkt de auteursnaam en @mentions in tekst/reacties
+            // rechtstreeks door (bv. naar /leden/[id]) zonder dat dit paneel
+            // daarvan weet — zonder deze klik-delegatie bleef dit
+            // volledig-scherm overlay (met zijn eigen scroll-lock) openstaan
+            // terwijl je al naar een andere pagina was genavigeerd, wat de
+            // achtergrond permanent op "niet scrollbaar" liet staan tot een
+            // refresh. Event delegation i.p.v. elke link in PostCard een
+            // eigen onClick geven (zelfde aanpak als NotificationCenter's
+            // mobiele notificatielijst).
+            if ((e.target as HTMLElement).closest("a")) onClose();
+          }}
+        >
           {posts === null && <p className="py-6 text-center text-sm text-muted">Laden…</p>}
           {posts?.map((post) => (
             <PostCard
