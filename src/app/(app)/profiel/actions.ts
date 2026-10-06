@@ -235,6 +235,22 @@ export async function updateEmailNewMembersAction(enabled: boolean): Promise<{ e
   return updateNotificationPreference("email", "new_members", enabled);
 }
 
+// Los van updateNotificationPreference hierboven — campagnes (0067_
+// newsletter_send.sql) zijn geen van de 12 getriggerde notificatietypes,
+// alleen een e-mailkanaal (geen push-variant), vandaar een eigen, kleine
+// action i.p.v. een geforceerde pas in de push/email-matrix.
+export async function updateEmailCampaignsAction(enabled: boolean): Promise<{ error?: string }> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase.from("profiles").update({ email_campaigns: enabled }).eq("id", profile.id);
+
+  if (error) {
+    return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
+  }
+  return {};
+}
+
 export async function unsubscribeFromPushAction(endpoint: string): Promise<void> {
   const profile = await requireProfile();
   const supabase = await createClient();

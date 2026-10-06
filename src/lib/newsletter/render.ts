@@ -171,6 +171,9 @@ function renderFooter(siteUrl: string): string {
       <tr>${iconCells}</tr>
     </table>
     <p style="margin:14px 0 0;font-size:11px;color:${COLORS.muted};font-family:${FONT};text-align:center;">Veendammer Ondernemers Compagnie</p>
+    <p style="margin:10px 0 0;font-size:11px;color:${COLORS.muted};font-family:${FONT};text-align:center;">
+      Je ontvangt dit als lid van VOC. <a href="${escapeHtml(`${siteUrl}/instellingen`)}" style="color:${COLORS.muted};text-decoration:underline;">Voorkeuren aanpassen</a>
+    </p>
   </td></tr>`;
 }
 

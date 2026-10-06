@@ -34,6 +34,7 @@ export interface Database {
           email_activities: boolean;
           email_feed: boolean;
           email_new_members: boolean;
+          email_campaigns: boolean;
           deactivated_at: string | null;
           anonymized_at: string | null;
           last_active_at: string | null;

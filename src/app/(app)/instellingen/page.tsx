@@ -8,6 +8,7 @@ import { ThemeToggle } from "@/components/profile/ThemeToggle";
 import { AttendedActivitiesToggle } from "@/components/profile/AttendedActivitiesToggle";
 import { ShowContactToggle } from "@/components/profile/ShowContactToggle";
 import { NotificationCategoryToggle } from "@/components/profile/NotificationCategoryToggle";
+import { EmailCampaignsToggle } from "@/components/profile/EmailCampaignsToggle";
 import { ShowAddressToggle } from "@/components/company/ShowAddressToggle";
 import { PubliclyVisibleToggle } from "@/components/profile/PubliclyVisibleToggle";
 import { DeleteAccountButton } from "@/components/profile/DeleteAccountButton";
@@ -25,7 +26,11 @@ export default async function InstellingenPage() {
   const supabase = await createClient();
 
   const [{ data }, { data: membership }] = await Promise.all([
-    supabase.from("profiles").select("show_attended_activities, publicly_visible").eq("id", profile.id).single(),
+    supabase
+      .from("profiles")
+      .select("show_attended_activities, publicly_visible, email_campaigns")
+      .eq("id", profile.id)
+      .single(),
     supabase
       .from("company_members")
       .select("company:companies(id, address, show_address)")
@@ -86,6 +91,10 @@ export default async function InstellingenPage() {
 
         <SettingSubRow label="Nieuwe leden">
           <NotificationCategoryToggle channel="email" category="new_members" initialEnabled={profile.email_new_members} />
+        </SettingSubRow>
+
+        <SettingSubRow label="Campagnes van VOC">
+          <EmailCampaignsToggle initialEnabled={data?.email_campaigns ?? true} />
         </SettingSubRow>
       </SettingGroup>
 
