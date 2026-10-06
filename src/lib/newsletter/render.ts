@@ -108,12 +108,13 @@ function renderEventBlock(block: Extract<NewsletterBlock, { type: "event" }>): s
 }
 
 // Zelfde drie VOC-social-URL's als VocSocialLinks.tsx (de "Volg ons"-rij
-// elders in de app) — hier dupliceert omdat de React-iconcomponent daar
-// niet herbruikbaar is in e-mailveilige HTML.
+// elders in de app) — hier gedupliceerd omdat de React-iconcomponent daar
+// niet herbruikbaar is in e-mailveilige HTML. De iconbestanden zelf staan
+// als losse SVG's in public/brand/ (zelfde aanpak als het logo hierboven).
 const VOC_SOCIAL_LINKS = [
-  { href: "https://www.linkedin.com/company/veendam/", label: "LinkedIn" },
-  { href: "https://www.facebook.com/vocveendam", label: "Facebook" },
-  { href: "https://www.instagram.com/vocveendam/", label: "Instagram" },
+  { href: "https://www.linkedin.com/company/veendam/", label: "LinkedIn", icon: "social-linkedin.svg" },
+  { href: "https://www.facebook.com/vocveendam", label: "Facebook", icon: "social-facebook.svg" },
+  { href: "https://www.instagram.com/vocveendam/", label: "Instagram", icon: "social-instagram.svg" },
 ];
 
 // Vast maar uitzetbaar (communications.show_header) — het VOC-beeldmerk
@@ -128,16 +129,25 @@ function renderHeader(siteUrl: string): string {
   </td></tr>`;
 }
 
-// Vast maar uitzetbaar (communications.show_footer).
-function renderFooter(): string {
-  const links = VOC_SOCIAL_LINKS.map(
-    (link) =>
-      `<a href="${escapeHtml(link.href)}" style="color:${COLORS.muted};text-decoration:underline;font-family:${FONT};font-size:12px;">${escapeHtml(link.label)}</a>`
-  ).join(`<span style="color:${COLORS.border};"> &middot; </span>`);
+// Vast maar uitzetbaar (communications.show_footer) — zelfde opbouw als de
+// bestaande VOC-mails: een korte uitnodigingstekst boven een rij met
+// werkelijke social-iconen (geen platte tekstlinks).
+function renderFooter(siteUrl: string): string {
+  const iconCells = VOC_SOCIAL_LINKS.map(
+    (link) => `<td style="padding:0 6px;">
+      <a href="${escapeHtml(link.href)}">
+        <img src="${escapeHtml(`${siteUrl}/brand/${link.icon}`)}" alt="${escapeHtml(link.label)}" width="32" height="32" style="display:block;width:32px;height:32px;" />
+      </a>
+    </td>`
+  ).join("");
 
   return `<tr><td style="padding:24px 24px 4px;border-top:1px solid ${COLORS.border};">
-    <p style="margin:0 0 6px;font-size:12px;color:${COLORS.muted};font-family:${FONT};text-align:center;">Veendammer Ondernemers Compagnie</p>
-    <p style="margin:0;text-align:center;">${links}</p>
+    <p style="margin:0 0 2px;font-size:13px;font-weight:600;color:${COLORS.foreground};font-family:${FONT};text-align:center;">Volg jij ons al op de socials?</p>
+    <p style="margin:0 0 14px;font-size:12px;color:${COLORS.muted};font-family:${FONT};text-align:center;">Blijf op de hoogte van onze activiteiten en het laatste nieuws.</p>
+    <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto;">
+      <tr>${iconCells}</tr>
+    </table>
+    <p style="margin:14px 0 0;font-size:11px;color:${COLORS.muted};font-family:${FONT};text-align:center;">Veendammer Ondernemers Compagnie</p>
   </td></tr>`;
 }
 
@@ -187,7 +197,10 @@ export function renderNewsletterHtml(
     meta.showHeader ?? true
       ? renderHeader(siteUrl)
       : `<tr><td style="height:24px;line-height:24px;font-size:0;">&nbsp;</td></tr>`;
-  const footerHtml = meta.showFooter ?? true ? renderFooter() : `<tr><td style="height:8px;line-height:8px;font-size:0;">&nbsp;</td></tr>`;
+  const footerHtml =
+    meta.showFooter ?? true
+      ? renderFooter(siteUrl)
+      : `<tr><td style="height:8px;line-height:8px;font-size:0;">&nbsp;</td></tr>`;
 
   return `<!DOCTYPE html>
 <html lang="nl">
