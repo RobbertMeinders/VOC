@@ -70,7 +70,11 @@ export function BulkImportForm() {
         <p className="mt-2 text-xs text-muted">
           Verwachte kolommen (in elke volgorde): voornaam, achternaam, email, telefoon, bedrijf, bezoekersadres,
           postcode, vestigingsplaats. Een bedrijf dat nog niet bestaat wordt automatisch aangemaakt met het
-          opgegeven adres.
+          opgegeven adres.{" "}
+          <a href="/voorbeeld-leden-import.csv" download className="underline hover:text-voc-red">
+            Voorbeeldbestand downloaden
+          </a>
+          .
         </p>
       </div>
 
