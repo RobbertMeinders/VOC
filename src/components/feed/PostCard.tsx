@@ -201,6 +201,7 @@ function CommentLikeRow({
         <button
           type="button"
           onClick={onOpenLikers}
+          aria-label="Bekijk wie dit leuk vindt"
           className={clsx("flex items-center gap-1", count > 0 ? "text-voc-red-text" : "text-muted hover:text-voc-red-text")}
         >
           <ThumbsUp key={String(liked)} size={13} className={clsx(count > 0 && "fill-voc-red", liked && "animate-pop")} />
@@ -436,6 +437,8 @@ export function PostCard({
         <button
           type="button"
           onClick={() => setCommentsOpen((o) => !o)}
+          aria-label={commentsOpen ? "Reacties verbergen" : "Reacties weergeven"}
+          aria-expanded={commentsOpen}
           className="flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.06]"
         >
           <MessageCircle size={16} />

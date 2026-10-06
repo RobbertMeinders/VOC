@@ -54,6 +54,8 @@ export function LikeButton({
       type="button"
       onClick={handleClick}
       disabled={isPending}
+      aria-label={liked ? "Niet meer leuk vinden" : "Vind ik leuk"}
+      aria-pressed={liked}
       className={clsx(
         "flex items-center gap-1.5 rounded-full font-medium transition-colors",
         size === "sm" ? "px-2 py-1 text-xs" : "px-2.5 py-1.5 text-sm",

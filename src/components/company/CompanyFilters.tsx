@@ -47,6 +47,7 @@ export function CompanyFilters({ branches }: { branches: string[] }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Zoek op bedrijfsnaam of plaats…"
+          aria-label="Zoek op bedrijfsnaam of plaats"
           className="pl-9"
         />
       </div>

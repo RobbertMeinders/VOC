@@ -304,6 +304,21 @@ a {
 button:not(:disabled) {
   cursor: pointer;
 }
+
+/* UX-review Q5: knoppen en links leunden op de dunne, soms nauwelijks
+   zichtbare browser-contour (invoervelden hebben al wel een duidelijke rode
+   focusring, zie Input.tsx). Eén globale regel i.p.v. per component — er
+   staan door de hele app losse, met de hand gestylede knoppen (niet
+   allemaal via Button.tsx) die anders allemaal apart deze stijl zouden
+   moeten krijgen. :focus-visible i.p.v. :focus: alleen zichtbaar bij
+   toetsenbordnavigatie, niet bij een muisklik. Outline (i.p.v. box-shadow/
+   ring) volgt in elke moderne browser automatisch de eigen border-radius
+   van het element. */
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--voc-red);
+  outline-offset: 2px;
+}
 @media (prefers-reduced-motion: reduce) {
   button,
   a {

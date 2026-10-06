@@ -29,6 +29,7 @@ export function SearchForm() {
         value={query}
         onChange={(e) => setQuery(e.target.value)}
         placeholder="Zoek in leden, bedrijven en documenten…"
+        aria-label="Zoek in leden, bedrijven en documenten"
         className="pl-9"
         autoFocus
       />

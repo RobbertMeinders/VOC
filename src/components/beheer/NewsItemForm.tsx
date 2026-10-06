@@ -45,12 +45,18 @@ export function NewsItemForm({
       }}
       className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 shadow-sm"
     >
-      <Input name="title" placeholder="Titel" defaultValue={item?.title} required />
-      <Input name="subtitle" placeholder="Pre-header (korte samenvatting, optioneel)" defaultValue={item?.subtitle ?? ""} />
+      <Input name="title" placeholder="Titel" aria-label="Titel" defaultValue={item?.title} required />
+      <Input
+        name="subtitle"
+        placeholder="Pre-header (korte samenvatting, optioneel)"
+        aria-label="Pre-header"
+        defaultValue={item?.subtitle ?? ""}
+      />
       <textarea
         name="body"
         rows={5}
         placeholder="Tekst"
+        aria-label="Tekst"
         defaultValue={item?.body}
         required
         className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"

@@ -47,6 +47,7 @@ export function MemberFilters({ branches }: { branches: string[] }) {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Zoek op naam of bedrijf…"
+          aria-label="Zoek op naam of bedrijf"
           className="pl-9"
         />
       </div>

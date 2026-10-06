@@ -87,6 +87,7 @@ function SearchPanel({ close }: { close: () => void }) {
               value={value}
               onChange={(e) => handleChange(e.target.value)}
               placeholder="Zoek leden, bedrijven, activiteiten…"
+              aria-label="Zoek leden, bedrijven, activiteiten"
               className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted"
             />
             <button

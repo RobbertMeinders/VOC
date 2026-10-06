@@ -104,6 +104,20 @@ function AppShellBody({
 
   return (
     <div className="min-h-dvh bg-background">
+      {/* UX-review Q5: geen "naar inhoud"-link, dus een toetsenbordgebruiker
+          moest eerst door de volledige sidebar/navigatie tabben voor elke
+          paginawissel. sr-only tot 'ie focus krijgt (eerste tab-stop in de
+          DOM) — gewoon :focus i.p.v. :focus-visible, zoals bij skip-links
+          gebruikelijk is, zodat 'ie ook verschijnt als iemand 'm per ongeluk
+          aanklikt. main hieronder krijgt tabIndex={-1}: zonder dat verplaatst
+          de browser alleen de scrollpositie, niet de focus zelf, waardoor
+          verder tabben weer bij de sidebar begint i.p.v. bij de inhoud. */}
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-voc-red focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-white"
+      >
+        Naar inhoud
+      </a>
       <OnlineHeartbeat />
       <ScrollLockGuard />
       <Sidebar
@@ -116,7 +130,7 @@ function AppShellBody({
         siteName={siteName}
       />
       <MobileHeader unread={unread} logoUrl={logoUrl} siteName={siteName} />
-      <main className="pb-20 md:ml-72 md:pb-0">
+      <main id="main-content" tabIndex={-1} className="pb-20 focus:outline-none md:ml-72 md:pb-0">
         <div
           className={clsx(
             "w-full px-4 py-6",
