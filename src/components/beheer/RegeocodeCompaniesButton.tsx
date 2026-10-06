@@ -49,7 +49,7 @@ export function RegeocodeCompaniesButton() {
         </p>
       )}
       {result && !result.error && (
-        <p className="text-sm text-green-600">
+        <p role="status" className="text-sm text-green-600">
           {result.total === 0
             ? "Alle bedrijven met een adres hebben al coördinaten."
             : `${result.fixed} van ${result.total} bedrijven zonder coördinaten zijn hersteld.`}
