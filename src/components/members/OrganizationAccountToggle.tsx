@@ -10,9 +10,11 @@ import { updateMemberOrganizationAccountAction } from "@/app/(app)/leden/[id]/ac
 export function OrganizationAccountToggle({
   memberId,
   initialValue,
+  compact = false,
 }: {
   memberId: string;
   initialValue: boolean;
+  compact?: boolean;
 }) {
   const [value, setValue] = useState(initialValue);
   const [pending, startTransition] = useTransition();
@@ -32,7 +34,7 @@ export function OrganizationAccountToggle({
   }
 
   return (
-    <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-background p-3">
+    <div className={compact ? "flex flex-col gap-1" : "flex flex-col gap-1.5 rounded-lg border border-border bg-background p-3"}>
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm text-foreground">
           {value ? "Organisatieaccount — niet in ledenlijst" : "Gewoon lid in de ledenlijst"}

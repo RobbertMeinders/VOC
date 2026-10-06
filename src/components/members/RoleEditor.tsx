@@ -21,20 +21,39 @@ function SubmitButton() {
   );
 }
 
-export function RoleEditor({ memberId, currentRole }: { memberId: string; currentRole: UserRole }) {
+// compact: zonder label/kader — voor dichte overzichten (Beheer > Leden) waar
+// elke rij al een duidelijke naam/avatar heeft en de losse omkadering per
+// veld anders onnodig veel hoogte kost. Op het individuele ledenprofiel
+// (MemberProfileContent) blijft de uitgebreide vorm staan, waar die context
+// ontbreekt.
+export function RoleEditor({
+  memberId,
+  currentRole,
+  compact = false,
+}: {
+  memberId: string;
+  currentRole: UserRole;
+  compact?: boolean;
+}) {
   const updateWithId = updateMemberRoleAction.bind(null, memberId);
   const [state, formAction] = useActionState(updateWithId, initialState);
 
   return (
-    <form action={formAction} className="flex flex-col gap-2 rounded-lg border border-border bg-background p-3">
-      <label htmlFor="role" className="text-xs font-medium text-muted">
-        Rol wijzigen (alleen zichtbaar voor beheerders)
-      </label>
+    <form
+      action={formAction}
+      className={compact ? "flex flex-col gap-1" : "flex flex-col gap-2 rounded-lg border border-border bg-background p-3"}
+    >
+      {!compact && (
+        <label htmlFor="role" className="text-xs font-medium text-muted">
+          Rol wijzigen (alleen zichtbaar voor beheerders)
+        </label>
+      )}
       <div className="flex items-center gap-2">
         <select
           id="role"
           name="role"
           defaultValue={currentRole}
+          aria-label="Rol wijzigen"
           className="h-9 flex-1 rounded-lg border border-border bg-surface px-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
         >
           {(Object.keys(ROLE_LABELS) as UserRole[]).map((role) => (

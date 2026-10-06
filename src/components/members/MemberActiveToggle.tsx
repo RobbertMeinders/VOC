@@ -3,7 +3,15 @@
 import { useState, useTransition } from "react";
 import { updateMemberActiveAction } from "@/app/(app)/leden/[id]/actions";
 
-export function MemberActiveToggle({ memberId, initialActive }: { memberId: string; initialActive: boolean }) {
+export function MemberActiveToggle({
+  memberId,
+  initialActive,
+  compact = false,
+}: {
+  memberId: string;
+  initialActive: boolean;
+  compact?: boolean;
+}) {
   const [active, setActive] = useState(initialActive);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -36,7 +44,7 @@ export function MemberActiveToggle({ memberId, initialActive }: { memberId: stri
   }
 
   return (
-    <div className="flex flex-col gap-1.5 rounded-lg border border-border bg-background p-3">
+    <div className={compact ? "flex flex-col gap-1" : "flex flex-col gap-1.5 rounded-lg border border-border bg-background p-3"}>
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm text-foreground">Account is {active ? "actief" : "gedeactiveerd"}</span>
         <button

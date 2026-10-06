@@ -64,7 +64,7 @@ export async function BeheerLedenContent({ searchParams }: { searchParams?: Prom
       <div className="flex flex-col gap-3">
         {(profiles ?? []).length === 0 && <p className="text-sm text-muted">Geen leden gevonden.</p>}
         {(profiles ?? []).map((member) => (
-          <div key={member.id} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+          <div key={member.id} className="rounded-2xl border border-border bg-surface p-3 shadow-sm">
             <div className="flex items-center gap-3">
               <Avatar
                 firstName={member.first_name}
@@ -82,18 +82,12 @@ export async function BeheerLedenContent({ searchParams }: { searchParams?: Prom
                 </p>
               </div>
             </div>
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-              <div className="flex-1">
-                <RoleEditor memberId={member.id} currentRole={member.role} />
-              </div>
+            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
+              <RoleEditor memberId={member.id} currentRole={member.role} compact />
               {member.id !== viewer.id && (
-                <div className="flex-1">
-                  <MemberActiveToggle memberId={member.id} initialActive={member.is_active} />
-                </div>
+                <MemberActiveToggle memberId={member.id} initialActive={member.is_active} compact />
               )}
-              <div className="flex-1">
-                <OrganizationAccountToggle memberId={member.id} initialValue={member.is_organization_account} />
-              </div>
+              <OrganizationAccountToggle memberId={member.id} initialValue={member.is_organization_account} compact />
             </div>
           </div>
         ))}
