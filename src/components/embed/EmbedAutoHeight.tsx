@@ -68,9 +68,33 @@ export function EmbedAutoHeight() {
     }
     window.addEventListener("load", onLoad);
 
+    // Vangnet tegen een WordPress-pagina die zijn eigen listener-scriptje
+    // (zie /beheer/embed-codes) vertraagd laadt — bijv. door een
+    // optimalisatieplugin die scripts defer/async zet. Zo'n listener mist de
+    // post()-aanroepen hierboven simpel omdat 'ie nog niet bestond toen ze
+    // verstuurd werden (postMessage herhaalt gemiste berichten niet). Door
+    // de eerste 10s elke seconde opnieuw te posten is de kans groot dat de
+    // listener, zodra 'ie er eenmaal is, een van die herhalingen alsnog
+    // opvangt — zonder voor altijd te blijven doorposten als er nooit een
+    // listener komt (bijv. deze pagina los in een tabblad, zonder iframe).
+    const retryInterval = window.setInterval(post, 1000);
+    const retryTimeout = window.setTimeout(() => window.clearInterval(retryInterval), 10_000);
+
+    // Nog een vangnet, deze keer vanuit de website zelf: zodra het
+    // listener-scriptje daar alsnog actief wordt (ook na die 10s), kan het
+    // via dit bericht alsnog meteen om de huidige hoogte vragen i.p.v. te
+    // moeten wachten op de volgende toevallige ResizeObserver-trigger.
+    function onMessage(event: MessageEvent) {
+      if (event.data?.type === "voc-embed-request-height") post();
+    }
+    window.addEventListener("message", onMessage);
+
     return () => {
       observer.disconnect();
       window.removeEventListener("load", onLoad);
+      window.clearInterval(retryInterval);
+      window.clearTimeout(retryTimeout);
+      window.removeEventListener("message", onMessage);
     };
   }, []);
 

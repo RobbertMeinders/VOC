@@ -11,18 +11,25 @@ const EMBEDS = [
     path: "/embed/agenda",
     label: "Agenda",
     description: "Overzicht van goedgekeurde activiteiten, doorklikbaar naar aanmelden.",
+    startHeight: 600,
   },
   {
     id: "voc-embed-aanmelden",
     path: "/embed/aanmelden",
     label: "Word lid",
     description: "Aanmeldformulier voor nieuwe leden (komt bij Beheer > Toegangsaanvragen terecht).",
+    // Starthoogte vóór de eerste echte hoogtemeting — dit formulier heeft
+    // elf velden onder elkaar, dus 600 (de generieke starthoogte) laat de
+    // verstuurknop er al staan zonder dat er ooit een hoogte-update binnen
+    // is gekomen (zie EmbedAutoHeight's vangnetten hieronder).
+    startHeight: 1100,
   },
   {
     id: "voc-embed-bedrijven",
     path: "/embed/bedrijven",
     label: "Bedrijvengids",
     description: "Overzicht van bedrijven die opt-in zijn voor de openbare bedrijvengids (zie Instellingen).",
+    startHeight: 600,
   },
 ];
 
@@ -72,7 +79,7 @@ export default async function EmbedCodesPage() {
     iframe.src = '${origin}/embed/agenda?activiteit=' + encodeURIComponent(slug);
   }`
               : "";
-          const code = `<iframe id="${embed.id}" src="${origin}${embed.path}" width="100%" height="600" style="border:0;" allow="clipboard-write; web-share" title="VOC ${embed.label}"></iframe>
+          const code = `<iframe id="${embed.id}" src="${origin}${embed.path}" width="100%" height="${embed.startHeight}" style="border:0;" allow="clipboard-write; web-share" title="VOC ${embed.label}"></iframe>
 <script>
 (function () {
   var iframe = document.getElementById('${embed.id}');
@@ -95,6 +102,17 @@ export default async function EmbedCodesPage() {
       window.scrollTo({ top: window.scrollY + rect.top - STICKY_HEADER_HEIGHT - 20, behavior: 'smooth' });
     }
   });
+  // Dit scriptje zelf kan vertraagd laden (bijv. door een WordPress-
+  // optimalisatieplugin die scripts defer/async zet) — dan is deze listener
+  // er nog niet als de iframe zijn eerste hoogte-berichten stuurt, en die
+  // zijn dan voorgoed gemist (postMessage herhaalt niets). Vraag daarom
+  // zodra de iframe zelf klaar is met laden actief om de huidige hoogte,
+  // i.p.v. alleen te wachten op het volgende toevallige berichtje van de
+  // iframe-kant (die overigens zelf ook nog een eigen vangnet heeft: de
+  // eerste 10s na laden herhaalt 'ie zijn hoogte toch al elke seconde).
+  iframe.addEventListener('load', function () {
+    iframe.contentWindow.postMessage({ type: 'voc-embed-request-height' }, '*');
+  });
 ${hashRedirect}
 })();
 </script>`;
@@ -111,8 +129,11 @@ ${hashRedirect}
       </div>
 
       <p className="text-xs text-muted">
-        De hoogte past zich automatisch aan de inhoud aan (600 is alleen de starthoogte tot de pagina geladen is) —
-        geen los scrollbalkje in het iframe nodig. De inhoud is altijd in het lichte thema, ongeacht het
+        De hoogte past zich automatisch aan de inhoud aan (het getal in de code is alleen de starthoogte tot de
+        pagina geladen is) — geen los scrollbalkje in het iframe nodig. Komt het listener-scriptje hierboven door een
+        optimalisatieplugin vertraagd tot stand, dan herhaalt de embed de eerste 10 seconden elke seconde zijn hoogte
+        én vraagt het scriptje er zelf nog eens actief naar zodra de iframe geladen is — in de praktijk zou de
+        iframe dus nooit meer op de starthoogte moeten blijven staan. De inhoud is altijd in het lichte thema, ongeacht het
         thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen. Klik je in de agenda door naar
         een detailpagina (of terug), dan scrollt de website automatisch weer naar de bovenkant van het embed, ook als
         je daarvoor ver naar beneden had gescrold — staat de titel daarvan nu nog (deels) achter de menubalk van de
