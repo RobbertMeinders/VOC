@@ -32,7 +32,14 @@ export async function createClient() {
       setAll(cookiesToSet) {
         try {
           for (const { name, value, options } of cookiesToSet) {
-            cookieStore.set(name, value, options);
+            // @supabase/ssr's applyServerStorage (cookies.js) negeert de
+            // cookieOptions.maxAge die we aan createServerClient meegeven en
+            // zet bij elke daadwerkelijke sessie-cookie-write zelf altijd
+            // zijn eigen vaste 400-dagen-default — "onthoud mij" had
+            // daardoor geen enkel effect op de echte cookie-levensduur.
+            // value === "" is een bewuste verwijdering (uitloggen/PKCE-
+            // opruiming, maxAge 0) — die laten we ongemoeid.
+            cookieStore.set(name, value, value ? { ...options, maxAge } : options);
           }
         } catch {
           // Called from a Server Component — ignore, middleware refreshes instead.

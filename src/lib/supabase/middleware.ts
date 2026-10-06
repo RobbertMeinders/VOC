@@ -121,7 +121,11 @@ export async function updateSession(request: NextRequest) {
   const response = NextResponse.next({ request: { headers: requestHeaders } });
   response.headers.set("Content-Security-Policy", csp);
   for (const { name, value, options } of pendingCookies) {
-    response.cookies.set(name, value, options);
+    // Zie dezelfde toelichting in supabase/server.ts: @supabase/ssr zet bij
+    // elke daadwerkelijke sessie-cookie-write zelf altijd zijn eigen vaste
+    // 400-dagen-default, los van cookieOptions.maxAge — hier dus ook
+    // overschrijven. value === "" is een bewuste verwijdering.
+    response.cookies.set(name, value, value ? { ...options, maxAge } : options);
   }
   return response;
 }
