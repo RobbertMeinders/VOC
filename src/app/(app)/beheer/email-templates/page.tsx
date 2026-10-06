@@ -31,7 +31,7 @@ function TabRow({
   otherParam: string;
 }) {
   return (
-    <div className="flex gap-1.5 overflow-x-auto">
+    <div className="flex min-w-0 gap-1.5 overflow-x-auto">
       {templates.map((t) => (
         <Link
           key={t.key}
@@ -79,7 +79,7 @@ export default async function EmailTemplatesPage({
       </div>
 
       {emails.length > 0 && activeEmailTemplate && (
-        <div className="flex flex-col gap-3">
+        <div className="flex min-w-0 flex-col gap-3">
           <TabRow
             templates={emails}
             activeKey={activeEmailKey!}
@@ -96,7 +96,7 @@ export default async function EmailTemplatesPage({
       </div>
 
       {pushes.length > 0 && activePushTemplate && (
-        <div className="flex flex-col gap-3">
+        <div className="flex min-w-0 flex-col gap-3">
           <TabRow
             templates={pushes}
             activeKey={activePushKey!}

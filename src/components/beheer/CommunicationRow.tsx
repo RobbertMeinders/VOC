@@ -118,7 +118,10 @@ export function CommunicationRow({
         <CampaignThumbnail communication={communication} orgName={orgName} logoUrl={logoUrl} />
       </Link>
       <div className="min-w-0 flex-1">
-        <Link href={`/beheer/communicatie/${communication.id}`} className="truncate text-sm font-medium text-foreground hover:underline">
+        <Link
+          href={`/beheer/communicatie/${communication.id}`}
+          className="block truncate text-sm font-medium text-foreground hover:underline"
+        >
           {communication.subject}
         </Link>
         {communication.preheader && <p className="truncate text-xs text-muted">{communication.preheader}</p>}

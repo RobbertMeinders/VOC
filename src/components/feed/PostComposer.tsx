@@ -6,6 +6,7 @@ import { clsx } from "clsx";
 import { FileText, Upload, X } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
+import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { createPostAction, type CreatePostState } from "@/app/(app)/actions";
@@ -162,7 +163,11 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
   }
 
   return (
-    <>
+    // FloatingPortal: zonder dit rendert dit paneel ter plekke in <main>, dat
+    // vóór BottomNav in de DOM staat — bij gelijke z-index wint dan de later
+    // gerenderde BottomNav de klik, waardoor die onder dit paneel aanklikbaar
+    // bleef (zelfde bugklasse als bij NotificationCenter/NetworkChooser).
+    <FloatingPortal>
       <div className="fixed inset-0 z-40 cursor-pointer bg-black/60 animate-fade-in" onClick={() => setOpen(false)} />
       <div className="fixed inset-x-3 top-1/2 z-50 -translate-y-1/2 sm:inset-x-0 sm:mx-auto sm:w-full sm:max-w-xl sm:px-3 md:left-72">
         <div className="animate-scale-in max-h-[85vh] overflow-y-auto rounded-2xl border border-border bg-surface shadow-lg">
@@ -273,6 +278,6 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
           </form>
         </div>
       </div>
-    </>
+    </FloatingPortal>
   );
 }

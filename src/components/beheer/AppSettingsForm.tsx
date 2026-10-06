@@ -56,14 +56,14 @@ function LogoUpload({ currentLogoUrl }: { currentLogoUrl: string | null }) {
           unoptimized
           className="h-14 w-14 shrink-0 rounded-lg border border-border object-contain p-1.5"
         />
-        <div className="flex flex-col gap-1.5">
+        <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <form ref={formRef} action={formAction} className="flex flex-wrap items-center gap-2">
             <input
               type="file"
               name="logo"
               accept="image/png,image/jpeg,image/webp,image/svg+xml"
               required
-              className="text-sm text-foreground file:mr-2 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3.5 file:py-2 file:text-sm file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
+              className="max-w-full text-sm text-foreground file:mr-2 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3.5 file:py-2 file:text-sm file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
             />
             <UploadButton />
           </form>
