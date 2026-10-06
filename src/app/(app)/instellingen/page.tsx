@@ -54,7 +54,7 @@ export default async function InstellingenPage() {
         description="Inloggen kan ook zonder wachtwoord via een inloglink per e-mail. Wil je toch een wachtwoord instellen of wijzigen, dan kan dat hier."
       >
         <Link
-          href="/wachtwoord-vergeten"
+          href="/wachtwoord-instellen"
           className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red"
         >
           <KeyRound size={14} />
