@@ -104,8 +104,8 @@ export type OverviewStats = {
 };
 
 export async function getOverviewStats(period: StatsPeriod): Promise<OverviewStats> {
+  const supabase = await createClient();
   return cachedQuery(`statistieken-overzicht-${period}`, TTL_MS, async () => {
-    const supabase = await createClient();
     const since = periodStart(period);
 
     const [
@@ -199,8 +199,8 @@ export type CommunityStats = {
 };
 
 export async function getCommunityStats(period: StatsPeriod): Promise<CommunityStats> {
+  const supabase = await createClient();
   return cachedQuery(`statistieken-community-${period}`, TTL_MS, async () => {
-    const supabase = await createClient();
     const since = periodStart(period);
 
     const [
@@ -312,8 +312,8 @@ export type ActivityStats = {
 };
 
 export async function getActivityStats(period: StatsPeriod): Promise<ActivityStats> {
+  const supabase = await createClient();
   return cachedQuery(`statistieken-activiteiten-${period}`, TTL_MS, async () => {
-    const supabase = await createClient();
     const since = periodStart(period);
 
     const [{ data: allActivities }, { data: allRegistrations }, { data: allViewEvents }] = await Promise.all([
@@ -406,8 +406,8 @@ export type PushStats = {
 };
 
 export async function getPushStats(period: StatsPeriod): Promise<PushStats> {
+  const supabase = await createClient();
   return cachedQuery(`statistieken-push-${period}`, TTL_MS, async () => {
-    const supabase = await createClient();
     const since = periodStart(period);
 
     const [
@@ -478,8 +478,8 @@ export type EmailStats = {
 // Geen "actieve abonnementen" zoals bij push — e-mail gaat naar het
 // profiel-e-mailadres van elk lid, dat is geen aparte opt-in-registratie.
 export async function getEmailStats(period: StatsPeriod): Promise<EmailStats> {
+  const supabase = await createClient();
   return cachedQuery(`statistieken-email-${period}`, TTL_MS, async () => {
-    const supabase = await createClient();
     const since = periodStart(period);
 
     const [{ data: sentNotifications }, { data: openEvents }] = await Promise.all([
@@ -542,9 +542,8 @@ export type NotificationBreakdownRow = {
 // periodefilter): dit is een volledige roster van verzonden meldingen,
 // zelfde soort "volledige lijst" als Activiteiten en Community-berichten.
 export async function getNotificationBreakdown(): Promise<NotificationBreakdownRow[]> {
+  const supabase = await createClient();
   return cachedQuery("statistieken-notificaties-breakdown", TTL_MS, async () => {
-    const supabase = await createClient();
-
     const [{ data: notifications }, { data: openEvents }] = await Promise.all([
       supabase
         .from("notifications")
@@ -623,9 +622,8 @@ export type NewsletterStats = {
 // zodat open/klik-cijfers altijd uit dezelfde events-bron komen als de
 // E-mail- en Push-tabbladen.
 export async function getNewsletterStats(): Promise<NewsletterStats> {
+  const supabase = await createClient();
   return cachedQuery("statistieken-nieuwsbrief", TTL_MS, async () => {
-    const supabase = await createClient();
-
     const [{ data: communications }, { data: notifications }, { data: openEvents }, { data: clickEvents }] = await Promise.all([
       supabase
         .from("communications")
