@@ -9,9 +9,13 @@ export async function setPasswordAction(
   formData: FormData
 ): Promise<SetPasswordState> {
   const password = String(formData.get("password") ?? "");
+  const passwordRepeat = String(formData.get("password_repeat") ?? "");
 
   if (password.length < 8) {
     return { error: "Kies een wachtwoord van minimaal 8 tekens." };
+  }
+  if (password !== passwordRepeat) {
+    return { error: "De wachtwoorden komen niet overeen." };
   }
 
   const supabase = await createClient();
