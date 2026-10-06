@@ -311,12 +311,14 @@ button:not(:disabled) {
   border: none;
 }
 
-/* Bedrijvenkaart-popup (CompanyMap.tsx) in huisstijl i.p.v. Leaflet's
-   kale standaardballon — vooral de link-kleur moet hier met !important:
+/* Bedrijvenkaart-popup (CompanyMap.tsx) in huisstijl i.p.v. Leaflet's kale
+   standaardballon — vooral de link-kleur moet hier met !important:
    leaflet.css zet zelf `.leaflet-container a { color: #0078A8 }`, wat
    anders wint van Tailwinds text-voc-red door importvolgorde. Het
-   driehoekje onderaan (leaflet-popup-tip) is weg — de speld staat er
-   toch al vlak onder, dat driehoekje voegde niets toe. */
+   driehoekje (leaflet-popup-tip) stond eerst uit ("de speld staat er toch
+   al onder"), maar bleek in de praktijk juist nodig: zonder dat driehoekje
+   oogde de popup als een los zwevend kaartje zonder duidelijke relatie tot
+   de speld eronder. */
 .voc-company-popup .leaflet-popup-content-wrapper {
   border-radius: 14px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
@@ -326,7 +328,4 @@ button:not(:disabled) {
 }
 .voc-company-popup a {
   color: var(--voc-red) !important;
-}
-.voc-company-popup .leaflet-popup-tip-container {
-  display: none;
 }
