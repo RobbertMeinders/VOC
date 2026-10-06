@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { Paperclip } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { addActivityAttachmentAction, type AttachmentFormState } from "@/app/(app)/agenda/actions";
+import { compressInputFile } from "@/lib/image/compress";
 
 const initialState: AttachmentFormState = {};
 
@@ -42,6 +43,9 @@ export function ActivityAttachmentUploadForm({ activityId }: { activityId: strin
         type="file"
         accept="application/pdf,image/png,image/jpeg,.doc,.docx,.ppt,.pptx"
         required
+        onChange={(e) => {
+          void compressInputFile(e.target);
+        }}
         className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
       />
       {state.error && (
