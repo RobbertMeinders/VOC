@@ -9,7 +9,6 @@ import { cachedQuery } from "@/lib/cache/queryCache";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { DocumentSearch } from "@/components/documents/DocumentSearch";
-import { RegeocodeCompaniesButton } from "@/components/beheer/RegeocodeCompaniesButton";
 import { deleteCompanyAction } from "@/app/(app)/bedrijven/[id]/actions";
 
 type CompanyRow = { id: string; name: string; industry: string | null; city: string | null; logo_url: string | null };
@@ -50,8 +49,6 @@ export async function BeheerBedrijvenContent({ searchParams }: { searchParams?: 
     <div>
       <h1 className="mb-1 text-xl font-semibold text-foreground">Bedrijven beheren</h1>
       <p className="mb-4 text-sm text-muted">Bedrijfsprofiel snel aanpassen, direct vanuit dit overzicht.</p>
-
-      <RegeocodeCompaniesButton />
 
       {(allCompanies ?? []).length > 0 && (
         <Suspense>
