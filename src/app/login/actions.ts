@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendTemplatedEmail } from "@/lib/email/send";
-import { isEmailRateLimited } from "@/lib/auth/rate-limit";
+import { isEmailRateLimited, isPasswordLoginRateLimited, recordFailedPasswordLoginAttempt } from "@/lib/auth/rate-limit";
 import { REMEMBERED_MAX_AGE, REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
 import { safeRedirectPath } from "@/lib/url/safeRedirect";
 
@@ -23,10 +23,11 @@ export async function signInAction(_prevState: LoginState, formData: FormData): 
 
   // In tegenstelling tot de magic-link/wachtwoord-reset-flows (die dit al
   // langer deden) had wachtwoord-inloggen zelf nog geen rate limiting —
-  // precies het klassieke brute-force-doelwit. Zelfde helper/drempel als de
-  // andere twee flows, geteld per e-mailadres, ongeacht of de poging
-  // slaagt of faalt.
-  if (await isEmailRateLimited("password_login_attempted", email)) {
+  // precies het klassieke brute-force-doelwit. Telt hier bewust alleen
+  // mislukte pogingen (zie de registratie verderop) — anders liep een
+  // account dat gewoon herhaaldelijk succesvol inlogt (bv. op meerdere
+  // apparaten kort na elkaar) na een paar keer alsnog tegen de limiet aan.
+  if (await isPasswordLoginRateLimited(email)) {
     return { error: "Te veel inlogpogingen. Probeer het over een kwartier opnieuw." };
   }
 
@@ -49,6 +50,7 @@ export async function signInAction(_prevState: LoginState, formData: FormData): 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
+    await recordFailedPasswordLoginAttempt(email);
     return { error: "E-mailadres of wachtwoord onjuist." };
   }
 
