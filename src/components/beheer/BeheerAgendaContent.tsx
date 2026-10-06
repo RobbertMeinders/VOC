@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Pencil, Plus } from "lucide-react";
+import { clsx } from "clsx";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { DeleteButton } from "@/components/feed/DeleteButton";
@@ -33,6 +34,13 @@ const STATUS_LABEL: Record<Activity["status"], string> = {
   rejected: "Afgewezen",
 };
 
+const STATUS_FILTERS: { key: "alle" | Activity["status"]; label: string }[] = [
+  { key: "alle", label: "Alle" },
+  { key: "pending", label: STATUS_LABEL.pending },
+  { key: "approved", label: STATUS_LABEL.approved },
+  { key: "rejected", label: STATUS_LABEL.rejected },
+];
+
 function profileName(p: { first_name: string; last_name: string } | null): string {
   return p ? `${p.first_name} ${p.last_name}` : "Onbekend";
 }
@@ -40,15 +48,19 @@ function profileName(p: { first_name: string; last_name: string } | null): strin
 // Overzicht van alle activiteiten (elke status) met de statussen en
 // beheeracties direct in de lijst — i.p.v. per activiteit eerst naar de
 // detailpagina te moeten voor goedkeuren/afwijzen/bewerken/verwijderen.
-export async function BeheerAgendaContent() {
+export async function BeheerAgendaContent({ searchParams }: { searchParams?: Promise<{ status?: string }> }) {
   await requireBoard();
+  const { status } = (await searchParams) ?? {};
+  const activeFilter = STATUS_FILTERS.some((f) => f.key === status) ? (status as (typeof STATUS_FILTERS)[number]["key"]) : "alle";
   const supabase = await createClient();
 
-  const { data: activities } = await supabase
+  let query = supabase
     .from("activities")
     .select("*, created_by_profile:profiles!activities_created_by_fkey(first_name, last_name)")
-    .order("starts_at", { ascending: false })
-    .returns<ActivityWithCreator[]>();
+    .order("starts_at", { ascending: true });
+  if (activeFilter !== "alle") query = query.eq("status", activeFilter);
+
+  const { data: activities } = await query.returns<ActivityWithCreator[]>();
 
   const activityIds = (activities ?? []).map((a) => a.id);
 
@@ -75,10 +87,37 @@ export async function BeheerAgendaContent() {
 
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold text-foreground">Agenda beheren</h1>
-      <p className="mb-4 text-sm text-muted">Alle activiteiten met status, goedkeuren/afwijzen/bewerken/verwijderen.</p>
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h1 className="mb-1 text-xl font-semibold text-foreground">Agenda beheren</h1>
+          <p className="text-sm text-muted">Alle activiteiten met status, goedkeuren/afwijzen/bewerken/verwijderen.</p>
+        </div>
+        <Link
+          href="/agenda/nieuw"
+          className="flex shrink-0 items-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
+        >
+          <Plus size={16} />
+          Nieuwe activiteit
+        </Link>
+      </div>
+
+      <div className="mb-4 flex gap-1.5 overflow-x-auto">
+        {STATUS_FILTERS.map((filter) => (
+          <Link
+            key={filter.key}
+            href={filter.key === "alle" ? "/beheer/agenda" : `/beheer/agenda?status=${filter.key}`}
+            className={clsx(
+              "shrink-0 rounded-full px-3 py-1.5 text-sm font-medium",
+              activeFilter === filter.key ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
+            )}
+          >
+            {filter.label}
+          </Link>
+        ))}
+      </div>
 
       <div className="flex flex-col gap-3">
+        {(activities ?? []).length === 0 && <p className="text-sm text-muted">Geen activiteiten gevonden.</p>}
         {(activities ?? []).map((activity) => {
           const decisionLog = latestLog(activity.id, ["activity_approved", "activity_rejected"]);
           const updateLog = latestLog(activity.id, ["activity_updated"]);
