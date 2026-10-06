@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { requireBoard } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { EmailTemplateForm } from "@/components/beheer/EmailTemplateForm";
 import { PushTemplateForm } from "@/components/beheer/PushTemplateForm";
@@ -52,7 +52,7 @@ export default async function EmailTemplatesPage({
 }: {
   searchParams: Promise<{ emailTab?: string; pushTab?: string }>;
 }) {
-  await requireBoard();
+  await requireAdmin();
   const supabase = await createClient();
   const { emailTab, pushTab } = await searchParams;
 

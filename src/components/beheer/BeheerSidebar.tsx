@@ -16,7 +16,7 @@ import { BEHEER_SECTIONS, type BeheerNavItem } from "./beheer-nav-items";
 // te vinden) — daarom daar in plaats daarvan een knop met de huidige
 // sectie die de volledige, gegroepeerde lijst uitklapt, net als
 // NetworkChooser's sidebar-variant.
-export function BeheerSidebar() {
+export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -25,7 +25,14 @@ export function BeheerSidebar() {
     return pathname === href || pathname.startsWith(`${href}/`);
   }
 
-  const activeItem = BEHEER_SECTIONS.flatMap((section) => section.items).find((item) => isActive(item.href));
+  // Secties zijn alleen een presentatie-groepering — een bestuurslid ziet
+  // een sectie die daardoor helemaal leeg valt (bv. "Systeem") gewoon niet.
+  const sections = BEHEER_SECTIONS.map((section) => ({
+    ...section,
+    items: section.items.filter((item) => isAdmin || !item.adminOnly),
+  })).filter((section) => section.items.length > 0);
+
+  const activeItem = sections.flatMap((section) => section.items).find((item) => isActive(item.href));
 
   useEscapeKey(open, () => setOpen(false));
 
@@ -65,7 +72,7 @@ export function BeheerSidebar() {
           <>
             <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
             <div className="animate-fade-in absolute z-50 mt-2 flex max-h-[70vh] w-full flex-col gap-3 overflow-y-auto rounded-xl border border-border bg-surface p-2 shadow-lg">
-              {BEHEER_SECTIONS.map((section) => (
+              {sections.map((section) => (
                 <div key={section.title}>
                   <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">{section.title}</p>
                   <div className="flex flex-col gap-0.5">
@@ -83,7 +90,7 @@ export function BeheerSidebar() {
           de hoofd-Sidebar aan ligt i.p.v. er met een zichtbaar gaatje los
           van te staan. */}
       <nav className="hidden md:-ml-16 md:flex md:w-60 md:shrink-0 md:flex-col md:gap-5 md:border-r md:border-border md:px-4 md:py-1">
-        {BEHEER_SECTIONS.map((section) => (
+        {sections.map((section) => (
           <div key={section.title} className="flex flex-col gap-1">
             <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">{section.title}</p>
             {section.items.map((item) => renderItem(item))}

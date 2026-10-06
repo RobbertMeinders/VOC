@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
-import { requireBoard } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/session";
 import { PushBroadcastForm } from "@/components/beheer/PushBroadcastForm";
 
 export const metadata: Metadata = { title: "Handmatig pushbericht" };
 
 export default async function PushberichtPage() {
-  await requireBoard();
+  await requireAdmin();
 
   return (
     <div className="flex flex-col gap-4">

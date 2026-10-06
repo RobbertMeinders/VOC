@@ -1,7 +1,7 @@
 "use server";
 
 import webpush from "web-push";
-import { requireBoard } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 
 export type PushBroadcastState = { error?: string; sent?: number; total?: number };
@@ -18,7 +18,7 @@ export async function sendPushBroadcastAction(
   _prevState: PushBroadcastState,
   formData: FormData
 ): Promise<PushBroadcastState> {
-  await requireBoard();
+  await requireAdmin();
 
   const title = String(formData.get("title") ?? "").trim();
   const message = String(formData.get("message") ?? "").trim();

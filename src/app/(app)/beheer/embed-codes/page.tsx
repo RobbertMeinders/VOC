@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
-import { requireBoard } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/session";
 import { CopyEmbedCode } from "@/components/beheer/CopyEmbedCode";
 
 export const metadata: Metadata = { title: "Embed-codes" };
@@ -31,7 +31,7 @@ const EMBEDS = [
 // (geen e-mailinfra vereist) — zelfde reden als waarom InvitationRow zijn
 // link met window.location.origin opbouwt, alleen dan server-side.
 export default async function EmbedCodesPage() {
-  await requireBoard();
+  await requireAdmin();
   const headerList = await headers();
   const host = headerList.get("host") ?? "voc-blue.vercel.app";
   const origin = `https://${host}`;

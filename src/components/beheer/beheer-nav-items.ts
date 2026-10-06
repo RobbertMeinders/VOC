@@ -13,13 +13,19 @@ import {
   Megaphone,
   Newspaper,
   Send,
+  Settings,
   Upload,
   UserPlus,
   Users,
   UserSearch,
 } from "lucide-react";
 
-export type BeheerNavItem = { href: string; label: string; icon: LucideIcon };
+// adminOnly ontbreekt (= false) voor inhoudelijk-beheer-items (bestuurslid +
+// beheerder); adminOnly: true voor systeembrede/technische items die alleen
+// een beheerder mag zien — BeheerSidebar filtert hierop (en laat een sectie
+// die daardoor helemaal leeg valt, zoals "Systeem" voor een bestuurslid,
+// gewoon weg).
+export type BeheerNavItem = { href: string; label: string; icon: LucideIcon; adminOnly?: boolean };
 export type BeheerNavSection = { title: string; items: BeheerNavItem[] };
 
 // Eén bron voor de Beheer-navigatie (BeheerSidebar) — voorheen stond dit als
@@ -32,7 +38,10 @@ export type BeheerNavSection = { title: string; items: BeheerNavItem[] };
 // groeperen — samengevoegd tot vier secties, elk met een duidelijk eigen
 // onderwerp. "Leden & bedrijven" begint nu met de twee overzichten (Leden,
 // Bedrijven) gevolgd door de acties daaromheen, i.p.v. een willekeurige
-// volgorde.
+// volgorde. "Systeem" is nieuw: alles wat systeembreed/technisch is
+// (templates, een pushbroadcast die direct en ongefilterd iedereen bereikt,
+// website-integraties, algemene app-instellingen) hoort bij de beheerder,
+// niet bij inhoudelijk bestuurswerk.
 export const BEHEER_SECTIONS: BeheerNavSection[] = [
   {
     title: "Overzicht",
@@ -45,9 +54,7 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     title: "Communicatie",
     items: [
       { href: "/beheer/communicatie", label: "Campagnes", icon: Megaphone },
-      { href: "/beheer/pushbericht", label: "Handmatig pushbericht", icon: Send },
       { href: "/beheer/notificaties", label: "Notificaties", icon: Bell },
-      { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail },
     ],
   },
   {
@@ -57,7 +64,6 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
       { href: "/beheer/agenda", label: "Activiteiten", icon: CalendarDays },
       { href: "/beheer/documenten", label: "Documenten", icon: FileText },
       { href: "/beheer/rapportages", label: "Rapportages", icon: Flag },
-      { href: "/beheer/embed-codes", label: "Embed-codes", icon: Code },
     ],
   },
   {
@@ -69,6 +75,15 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
       { href: "/beheer/aanvragen", label: "Toegangsaanvragen", icon: Inbox },
       { href: "/beheer/prospects", label: "Potentiële leden", icon: UserSearch },
       { href: "/beheer/leden-import", label: "Leden importeren", icon: Upload },
+    ],
+  },
+  {
+    title: "Systeem",
+    items: [
+      { href: "/beheer/instellingen", label: "App-instellingen", icon: Settings, adminOnly: true },
+      { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail, adminOnly: true },
+      { href: "/beheer/pushbericht", label: "Handmatig pushbericht", icon: Send, adminOnly: true },
+      { href: "/beheer/embed-codes", label: "Embed-codes", icon: Code, adminOnly: true },
     ],
   },
 ];

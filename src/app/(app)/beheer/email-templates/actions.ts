@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireBoard } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
 
@@ -12,7 +12,7 @@ export async function updateEmailTemplateAction(
   _prevState: UpdateEmailTemplateState,
   formData: FormData
 ): Promise<UpdateEmailTemplateState> {
-  const profile = await requireBoard();
+  const profile = await requireAdmin();
 
   const subject = String(formData.get("subject") ?? "").trim();
   const bodyHtml = String(formData.get("body_html") ?? "").trim();
@@ -45,7 +45,7 @@ export async function uploadEmailTemplateImageAction(
   _prevState: UploadEmailImageState,
   formData: FormData
 ): Promise<UploadEmailImageState> {
-  await requireBoard();
+  await requireAdmin();
 
   const file = formData.get("image");
   if (!(file instanceof File) || file.size === 0) {
@@ -71,7 +71,7 @@ export async function updatePushTemplateAction(
   _prevState: UpdatePushTemplateState,
   formData: FormData
 ): Promise<UpdatePushTemplateState> {
-  const profile = await requireBoard();
+  const profile = await requireAdmin();
 
   const title = String(formData.get("title") ?? "").trim();
   const body = String(formData.get("body") ?? "").trim();
