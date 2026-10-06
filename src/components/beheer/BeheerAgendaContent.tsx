@@ -87,8 +87,8 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
 
   return (
     <div>
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <div>
+      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
+        <div className="min-w-0">
           <h1 className="mb-1 text-xl font-semibold text-foreground">Agenda beheren</h1>
           <p className="text-sm text-muted">Alle activiteiten met status, goedkeuren/afwijzen/bewerken/verwijderen.</p>
         </div>

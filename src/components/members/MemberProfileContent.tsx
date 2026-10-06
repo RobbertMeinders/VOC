@@ -209,11 +209,11 @@ export async function MemberProfileContent({ id }: { id: string }) {
         />
       </div>
 
-      {isAdmin(viewer.role) && (
+      {isBoard(viewer.role) && (
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Beheer</h2>
           <div className="flex flex-col gap-3">
-            <RoleEditor memberId={member.id} currentRole={member.role} />
+            {isAdmin(viewer.role) && <RoleEditor memberId={member.id} currentRole={member.role} />}
             <AdminEditProfile member={member} avatarUrl={avatarUrl} />
             {member.id !== viewer.id && <MemberActiveToggle memberId={member.id} initialActive={member.is_active} />}
           </div>

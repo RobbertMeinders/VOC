@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { requireAdmin } from "@/lib/auth/session";
+import { requireAdmin, requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { invalidateQuery } from "@/lib/cache/queryCache";
@@ -26,6 +26,22 @@ export async function updateMemberRoleAction(
   }
 
   const supabase = await createClient();
+
+  // Verlagen mag (ook de eigen rol) — alleen de laatste beheerder blijft
+  // beschermd, anders kan niemand het systeem nog beheren.
+  if (role !== "beheerder") {
+    const { data: target } = await supabase.from("profiles").select("role").eq("id", memberId).single();
+    if (target?.role === "beheerder") {
+      const { count } = await supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "beheerder");
+      if ((count ?? 0) <= 1) {
+        return { error: "Er moet minstens één beheerder overblijven." };
+      }
+    }
+  }
+
   const { error } = await supabase
     .from("profiles")
     .update({ role: role as UserRole })
@@ -45,13 +61,28 @@ export async function updateMemberRoleAction(
 export type UpdateMemberActiveState = { error?: string; success?: boolean };
 
 export async function updateMemberActiveAction(memberId: string, isActive: boolean): Promise<UpdateMemberActiveState> {
-  const admin = await requireAdmin();
+  const viewer = await requireBoard();
 
-  if (memberId === admin.id) {
+  if (memberId === viewer.id) {
     return { error: "Je kunt je eigen account niet deactiveren." };
   }
 
   const supabase = await createClient();
+
+  if (!isActive) {
+    const { data: target } = await supabase.from("profiles").select("role").eq("id", memberId).single();
+    if (target?.role === "beheerder") {
+      const { count } = await supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("role", "beheerder")
+        .eq("is_active", true);
+      if ((count ?? 0) <= 1) {
+        return { error: "Er moet minstens één actieve beheerder overblijven." };
+      }
+    }
+  }
+
   const { error } = await supabase
     .from("profiles")
     .update({
@@ -86,7 +117,7 @@ export async function updateMemberOrganizationAccountAction(
   memberId: string,
   isOrganizationAccount: boolean
 ): Promise<UpdateMemberOrganizationAccountState> {
-  await requireAdmin();
+  await requireBoard();
 
   const supabase = await createClient();
   const { error } = await supabase
@@ -109,7 +140,7 @@ export async function updateMemberProfileAction(
   _prevState: UpdateProfileState,
   formData: FormData
 ): Promise<UpdateProfileState> {
-  await requireAdmin();
+  await requireBoard();
 
   const firstName = String(formData.get("first_name") ?? "").trim();
   const lastName = String(formData.get("last_name") ?? "").trim();

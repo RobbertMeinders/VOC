@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { requireAdmin } from "@/lib/auth/session";
+import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { cachedQuery } from "@/lib/cache/queryCache";
@@ -9,22 +9,22 @@ import { MemberActiveToggle } from "@/components/members/MemberActiveToggle";
 import { OrganizationAccountToggle } from "@/components/members/OrganizationAccountToggle";
 import { DocumentSearch } from "@/components/documents/DocumentSearch";
 import { MemberRoleStatusFilter } from "@/components/beheer/MemberRoleStatusFilter";
-import { ROLE_LABELS } from "@/lib/auth/roles";
+import { ROLE_LABELS, isAdmin } from "@/lib/auth/roles";
 import type { Database } from "@/lib/types/database";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 
 // Snel overzicht voor beheer: rol wijzigen en activeren/deactiveren direct
 // in de lijst, i.p.v. eerst naar elk profiel apart te moeten navigeren.
-// Alleen beheerders mogen dit — zelfde grens als RoleEditor/
-// MemberActiveToggle op het profiel zelf (requireAdmin in hun eigen
-// server actions is de echte grens, dit is alleen voor een nette pagina).
+// Bestuursleden mogen de pagina zelf zien (zelfde grens als Beheer → Leden
+// in het menu), maar RoleEditor blijft beheerder-only — dat is ook de echte
+// grens in updateMemberRoleAction, dit is alleen voor een nette pagina.
 export async function BeheerLedenContent({
   searchParams,
 }: {
   searchParams?: Promise<{ q?: string; role?: string; active?: string }>;
 }) {
-  const viewer = await requireAdmin();
+  const viewer = await requireBoard();
   const { q, role, active } = (await searchParams) ?? {};
   const supabase = await createClient();
 
@@ -91,8 +91,8 @@ export async function BeheerLedenContent({
                 </p>
               </div>
             </div>
-            <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-3">
-              <RoleEditor memberId={member.id} currentRole={member.role} compact />
+            <div className={`mt-2 grid grid-cols-1 gap-2 ${isAdmin(viewer.role) ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+              {isAdmin(viewer.role) && <RoleEditor memberId={member.id} currentRole={member.role} compact />}
               {member.id !== viewer.id && (
                 <MemberActiveToggle memberId={member.id} initialActive={member.is_active} compact />
               )}
