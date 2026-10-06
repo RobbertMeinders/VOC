@@ -96,10 +96,14 @@ export function CompanyMap({
             icon={createCompanyIcon({ name: company.name, logoUrl: company.logoUrl })}
           >
             <Popup className="voc-company-popup">
-              <Link href={company.href ?? `/bedrijven/${company.id}`} onClick={company.onClick} className="block">
-                <span className="font-medium">{company.name}</span>
-                {company.city && <span className="text-white/70"> · {company.city}</span>}
+              <Link
+                href={company.href ?? `/bedrijven/${company.id}`}
+                onClick={company.onClick}
+                className="font-medium text-voc-red hover:underline"
+              >
+                {company.name}
               </Link>
+              {company.city && <p className="mt-0.5 text-xs text-gray-600">{company.city}</p>}
             </Popup>
           </Marker>
         ))}
