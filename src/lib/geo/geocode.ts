@@ -9,7 +9,7 @@ const NOMINATIM_URL = "https://nominatim.openstreetmap.org/search";
 
 type GeocodeSuccess = { latitude: number; longitude: number };
 type GeocodeFailure = { reason: string };
-type GeocodeAttempt = GeocodeSuccess | GeocodeFailure | { empty: true; reason: string };
+type GeocodeAttempt = GeocodeSuccess | { empty: true; reason: string } | GeocodeFailure;
 
 async function attemptGeocode(url: string, description: string): Promise<GeocodeAttempt> {
   try {
@@ -39,6 +39,19 @@ async function attemptGeocode(url: string, description: string): Promise<Geocode
   }
 }
 
+function structuredUrl(parts: { address?: string | null; postalCode?: string | null; city?: string | null }) {
+  const params = new URLSearchParams({ format: "json", limit: "1", countrycodes: "nl" });
+  if (parts.address) params.set("street", parts.address);
+  if (parts.postalCode) params.set("postalcode", parts.postalCode);
+  if (parts.city) params.set("city", parts.city);
+  return `${NOMINATIM_URL}?${params.toString()}`;
+}
+
+function freeTextUrl(parts: { address?: string | null; postalCode?: string | null; city?: string | null }) {
+  const query = [parts.address, parts.postalCode, parts.city, "Nederland"].filter(Boolean).join(", ");
+  return `${NOMINATIM_URL}?format=json&limit=1&countrycodes=nl&q=${encodeURIComponent(query)}`;
+}
+
 // Variant die ook de mislukkingsreden teruggeeft — nodig om in de
 // beheer-UI (regeocodeMissingCompaniesAction) te kunnen tonen wáárom
 // Nominatim niets opleverde i.p.v. alleen "0 hersteld".
@@ -51,29 +64,26 @@ async function geocodeAddressDetailed(parts: {
 
   const description = [parts.address, parts.postalCode, parts.city].filter(Boolean).join(", ");
 
-  // Eerste poging: gestructureerde velden (street/postalcode/city) i.p.v.
-  // één vrije tekstregel — een bedrijf met alleen postcode + plaats (geen
-  // straatadres) levert hiermee betrouwbaarder een resultaat op dan met
-  // een samengevoegde tekstregel.
-  const structuredParams = new URLSearchParams({ format: "json", limit: "1", countrycodes: "nl" });
-  if (parts.address) structuredParams.set("street", parts.address);
-  if (parts.postalCode) structuredParams.set("postalcode", parts.postalCode);
-  if (parts.city) structuredParams.set("city", parts.city);
-  const structuredResult = await attemptGeocode(`${NOMINATIM_URL}?${structuredParams.toString()}`, description);
-  if (!("empty" in structuredResult)) return structuredResult;
+  // Poging 1: gestructureerd, zónder de plaatsnaam, als er een postcode
+  // is — de postcode is op zichzelf al nauwkeurig genoeg, en een klein
+  // gehucht (bv. "Kielwindeweer") dat Nominatim niet als officiële
+  // plaatsnaam kent, laat de hele structured-query anders mislukken.
+  // Poging 2: gestructureerd mét plaatsnaam (dekt het geval zonder
+  // postcode). Poging 3: de oude vrije tekstregel als laatste terugval,
+  // voor adressen die om een andere reden niet structured matchen.
+  const attempts: string[] = [];
+  if (parts.postalCode) attempts.push(structuredUrl({ address: parts.address, postalCode: parts.postalCode }));
+  attempts.push(structuredUrl(parts));
+  attempts.push(freeTextUrl(parts));
 
-  // Terugval: een vrije tekstregel. Nominatim's `city`-parameter verwacht
-  // een officiële plaatsnaam (stad/dorp) — een klein gehucht zoals
-  // "Kielwindeweer" matcht daar niet op, maar wordt door een vrije
-  // tekstzoekopdracht (die fuzzy over alle adrescomponenten zoekt) vaak
-  // wél gevonden. Zelfde 1,1s-pauze als tussen bedrijven onderling, om
-  // Nominatims limiet van 1 aanroep/seconde niet te overschrijden.
-  await new Promise((resolve) => setTimeout(resolve, 1100));
-  const freeTextQuery = [parts.address, parts.postalCode, parts.city, "Nederland"].filter(Boolean).join(", ");
-  const freeTextUrl = `${NOMINATIM_URL}?format=json&limit=1&countrycodes=nl&q=${encodeURIComponent(freeTextQuery)}`;
-  const freeTextResult = await attemptGeocode(freeTextUrl, description);
-  if ("empty" in freeTextResult) return { reason: freeTextResult.reason };
-  return freeTextResult;
+  let lastReason = `geen resultaat van Nominatim voor "${description}"`;
+  for (const [index, url] of attempts.entries()) {
+    if (index > 0) await new Promise((resolve) => setTimeout(resolve, 1100));
+    const result = await attemptGeocode(url, description);
+    if (!("empty" in result)) return result;
+    lastReason = result.reason;
+  }
+  return { reason: lastReason };
 }
 
 export async function geocodeAddress(parts: {
