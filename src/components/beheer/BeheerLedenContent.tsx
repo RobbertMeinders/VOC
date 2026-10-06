@@ -8,6 +8,7 @@ import { RoleEditor } from "@/components/members/RoleEditor";
 import { MemberActiveToggle } from "@/components/members/MemberActiveToggle";
 import { OrganizationAccountToggle } from "@/components/members/OrganizationAccountToggle";
 import { DocumentSearch } from "@/components/documents/DocumentSearch";
+import { MemberRoleStatusFilter } from "@/components/beheer/MemberRoleStatusFilter";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import type { Database } from "@/lib/types/database";
 
@@ -18,9 +19,13 @@ type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 // Alleen beheerders mogen dit — zelfde grens als RoleEditor/
 // MemberActiveToggle op het profiel zelf (requireAdmin in hun eigen
 // server actions is de echte grens, dit is alleen voor een nette pagina).
-export async function BeheerLedenContent({ searchParams }: { searchParams?: Promise<{ q?: string }> }) {
+export async function BeheerLedenContent({
+  searchParams,
+}: {
+  searchParams?: Promise<{ q?: string; role?: string; active?: string }>;
+}) {
   const viewer = await requireAdmin();
-  const { q } = (await searchParams) ?? {};
+  const { q, role, active } = (await searchParams) ?? {};
   const supabase = await createClient();
 
   // requireAdmin hierboven is de echte grens — elke beheerder die hier komt
@@ -37,12 +42,13 @@ export async function BeheerLedenContent({ searchParams }: { searchParams?: Prom
   );
 
   const query = (q ?? "").trim().toLowerCase();
-  const profiles = query
-    ? (allProfiles ?? []).filter(
-        (p) =>
-          `${p.first_name} ${p.last_name}`.toLowerCase().includes(query) || p.email.toLowerCase().includes(query)
-      )
-    : allProfiles;
+  const profiles = (allProfiles ?? []).filter((p) => {
+    const matchesQuery =
+      !query || `${p.first_name} ${p.last_name}`.toLowerCase().includes(query) || p.email.toLowerCase().includes(query);
+    const matchesRole = !role || p.role === role;
+    const matchesActive = !active || (active === "actief" ? p.is_active : !p.is_active);
+    return matchesQuery && matchesRole && matchesActive;
+  });
 
   const avatarUrls = await getSignedStorageUrls(
     supabase,
@@ -56,9 +62,12 @@ export async function BeheerLedenContent({ searchParams }: { searchParams?: Prom
       <p className="mb-4 text-sm text-muted">Rol wijzigen en activeren/deactiveren, direct vanuit dit overzicht.</p>
 
       {(allProfiles ?? []).length > 0 && (
-        <Suspense>
-          <DocumentSearch placeholder="Zoek op naam of e-mailadres…" />
-        </Suspense>
+        <>
+          <Suspense>
+            <DocumentSearch placeholder="Zoek op naam of e-mailadres…" />
+          </Suspense>
+          <MemberRoleStatusFilter />
+        </>
       )}
 
       <div className="flex flex-col gap-3">
