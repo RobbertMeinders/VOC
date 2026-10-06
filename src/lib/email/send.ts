@@ -18,6 +18,18 @@ const NOTIFICATION_EMAIL_TEMPLATE_KEYS: Record<string, string> = {
   feed_mention: "feed_vermelding",
 };
 
+// Zelfde bewoording/stijl als de campagne-voettekst (render.ts) — een
+// notificatiemail is optioneel (per type aan/uit te zetten op /instellingen,
+// zie NOTIFICATION_EMAIL_TEMPLATE_KEYS/sendRawNotificationEmail hieronder),
+// dus krijgt ook hier een duidelijke reden + voorkeurenlink. Puur
+// transactionele mails (inloglink, uitnodiging, wachtwoord-reset) roepen
+// sendTemplatedEmail aan zonder deze optie — daar valt niets "aan te
+// passen", dat zou alleen verwarren.
+function notificationPreferencesFooter(): string {
+  const siteUrl = (process.env.SITE_URL ?? "").replace(/\/$/, "");
+  return `<p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je ontvangt dit als lid van VOC. <a href="${escapeHtml(`${siteUrl}/instellingen`)}" style="color:#6b6b72;">Voorkeuren aanpassen</a></p>`;
+}
+
 /**
  * Renders a board-editable template (see email_templates /
  * get_email_template()) and sends it via Resend. Used both from
@@ -28,7 +40,8 @@ const NOTIFICATION_EMAIL_TEMPLATE_KEYS: Record<string, string> = {
 export async function sendTemplatedEmail(
   templateKey: string,
   to: string,
-  variables: Record<string, string>
+  variables: Record<string, string>,
+  options?: { includePreferencesFooter?: boolean }
 ): Promise<{ error?: string; providerId?: string }> {
   const supabase = await createClient();
   const { data: templates, error: templateError } = await supabase.rpc("get_email_template", {
@@ -51,7 +64,7 @@ export async function sendTemplatedEmail(
   // variabelen; de HTML-body krijgt elke variabele HTML-geëscaped.
   const subject = renderTemplate(template.subject, variables);
   const escapedVariables = Object.fromEntries(Object.entries(variables).map(([key, value]) => [key, escapeHtml(value)]));
-  const html = renderTemplate(template.body_html, escapedVariables);
+  const html = renderTemplate(template.body_html, escapedVariables) + (options?.includePreferencesFooter ? notificationPreferencesFooter() : "");
 
   try {
     const { data, error } = await resend.emails.send({ from, to, subject, html });
@@ -78,7 +91,7 @@ async function sendRawNotificationEmail(
   }
 
   const linkHtml = linkUrl ? `<p><a href="${escapeHtml(linkUrl)}">Bekijk in het ledenportaal</a></p>` : "";
-  const html = `<p>${escapeHtml(body ?? "")}</p>${linkHtml}`;
+  const html = `<p>${escapeHtml(body ?? "")}</p>${linkHtml}${notificationPreferencesFooter()}`;
 
   const resend = new Resend(apiKey);
   try {
@@ -144,11 +157,16 @@ export async function sendNotificationEmail(
 
   const templateKey = NOTIFICATION_EMAIL_TEMPLATE_KEYS[notification.type];
   if (templateKey) {
-    const result = await sendTemplatedEmail(templateKey, to, {
-      title: notification.title,
-      body: notification.body ?? "",
-      link: linkUrl,
-    });
+    const result = await sendTemplatedEmail(
+      templateKey,
+      to,
+      {
+        title: notification.title,
+        body: notification.body ?? "",
+        link: linkUrl,
+      },
+      { includePreferencesFooter: true }
+    );
     if (!result.error) return result;
   }
 
