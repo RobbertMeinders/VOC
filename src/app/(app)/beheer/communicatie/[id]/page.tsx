@@ -6,7 +6,7 @@ import { DeleteButton } from "@/components/feed/DeleteButton";
 import { NewsletterEditor } from "@/components/beheer/NewsletterEditor";
 import { deleteCommunicationAction } from "../actions";
 
-export const metadata: Metadata = { title: "Nieuwsbrief" };
+export const metadata: Metadata = { title: "Campagne" };
 
 // sendNewsletterAction (aangeroepen vanaf deze pagina) loopt sequentieel
 // over elke ontvanger — ruim boven de standaard functietijd bij een

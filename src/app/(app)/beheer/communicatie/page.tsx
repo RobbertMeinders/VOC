@@ -32,7 +32,7 @@ export default async function BeheerCommunicatiePage() {
         <div>
           <h1 className="text-xl font-semibold text-foreground">Communicatie</h1>
           <p className="text-sm text-muted">
-            Centrale plek voor nieuwsbrieven en algemene e-mailcommunicatie naar leden.
+            Centrale plek voor campagnes en algemene e-mailcommunicatie naar leden.
           </p>
         </div>
         <form action={createCommunicationAction}>
@@ -41,7 +41,7 @@ export default async function BeheerCommunicatiePage() {
             className="flex shrink-0 items-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
           >
             <Plus size={16} />
-            Nieuwe nieuwsbrief
+            Nieuwe campagne
           </button>
         </form>
       </div>
@@ -50,7 +50,7 @@ export default async function BeheerCommunicatiePage() {
         <ComingSoon
           icon={Megaphone}
           title="Nog geen communicatie"
-          description="Plaats hier je eerste nieuwsbrief, of ga naar een evenement en kies “Communiceer over dit evenement”."
+          description="Plaats hier je eerste campagne, of ga naar een evenement en kies “Communiceer over dit evenement”."
         />
       ) : (
         <>

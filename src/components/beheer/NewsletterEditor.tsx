@@ -751,7 +751,7 @@ export function NewsletterEditor({
           </div>
           <div className="flex justify-center rounded-xl bg-black/[.03] p-3 dark:bg-white/[.04]">
             <iframe
-              title="Voorbeeld nieuwsbrief"
+              title="Voorbeeld campagne"
               srcDoc={previewHtml}
               sandbox=""
               className={`h-[min(78vh,900px)] rounded-lg border border-border bg-white transition-[width] ${
