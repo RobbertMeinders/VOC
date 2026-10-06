@@ -1,15 +1,21 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendTemplatedEmail } from "@/lib/email/send";
+import { isEmailConfigured, sendTemplatedEmail } from "@/lib/email/send";
 import { isEmailRateLimited } from "@/lib/auth/rate-limit";
 
-export type ForgotPasswordState = { submitted?: boolean };
+export type ForgotPasswordState = { submitted?: boolean; error?: string };
 
 export async function requestPasswordResetAction(
   _prevState: ForgotPasswordState,
   formData: FormData
 ): Promise<ForgotPasswordState> {
+  // Zelfde verdediging als bij de magic-link-actie: de pagina verbergt dit
+  // formulier al zolang mail niet geconfigureerd is.
+  if (!isEmailConfigured()) {
+    return { error: "Wachtwoord-reset via e-mail is momenteel niet beschikbaar." };
+  }
+
   const email = String(formData.get("email") ?? "").trim();
 
   if (email && !(await isEmailRateLimited("password_reset_requested", email))) {

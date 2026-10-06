@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { VocSocialLinks } from "@/components/ui/VocSocialLinks";
+import { isEmailConfigured } from "@/lib/email/send";
 
 export const metadata: Metadata = { title: "Inloggen" };
 
@@ -12,6 +13,7 @@ export default async function LoginPage({
   searchParams: Promise<{ next?: string; deleted?: string }>;
 }) {
   const { next, deleted } = await searchParams;
+  const emailEnabled = isEmailConfigured();
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-12">
@@ -28,13 +30,19 @@ export default async function LoginPage({
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
           <h1 className="mb-1 text-xl font-semibold text-foreground">Welkom terug</h1>
           <p className="mb-6 text-sm text-muted">Log in om verder te gaan.</p>
-          <LoginForm redirectTo={next ?? "/"} />
-          <Link
-            href="/wachtwoord-vergeten"
-            className="mt-4 block text-center text-sm font-medium text-voc-red-text hover:underline"
-          >
-            Wachtwoord vergeten?
-          </Link>
+          <LoginForm redirectTo={next ?? "/"} magicLinkEnabled={emailEnabled} />
+          {emailEnabled ? (
+            <Link
+              href="/wachtwoord-vergeten"
+              className="mt-4 block text-center text-sm font-medium text-voc-red-text hover:underline"
+            >
+              Wachtwoord vergeten?
+            </Link>
+          ) : (
+            <p className="mt-4 text-center text-sm text-muted">
+              Wachtwoord vergeten? Neem contact op met het bestuur.
+            </p>
+          )}
         </div>
         <p className="mt-6 text-center text-sm text-muted">
           Nieuw lid?{" "}

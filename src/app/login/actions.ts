@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendTemplatedEmail } from "@/lib/email/send";
+import { isEmailConfigured, sendTemplatedEmail } from "@/lib/email/send";
 import { isEmailRateLimited, isPasswordLoginRateLimited, recordFailedPasswordLoginAttempt } from "@/lib/auth/rate-limit";
 import { REMEMBERED_MAX_AGE, REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
 import { safeRedirectPath } from "@/lib/url/safeRedirect";
@@ -64,12 +64,20 @@ export async function signInAction(_prevState: LoginState, formData: FormData): 
   redirect(safeRedirectPath(redirectTo));
 }
 
-export type MagicLinkState = { submitted?: boolean };
+export type MagicLinkState = { submitted?: boolean; error?: string };
 
 export async function signInWithMagicLinkAction(
   _prevState: MagicLinkState,
   formData: FormData
 ): Promise<MagicLinkState> {
+  // De knop hiervoor staat al verborgen op /login zolang mail niet
+  // geconfigureerd is — dit is alleen verdediging tegen een directe POST op
+  // een verlopen/gecachte pagina, zodat niemand een valse "check je mail"
+  // te zien krijgt voor een link die nooit komt.
+  if (!isEmailConfigured()) {
+    return { error: "Inloggen zonder wachtwoord is momenteel niet beschikbaar." };
+  }
+
   const email = String(formData.get("email") ?? "").trim();
   const redirectTo = String(formData.get("redirectTo") ?? "/");
   const rememberMe = formData.get("remember") === "on";

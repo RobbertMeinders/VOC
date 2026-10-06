@@ -7,6 +7,15 @@ import { escapeHtml } from "@/lib/text/escape-html";
 
 export { escapeHtml };
 
+// Wordt gebruikt door inlog-/wachtwoordschermen om mail-afhankelijke opties
+// (magic link, wachtwoord-reset) tijdelijk te verbergen i.p.v. een valse
+// "we hebben een mail gestuurd"-melding te tonen terwijl er geen Resend-key
+// is (bv. nog geen bestuursakkoord op het portaal) — zie sendTemplatedEmail
+// hieronder voor dezelfde check.
+export function isEmailConfigured(): boolean {
+  return Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
+}
+
 // Notificatietypes met een beheerbaar email_templates-record (0039_
 // notification_templates.sql) — de overige types (moderatie, de uitkomst
 // van je eigen aanvraag/inzending, …) hebben geen template en gaan altijd

@@ -37,6 +37,11 @@ export function ForgotPasswordForm() {
         </label>
         <Input id="email" name="email" type="email" autoComplete="email" required placeholder="naam@bedrijf.nl" />
       </div>
+      {state.error && (
+        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+          {state.error}
+        </p>
+      )}
       <SubmitButton />
     </form>
   );

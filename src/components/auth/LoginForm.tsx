@@ -18,7 +18,7 @@ function SubmitButton({ children, pendingLabel }: { children: string; pendingLab
   );
 }
 
-function PasswordLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSwitch: () => void }) {
+function PasswordLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSwitch?: () => void }) {
   const [state, formAction] = useActionState(signInAction, initialState);
 
   return (
@@ -46,13 +46,15 @@ function PasswordLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSwi
         </p>
       )}
       <SubmitButton pendingLabel="Bezig met inloggen…">Inloggen</SubmitButton>
-      <button
-        type="button"
-        onClick={onSwitch}
-        className="text-center text-sm font-medium text-voc-red-text hover:underline"
-      >
-        Inloggen zonder wachtwoord
-      </button>
+      {onSwitch && (
+        <button
+          type="button"
+          onClick={onSwitch}
+          className="text-center text-sm font-medium text-voc-red-text hover:underline"
+        >
+          Inloggen zonder wachtwoord
+        </button>
+      )}
     </form>
   );
 }
@@ -99,6 +101,11 @@ function MagicLinkLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSw
         <input type="checkbox" name="remember" className="rounded" defaultChecked />
         Blijf ingelogd
       </label>
+      {state.error && (
+        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+          {state.error}
+        </p>
+      )}
       <SubmitButton pendingLabel="Bezig met versturen…">Stuur inloglink</SubmitButton>
       <button
         type="button"
@@ -111,8 +118,16 @@ function MagicLinkLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSw
   );
 }
 
-export function LoginForm({ redirectTo }: { redirectTo: string }) {
+export function LoginForm({ redirectTo, magicLinkEnabled }: { redirectTo: string; magicLinkEnabled: boolean }) {
   const [mode, setMode] = useState<"password" | "magic-link">("password");
+
+  // Zolang mail niet geconfigureerd is (zie isEmailConfigured) kan de
+  // inloglink-mail nooit verzonden worden — de knop om te wisselen staat dan
+  // niet eens, in plaats van een "we hebben een mail gestuurd"-melding te
+  // tonen voor een mail die nooit komt.
+  if (!magicLinkEnabled) {
+    return <PasswordLoginForm redirectTo={redirectTo} />;
+  }
 
   return mode === "password" ? (
     <PasswordLoginForm redirectTo={redirectTo} onSwitch={() => setMode("magic-link")} />
