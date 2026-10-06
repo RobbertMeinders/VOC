@@ -91,6 +91,8 @@ export async function updateCommunicationAction(
   const preheader = String(formData.get("preheader") ?? "").trim();
   const senderName = String(formData.get("sender_name") ?? "").trim();
   const contentRaw = String(formData.get("content") ?? "[]");
+  const showHeader = formData.get("show_header") !== "false";
+  const showFooter = formData.get("show_footer") !== "false";
 
   if (!subject) {
     return { error: "Onderwerp is verplicht." };
@@ -106,7 +108,14 @@ export async function updateCommunicationAction(
   const supabase = await createClient();
   const { error } = await supabase
     .from("communications")
-    .update({ subject, preheader: preheader || null, sender_name: senderName || null, content })
+    .update({
+      subject,
+      preheader: preheader || null,
+      sender_name: senderName || null,
+      content,
+      show_header: showHeader,
+      show_footer: showFooter,
+    })
     .eq("id", communicationId);
 
   if (error) {
@@ -197,7 +206,9 @@ export async function sendTestNewsletterAction(
   subject: string,
   preheader: string,
   senderName: string,
-  content: NewsletterBlock[]
+  content: NewsletterBlock[],
+  showHeader: boolean,
+  showFooter: boolean
 ): Promise<TestSendState> {
   const profile = await requireBoard();
 
@@ -205,7 +216,13 @@ export async function sendTestNewsletterAction(
     return { error: "Onderwerp is verplicht." };
   }
 
-  const html = renderNewsletterHtml(content, { subject, preheader: preheader || null });
+  const html = renderNewsletterHtml(content, {
+    subject,
+    preheader: preheader || null,
+    showHeader,
+    showFooter,
+    siteUrl: process.env.SITE_URL,
+  });
   const result = await sendRawHtmlEmail(profile.email, `[TEST] ${subject}`, html, senderName || null);
 
   if (result.error) {
@@ -282,7 +299,13 @@ export async function sendNewsletterAction(communicationId: string): Promise<Sen
     return { error: "Ontvangerslijst ophalen is niet gelukt. Probeer het opnieuw." };
   }
 
-  const html = renderNewsletterHtml(content, { subject: communication.subject, preheader: communication.preheader });
+  const html = renderNewsletterHtml(content, {
+    subject: communication.subject,
+    preheader: communication.preheader,
+    showHeader: communication.show_header,
+    showFooter: communication.show_footer,
+    siteUrl: process.env.SITE_URL,
+  });
 
   for (const recipient of recipients ?? []) {
     const result = await sendRawHtmlEmail(recipient.email, communication.subject, html, communication.sender_name);

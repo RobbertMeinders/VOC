@@ -392,6 +392,8 @@ export interface Database {
           linked_activity_id: string | null;
           recipient_filter: string;
           total_recipients: number | null;
+          show_header: boolean;
+          show_footer: boolean;
           created_by: string | null;
           created_at: string;
           updated_at: string;

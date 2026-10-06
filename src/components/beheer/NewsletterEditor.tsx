@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Switch } from "@/components/ui/Switch";
 import { compressInputFile } from "@/lib/image/compress";
 import {
   updateCommunicationAction,
@@ -410,6 +411,20 @@ function BlockEditor({
             onChange={(e) => onChange({ ...block, url: e.target.value })}
             className={inputSizeClass()}
           />
+          <div className="flex flex-wrap gap-2">
+            {(["intern", "extern"] as const).map((linkType) => (
+              <button
+                key={linkType}
+                type="button"
+                onClick={() => onChange({ ...block, linkType })}
+                className={`rounded-full px-4 py-2 text-sm font-medium ${
+                  block.linkType === linkType ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
+                }`}
+              >
+                {linkType === "intern" ? "Intern (rood) — op het ledenportaal" : "Extern (groen) — bv. aanmeldformulier"}
+              </button>
+            ))}
+          </div>
         </div>
       </BlockShell>
     );
@@ -470,6 +485,8 @@ export function NewsletterEditor({
   const [subject, setSubject] = useState(communication.subject);
   const [preheader, setPreheader] = useState(communication.preheader ?? "");
   const [senderName, setSenderName] = useState(communication.sender_name ?? "");
+  const [showHeader, setShowHeader] = useState(communication.show_header);
+  const [showFooter, setShowFooter] = useState(communication.show_footer);
   const [blocks, setBlocks] = useState<NewsletterBlock[]>(
     Array.isArray(communication.content) ? (communication.content as unknown as NewsletterBlock[]) : []
   );
@@ -480,7 +497,7 @@ export function NewsletterEditor({
   async function handleTestSend() {
     setTestSendPending(true);
     setTestSendResult(null);
-    const result = await sendTestNewsletterAction(subject, preheader, senderName, blocks);
+    const result = await sendTestNewsletterAction(subject, preheader, senderName, blocks, showHeader, showFooter);
     setTestSendPending(false);
     setTestSendResult(result);
   }
@@ -504,8 +521,8 @@ export function NewsletterEditor({
   }
 
   const previewHtml = useMemo(
-    () => renderNewsletterHtml(blocks, { subject, preheader }),
-    [blocks, subject, preheader]
+    () => renderNewsletterHtml(blocks, { subject, preheader, showHeader, showFooter }),
+    [blocks, subject, preheader, showHeader, showFooter]
   );
 
   function addBlock(type: NewsletterBlock["type"]) {
@@ -516,7 +533,7 @@ export function NewsletterEditor({
         : type === "image"
           ? { ...base, type: "image", url: "", layout: "full" }
           : type === "button"
-            ? { ...base, type: "button", label: "", url: "" }
+            ? { ...base, type: "button", label: "", url: "", linkType: "extern" }
             : type === "event"
               ? {
                   ...base,
@@ -606,6 +623,16 @@ export function NewsletterEditor({
                 className="h-11 text-base"
               />
             </div>
+            <div className="flex flex-col gap-2.5 border-t border-border pt-3">
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-foreground">VOC-logo bovenaan</span>
+                <Switch checked={showHeader} onChange={() => setShowHeader((v) => !v)} disabled={readOnly} label="VOC-logo bovenaan tonen" />
+              </div>
+              <div className="flex items-center justify-between gap-3">
+                <span className="text-sm font-medium text-foreground">Voettekst met social-links</span>
+                <Switch checked={showFooter} onChange={() => setShowFooter((v) => !v)} disabled={readOnly} label="Voettekst met social-links tonen" />
+              </div>
+            </div>
           </div>
         </div>
 
@@ -679,6 +706,8 @@ export function NewsletterEditor({
           <input type="hidden" name="content" value={JSON.stringify(blocks)} />
           <input type="hidden" name="subject" value={subject} />
           <input type="hidden" name="preheader" value={preheader} />
+          <input type="hidden" name="show_header" value={showHeader ? "true" : "false"} />
+          <input type="hidden" name="show_footer" value={showFooter ? "true" : "false"} />
 
           {state.error && (
             <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
