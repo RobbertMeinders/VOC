@@ -4,6 +4,12 @@ import { BulkImportForm } from "@/components/invitations/BulkImportForm";
 
 export const metadata: Metadata = { title: "Leden importeren" };
 
+// bulkImportMembersAction (aangeroepen vanaf deze pagina) geocodeert elk
+// nieuw bedrijf sequentieel, met ~1,1s pauze tussen aanroepen (Nominatims
+// gebruiksvoorwaarden) — bij meerdere nieuwe bedrijven in één import loopt
+// dat ruim boven de standaard functietijd.
+export const maxDuration = 300;
+
 export default async function LedenImportPage() {
   await requireBoard();
 

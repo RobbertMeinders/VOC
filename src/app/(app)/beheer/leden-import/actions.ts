@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { invalidateQuery } from "@/lib/cache/queryCache";
+import { geocodeAddress } from "@/lib/geo/geocode";
 import type { ImportRow } from "@/lib/import/parseCsv";
 
 export type BulkImportSkip = { row: number; email: string; reason: string };
@@ -111,8 +112,27 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
   }
 
   if (newCompaniesByName.size > 0) {
-    const toCreate = [...newCompaniesByName.values()].map((c) => ({
+    // Zonder dit bleven CSV-geïmporteerde bedrijven voorgoed zonder
+    // coördinaten staan (nooit op de bedrijvenkaart te zien) totdat een
+    // bestuurslid het bedrijf later zelf nog eens los opende en opsloeg —
+    // updateCompanyAction (zie bedrijven/[id]/actions.ts) is de enige andere
+    // plek die geocodeAddress aanriep. Nominatim staat max. 1 aanroep per
+    // seconde toe, dus sequentieel met een korte pauze i.p.v. gelijktijdig.
+    const newCompanies = [...newCompaniesByName.values()];
+    const geocoded: { latitude: number | null; longitude: number | null }[] = [];
+    for (const [index, company] of newCompanies.entries()) {
+      if (index > 0) await new Promise((resolve) => setTimeout(resolve, 1100));
+      const coordinates = await geocodeAddress({
+        address: company.address,
+        postalCode: company.postal_code,
+        city: company.city,
+      });
+      geocoded.push({ latitude: coordinates?.latitude ?? null, longitude: coordinates?.longitude ?? null });
+    }
+
+    const toCreate = newCompanies.map((c, index) => ({
       ...c,
+      ...geocoded[index],
       slug: c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Math.random().toString(36).slice(2, 8),
     }));
     const { data: createdCompanies, error: companyError } = await supabase.from("companies").insert(toCreate).select("id, name");

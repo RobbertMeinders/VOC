@@ -71,6 +71,22 @@ export async function updateCompanyAction(
   const coordinates =
     addressChanged || missingCoordinates ? await geocodeAddress({ address, postalCode, city }) : undefined;
 
+  // Alleen écht null wegschrijven als er geen adres meer is om op te
+  // geocoderen — bij een mislukte poging (Nominatim tijdelijk onbereikbaar,
+  // rate-limit, geen resultaat) terwijl er wél een adres staat, blijven de
+  // bestaande coördinaten gewoon staan i.p.v. ze stilletjes te wissen. Zonder
+  // dit zou een voorbijgaande hik bij Nominatim een tot dan toe correct op de
+  // kaart staand bedrijf er zomaar af kunnen laten verdwijnen.
+  const addressCleared = !address && !city;
+  const coordinateUpdate =
+    coordinates !== undefined
+      ? coordinates
+        ? { latitude: coordinates.latitude, longitude: coordinates.longitude }
+        : addressCleared
+          ? { latitude: null, longitude: null }
+          : {}
+      : {};
+
   const { error } = await supabase
     .from("companies")
     .update({
@@ -90,9 +106,7 @@ export async function updateCompanyAction(
       instagram_url: instagramUrl || null,
       facebook_url: facebookUrl || null,
       ...(logoPath ? { logo_url: logoPath } : {}),
-      ...(coordinates !== undefined
-        ? { latitude: coordinates?.latitude ?? null, longitude: coordinates?.longitude ?? null }
-        : {}),
+      ...coordinateUpdate,
     })
     .eq("id", companyId);
 
