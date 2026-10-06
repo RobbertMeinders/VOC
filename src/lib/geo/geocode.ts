@@ -39,6 +39,16 @@ async function attemptGeocode(url: string, description: string): Promise<Geocode
   }
 }
 
+// Dwingt het standaard "9999 AA"-formaat af. Brongegevens bevatten soms
+// een punt, streepje of helemaal geen scheidingsteken i.p.v. een spatie
+// (bv. "9641.HL") — Nominatim's postalcode-parameter herkent zo'n
+// afwijkende vorm niet, terwijl het wel dezelfde geldige postcode is.
+function normalizePostalCode(postalCode: string): string {
+  const match = postalCode.replace(/[^a-zA-Z0-9]/g, "").match(/^(\d{4})([a-zA-Z]{2})$/);
+  if (!match) return postalCode;
+  return `${match[1]} ${match[2].toUpperCase()}`;
+}
+
 function structuredUrl(parts: { address?: string | null; postalCode?: string | null; city?: string | null }) {
   const params = new URLSearchParams({ format: "json", limit: "1", countrycodes: "nl" });
   if (parts.address) params.set("street", parts.address);
@@ -62,7 +72,8 @@ async function geocodeAddressDetailed(parts: {
 }): Promise<GeocodeSuccess | GeocodeFailure> {
   if (!parts.address && !parts.city) return { reason: "geen adres opgegeven" };
 
-  const description = [parts.address, parts.postalCode, parts.city].filter(Boolean).join(", ");
+  const normalized = { ...parts, postalCode: parts.postalCode ? normalizePostalCode(parts.postalCode) : parts.postalCode };
+  const description = [normalized.address, normalized.postalCode, normalized.city].filter(Boolean).join(", ");
 
   // Poging 1: gestructureerd, zónder de plaatsnaam, als er een postcode
   // is — de postcode is op zichzelf al nauwkeurig genoeg, en een klein
@@ -72,9 +83,9 @@ async function geocodeAddressDetailed(parts: {
   // postcode). Poging 3: de oude vrije tekstregel als laatste terugval,
   // voor adressen die om een andere reden niet structured matchen.
   const attempts: string[] = [];
-  if (parts.postalCode) attempts.push(structuredUrl({ address: parts.address, postalCode: parts.postalCode }));
-  attempts.push(structuredUrl(parts));
-  attempts.push(freeTextUrl(parts));
+  if (normalized.postalCode) attempts.push(structuredUrl({ address: normalized.address, postalCode: normalized.postalCode }));
+  attempts.push(structuredUrl(normalized));
+  attempts.push(freeTextUrl(normalized));
 
   let lastReason = `geen resultaat van Nominatim voor "${description}"`;
   for (const [index, url] of attempts.entries()) {
