@@ -362,6 +362,54 @@ De teksten zijn helder Nederlands, maar voor dezelfde dingen worden meerdere woo
 | Inloggen zonder wachtwoord | Stuur me een inloglink | Zegt wat er gebeurt |
 | Home-ondertitel “Het laatste nieuws en de eerstvolgende activiteit van het ledenportaal, overzichtelijk bij elkaar.” | weglaten | Beschrijft het scherm in plaats van iets te zeggen |
 
+## Deel 13 — Openbare website en embeds
+
+De embed-oplossing is voor nu goed genoeg en slimmer dan gemiddeld: de hoogte past zich aan, de pagina scrollt mee bij doorklikken, en “Delen” levert een link naar de echte website op. Er zijn twee echte problemen: de automatische hoogte valt soms weg (dan is de verstuurknop van Lid worden onzichtbaar), en de embeds zien er herkenbaar anders uit dan de website. Op termijn levert vooral de bedrijvengids meer op als de website hem zelf toont.
+
+**Getest:** de drie testpagina's op 6 oktober, op desktop (1440px) en mobiel (390px), elk twee keer geladen, plus doorklikken naar een activiteit. Het Lid worden-formulier en het aanmelden voor een activiteit heb ik niet verstuurd.
+
+**Gemeten**
+
+| Pagina | Hele pagina geladen | Embed-document | Hoogte van de embed | Opmerking |
+| --- | --- | --- | --- | --- |
+| Agenda | 8,6 s desktop, 15,4 s mobiel (eerste keer) | 0,8–2,5 s | 1.166 px desktop; mobiel één keer **op 600 px blijven hangen** | WordPress-scripts (Elementor) kosten zelf 3,5–4,5 s; bij de mobiele meting gaf een embed-script een 502 en weigerde de browser het uit te voeren. |
+| Leden | 4,3 s desktop, 4,0 s mobiel | 0,8–2,5 s | **7.312 px** desktop, **14.546 px** mobiel | Alle 114 bedrijven in één lange lijst; logo's laden elk \~0,7–1,1 s via tijdelijke opslag-URL's. |
+| Lid worden | 3,4 s desktop, 3,3 s mobiel | snel | 956 px, maar bij de tweede desktopmeting **op 600 px blijven hangen** | Bij 600 px stopt het formulier bij “Telefoonnummer”; Functie, Website, Toelichting en de knop “Aanvraag versturen” vallen weg. |
+
+**Visuele aansluiting**
+
+| Element | Website | Embed | Effect |
+| --- | --- | --- | --- |
+| Lettertype | Open Sans (koppen 30–48px, tekst 14–17px) | Inter (koppen 18–20px, tekst 14–16px) | Het verschil is zichtbaar zodra een kop van de website en een kop uit de embed onder elkaar staan (“Waarom lid worden?” vs. “Word lid van de VOC”). |
+| Knoppen | Rood #F10E00, hoeken 3px, gewicht 600 | Rood #E8000F, volledig rond (pil) of 6px | Twee knopstijlen op één pagina; het rood is bijna gelijk. |
+| Achtergrond | Wit, secties lichtgrijs | Lichtgrijs #F7F7F8 met witte kaarten | Op witte secties staat de embed als een grijs blok. |
+| Uitlijning | Leden-intro begint op \~88px van de rand | Bedrijvengids is smaller en gecentreerd | De linkerkanten van tekst en zoekbalk lijnen niet uit. |
+| Naam vereniging | “Veendammer Ondernemers Compagnie” (paginatekst), “OndernemersCompagnie” (voettekst) | “OndernemersCompagnie” (agenda-intro, toestemmingstekst formulier) | Dezelfde naam in drie spellingen op één pagina. |
+
+**Beoordeling per onderdeel**
+
+| Nr | Onderdeel | Wat goed is | Wat beter kan | Advies | Impact | Moeite |
+| --- | --- | --- | --- | --- | --- | --- |
+| E1 | Alle embeds: hoogte | Hoogte volgt de inhoud; geen dubbele scrollbalk. | In 2 van de 10 laadbeurten bleef de iframe op de starthoogte van 600px staan. Het hoogte-bericht wordt maar bij laden en bij formaatwijziging verstuurd; komt het luisterscript van de website te laat (WordPress-optimalisaties stellen scripts vaak uit), dan wordt het gemist. | Handdruk toevoegen: het websitescript vraagt na het laden om de hoogte, en de embed stuurt de eerste 10 s elke seconde zijn hoogte opnieuw. Als vangnet een starthoogte die bij de embed past (bijv. 1.100px voor Lid worden) in plaats van 600. | **Embed verbeteren** | G |
+| E2 | Alle embeds: onderhoud | Uitleg op Embed-codes is duidelijk. | Elke pagina bevat een eigen kopie van het script; een verbetering (zoals E1) betekent alle WordPress-pagina's opnieuw plakken. | Eén loader-script dat het portaal zelf host (`<script src=".../embed.js" data-embed="agenda">`). Fixes gaan dan live zonder de website aan te raken. | **Embed verbeteren** | M |
+| E3 | Alle embeds: uiterlijk | Licht thema geforceerd, past bij witte site. | Lettertype, knopvorm en achtergrond wijken af (zie tabel). | Embed-thema “website”: Open Sans, knoppen met 3px hoeken, achtergrond transparant, kaarten wit met dunne rand. Via een parameter (`?thema=website`), zodat het portaal zelf ongewijzigd blijft. | **Embed verbeteren** | M |
+| E4 | Agenda-overzicht | Kaarten in drie kolommen, komend/eerder gescheiden, aantallen zichtbaar. Ziet er op de site netjes uit. | De introtekst staat vast in de code (met “OndernemersCompagnie”); hoort bij de website, niet in de embed. Website toont geen datumblok of “Vol”-status op de kaart. | Introtekst uit de embed halen en in WordPress zetten; datum als blokje op de foto; “Nog X plekken” / “Vol”. | **Embed verbeteren** | M |
+| E5 | Agenda-detail en aanmelden | Delen-knop linkt naar de website met `#slug`; website springt direct naar de activiteit; bezoekers kunnen zich als niet-lid aanmelden; inloggen omzeilt de cookieblokkade met “Al ingelogd? Klik hier”. | Het adres in de browser blijft de algemene agendapagina; terugknop werkt via de iframe-geschiedenis. Google ziet de activiteit niet als losse pagina. | Voor nu prima. Later: per activiteit een echte websitepagina (of `?activiteit=` in de URL zetten) met gestructureerde evenementgegevens, zodat activiteiten in Google verschijnen. | **Embed behouden**; later API overwegen | M |
+| E6 | Bedrijvengids | Zoeken, branchefilter, lijst en kaart, detail als overlay. | Eén lijst van 7.300px (desktop) tot 14.500px (mobiel); de websitefooter is onbereikbaar. Logo's laden traag en tonen lege vakken (tijdelijke URL's, niet te cachen). Detailpagina toont alleen naam, branche, plaats en website (zie W2). Bedrijven zijn niet vindbaar in Google onder vocveendam.nl. | Nu: 24 bedrijven per keer met “Meer tonen”, logo's via een openbare, cachebare URL, uitlijnen op de breedte van de website. Later: bedrijvengids via een API door WordPress laten tonen, met een eigen pagina per bedrijf. | **Embed verbeteren**, later **native/API overwegen** | G |
+| E7 | Lid worden | Formulier zit naast de wervende tekst van de website; komt direct bij Beheer → Aanvragen. | Hoogteprobleem (E1) is hier het ernstigst: zonder hoogte geen verstuurknop. Elf velden in één kolom; toestemmingstekst met “OndernemersCompagnie”. | E1 oplossen; toestemmingstekst uit de instellingen; adresvelden optioneel maken (het bestuur heeft ze pas bij goedkeuring nodig). Na versturen duidelijk bevestigen wat er nu gebeurt en wanneer. | **Embed behouden** | G |
+| E8 | Leden (personen) en bestuur | Geen persoonsgegevens op de website (veilig). | Bestuur, commissies en contactpersonen moeten los op de website worden bijgehouden. | Zie W3 en W4: opt-in contactpersonen en een embed of API voor bestuur en commissies. | Later **native/API overwegen** | M |
+
+**Geschiktheid voor verdere integratie**
+
+De technische basis is geschikt. De openbare gegevens lopen al via aparte, afgeschermde databasefuncties (alleen opt-in bedrijven, alleen goedgekeurde activiteiten), activiteiten en bedrijven hebben leesbare slugs, en er is al een berichtenprotocol tussen website en embed. Om later verder te integreren zijn nodig:
+
+1. **Een eigen domein** voor het portaal, bijv. `leden.vocveendam.nl` in plaats van `voc-blue.vercel.app`. Dan valt het portaal onder hetzelfde domein als de website: inloggen binnen een embed werkt dan in meer browsers zonder de “Klik hier”-omweg, en het oogt betrouwbaarder.
+2. **Een kleine openbare API** (JSON) voor activiteiten, bedrijven, bestuur en kerncijfers, met caching. WordPress kan die server-side ophalen en zelf tonen (eigen stijl, vindbaar in Google), zonder iframe.
+3. **Een agenda-feed (iCal)** voor de openbare agenda, zodat bezoekers zich op de VOC-agenda kunnen abonneren.
+4. **Verversen op wijziging:** bij een gewijzigde activiteit of bedrijf de cache van API en embeds direct legen, zodat de website nooit achterloopt.
+
+**Advies in één regel:** embeds houden en E1, E2, E3 en E6 verbeteren (samen een paar dagen werk); pas aan native/API beginnen voor de bedrijvengids en de agenda als vindbaarheid in Google een doel wordt.
+
 ## Prioriteiten
 
 De nummers verwijzen naar de bevindingen hierboven.
@@ -376,6 +424,7 @@ De nummers verwijzen naar de bevindingen hierboven.
 - Q1 — Cache die tot 5 minuten oude gegevens toont, vervangen.
 - M1 — Horizontale overflow op Beheer → Activiteiten (mobiel).
 - T1, T2 — Contrast van rode tekst in donker en van invoervelden in beide thema's.
+- E1 — Hoogte van de website-embeds kan op 600px blijven hangen; op Lid worden is de verstuurknop dan onzichtbaar.
 
 **🟠 Daarna** — duidelijke waarde, minder urgent
 
@@ -390,6 +439,7 @@ De nummers verwijzen naar de bevindingen hierboven.
 - U3 — Netwerk direct naar Leden, één mechanisme.
 - U10 — Vaste regel: één item in context, lijsten en bulk in Beheer.
 - W2, W3 — Rijkere openbare bedrijfspagina, optioneel met contactpersoon.
+- E2, E3, E6 — Eén gehost embed-script, een embed-thema in de stijl van de website, en de bedrijvengids gepagineerd met snelle logo's.
 - Q5, Q6 — Focusstijlen, labels en namen voor icoonknoppen.
 
 **🟢 Polish** — kleinere visuele of UX-verbeteringen
