@@ -21,7 +21,7 @@ const PIN_TAIL = 9;
 
 function createCompanyIcon(company: { name: string; logoUrl: string | null }) {
   const content = company.logoUrl
-    ? `<img src="${escapeHtml(company.logoUrl)}" alt="" style="width:118%;height:118%;object-fit:contain;" />`
+    ? `<img src="${escapeHtml(company.logoUrl)}" alt="" style="width:108%;height:108%;object-fit:contain;" />`
     : `<span style="font-size:15px;font-weight:700;color:#e8000f;font-family:-apple-system,'Segoe UI',Arial,sans-serif;">${escapeHtml(company.name.charAt(0).toUpperCase())}</span>`;
 
   return L.divIcon({
