@@ -122,10 +122,14 @@ export async function updatePostAction(
   return { success: true, post: post ?? undefined };
 }
 
-export async function deletePostAction(postId: string) {
+export async function deletePostAction(postId: string): Promise<{ error?: string }> {
   await requireProfile();
   const supabase = await createClient();
-  await supabase.from("feed_posts").delete().eq("id", postId);
+  const { error } = await supabase.from("feed_posts").delete().eq("id", postId);
+  if (error) {
+    return { error: "Verwijderen is niet gelukt. Probeer het opnieuw." };
+  }
+  return {};
 }
 
 export async function toggleLikeAction(postId: string): Promise<{ liked: boolean }> {
@@ -172,10 +176,14 @@ export async function createCommentAction(
   return { success: true };
 }
 
-export async function deleteCommentAction(commentId: string) {
+export async function deleteCommentAction(commentId: string): Promise<{ error?: string }> {
   await requireProfile();
   const supabase = await createClient();
-  await supabase.from("feed_comments").delete().eq("id", commentId);
+  const { error } = await supabase.from("feed_comments").delete().eq("id", commentId);
+  if (error) {
+    return { error: "Verwijderen is niet gelukt. Probeer het opnieuw." };
+  }
+  return {};
 }
 
 export type UpdateCommentState = { error?: string; success?: boolean; comment?: FeedComment };

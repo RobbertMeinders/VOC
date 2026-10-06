@@ -271,7 +271,10 @@ function CommentRow({
                             danger: true,
                             onClick: () => {
                               if (window.confirm("Reactie verwijderen?")) {
-                                void deleteCommentAction(comment.id).then(() => onDeleted(comment.id));
+                                void deleteCommentAction(comment.id).then((result) => {
+                                  if (result.error) window.alert(result.error);
+                                  else onDeleted(comment.id);
+                                });
                               }
                             },
                           },
@@ -365,7 +368,10 @@ export function PostCard({
                       danger: true,
                       onClick: () => {
                         if (window.confirm("Weet je zeker dat je dit bericht wilt verwijderen?")) {
-                          void deletePostAction(post.id).then(() => onDeleted(post.id));
+                          void deletePostAction(post.id).then((result) => {
+                            if (result.error) window.alert(result.error);
+                            else onDeleted(post.id);
+                          });
                         }
                       },
                     },
