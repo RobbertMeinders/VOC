@@ -91,7 +91,7 @@ function renderEventBlock(block: Extract<NewsletterBlock, { type: "event" }>): s
       ${dateLine}
       ${locationLine}
       ${description}
-      <a href="${escapeHtml(block.linkUrl)}" style="display:inline-block;margin-top:14px;background:${COLORS.red};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:999px;font-family:${FONT};">Bekijk evenement</a>
+      <a href="${escapeHtml(block.linkUrl)}" style="display:inline-block;margin-top:14px;background:${COLORS.red};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:999px;font-family:${FONT};">${escapeHtml(block.buttonLabel || "Bekijk evenement")}</a>
     </div>
   </td></tr>`;
 }

@@ -126,7 +126,8 @@ export type EventSnapshotState = { block?: NewsletterEventBlock; error?: string 
 // een nieuw blok behandelt).
 export async function getEventSnapshotAction(
   activityId: string,
-  existingBlockId?: string
+  existingBlockId?: string,
+  currentButtonLabel?: string
 ): Promise<EventSnapshotState> {
   await requireBoard();
   const supabase = await createClient();
@@ -136,7 +137,7 @@ export async function getEventSnapshotAction(
     return { error: "Deze activiteit bestaat niet (meer)." };
   }
 
-  const block = await buildEventSnapshot(supabase, activity, existingBlockId);
+  const block = await buildEventSnapshot(supabase, activity, existingBlockId, currentButtonLabel);
   return { block };
 }
 

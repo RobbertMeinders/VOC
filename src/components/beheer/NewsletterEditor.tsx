@@ -186,7 +186,7 @@ function EventBlockEditor({
   async function applySnapshot(activityId: string) {
     setPending(true);
     setError(null);
-    const result = await getEventSnapshotAction(activityId, block.id);
+    const result = await getEventSnapshotAction(activityId, block.id, block.buttonLabel);
     setPending(false);
     if (result.error || !result.block) {
       setError(result.error ?? "Er ging iets mis bij het laden van de activiteit.");
@@ -233,37 +233,66 @@ function EventBlockEditor({
             unoptimized
           />
         )}
-        <div className="flex flex-col gap-0.5">
-          <p className="text-base font-semibold text-foreground">{block.title}</p>
-          <p className="text-sm text-muted">{formatActivityDate(block.startsAtIso)}</p>
-          {block.location && <p className="text-sm text-muted">{block.location}</p>}
-        </div>
+        <p className="self-center text-sm text-muted">{formatActivityDate(block.startsAtIso)}</p>
       </div>
+
+      <Input
+        placeholder="Titel"
+        value={block.title}
+        onChange={(e) => onChange({ ...block, title: e.target.value })}
+        className={inputSizeClass()}
+      />
+      <Input
+        placeholder="Locatie (optioneel)"
+        value={block.location ?? ""}
+        onChange={(e) => onChange({ ...block, location: e.target.value || null })}
+        className={inputSizeClass()}
+      />
+      <textarea
+        rows={4}
+        placeholder="Omschrijving"
+        value={block.description ?? ""}
+        onChange={(e) => onChange({ ...block, description: e.target.value || null })}
+        className={textAreaClass()}
+      />
+      <Input
+        placeholder="Knoptekst, bv. “Bekijk evenement”"
+        value={block.buttonLabel}
+        onChange={(e) => onChange({ ...block, buttonLabel: e.target.value })}
+        className={inputSizeClass()}
+      />
+
       {error && <p className="text-sm text-voc-red">{error}</p>}
-      <div className="flex flex-wrap items-center gap-3">
-        <Button type="button" variant="secondary" onClick={() => applySnapshot(block.activityId)} disabled={pending}>
-          <RefreshCw size={16} />
-          {pending ? "Verversen…" : "Ververs"}
-        </Button>
-        <button
-          type="button"
-          onClick={() =>
-            onChange({
-              ...block,
-              activityId: "",
-              title: "",
-              startsAtIso: "",
-              endsAtIso: null,
-              location: null,
-              description: null,
-              imageUrl: null,
-              linkUrl: "",
-            })
-          }
-          className="text-sm font-medium text-muted hover:text-foreground"
-        >
-          Andere activiteit kiezen
-        </button>
+      <div className="flex flex-col gap-1.5">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="button" variant="secondary" onClick={() => applySnapshot(block.activityId)} disabled={pending}>
+            <RefreshCw size={16} />
+            {pending ? "Verversen…" : "Ververs"}
+          </Button>
+          <button
+            type="button"
+            onClick={() =>
+              onChange({
+                ...block,
+                activityId: "",
+                title: "",
+                startsAtIso: "",
+                endsAtIso: null,
+                location: null,
+                description: null,
+                imageUrl: null,
+                linkUrl: "",
+              })
+            }
+            className="text-sm font-medium text-muted hover:text-foreground"
+          >
+            Andere activiteit kiezen
+          </button>
+        </div>
+        <p className="text-xs text-muted">
+          Ververs haalt titel, locatie, omschrijving en afbeelding opnieuw op uit de activiteit — eigen wijzigingen
+          daaraan gaan dan verloren. De knoptekst blijft altijd staan.
+        </p>
       </div>
     </div>
   );
@@ -500,6 +529,7 @@ export function NewsletterEditor({
                   description: null,
                   imageUrl: null,
                   linkUrl: "",
+                  buttonLabel: "Bekijk evenement",
                 }
               : { ...base, type: "divider" };
     setBlocks((prev) => [...prev, block]);

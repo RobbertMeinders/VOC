@@ -45,6 +45,10 @@ export type NewsletterEventBlock = {
   description: string | null;
   imageUrl: string | null;
   linkUrl: string;
+  // Alleen voor de nieuwsbrief — komt nooit van de activiteit zelf, dus
+  // blijft (in tegenstelling tot titel/locatie/omschrijving) altijd staan
+  // als het Evenement-blok ververst wordt.
+  buttonLabel: string;
 };
 
 export type NewsletterBlock =

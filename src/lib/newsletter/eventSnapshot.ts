@@ -53,7 +53,8 @@ async function copyActivityImageToEmailAssets(
 export async function buildEventSnapshot(
   supabase: SupabaseClient<Database>,
   activity: Activity,
-  existingBlockId?: string
+  existingBlockId?: string,
+  currentButtonLabel?: string
 ): Promise<NewsletterEventBlock> {
   const imageUrl = await copyActivityImageToEmailAssets(supabase, activity.image_url);
   const siteUrl = (process.env.SITE_URL ?? "").replace(/\/$/, "");
@@ -69,5 +70,8 @@ export async function buildEventSnapshot(
     description: activity.description,
     imageUrl,
     linkUrl: `${siteUrl}/agenda/${activity.id}`,
+    // Komt nooit van de activiteit — een "Ververs" mag 'm dus nooit
+    // overschrijven met iets anders dan wat er al stond.
+    buttonLabel: currentButtonLabel ?? "Bekijk evenement",
   };
 }
