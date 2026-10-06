@@ -13,17 +13,36 @@ type PushTemplate = Database["public"]["Tables"]["push_templates"]["Row"];
 const initialState: UpdatePushTemplateState = {};
 
 // Voorbeeldwaarden voor de preview — een echte push vult {{title}}/{{body}}
-// met de titel/tekst van de notificatie zelf.
-const PREVIEW_VARIABLES: Record<string, string> = {
-  title: "Nieuwe activiteit: Netwerkborrel",
-  body: "Er is een nieuwe activiteit gepland. Bekijk de details en meld je aan.",
+// met de titel/tekst van de notificatie zelf, die per type sterk verschilt
+// (vandaar per template-key een eigen voorbeeld, i.p.v. één vast
+// "Nieuwe activiteit"-voorbeeld dat ook bij bv. "feed_reactie" verscheen).
+const PREVIEW_VARIABLES_BY_KEY: Record<string, Record<string, string>> = {
+  nieuwe_activiteit: {
+    title: "Nieuwe activiteit: Netwerkborrel",
+    body: "Er is een nieuwe activiteit gepland. Bekijk de details en meld je aan.",
+  },
+  nieuw_lid: {
+    title: "Nieuw lid: Jan Jansen",
+    body: "Jan Jansen heeft zich aangesloten bij de vereniging.",
+  },
+  feed_reactie: {
+    title: "Nieuwe reactie",
+    body: "Jan Jansen heeft gereageerd op je bericht.",
+  },
+  feed_vermelding: {
+    title: "Je bent genoemd",
+    body: "Jan Jansen heeft je genoemd in een bericht.",
+  },
 };
 
-function renderPreview(template: string) {
-  return Object.entries(PREVIEW_VARIABLES).reduce(
-    (text, [key, value]) => text.replaceAll(`{{${key}}}`, value),
-    template
-  );
+const DEFAULT_PREVIEW_VARIABLES: Record<string, string> = {
+  title: "Voorbeeldtitel",
+  body: "Voorbeeldtekst van de melding.",
+};
+
+function renderPreview(template: string, key: string) {
+  const variables = PREVIEW_VARIABLES_BY_KEY[key] ?? DEFAULT_PREVIEW_VARIABLES;
+  return Object.entries(variables).reduce((text, [name, value]) => text.replaceAll(`{{${name}}}`, value), template);
 }
 
 function SubmitButton() {
@@ -78,8 +97,8 @@ export function PushTemplateForm({ template }: { template: PushTemplate }) {
               <Bell size={16} />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-medium text-[#17171a]">{renderPreview(title)}</p>
-              <p className="mt-0.5 text-sm text-[#6b6b72]">{renderPreview(body)}</p>
+              <p className="text-sm font-medium text-[#17171a]">{renderPreview(title, template.key)}</p>
+              <p className="mt-0.5 text-sm text-[#6b6b72]">{renderPreview(body, template.key)}</p>
             </div>
           </div>
         </div>
