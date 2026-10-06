@@ -27,10 +27,16 @@ create policy "push_templates_admin_select" on public.push_templates
 create policy "push_templates_admin_update" on public.push_templates
   for update using (public.is_admin());
 
--- Handmatige pushbroadcast (0041_manual_push_broadcast.sql) — geen
--- OUT-parameterwijziging, dus create or replace volstaat.
-create or replace function public.list_push_subscriptions()
-returns table (profile_id uuid, endpoint text, p256dh text, auth text)
+-- Handmatige pushbroadcast (0041_manual_push_broadcast.sql). 0042 breidde
+-- list_push_subscriptions() al eens uit met een created_at-kolom (voor de
+-- "nieuwe abonnementen"-telling in Statistieken) — dat is dus de huidige,
+-- echte vorm op de database, niet de oorspronkelijke uit 0041. create or
+-- replace mag de OUT-parameters niet wijzigen, dus eerst droppen; een drop
+-- gooit ook de grant weg, die zetten we na de recreate expliciet terug.
+drop function if exists public.list_push_subscriptions();
+
+create function public.list_push_subscriptions()
+returns table (profile_id uuid, endpoint text, p256dh text, auth text, created_at timestamptz)
 language plpgsql
 security definer
 set search_path = public
@@ -40,10 +46,16 @@ begin
     raise exception 'not authorized';
   end if;
 
-  return query select s.profile_id, s.endpoint, s.p256dh, s.auth from public.push_subscriptions s;
+  return query select s.profile_id, s.endpoint, s.p256dh, s.auth, s.created_at from public.push_subscriptions s;
 end;
 $$;
 
+grant execute on function public.list_push_subscriptions() to authenticated;
+
+-- record_manual_push_broadcast zelf had geen OUT-parameterwijziging (blijft
+-- void), dus create or replace volstaat — wel de volledige 0042-versie
+-- overnemen (die logt ook een push_unsubscribed-event per opgeruimd dood
+-- endpoint, voor diezelfde statistiek), niet de oudere 0041-versie.
 create or replace function public.record_manual_push_broadcast(
   p_reached_profile_ids uuid[],
   p_dead_endpoints text[],
@@ -64,6 +76,10 @@ begin
   select unnest(p_reached_profile_ids), 'manual_broadcast', p_title, p_body, now();
 
   if array_length(p_dead_endpoints, 1) > 0 then
+    insert into public.events (event_type, target_type, metadata)
+    select 'push_unsubscribed', 'push_subscription', jsonb_build_object('endpoint', endpoint)
+    from unnest(p_dead_endpoints) as endpoint;
+
     delete from public.push_subscriptions where endpoint = any(p_dead_endpoints);
   end if;
 end;
