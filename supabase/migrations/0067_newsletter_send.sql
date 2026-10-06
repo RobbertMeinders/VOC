@@ -18,7 +18,15 @@
 -- worden ook op false gezet bij het aanmaken, maar zijn als enige check
 -- gevoelig voor een race met de eigen "markeer als afgehandeld"-stap van
 -- deze functies hieronder).
-create or replace function public.get_pending_push_notifications(p_limit integer default 50)
+--
+-- drop vóór recreate: deze database draagt nog de oudere kolomvorm van
+-- migratie 0011/0037 (zonder `type`), en Postgres mag de OUT-parameters
+-- van een functie niet via create or replace wijzigen. Een drop gooit ook
+-- de rechten uit 0060 weg, dus die zetten we er na de recreate expliciet
+-- weer bij terug.
+drop function if exists public.get_pending_push_notifications(integer);
+
+create function public.get_pending_push_notifications(p_limit integer default 50)
 returns table (
   notification_id uuid,
   type text,
@@ -58,7 +66,13 @@ begin
 end;
 $$;
 
-create or replace function public.get_pending_email_notifications(p_limit integer default 50)
+grant execute on function public.get_pending_push_notifications(integer) to service_role;
+
+-- Zelfde reden als hierboven: drop vóór recreate omdat de OUT-parameters
+-- wijzigen, en de 0060-rechten na afloop expliciet herstellen.
+drop function if exists public.get_pending_email_notifications(integer);
+
+create function public.get_pending_email_notifications(p_limit integer default 50)
 returns table (
   notification_id uuid,
   type text,
@@ -95,6 +109,8 @@ begin
   limit p_limit;
 end;
 $$;
+
+grant execute on function public.get_pending_email_notifications(integer) to service_role;
 
 -- Voorkomt een dubbele e-mail als "Versturen" twee keer vlak na elkaar
 -- wordt aangeklikt (dubbelklik, of twee bestuursleden tegelijk): zonder
