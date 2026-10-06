@@ -10,6 +10,7 @@ import { sendRawHtmlEmail } from "@/lib/email/send";
 import { renderNewsletterHtml } from "@/lib/newsletter/render";
 import { buildEventSnapshot } from "@/lib/newsletter/eventSnapshot";
 import { performNewsletterSend } from "@/lib/newsletter/send";
+import { getAppSettings } from "@/lib/settings/app-settings";
 import type { NewsletterBlock, NewsletterEventBlock } from "@/lib/newsletter/types";
 
 // next/navigation's redirect() throws internally to unwind the render; that
@@ -217,12 +218,15 @@ export async function sendTestNewsletterAction(
     return { error: "Onderwerp is verplicht." };
   }
 
+  const settings = await getAppSettings();
   const html = renderNewsletterHtml(content, {
     subject,
     preheader: preheader || null,
     showHeader,
     showFooter,
     siteUrl: process.env.SITE_URL,
+    orgName: settings.org_name,
+    logoUrl: settings.logo_url,
   });
   const result = await sendRawHtmlEmail(profile.email, `[TEST] ${subject}`, html, senderName || null);
 

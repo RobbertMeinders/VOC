@@ -4,6 +4,7 @@ import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { NewsletterEditor } from "@/components/beheer/NewsletterEditor";
+import { getAppSettings } from "@/lib/settings/app-settings";
 import { deleteCommunicationAction } from "../actions";
 
 export const metadata: Metadata = { title: "Campagne" };
@@ -26,7 +27,7 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
   // meest recent verlopen. Eén "order by starts_at desc"-query zou juist de
   // verst-in-de-toekomst liggende activiteit bovenaan zetten, dus twee
   // losse, tegengesteld gesorteerde queries i.p.v. één.
-  const [{ data: communication }, { data: upcomingActivities }, { data: pastActivities }, { count: activeMemberCount }] =
+  const [{ data: communication }, { data: upcomingActivities }, { data: pastActivities }, { count: activeMemberCount }, settings] =
     await Promise.all([
       supabase.from("communications").select("*").eq("id", id).maybeSingle(),
       supabase
@@ -44,6 +45,7 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
         .order("starts_at", { ascending: false })
         .limit(50),
       supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
+      getAppSettings(),
     ]);
   const activities = [...(upcomingActivities ?? []), ...(pastActivities ?? [])];
 
@@ -93,6 +95,8 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
         activities={activities}
         activeMemberCount={activeMemberCount ?? 0}
         sentCount={sentCount}
+        orgName={settings.org_name}
+        logoUrl={settings.logo_url}
       />
     </div>
   );

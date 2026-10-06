@@ -573,11 +573,15 @@ export function NewsletterEditor({
   activities,
   activeMemberCount,
   sentCount,
+  orgName,
+  logoUrl,
 }: {
   communication: Communication;
   activities: ActivityOption[];
   activeMemberCount: number;
   sentCount: number;
+  orgName: string;
+  logoUrl: string | null;
 }) {
   const router = useRouter();
   const formId = `newsletter-editor-${communication.id}`;
@@ -656,8 +660,8 @@ export function NewsletterEditor({
   }
 
   const previewHtml = useMemo(
-    () => renderNewsletterHtml(blocks, { subject, preheader, showHeader, showFooter }),
-    [blocks, subject, preheader, showHeader, showFooter]
+    () => renderNewsletterHtml(blocks, { subject, preheader, showHeader, showFooter, orgName, logoUrl }),
+    [blocks, subject, preheader, showHeader, showFooter, orgName, logoUrl]
   );
 
   function addBlock(type: NewsletterBlock["type"]) {

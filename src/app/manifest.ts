@@ -1,10 +1,12 @@
 import type { MetadataRoute } from "next";
+import { getAppSettings } from "@/lib/settings/app-settings";
 
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const { site_name: siteName, org_name: orgName } = await getAppSettings();
   return {
-    name: "VOC Ledenportaal",
-    short_name: "VOC",
-    description: "Het besloten ledenportaal van de Veendammer OndernemersCompagnie.",
+    name: siteName,
+    short_name: siteName,
+    description: `Het besloten ledenportaal van de ${orgName}.`,
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

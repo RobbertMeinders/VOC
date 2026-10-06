@@ -2,13 +2,14 @@ import type { ReactNode } from "react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
+import { getAppSettings } from "@/lib/settings/app-settings";
 import { AppShell } from "@/components/layout/AppShell";
 
 export default async function AppLayout({ children, modal }: { children: ReactNode; modal: ReactNode }) {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: unreadNotifications }, avatarUrl, { data: membership }] = await Promise.all([
+  const [{ data: unreadNotifications }, avatarUrl, { data: membership }, settings] = await Promise.all([
     // type 'newsletter' uitsluiten: die rijen zijn puur verzendadministratie
     // voor de nieuwsbrief (zie 0067_newsletter_send.sql) — een lid leest de
     // inhoud al via e-mail, dus geen extra bel-badge zonder bruikbare link.
@@ -26,6 +27,7 @@ export default async function AppLayout({ children, modal }: { children: ReactNo
       .limit(1)
       .maybeSingle()
       .returns<{ company_id: string; company: { name: string } | null }>(),
+    getAppSettings(),
   ]);
 
   return (
@@ -35,6 +37,8 @@ export default async function AppLayout({ children, modal }: { children: ReactNo
       avatarUrl={avatarUrl}
       companyId={membership?.company_id ?? null}
       companyName={membership?.company?.name ?? null}
+      logoUrl={settings.logo_url}
+      siteName={settings.site_name}
       modal={modal}
     >
       {children}

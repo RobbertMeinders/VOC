@@ -140,22 +140,24 @@ const VOC_SOCIAL_LINKS = [
   { href: "https://www.instagram.com/vocveendam/", label: "Instagram", icon: "social-instagram.svg" },
 ];
 
-// Vast maar uitzetbaar (communications.show_header) — het VOC-beeldmerk
+// Vast maar uitzetbaar (communications.show_header) — het beeldmerk
 // bovenaan, zoals de bestaande VOC-mails ook altijd hebben. siteUrl is leeg
 // in de live preview (dan is een relatief pad binnen dezelfde app prima);
 // voor een echte verzending moet de link absoluut zijn, dus geeft de
-// aanroeper dan altijd SITE_URL mee.
-function renderHeader(siteUrl: string): string {
-  const logoUrl = `${siteUrl}/brand/voc-logo-mark.png`;
+// aanroeper dan altijd SITE_URL mee. logoUrl komt uit app_settings (door een
+// beheerder zelf te wijzigen) en is, als gezet, al een absolute URL — alleen
+// de vaste terugval-afbeelding heeft siteUrl ervoor nodig.
+function renderHeader(siteUrl: string, logoUrl: string | null): string {
+  const src = logoUrl || `${siteUrl}/brand/voc-logo-mark.png`;
   return `<tr><td align="center" style="padding:28px 24px 8px;">
-    <img src="${escapeHtml(logoUrl)}" alt="VOC" width="48" style="width:48px;height:auto;display:block;" />
+    <img src="${escapeHtml(src)}" alt="" width="48" style="width:48px;height:auto;display:block;" />
   </td></tr>`;
 }
 
 // Vast maar uitzetbaar (communications.show_footer) — zelfde opbouw als de
 // bestaande VOC-mails: een korte uitnodigingstekst boven een rij met
 // werkelijke social-iconen (geen platte tekstlinks).
-function renderFooter(siteUrl: string): string {
+function renderFooter(siteUrl: string, orgName: string): string {
   const iconCells = VOC_SOCIAL_LINKS.map(
     (link) => `<td style="padding:0 6px;">
       <a href="${escapeHtml(link.href)}">
@@ -170,9 +172,9 @@ function renderFooter(siteUrl: string): string {
     <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto;">
       <tr>${iconCells}</tr>
     </table>
-    <p style="margin:14px 0 0;font-size:11px;color:${COLORS.muted};font-family:${FONT};text-align:center;">Veendammer Ondernemers Compagnie</p>
+    <p style="margin:14px 0 0;font-size:11px;color:${COLORS.muted};font-family:${FONT};text-align:center;">${escapeHtml(orgName)}</p>
     <p style="margin:10px 0 0;font-size:11px;color:${COLORS.muted};font-family:${FONT};text-align:center;">
-      Je ontvangt dit als lid van VOC. <a href="${escapeHtml(`${siteUrl}/instellingen`)}" style="color:${COLORS.muted};text-decoration:underline;">Voorkeuren aanpassen</a>
+      Je ontvangt dit als lid van ${escapeHtml(orgName)}. <a href="${escapeHtml(`${siteUrl}/instellingen`)}" style="color:${COLORS.muted};text-decoration:underline;">Voorkeuren aanpassen</a>
     </p>
   </td></tr>`;
 }
@@ -209,6 +211,12 @@ export function renderNewsletterHtml(
     showHeader?: boolean;
     showFooter?: boolean;
     siteUrl?: string;
+    // Uit app_settings (zie src/lib/settings/app-settings.ts) — elke
+    // aanroeper geeft dit expliciet mee, met APP_SETTINGS_DEFAULTS als
+    // terugval, zodat deze functie zelf geen database-call hoeft te doen
+    // (ze draait ook client-side, voor de live preview in de editor).
+    orgName?: string;
+    logoUrl?: string | null;
   }
 ): string {
   // Onzichtbare preview-tekst: de gangbare manier waarop vrijwel elke
@@ -219,13 +227,14 @@ export function renderNewsletterHtml(
     : "";
 
   const siteUrl = (meta.siteUrl ?? "").replace(/\/$/, "");
+  const orgName = meta.orgName ?? "Veendammer Ondernemers Compagnie";
   const headerHtml =
     meta.showHeader ?? true
-      ? renderHeader(siteUrl)
+      ? renderHeader(siteUrl, meta.logoUrl ?? null)
       : `<tr><td style="height:24px;line-height:24px;font-size:0;">&nbsp;</td></tr>`;
   const footerHtml =
     meta.showFooter ?? true
-      ? renderFooter(siteUrl)
+      ? renderFooter(siteUrl, orgName)
       : `<tr><td style="height:8px;line-height:8px;font-size:0;">&nbsp;</td></tr>`;
 
   return `<!DOCTYPE html>

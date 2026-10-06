@@ -5,6 +5,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { THEME_INIT_SCRIPT } from "@/lib/theme/constants";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
+import { getAppSettings } from "@/lib/settings/app-settings";
 
 // Speeds up the first avatar/logo/attachment image on any page — a plain
 // string builder, not requireEnv(), so a missing env var never breaks the
@@ -16,18 +17,25 @@ const inter = Inter({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: {
-    default: "VOC Ledenportaal",
-    template: "%s | VOC Ledenportaal",
-  },
-  description: "Het besloten ledenportaal van de Veendammer OndernemersCompagnie.",
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "VOC Ledenportaal",
-  },
-};
+// Dynamisch i.p.v. een statische export — app_settings.site_name (door een
+// beheerder zelf aan te passen op /beheer/instellingen) bepaalt voortaan de
+// browsertab-titel en PWA-appnaam. De select-policy op app_settings is
+// publiek leesbaar, dus dit werkt ook op niet-ingelogde pagina's.
+export async function generateMetadata(): Promise<Metadata> {
+  const { site_name: siteName, org_name: orgName } = await getAppSettings();
+  return {
+    title: {
+      default: siteName,
+      template: `%s | ${siteName}`,
+    },
+    description: `Het besloten ledenportaal van de ${orgName}.`,
+    appleWebApp: {
+      capable: true,
+      statusBarStyle: "default",
+      title: siteName,
+    },
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: "#e8000f",

@@ -4,6 +4,7 @@ import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { CommunicationRow } from "@/components/beheer/CommunicationRow";
+import { getAppSettings } from "@/lib/settings/app-settings";
 import { createCommunicationAction } from "./actions";
 import type { Database } from "@/lib/types/database";
 
@@ -17,11 +18,10 @@ export default async function BeheerCommunicatiePage() {
   await requireBoard();
   const supabase = await createClient();
 
-  const { data: communications } = await supabase
-    .from("communications")
-    .select("*, activity:activities(title)")
-    .order("created_at", { ascending: false })
-    .returns<Communication[]>();
+  const [{ data: communications }, settings] = await Promise.all([
+    supabase.from("communications").select("*, activity:activities(title)").order("created_at", { ascending: false }).returns<Communication[]>(),
+    getAppSettings(),
+  ]);
 
   const concepten = (communications ?? []).filter((c) => c.status !== "verzonden");
   const verzonden = (communications ?? []).filter((c) => c.status === "verzonden");
@@ -59,7 +59,7 @@ export default async function BeheerCommunicatiePage() {
             {concepten.length > 0 ? (
               <div className="flex flex-col gap-2">
                 {concepten.map((c) => (
-                  <CommunicationRow key={c.id} communication={c} />
+                  <CommunicationRow key={c.id} communication={c} orgName={settings.org_name} logoUrl={settings.logo_url} />
                 ))}
               </div>
             ) : (
@@ -72,7 +72,7 @@ export default async function BeheerCommunicatiePage() {
             {verzonden.length > 0 ? (
               <div className="flex flex-col gap-2">
                 {verzonden.map((c) => (
-                  <CommunicationRow key={c.id} communication={c} />
+                  <CommunicationRow key={c.id} communication={c} orgName={settings.org_name} logoUrl={settings.logo_url} />
                 ))}
               </div>
             ) : (

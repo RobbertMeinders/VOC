@@ -25,7 +25,15 @@ const SOURCE_WIDTH = 600;
 const SOURCE_HEIGHT = 450;
 const THUMB_SCALE = THUMB_WIDTH / SOURCE_WIDTH;
 
-function CampaignThumbnail({ communication }: { communication: Communication }) {
+function CampaignThumbnail({
+  communication,
+  orgName,
+  logoUrl,
+}: {
+  communication: Communication;
+  orgName: string;
+  logoUrl: string | null;
+}) {
   const html = useMemo(() => {
     const content = Array.isArray(communication.content) ? (communication.content as unknown as NewsletterBlock[]) : [];
     return renderNewsletterHtml(content, {
@@ -33,8 +41,18 @@ function CampaignThumbnail({ communication }: { communication: Communication }) 
       preheader: communication.preheader,
       showHeader: communication.show_header,
       showFooter: communication.show_footer,
+      orgName,
+      logoUrl,
     });
-  }, [communication.content, communication.subject, communication.preheader, communication.show_header, communication.show_footer]);
+  }, [
+    communication.content,
+    communication.subject,
+    communication.preheader,
+    communication.show_header,
+    communication.show_footer,
+    orgName,
+    logoUrl,
+  ]);
 
   return (
     <div
@@ -83,13 +101,21 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
-export function CommunicationRow({ communication }: { communication: Communication }) {
+export function CommunicationRow({
+  communication,
+  orgName,
+  logoUrl,
+}: {
+  communication: Communication;
+  orgName: string;
+  logoUrl: string | null;
+}) {
   const canDelete = communication.status !== "verzonden";
 
   return (
     <div className="flex items-start gap-3 rounded-xl border border-border bg-surface p-3 shadow-sm">
       <Link href={`/beheer/communicatie/${communication.id}`} className="shrink-0">
-        <CampaignThumbnail communication={communication} />
+        <CampaignThumbnail communication={communication} orgName={orgName} logoUrl={logoUrl} />
       </Link>
       <div className="min-w-0 flex-1">
         <Link href={`/beheer/communicatie/${communication.id}`} className="truncate text-sm font-medium text-foreground hover:underline">

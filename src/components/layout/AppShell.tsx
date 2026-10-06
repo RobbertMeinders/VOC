@@ -25,6 +25,8 @@ export function AppShell({
   avatarUrl,
   companyId,
   companyName,
+  logoUrl,
+  siteName,
   children,
   modal,
 }: {
@@ -33,6 +35,8 @@ export function AppShell({
   avatarUrl: string | null;
   companyId: string | null;
   companyName: string | null;
+  logoUrl: string | null;
+  siteName: string;
   children: ReactNode;
   modal?: ReactNode;
 }) {
@@ -53,6 +57,8 @@ export function AppShell({
               avatarUrl={avatarUrl}
               companyId={companyId}
               companyName={companyName}
+              logoUrl={logoUrl}
+              siteName={siteName}
               modal={modal}
             >
               {children}
@@ -70,6 +76,8 @@ function AppShellBody({
   avatarUrl,
   companyId,
   companyName,
+  logoUrl,
+  siteName,
   children,
   modal,
 }: {
@@ -78,6 +86,8 @@ function AppShellBody({
   avatarUrl: string | null;
   companyId: string | null;
   companyName: string | null;
+  logoUrl: string | null;
+  siteName: string;
   children: ReactNode;
   modal?: ReactNode;
 }) {
@@ -96,8 +106,16 @@ function AppShellBody({
     <div className="min-h-dvh bg-background">
       <OnlineHeartbeat />
       <ScrollLockGuard />
-      <Sidebar profile={profile} unread={unread} avatarUrl={avatarUrl} companyId={companyId} companyName={companyName} />
-      <MobileHeader unread={unread} />
+      <Sidebar
+        profile={profile}
+        unread={unread}
+        avatarUrl={avatarUrl}
+        companyId={companyId}
+        companyName={companyName}
+        logoUrl={logoUrl}
+        siteName={siteName}
+      />
+      <MobileHeader unread={unread} logoUrl={logoUrl} siteName={siteName} />
       <main className="pb-20 md:ml-72 md:pb-0">
         <div
           className={clsx(

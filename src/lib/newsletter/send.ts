@@ -2,6 +2,7 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendRawHtmlEmail } from "@/lib/email/send";
+import { fetchAppSettings } from "@/lib/settings/app-settings";
 import { renderNewsletterHtml } from "./render";
 import type { NewsletterBlock } from "./types";
 import type { Database } from "@/lib/types/database";
@@ -28,12 +29,15 @@ export async function performNewsletterSend(
     throw new Error("Ontvangerslijst ophalen is niet gelukt.");
   }
 
+  const settings = await fetchAppSettings(supabase);
   const html = renderNewsletterHtml(content, {
     subject: communication.subject,
     preheader: communication.preheader,
     showHeader: communication.show_header,
     showFooter: communication.show_footer,
     siteUrl: process.env.SITE_URL,
+    orgName: settings.org_name,
+    logoUrl: settings.logo_url,
   });
 
   for (const recipient of recipients ?? []) {
