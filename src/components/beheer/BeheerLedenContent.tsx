@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
@@ -6,6 +7,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { RoleEditor } from "@/components/members/RoleEditor";
 import { MemberActiveToggle } from "@/components/members/MemberActiveToggle";
 import { OrganizationAccountToggle } from "@/components/members/OrganizationAccountToggle";
+import { DocumentSearch } from "@/components/documents/DocumentSearch";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import type { Database } from "@/lib/types/database";
 
@@ -16,21 +18,31 @@ type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 // Alleen beheerders mogen dit — zelfde grens als RoleEditor/
 // MemberActiveToggle op het profiel zelf (requireAdmin in hun eigen
 // server actions is de echte grens, dit is alleen voor een nette pagina).
-export async function BeheerLedenContent() {
+export async function BeheerLedenContent({ searchParams }: { searchParams?: Promise<{ q?: string }> }) {
   const viewer = await requireAdmin();
+  const { q } = (await searchParams) ?? {};
   const supabase = await createClient();
 
   // requireAdmin hierboven is de echte grens — elke beheerder die hier komt
   // ziet toch al dezelfde, ongefilterde lijst, dus delen tussen beheerders
-  // is veilig (zelfde redenering als leden-page-data op /leden).
+  // is veilig (zelfde redenering als leden-page-data op /leden). Zoeken (q)
+  // filtert hierna alsnog in JS, dus de cache zelf blijft per q ongewijzigd.
   // get_members_directory (0061_masked_contact_fields.sql) i.p.v.
   // rechtstreeks .from("profiles") — voor beheer/beheerder geeft de RPC
   // toch alle e-mailadressen/telefoonnummers terug (is_board()-uitzondering
   // in de maskering), maar dit voorkomt dat de query zelf afwijkt van de
   // enige toegestane manier om andermans contactgegevens op te vragen.
-  const { data: profiles } = await cachedQuery("beheer-leden-page-data", 300_000, () =>
+  const { data: allProfiles } = await cachedQuery("beheer-leden-page-data", 300_000, () =>
     supabase.rpc("get_members_directory").returns<ProfileRow[]>()
   );
+
+  const query = (q ?? "").trim().toLowerCase();
+  const profiles = query
+    ? (allProfiles ?? []).filter(
+        (p) =>
+          `${p.first_name} ${p.last_name}`.toLowerCase().includes(query) || p.email.toLowerCase().includes(query)
+      )
+    : allProfiles;
 
   const avatarUrls = await getSignedStorageUrls(
     supabase,
@@ -43,7 +55,14 @@ export async function BeheerLedenContent() {
       <h1 className="mb-1 text-xl font-semibold text-foreground">Leden beheren</h1>
       <p className="mb-4 text-sm text-muted">Rol wijzigen en activeren/deactiveren, direct vanuit dit overzicht.</p>
 
+      {(allProfiles ?? []).length > 0 && (
+        <Suspense>
+          <DocumentSearch placeholder="Zoek op naam of e-mailadres…" />
+        </Suspense>
+      )}
+
       <div className="flex flex-col gap-3">
+        {(profiles ?? []).length === 0 && <p className="text-sm text-muted">Geen leden gevonden.</p>}
         {(profiles ?? []).map((member) => (
           <div key={member.id} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
             <div className="flex items-center gap-3">
