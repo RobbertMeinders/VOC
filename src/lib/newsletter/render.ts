@@ -18,9 +18,11 @@ const COLORS = {
   muted: "#6b6b72",
   border: "#e5e5ea",
   red: "#e8000f",
-  // Voor knoppen die naar iets buiten het ledenportaal linken (bv. een
-  // extern aanmeldformulier) — dezelfde kleurafspraak die de bestaande
-  // VOC-mails al gebruiken: rood voor eigen platform, groen voor extern.
+  // Alle knoppen in de nieuwsbrief (intern én extern) — een rode knop bleek
+  // eerder af te schrikken, en het intern/extern-onderscheid in kleur werd
+  // door het bestuur zelf niet belangrijk genoeg bevonden om het bijbehorende
+  // keuzeveld in de editor voor te laten bestaan. Rood blijft wel de
+  // huisstijlkleur voor de rest van de app.
   green: "#2e7d32",
 };
 
@@ -30,10 +32,6 @@ const FONT = "-apple-system, 'Segoe UI', Arial, sans-serif";
 // een herkenbare knop zonder radicaal af te wijken van de rechthoekige
 // knoppen in de bestaande VOC-mails.
 const BUTTON_RADIUS = "8px";
-
-function buttonColor(linkType: "intern" | "extern"): string {
-  return linkType === "extern" ? COLORS.green : COLORS.red;
-}
 
 function nl2br(text: string): string {
   return escapeHtml(text).replace(/\n/g, "<br>");
@@ -69,7 +67,7 @@ function renderImageBlock(block: Extract<NewsletterBlock, { type: "image" }>): s
 
 function renderButtonBlock(block: Extract<NewsletterBlock, { type: "button" }>): string {
   return `<tr><td style="padding:0 24px 28px;">
-    <a href="${escapeHtml(block.url)}" style="display:inline-block;background:${buttonColor(block.linkType)};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:${BUTTON_RADIUS};font-family:${FONT};">${escapeHtml(block.label)}</a>
+    <a href="${escapeHtml(block.url)}" style="display:inline-block;background:${COLORS.green};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:${BUTTON_RADIUS};font-family:${FONT};">${escapeHtml(block.label)}</a>
   </td></tr>`;
 }
 
@@ -77,9 +75,6 @@ function renderDividerBlock(): string {
   return `<tr><td style="padding:0 24px 24px;"><hr style="border:none;border-top:1px solid ${COLORS.border};margin:0;" /></td></tr>`;
 }
 
-// De knop van een Evenement-blok wijst altijd naar /agenda/[id] op het
-// ledenportaal zelf (zie eventSnapshot.ts) — dus altijd de interne kleur,
-// geen keuze nodig zoals bij het losse Knop-blok.
 function renderEventBlock(block: Extract<NewsletterBlock, { type: "event" }>): string {
   if (!block.activityId) {
     return `<tr><td style="padding:0 24px 24px;">
@@ -107,7 +102,7 @@ function renderEventBlock(block: Extract<NewsletterBlock, { type: "event" }>): s
       ${dateLine}
       ${locationLine}
       ${description}
-      <a href="${escapeHtml(block.linkUrl)}" style="display:inline-block;margin-top:14px;background:${COLORS.red};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:${BUTTON_RADIUS};font-family:${FONT};">${escapeHtml(block.buttonLabel || "Bekijk evenement")}</a>
+      <a href="${escapeHtml(block.linkUrl)}" style="display:inline-block;margin-top:14px;background:${COLORS.green};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:${BUTTON_RADIUS};font-family:${FONT};">${escapeHtml(block.buttonLabel || "Bekijk evenement")}</a>
     </div>
   </td></tr>`;
 }

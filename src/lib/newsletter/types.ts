@@ -19,10 +19,6 @@ export type NewsletterButtonBlock = {
   type: "button";
   label: string;
   url: string;
-  // Bepaalt de knopkleur: rood voor een bestemming binnen het ledenportaal
-  // zelf, groen voor alles daarbuiten (bv. een extern aanmeldformulier) —
-  // dezelfde kleurafspraak die de bestaande VOC-mails al gebruiken.
-  linkType: "intern" | "extern";
 };
 
 export type NewsletterDividerBlock = {

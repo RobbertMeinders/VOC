@@ -411,20 +411,6 @@ function BlockEditor({
             onChange={(e) => onChange({ ...block, url: e.target.value })}
             className={inputSizeClass()}
           />
-          <div className="flex flex-wrap gap-2">
-            {(["intern", "extern"] as const).map((linkType) => (
-              <button
-                key={linkType}
-                type="button"
-                onClick={() => onChange({ ...block, linkType })}
-                className={`rounded-full px-4 py-2 text-sm font-medium ${
-                  block.linkType === linkType ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
-                }`}
-              >
-                {linkType === "intern" ? "Intern (rood) — op het ledenportaal" : "Extern (groen) — bv. aanmeldformulier"}
-              </button>
-            ))}
-          </div>
         </div>
       </BlockShell>
     );
@@ -533,7 +519,7 @@ export function NewsletterEditor({
         : type === "image"
           ? { ...base, type: "image", url: "", layout: "full" }
           : type === "button"
-            ? { ...base, type: "button", label: "", url: "", linkType: "extern" }
+            ? { ...base, type: "button", label: "", url: "" }
             : type === "event"
               ? {
                   ...base,
