@@ -394,6 +394,7 @@ export interface Database {
           total_recipients: number | null;
           show_header: boolean;
           show_footer: boolean;
+          scheduled_at: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;

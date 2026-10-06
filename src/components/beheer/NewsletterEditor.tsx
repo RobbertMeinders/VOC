@@ -11,6 +11,7 @@ import {
   ArrowDown,
   ArrowUp,
   Bold,
+  CalendarClock,
   CalendarDays,
   Image as ImageIcon,
   Italic,
@@ -22,6 +23,7 @@ import {
   Smartphone,
   Trash2,
   Type,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -33,6 +35,8 @@ import {
   getEventSnapshotAction,
   sendTestNewsletterAction,
   sendNewsletterAction,
+  scheduleNewsletterAction,
+  cancelScheduleAction,
   type CommunicationFormState,
   type UploadImageState,
 } from "@/app/(app)/beheer/communicatie/actions";
@@ -617,6 +621,40 @@ export function NewsletterEditor({
     router.refresh();
   }
 
+  const [scheduledAtInput, setScheduledAtInput] = useState("");
+  const [schedulePending, setSchedulePending] = useState(false);
+  const [scheduleError, setScheduleError] = useState<string | null>(null);
+
+  async function handleSchedule() {
+    if (!scheduledAtInput) return;
+    const iso = new Date(scheduledAtInput).toISOString();
+    if (!window.confirm(`Campagne inplannen voor ${new Date(iso).toLocaleString("nl-NL")}? Dit kan niet ongedaan worden gemaakt.`)) {
+      return;
+    }
+    setSchedulePending(true);
+    setScheduleError(null);
+    const result = await scheduleNewsletterAction(communication.id, iso);
+    setSchedulePending(false);
+    if (result.error) {
+      setScheduleError(result.error);
+      return;
+    }
+    router.refresh();
+  }
+
+  async function handleCancelSchedule() {
+    if (!window.confirm("Planning annuleren? De campagne wordt weer een concept.")) return;
+    setSchedulePending(true);
+    setScheduleError(null);
+    const result = await cancelScheduleAction(communication.id);
+    setSchedulePending(false);
+    if (result.error) {
+      setScheduleError(result.error);
+      return;
+    }
+    router.refresh();
+  }
+
   const previewHtml = useMemo(
     () => renderNewsletterHtml(blocks, { subject, preheader, showHeader, showFooter }),
     [blocks, subject, preheader, showHeader, showFooter]
@@ -820,7 +858,24 @@ export function NewsletterEditor({
           )}
         </form>
 
-        {communication.status !== "verzonden" && (
+        {communication.status === "ingepland" && (
+          <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+            <p className="text-sm font-medium text-foreground">Ingepland</p>
+            <p className="mt-1 text-sm text-muted">
+              Wordt verstuurd aan alle {activeMemberCount} actieve leden op{" "}
+              {communication.scheduled_at ? new Date(communication.scheduled_at).toLocaleString("nl-NL") : "—"}.
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <Button type="button" variant="secondary" onClick={handleCancelSchedule} disabled={schedulePending}>
+                <X size={16} />
+                {schedulePending ? "Bezig…" : "Annuleer planning"}
+              </Button>
+              {scheduleError && <p className="text-sm text-voc-red">{scheduleError}</p>}
+            </div>
+          </div>
+        )}
+
+        {(communication.status === "concept" || communication.status === "verzenden_mislukt") && (
           <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
             <p className="text-sm font-medium text-foreground">Versturen</p>
             <p className="mt-1 text-sm text-muted">
@@ -841,6 +896,27 @@ export function NewsletterEditor({
                 </p>
               )}
             </div>
+
+            {communication.status === "concept" && (
+              <div className="mt-4 flex flex-wrap items-end gap-3 border-t border-border pt-4">
+                <div className="flex flex-col gap-1.5">
+                  <label htmlFor="scheduled-at-input" className="text-sm text-muted">
+                    Of plan in voor later
+                  </label>
+                  <input
+                    id="scheduled-at-input"
+                    type="datetime-local"
+                    value={scheduledAtInput}
+                    onChange={(e) => setScheduledAtInput(e.target.value)}
+                    className="h-11 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+                  />
+                </div>
+                <Button type="button" variant="secondary" onClick={handleSchedule} disabled={schedulePending || !scheduledAtInput}>
+                  <CalendarClock size={16} />
+                  {schedulePending ? "Bezig…" : "Inplannen"}
+                </Button>
+              </div>
+            )}
           </div>
         )}
       </div>

@@ -9,6 +9,7 @@ import { logAuditAction } from "@/lib/audit/log";
 import { sendRawHtmlEmail } from "@/lib/email/send";
 import { renderNewsletterHtml } from "@/lib/newsletter/render";
 import { buildEventSnapshot } from "@/lib/newsletter/eventSnapshot";
+import { performNewsletterSend } from "@/lib/newsletter/send";
 import type { NewsletterBlock, NewsletterEventBlock } from "@/lib/newsletter/types";
 
 // next/navigation's redirect() throws internally to unwind the render; that
@@ -292,38 +293,13 @@ export async function sendNewsletterAction(communicationId: string): Promise<Sen
     return { error: "Voeg eerst inhoud toe voor je kunt versturen." };
   }
 
-  const { data: recipients, error: claimError } = await supabase.rpc("claim_newsletter_recipients", {
-    p_communication_id: communicationId,
-  });
-  if (claimError) {
+  let total: number;
+  let sent: number;
+  try {
+    ({ total, sent } = await performNewsletterSend(supabase, communication));
+  } catch {
     return { error: "Ontvangerslijst ophalen is niet gelukt. Probeer het opnieuw." };
   }
-
-  const html = renderNewsletterHtml(content, {
-    subject: communication.subject,
-    preheader: communication.preheader,
-    showHeader: communication.show_header,
-    showFooter: communication.show_footer,
-    siteUrl: process.env.SITE_URL,
-  });
-
-  for (const recipient of recipients ?? []) {
-    const result = await sendRawHtmlEmail(recipient.email, communication.subject, html, communication.sender_name);
-    if (!result.error) {
-      // Direct na elke individuele, al-geslaagde verzending — nooit
-      // gebufferd tot het einde van de lus, zie de uitleg hierboven.
-      await supabase.rpc("mark_newsletter_notification_sent", {
-        p_notification_id: recipient.notification_id,
-        p_provider_id: result.providerId ?? null,
-      });
-    }
-    // Bij een mislukte losse verzending: niets markeren. De rij blijft
-    // "nog te doen" (emailed_at is null) voor een volgende poging.
-  }
-
-  const { data: finalized } = await supabase.rpc("finalize_newsletter_send", { p_communication_id: communicationId });
-  const total = finalized?.[0]?.total ?? 0;
-  const sent = finalized?.[0]?.sent ?? 0;
 
   if (sent > 0) {
     await logAuditAction("communication_sent", "communication", communicationId, { total, sent, subject: communication.subject });
@@ -334,4 +310,86 @@ export async function sendNewsletterAction(communicationId: string): Promise<Sen
   revalidatePath("/beheer/statistieken");
 
   return { total, sent, failed: total - sent, done: total > 0 && sent >= total };
+}
+
+export type ScheduleNewsletterState = { error?: string; success?: boolean };
+
+// "Inplannen" zet alleen status + scheduled_at — de daadwerkelijke
+// verzending gebeurt later door /api/cron/send-scheduled-campaigns (dezelfde
+// performNewsletterSend als hierboven). Content blijft tot dat moment
+// gewoon bewerkbaar zolang de status 'concept' is; zodra ingepland geldt
+// dezelfde alleen-lezen-grendel als bij een echte verzending (readOnly in
+// NewsletterEditor kijkt naar status !== "concept"), zodat de cron nooit een
+// halverwege-bewerkte versie oppakt.
+export async function scheduleNewsletterAction(communicationId: string, scheduledAtIso: string): Promise<ScheduleNewsletterState> {
+  await requireBoard();
+
+  const scheduledAt = new Date(scheduledAtIso);
+  if (Number.isNaN(scheduledAt.getTime()) || scheduledAt.getTime() <= Date.now()) {
+    return { error: "Kies een moment in de toekomst." };
+  }
+
+  const supabase = await createClient();
+  const { data: communication } = await supabase
+    .from("communications")
+    .select("status, subject, content")
+    .eq("id", communicationId)
+    .maybeSingle();
+  if (!communication) {
+    return { error: "Campagne niet gevonden." };
+  }
+  if (communication.status !== "concept") {
+    return { error: "Alleen een concept kan ingepland worden." };
+  }
+  if (!communication.subject.trim()) {
+    return { error: "Onderwerp is verplicht voor je kunt inplannen." };
+  }
+  const content = Array.isArray(communication.content) ? (communication.content as unknown as NewsletterBlock[]) : [];
+  if (content.length === 0) {
+    return { error: "Voeg eerst inhoud toe voor je kunt inplannen." };
+  }
+
+  const { error } = await supabase
+    .from("communications")
+    .update({ status: "ingepland", scheduled_at: scheduledAt.toISOString() })
+    .eq("id", communicationId);
+  if (error) {
+    return { error: "Inplannen is niet gelukt. Probeer het opnieuw." };
+  }
+
+  await logAuditAction("communication_scheduled", "communication", communicationId, {
+    subject: communication.subject,
+    scheduledAt: scheduledAt.toISOString(),
+  });
+
+  revalidatePath(`/beheer/communicatie/${communicationId}`);
+  revalidatePath("/beheer/communicatie");
+  return { success: true };
+}
+
+export async function cancelScheduleAction(communicationId: string): Promise<ScheduleNewsletterState> {
+  await requireBoard();
+  const supabase = await createClient();
+
+  const { data: communication } = await supabase.from("communications").select("status, subject").eq("id", communicationId).maybeSingle();
+  if (!communication) {
+    return { error: "Campagne niet gevonden." };
+  }
+  if (communication.status !== "ingepland") {
+    return { error: "Deze campagne is niet ingepland." };
+  }
+
+  const { error } = await supabase
+    .from("communications")
+    .update({ status: "concept", scheduled_at: null })
+    .eq("id", communicationId);
+  if (error) {
+    return { error: "Annuleren is niet gelukt. Probeer het opnieuw." };
+  }
+
+  await logAuditAction("communication_schedule_cancelled", "communication", communicationId, { subject: communication.subject });
+
+  revalidatePath(`/beheer/communicatie/${communicationId}`);
+  revalidatePath("/beheer/communicatie");
+  return { success: true };
 }

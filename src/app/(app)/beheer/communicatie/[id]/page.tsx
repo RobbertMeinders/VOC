@@ -52,9 +52,10 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
   }
 
   // Alleen relevant na een (eventueel gedeeltelijk mislukte) verzendpoging
-  // — bij een concept is er nog niets geclaimd, dus geen zinvolle telling.
+  // — bij een concept of een nog niet opgepakte planning is er nog niets
+  // geclaimd, dus geen zinvolle telling.
   let sentCount = 0;
-  if (communication.status !== "concept") {
+  if (communication.status === "verzonden" || communication.status === "verzenden_mislukt") {
     const { count } = await supabase
       .from("notifications")
       .select("id", { count: "exact", head: true })
@@ -68,7 +69,9 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
       ? "Verzonden — alleen-lezen"
       : communication.status === "verzenden_mislukt"
         ? "Verzenden gedeeltelijk mislukt"
-        : "Concept";
+        : communication.status === "ingepland"
+          ? "Ingepland"
+          : "Concept";
 
   return (
     <div className="flex flex-col gap-4">

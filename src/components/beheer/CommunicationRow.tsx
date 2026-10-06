@@ -68,11 +68,13 @@ function StatusBadge({ status }: { status: string }) {
     concept: "bg-black/[.06] text-muted dark:bg-white/[.08]",
     verzonden: "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400",
     verzenden_mislukt: "bg-voc-red-light text-voc-red",
+    ingepland: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",
   };
   const labels: Record<string, string> = {
     concept: "Concept",
     verzonden: "Verzonden",
     verzenden_mislukt: "Verzending onderbroken",
+    ingepland: "Ingepland",
   };
   return (
     <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${styles[status] ?? styles.concept}`}>
@@ -101,7 +103,9 @@ export function CommunicationRow({ communication }: { communication: Communicati
               {communication.activity.title}
             </span>
           )}
-          <span className="text-xs text-muted">{formatDate(communication.sent_at ?? communication.created_at)}</span>
+          <span className="text-xs text-muted">
+            {formatDate(communication.sent_at ?? communication.scheduled_at ?? communication.created_at)}
+          </span>
           {typeof communication.total_recipients === "number" && (
             <span className="text-xs text-muted">{communication.total_recipients} ontvangers</span>
           )}
