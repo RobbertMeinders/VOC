@@ -55,6 +55,9 @@ export function RegeocodeCompaniesButton() {
             : `${result.fixed} van ${result.total} bedrijven zonder coördinaten zijn hersteld.`}
         </p>
       )}
+      {result?.sampleFailure && (
+        <p className="text-xs text-muted">Voorbeeld van een mislukking: {result.sampleFailure}</p>
+      )}
     </div>
   );
 }

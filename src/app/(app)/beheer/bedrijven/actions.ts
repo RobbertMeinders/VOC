@@ -3,10 +3,10 @@
 import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { geocodeAddress } from "@/lib/geo/geocode";
+import { geocodeAddressWithReason } from "@/lib/geo/geocode";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 
-export type RegeocodeState = { error?: string; total?: number; fixed?: number };
+export type RegeocodeState = { error?: string; total?: number; fixed?: number; sampleFailure?: string };
 
 // Vangt twee historische gaten: bedrijven die vóór de geocode-stap in
 // bulkImportMembersAction bestonden (CSV-import deed nog geen geocodering)
@@ -32,14 +32,18 @@ export async function regeocodeMissingCompaniesAction(): Promise<RegeocodeState>
   }
 
   let fixed = 0;
+  let sampleFailure: string | undefined;
   for (const [index, company] of companies.entries()) {
     if (index > 0) await new Promise((resolve) => setTimeout(resolve, 1100));
-    const coordinates = await geocodeAddress({
+    const { coordinates, reason } = await geocodeAddressWithReason({
       address: company.address,
       postalCode: company.postal_code,
       city: company.city,
     });
-    if (!coordinates) continue;
+    if (!coordinates) {
+      if (reason && !sampleFailure) sampleFailure = reason;
+      continue;
+    }
 
     const { error: updateError } = await supabase
       .from("companies")
@@ -53,5 +57,5 @@ export async function regeocodeMissingCompaniesAction(): Promise<RegeocodeState>
   revalidatePath("/bedrijven");
   revalidatePath("/beheer/bedrijven");
 
-  return { total: companies.length, fixed };
+  return { total: companies.length, fixed, sampleFailure: fixed === companies.length ? undefined : sampleFailure };
 }
