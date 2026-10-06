@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { FileSelectButton } from "@/components/ui/FileSelectButton";
 import {
   updateAppSettingsAction,
   uploadAppLogoAction,
@@ -58,12 +59,11 @@ function LogoUpload({ currentLogoUrl }: { currentLogoUrl: string | null }) {
         />
         <div className="flex min-w-0 flex-1 flex-col gap-1.5">
           <form ref={formRef} action={formAction} className="flex flex-wrap items-center gap-2">
-            <input
-              type="file"
+            <FileSelectButton
               name="logo"
               accept="image/png,image/jpeg,image/webp,image/svg+xml"
               required
-              className="max-w-full text-sm text-foreground file:mr-2 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3.5 file:py-2 file:text-sm file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
+              label="Logo kiezen"
             />
             <UploadButton />
           </form>

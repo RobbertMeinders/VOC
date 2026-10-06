@@ -28,6 +28,7 @@ import {
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Switch } from "@/components/ui/Switch";
+import { FileSelectButton } from "@/components/ui/FileSelectButton";
 import { compressInputFile } from "@/lib/image/compress";
 import {
   updateCommunicationAction,
@@ -182,15 +183,14 @@ function BlockImageUpload({ onUploaded }: { onUploaded: (url: string) => void })
 
   return (
     <form ref={formRef} action={formAction} className="flex flex-wrap items-center gap-2">
-      <input
-        type="file"
+      <FileSelectButton
         name="image"
         accept="image/png,image/jpeg,image/webp"
         required
+        label="Afbeelding kiezen"
         onChange={async (e) => {
           await compressInputFile(e.target);
         }}
-        className="text-sm text-foreground file:mr-2 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3.5 file:py-2 file:text-sm file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
       />
       <UploadButtonSmall />
       {state.error && <span className="text-sm text-voc-red">{state.error}</span>}

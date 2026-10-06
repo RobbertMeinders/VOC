@@ -4,6 +4,7 @@ import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { FileSelectButton } from "@/components/ui/FileSelectButton";
 import {
   updateEmailTemplateAction,
   uploadEmailTemplateImageAction,
@@ -80,12 +81,12 @@ function ImageUploadButton({ onInserted }: { onInserted: (url: string) => void }
 
   return (
     <form ref={formRef} action={formAction} className="flex flex-wrap items-center gap-2">
-      <input
-        type="file"
+      <FileSelectButton
         name="image"
         accept="image/png,image/jpeg,image/webp"
         required
-        className="text-xs text-muted file:mr-2 file:rounded-full file:border-0 file:bg-black/[.06] file:px-3 file:py-1.5 file:text-xs file:font-medium file:text-foreground hover:file:bg-black/[.1] dark:file:bg-white/[.08]"
+        label="Afbeelding kiezen"
+        className="bg-black/[.06] text-xs text-foreground hover:bg-black/[.1] dark:bg-white/[.08]"
       />
       <UploadSubmitButton />
       {state.error && (

@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { FileSelectButton } from "@/components/ui/FileSelectButton";
 import { compressInputFile } from "@/lib/image/compress";
 import { createNewsItemAction, updateNewsItemAction, type NewsFormState } from "@/app/(app)/beheer/nieuws/actions";
 import type { Database } from "@/lib/types/database";
@@ -62,17 +63,16 @@ export function NewsItemForm({
         {shownImage && (
           <Image src={shownImage} alt="" width={160} height={100} className="h-[100px] w-[160px] rounded-lg object-cover" />
         )}
-        <input
+        <FileSelectButton
           id={`news-image-${item?.id ?? "new"}`}
           name="image"
-          type="file"
           accept="image/png,image/jpeg,image/webp"
+          label="Foto kiezen"
           onChange={async (e) => {
             const input = e.target;
             const compressed = await compressInputFile(input);
             if (compressed) setPreview(URL.createObjectURL(compressed));
           }}
-          className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
         />
       </div>
 
