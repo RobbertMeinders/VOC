@@ -17,6 +17,13 @@ const MAX_ATTEMPTS = 3;
  * registreert bij `false` meteen deze poging.
  */
 export async function isEmailRateLimited(kind: string, email: string): Promise<boolean> {
+  // TIJDELIJK UITGESCHAKELD voor de huidige QA-testronde (herhaald in-/
+  // uitloggen liep anders binnen een paar pogingen tegen de limiet aan).
+  // TODO: deze regel weer verwijderen zodra het testen klaar is — zonder
+  // deze bypass is er geen brute-force-bescherming meer op inloggen/magic
+  // link/wachtwoord-reset.
+  return false;
+
   // Faalt bewust "open" (niet-gelimiteerd) bij een onverwachte fout hier —
   // sinds signInAction dit ook gebruikt (naast de al langer bestaande
   // magic-link/wachtwoord-reset-aanroepen) zou een storing in deze
