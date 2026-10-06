@@ -4,6 +4,7 @@ import { useState } from "react";
 import { MoreVertical } from "lucide-react";
 import { clsx } from "clsx";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
+import { useFixedAnchor } from "@/lib/dom/useFixedAnchor";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 
 export type ActionMenuItem = {
@@ -12,6 +13,8 @@ export type ActionMenuItem = {
   danger?: boolean;
 };
 
+const MENU_WIDTH = 160;
+
 // Rechtsboven drie puntjes op een bericht/reactie i.p.v. losse
 // potlood/prullenbak-iconen — elke instantie heeft zijn eigen open-state
 // (er kunnen tientallen tegelijk in de DOM staan, één per bericht/reactie,
@@ -19,6 +22,7 @@ export type ActionMenuItem = {
 // vier nav-menu's).
 export function ActionMenu({ items }: { items: ActionMenuItem[] }) {
   const [open, setOpen] = useState(false);
+  const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(open);
   useEscapeKey(open, () => setOpen(false));
 
   if (items.length === 0) return null;
@@ -26,6 +30,7 @@ export function ActionMenu({ items }: { items: ActionMenuItem[] }) {
   return (
     <div className="relative">
       <button
+        ref={anchorRef}
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-label="Meer opties"
@@ -33,18 +38,24 @@ export function ActionMenu({ items }: { items: ActionMenuItem[] }) {
       >
         <MoreVertical size={16} />
       </button>
-      {open && (
-        <>
-          {/* FloatingPortal: alleen deze onzichtbare klik-vanger, niet het menu
-              zelf — een voorouder met een always-on transform (RouteOverlayPanel,
-              bij berichten binnen een geopend profieloverlay) maakt zichzelf
-              anders het containing block voor deze fixed inset-0-laag, waardoor
-              klikken buiten dat paneel (bv. de sidebar) het menu niet meer
-              sloten. Het menu zelf blijft gewoon absolute t.o.v. de trigger. */}
-          <FloatingPortal>
-            <div className="fixed inset-0 z-30 cursor-pointer" onClick={() => setOpen(false)} />
-          </FloatingPortal>
-          <div className="animate-scale-in origin-top absolute right-0 top-full z-40 mt-1 w-40 overflow-hidden rounded-xl border border-border bg-surface shadow-lg">
+      {/* Backdrop én menu samen in dezelfde portal (document.body) — alleen
+          de backdrop portalen (zoals voorheen) liet het menu zelf nog
+          absolute t.o.v. de trigger staan. Een voorouder met een always-on
+          transform/animatie (zoals de kaart-entree-animatie, of
+          RouteOverlayPanel bij berichten binnen een geopend profieloverlay)
+          maakt zichzelf dan het containing block voor dat lokale menu, dat
+          daardoor onder de wél-geportaalde backdrop kwam: klikken op een
+          item sloot het menu via de backdrop i.p.v. de knop te raken — item
+          leek niets te doen (zie het "kan niet verwijderen/bewerken"-bugrapport).
+          Positie komt van useFixedAnchor (de knop zelf), zelfde patroon als
+          NetworkChooser se mobiele popover. */}
+      {open && rect && (
+        <FloatingPortal>
+          <div className="fixed inset-0 z-30 cursor-pointer" onClick={() => setOpen(false)} />
+          <div
+            className="animate-scale-in origin-top-right fixed z-40 w-40 overflow-hidden rounded-xl border border-border bg-surface shadow-lg"
+            style={{ top: rect.bottom + 4, left: rect.right - MENU_WIDTH }}
+          >
             {items.map((item) => (
               <button
                 key={item.label}
@@ -62,7 +73,7 @@ export function ActionMenu({ items }: { items: ActionMenuItem[] }) {
               </button>
             ))}
           </div>
-        </>
+        </FloatingPortal>
       )}
     </div>
   );
