@@ -21,12 +21,12 @@ const PIN_TAIL = 9;
 
 function createCompanyIcon(company: { name: string; logoUrl: string | null }) {
   const content = company.logoUrl
-    ? `<img src="${escapeHtml(company.logoUrl)}" alt="" style="width:100%;height:100%;object-fit:contain;padding:3px;box-sizing:border-box;" />`
+    ? `<img src="${escapeHtml(company.logoUrl)}" alt="" style="width:100%;height:100%;object-fit:contain;padding:2px;box-sizing:border-box;" />`
     : `<span style="font-size:15px;font-weight:700;color:#e8000f;font-family:-apple-system,'Segoe UI',Arial,sans-serif;">${escapeHtml(company.name.charAt(0).toUpperCase())}</span>`;
 
   return L.divIcon({
     html: `<div style="position:relative;width:${PIN_SIZE}px;height:${PIN_SIZE + PIN_TAIL}px;">
-      <div style="width:${PIN_SIZE}px;height:${PIN_SIZE}px;border-radius:9px;background:#ffffff;border:2px solid #e8000f;box-shadow:0 1px 4px rgba(0,0,0,.35);overflow:hidden;display:flex;align-items:center;justify-content:center;">${content}</div>
+      <div style="width:${PIN_SIZE}px;height:${PIN_SIZE}px;border-radius:9px;background:#ffffff;border:1.5px solid #e8000f;box-shadow:0 1px 4px rgba(0,0,0,.35);overflow:hidden;display:flex;align-items:center;justify-content:center;">${content}</div>
       <div style="position:absolute;left:50%;top:${PIN_SIZE - 2}px;transform:translateX(-50%);width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:${PIN_TAIL}px solid #e8000f;"></div>
     </div>`,
     className: "voc-company-icon",
