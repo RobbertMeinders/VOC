@@ -85,7 +85,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
           type="button"
           onClick={close}
           aria-label="Sluiten"
-          className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+          className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
         >
           <X size={16} />
         </button>
@@ -122,7 +122,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
       <Link
         href="/notificaties"
         onClick={close}
-        className="block border-t border-border px-4 py-2.5 text-center text-sm font-medium text-voc-red hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+        className="block border-t border-border px-4 py-2.5 text-center text-sm font-medium text-voc-red-text hover:bg-black/[.04] dark:hover:bg-white/[.06]"
       >
         Alles bekijken
       </Link>
@@ -138,7 +138,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
           aria-label="Notificaties"
           className={clsx(
             "relative flex h-9 w-9 items-center justify-center rounded-full text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.08]",
-            open && "bg-voc-red-light text-voc-red"
+            open && "bg-voc-red-light text-voc-red-text"
           )}
         >
           <Bell size={20} />
@@ -171,7 +171,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
                   type="button"
                   onClick={close}
                   aria-label="Sluiten"
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
                 >
                   <X size={16} />
                 </button>
@@ -216,8 +216,8 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
         onClick={handleOpen}
         aria-label="Notificaties"
         className={clsx(
-          "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]",
-          open && "bg-voc-red-light text-voc-red"
+          "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]",
+          open && "bg-voc-red-light text-voc-red-text"
         )}
       >
         <Bell size={16} strokeWidth={open ? 2.5 : 2} />

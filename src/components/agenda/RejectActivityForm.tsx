@@ -41,7 +41,7 @@ export function RejectActivityForm({
           e.target.value = "";
         }}
         defaultValue=""
-        className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        className="w-full rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
       >
         <option value="" disabled>
           Kies een reden (optioneel als startpunt)…
@@ -58,7 +58,7 @@ export function RejectActivityForm({
         rows={3}
         required
         placeholder="Toelichting voor de indiener…"
-        className="mt-2 w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        className="mt-2 w-full resize-none rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
       />
       <div className="mt-2 flex items-center gap-2">
         <button

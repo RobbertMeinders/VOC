@@ -38,7 +38,7 @@ export function InviteForm({ canInviteBoard }: { canInviteBoard: boolean }) {
             id="role"
             name="role"
             defaultValue="lid"
-            className="h-10 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+            className="h-10 rounded-lg border border-input-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
           >
             <option value="lid">Lid</option>
             <option value="bestuurslid">Bestuurslid</option>
@@ -49,12 +49,12 @@ export function InviteForm({ canInviteBoard }: { canInviteBoard: boolean }) {
 
       <SubmitButton />
 
-      {state.error && <p className="text-sm text-voc-red sm:basis-full">{state.error}</p>}
+      {state.error && <p className="text-sm text-voc-red-text sm:basis-full">{state.error}</p>}
       {state.success && state.emailSent && (
         <p className="text-sm text-green-600 sm:basis-full">Uitnodiging aangemaakt en per e-mail verstuurd.</p>
       )}
       {state.success && state.emailError && (
-        <p className="text-sm text-voc-red sm:basis-full">
+        <p className="text-sm text-voc-red-text sm:basis-full">
           Uitnodiging aangemaakt, maar de e-mail versturen is niet gelukt ({state.emailError}). Deel de link
           hieronder zelf.
         </p>

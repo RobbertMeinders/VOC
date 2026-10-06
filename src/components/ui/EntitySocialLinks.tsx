@@ -32,7 +32,7 @@ export function EntitySocialLinks({
   const linkClassName =
     variant === "row"
       ? "flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-      : "flex items-center gap-1 text-sm hover:text-voc-red";
+      : "flex items-center gap-1 text-sm hover:text-voc-red-text";
 
   return (
     <div className={`flex flex-col ${variant === "compact" ? "gap-1.5" : "gap-1"} ${className ?? ""}`}>

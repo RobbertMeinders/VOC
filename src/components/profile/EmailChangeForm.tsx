@@ -31,7 +31,7 @@ export function EmailChangeForm({ currentEmail }: { currentEmail: string }) {
 
   if (!open) {
     return (
-      <button type="button" onClick={() => setOpen(true)} className="text-sm font-medium text-voc-red hover:underline">
+      <button type="button" onClick={() => setOpen(true)} className="text-sm font-medium text-voc-red-text hover:underline">
         E-mailadres wijzigen
       </button>
     );
@@ -44,7 +44,7 @@ export function EmailChangeForm({ currentEmail }: { currentEmail: string }) {
       </label>
       <Input id="new_email" name="email" type="email" defaultValue={currentEmail} required autoComplete="email" />
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {state.error}
         </p>
       )}

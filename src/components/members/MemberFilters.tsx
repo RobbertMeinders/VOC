@@ -53,7 +53,7 @@ export function MemberFilters({ branches }: { branches: string[] }) {
       <select
         defaultValue={searchParams.get("branche") ?? ""}
         onChange={(e) => handleBranchChange(e.target.value)}
-        className="h-10 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        className="h-10 rounded-lg border border-input-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
       >
         <option value="">Alle branches</option>
         {branches.map((branche) => (

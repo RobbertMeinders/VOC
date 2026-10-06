@@ -52,7 +52,7 @@ export function CompanyDetailContent({ company }: { company: CompanyDetailData }
               />
             </div>
           ) : (
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-voc-red-light text-voc-red">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-voc-red-light text-voc-red-text">
               <Building2 size={28} />
             </div>
           )}
@@ -67,7 +67,7 @@ export function CompanyDetailContent({ company }: { company: CompanyDetailData }
                 href={company.website}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-1.5 flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red hover:underline"
+                className="mt-1.5 flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red-text hover:underline"
               >
                 <Globe size={14} />
                 {company.website.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
@@ -123,7 +123,7 @@ export function CompanyDetailContent({ company }: { company: CompanyDetailData }
           <p className="mt-3 flex items-center gap-1.5 border-t border-border pt-3 text-xs text-muted">
             <Lock size={12} className="shrink-0" />
             <span>
-              <PopupLoginLink href="/login" className="font-medium text-voc-red hover:underline">
+              <PopupLoginLink href="/login" className="font-medium text-voc-red-text hover:underline">
                 Log in
               </PopupLoginLink>{" "}
               voor meer info.

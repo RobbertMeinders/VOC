@@ -75,7 +75,7 @@ function EditPostForm({
         <PostTypePicker defaultValue={post.type} />
       </div>
       {state.error && (
-        <p role="alert" className="mt-1.5 text-xs text-voc-red">
+        <p role="alert" className="mt-1.5 text-xs text-voc-red-text">
           {state.error}
         </p>
       )}
@@ -128,7 +128,7 @@ function EditCommentForm({
         autoFocus
       />
       {state.error && (
-        <p role="alert" className="mt-1 text-xs text-voc-red">
+        <p role="alert" className="mt-1 text-xs text-voc-red-text">
           {state.error}
         </p>
       )}
@@ -192,7 +192,7 @@ function CommentLikeRow({
         type="button"
         onClick={handleToggle}
         disabled={isPending}
-        className={clsx("text-xs font-medium", liked ? "text-voc-red" : "text-muted hover:text-voc-red")}
+        className={clsx("text-xs font-medium", liked ? "text-voc-red-text" : "text-muted hover:text-voc-red-text")}
       >
         Leuk
       </button>
@@ -201,7 +201,7 @@ function CommentLikeRow({
         <button
           type="button"
           onClick={onOpenLikers}
-          className={clsx("flex items-center gap-1", count > 0 ? "text-voc-red" : "text-muted hover:text-voc-red")}
+          className={clsx("flex items-center gap-1", count > 0 ? "text-voc-red-text" : "text-muted hover:text-voc-red-text")}
         >
           <ThumbsUp key={String(liked)} size={13} className={clsx(count > 0 && "fill-voc-red", liked && "animate-pop")} />
           {count > 0 && <span className="text-xs">{count}</span>}
@@ -411,7 +411,7 @@ export function PostCard({
             rel="noopener noreferrer"
             className="mt-3 flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-foreground hover:border-voc-red"
           >
-            <FileText size={16} className="text-voc-red" />
+            <FileText size={16} className="text-voc-red-text" />
             <span className="truncate">{attachment.fileName}</span>
           </a>
         ))}
@@ -436,7 +436,7 @@ export function PostCard({
         <button
           type="button"
           onClick={() => setCommentsOpen((o) => !o)}
-          className="flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.06]"
+          className="flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.06]"
         >
           <MessageCircle size={16} />
           {post.comments.length > 0 && post.comments.length}
@@ -459,7 +459,7 @@ export function PostCard({
             <button
               type="button"
               onClick={() => setShowAllComments(true)}
-              className="rounded-lg py-1.5 text-center text-xs font-medium text-voc-red hover:underline"
+              className="rounded-lg py-1.5 text-center text-xs font-medium text-voc-red-text hover:underline"
             >
               Nog {remainingComments} {remainingComments === 1 ? "reactie" : "reacties"} bekijken
             </button>

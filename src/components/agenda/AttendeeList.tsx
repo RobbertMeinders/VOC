@@ -107,7 +107,7 @@ export function AttendeeList({
             <button
               type="button"
               onClick={() => setShowAll(true)}
-              className="mt-1 self-start text-sm font-medium text-voc-red hover:underline"
+              className="mt-1 self-start text-sm font-medium text-voc-red-text hover:underline"
             >
               en {remaining} {remaining === 1 ? "ander" : "anderen"}
             </button>
@@ -133,7 +133,7 @@ export function AttendeeList({
                   type="button"
                   onClick={() => setShowAll(false)}
                   aria-label="Sluiten"
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
                 >
                   <X size={16} />
                 </button>

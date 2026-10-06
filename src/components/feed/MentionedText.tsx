@@ -24,7 +24,7 @@ export function MentionedText({ text }: { text: string }) {
     const [, name, kind, id] = match;
     const href = kind === "profiel" ? `/leden/${id}` : `/bedrijven/${id}`;
     nodes.push(
-      <Link key={key++} href={href} className="font-medium text-voc-red hover:underline">
+      <Link key={key++} href={href} className="font-medium text-voc-red-text hover:underline">
         {name}
       </Link>
     );

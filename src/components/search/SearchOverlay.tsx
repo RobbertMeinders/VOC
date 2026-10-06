@@ -93,7 +93,7 @@ function SearchPanel({ close }: { close: () => void }) {
               type="button"
               onClick={close}
               aria-label="Sluiten"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
             >
               <X size={18} />
             </button>
@@ -125,7 +125,7 @@ function SearchPanel({ close }: { close: () => void }) {
                     ) : item.type === "member" || item.type === "company" ? (
                       <span
                         className={clsx(
-                          "flex h-8 w-8 shrink-0 items-center justify-center bg-voc-red-light text-xs font-medium text-voc-red",
+                          "flex h-8 w-8 shrink-0 items-center justify-center bg-voc-red-light text-xs font-medium text-voc-red-text",
                           item.type === "member" ? "rounded-full" : "rounded-lg"
                         )}
                       >
@@ -149,7 +149,7 @@ function SearchPanel({ close }: { close: () => void }) {
             <button
               type="button"
               onClick={goToFullResults}
-              className="block w-full border-t border-border px-4 py-2.5 text-center text-sm font-medium text-voc-red hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+              className="block w-full border-t border-border px-4 py-2.5 text-center text-sm font-medium text-voc-red-text hover:bg-black/[.04] dark:hover:bg-white/[.06]"
             >
               Toon meer resultaten voor &quot;{value.trim()}&quot;
             </button>
@@ -185,8 +185,8 @@ export function SearchOverlay({ variant }: { variant: "sidebar" | "mobile" }) {
           onClick={toggle}
           aria-label="Zoeken"
           className={clsx(
-            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]",
-            open && "bg-voc-red-light text-voc-red"
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]",
+            open && "bg-voc-red-light text-voc-red-text"
           )}
         >
           <Search size={16} />

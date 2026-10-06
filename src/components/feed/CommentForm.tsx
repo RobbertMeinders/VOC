@@ -14,7 +14,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-voc-red hover:bg-voc-red-light disabled:opacity-50"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-voc-red-text hover:bg-voc-red-light disabled:opacity-50"
       aria-label="Reactie plaatsen"
     >
       <Send size={16} />

@@ -44,7 +44,7 @@ export function ReportPostOverlay({ postId, onClose }: { postId: string; onClose
               type="button"
               onClick={onClose}
               aria-label="Sluiten"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
             >
               <X size={16} />
             </button>
@@ -69,7 +69,7 @@ export function ReportPostOverlay({ postId, onClose }: { postId: string; onClose
               <select
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+                className="mt-1 w-full rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
               >
                 {REASONS.map((r) => (
                   <option key={r.value} value={r.value}>
@@ -85,9 +85,9 @@ export function ReportPostOverlay({ postId, onClose }: { postId: string; onClose
                 onChange={(e) => setDetails(e.target.value)}
                 rows={3}
                 placeholder="Optionele toelichting…"
-                className="mt-1 w-full resize-none rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+                className="mt-1 w-full resize-none rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
               />
-              {state.error && <p className="mt-2 text-xs text-voc-red">{state.error}</p>}
+              {state.error && <p className="mt-2 text-xs text-voc-red-text">{state.error}</p>}
               <div className="mt-3 flex items-center gap-2">
                 <button
                   type="button"

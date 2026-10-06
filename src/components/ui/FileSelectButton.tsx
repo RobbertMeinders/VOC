@@ -13,7 +13,7 @@ export function FileSelectButton({ label = "Bestand kiezen", className, id, ...p
     <label
       htmlFor={id}
       className={clsx(
-        "inline-flex w-fit cursor-pointer items-center gap-1.5 rounded-full bg-voc-red-light px-3.5 py-2 text-sm font-medium text-voc-red hover:bg-voc-red/20",
+        "inline-flex w-fit cursor-pointer items-center gap-1.5 rounded-full bg-voc-red-light px-3.5 py-2 text-sm font-medium text-voc-red-text hover:bg-voc-red/20",
         className
       )}
     >

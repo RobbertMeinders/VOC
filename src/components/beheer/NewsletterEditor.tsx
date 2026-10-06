@@ -57,7 +57,7 @@ function newBlockId(): string {
 }
 
 function textAreaClass() {
-  return "w-full rounded-lg border border-border bg-surface px-3.5 py-3 text-base text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20";
+  return "w-full rounded-lg border border-input-border bg-surface px-3.5 py-3 text-base text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20";
 }
 
 function inputSizeClass() {
@@ -193,7 +193,7 @@ function BlockImageUpload({ onUploaded }: { onUploaded: (url: string) => void })
         }}
       />
       <UploadButtonSmall />
-      {state.error && <span className="text-sm text-voc-red">{state.error}</span>}
+      {state.error && <span className="text-sm text-voc-red-text">{state.error}</span>}
     </form>
   );
 }
@@ -257,7 +257,7 @@ function BlockShell({
               onClick={onRemove}
               title="Verwijderen"
               aria-label="Verwijderen"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
             >
               <Trash2 size={18} />
             </button>
@@ -309,7 +309,7 @@ function EventBlockEditor({
           onChange={(e) => {
             if (e.target.value) applySnapshot(e.target.value);
           }}
-          className="h-11 w-full rounded-lg border border-border bg-surface px-3.5 text-base text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+          className="h-11 w-full rounded-lg border border-input-border bg-surface px-3.5 text-base text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
         >
           <option value="" disabled>
             {pending ? "Laden…" : "Kies een activiteit…"}
@@ -320,7 +320,7 @@ function EventBlockEditor({
             </option>
           ))}
         </select>
-        {error && <p className="text-sm text-voc-red">{error}</p>}
+        {error && <p className="text-sm text-voc-red-text">{error}</p>}
       </div>
     );
   }
@@ -366,7 +366,7 @@ function EventBlockEditor({
         className={inputSizeClass()}
       />
 
-      {error && <p className="text-sm text-voc-red">{error}</p>}
+      {error && <p className="text-sm text-voc-red-text">{error}</p>}
       <div className="flex flex-col gap-1.5">
         <div className="flex flex-wrap items-center gap-3">
           <Button type="button" variant="secondary" onClick={() => applySnapshot(block.activityId)} disabled={pending}>
@@ -849,7 +849,7 @@ export function NewsletterEditor({
           <input type="hidden" name="show_footer" value={showFooter ? "true" : "false"} />
 
           {state.error && (
-            <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+            <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
               {state.error}
             </p>
           )}
@@ -874,7 +874,7 @@ export function NewsletterEditor({
                 <X size={16} />
                 {schedulePending ? "Bezig…" : "Annuleer planning"}
               </Button>
-              {scheduleError && <p className="text-sm text-voc-red">{scheduleError}</p>}
+              {scheduleError && <p className="text-sm text-voc-red-text">{scheduleError}</p>}
             </div>
           </div>
         )}
@@ -892,9 +892,9 @@ export function NewsletterEditor({
                 <Send size={16} />
                 {sendPending ? "Versturen…" : communication.status === "verzenden_mislukt" ? "Opnieuw proberen" : "Versturen"}
               </Button>
-              {sendResult?.error && <p className="text-sm text-voc-red">{sendResult.error}</p>}
+              {sendResult?.error && <p className="text-sm text-voc-red-text">{sendResult.error}</p>}
               {sendResult && sendResult.total !== undefined && sendResult.sent !== undefined && (
-                <p className={`text-sm ${sendResult.sent >= sendResult.total ? "text-green-600" : "text-voc-red"}`}>
+                <p className={`text-sm ${sendResult.sent >= sendResult.total ? "text-green-600" : "text-voc-red-text"}`}>
                   {sendResult.sent} van {sendResult.total} verzonden
                   {sendResult.sent < sendResult.total && " — probeer het later opnieuw voor de rest."}
                 </p>
@@ -912,7 +912,7 @@ export function NewsletterEditor({
                     type="datetime-local"
                     value={scheduledAtInput}
                     onChange={(e) => setScheduledAtInput(e.target.value)}
-                    className="h-11 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+                    className="h-11 rounded-lg border border-input-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
                   />
                 </div>
                 <Button type="button" variant="secondary" onClick={handleSchedule} disabled={schedulePending || !scheduledAtInput}>
@@ -956,7 +956,7 @@ export function NewsletterEditor({
               {testSendPending ? "Versturen…" : "Testmail versturen naar mij"}
             </Button>
             {testSendResult?.success && <p className="text-sm text-green-600">Testmail verstuurd.</p>}
-            {testSendResult?.error && <p className="text-sm text-voc-red">{testSendResult.error}</p>}
+            {testSendResult?.error && <p className="text-sm text-voc-red-text">{testSendResult.error}</p>}
           </div>
         </div>
       </div>

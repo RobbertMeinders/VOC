@@ -38,7 +38,7 @@ export function ShowContactToggle({
   return (
     <div className="flex flex-col items-end gap-1">
       <Switch checked={visible} onChange={toggle} disabled={isPending} label={label} />
-      {error && <p className="text-right text-xs text-voc-red">{error}</p>}
+      {error && <p className="text-right text-xs text-voc-red-text">{error}</p>}
     </div>
   );
 }

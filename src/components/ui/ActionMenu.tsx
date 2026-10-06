@@ -34,7 +34,7 @@ export function ActionMenu({ items }: { items: ActionMenuItem[] }) {
         type="button"
         onClick={() => setOpen((o) => !o)}
         aria-label="Meer opties"
-        className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+        className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
       >
         <MoreVertical size={16} />
       </button>
@@ -66,7 +66,7 @@ export function ActionMenu({ items }: { items: ActionMenuItem[] }) {
                 }}
                 className={clsx(
                   "block w-full px-3 py-2 text-left text-sm hover:bg-black/[.04] dark:hover:bg-white/[.06]",
-                  item.danger ? "text-voc-red" : "text-foreground"
+                  item.danger ? "text-voc-red-text" : "text-foreground"
                 )}
               >
                 {item.label}

@@ -48,7 +48,7 @@ export function createMentionChip(name: string, kind: MentionKind, id: string): 
   chip.setAttribute(MENTION_KIND_ATTR, kind);
   chip.setAttribute(MENTION_NAME_ATTR, name);
   chip.contentEditable = "false";
-  chip.className = "rounded bg-voc-red-light px-1 py-0.5 font-medium text-voc-red";
+  chip.className = "rounded bg-voc-red-light px-1 py-0.5 font-medium text-voc-red-text";
   chip.textContent = `@${name}`;
   return chip;
 }

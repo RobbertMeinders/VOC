@@ -178,14 +178,14 @@ export async function ActivityDetailContent({ id }: { id: string }) {
                 </span>
               )}
               {activity.status === "rejected" && (
-                <span className="rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red">
+                <span className="rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red-text">
                   Afgewezen
                 </span>
               )}
             </div>
           )}
           {activity.status === "rejected" && activity.rejection_reason && (
-            <p className="mb-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+            <p className="mb-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
               {activity.rejection_reason}
             </p>
           )}
@@ -241,7 +241,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
             )}
             <a
               href={`/agenda/${activity.id}/ics`}
-              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-voc-red"
+              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-voc-red-text"
             >
               <Download size={13} />
               Toevoegen aan agenda (.ics)
@@ -335,7 +335,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
           <DeleteButton
             onDelete={deleteActivityAction.bind(null, activity.id)}
             confirmMessage="Weet je zeker dat je deze activiteit wilt verwijderen? Aanmeldingen worden ook verwijderd."
-            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red hover:border-voc-red"
+            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red-text hover:border-voc-red"
           />
         </div>
       )}
@@ -344,7 +344,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
         <DeleteButton
           onDelete={deleteActivityAction.bind(null, activity.id)}
           confirmMessage="Weet je zeker dat je deze inzending wilt intrekken?"
-          className="flex items-center gap-1.5 self-start rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red hover:border-voc-red"
+          className="flex items-center gap-1.5 self-start rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red-text hover:border-voc-red"
         />
       )}
     </div>

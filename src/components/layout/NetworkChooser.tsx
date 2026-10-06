@@ -76,7 +76,7 @@ export function NetworkChooser({
           className={clsx(
             "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
             active || open
-              ? "bg-voc-red-light text-voc-red"
+              ? "bg-voc-red-light text-voc-red-text"
               : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
           )}
         >
@@ -97,7 +97,7 @@ export function NetworkChooser({
                 className={clsx(
                   "flex items-center gap-3 rounded-lg py-2.5 pl-10 pr-3 text-sm font-medium transition-all duration-150",
                   pathname.startsWith(href)
-                    ? "bg-voc-red-light text-voc-red"
+                    ? "bg-voc-red-light text-voc-red-text"
                     : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
                 )}
               >
@@ -119,7 +119,7 @@ export function NetworkChooser({
         onClick={toggle}
         className={clsx(
           "relative flex h-14 w-full flex-col items-center justify-center gap-0.5 text-xs font-medium transition-transform duration-150 active:scale-90",
-          active ? "text-voc-red" : "text-muted"
+          active ? "text-voc-red-text" : "text-muted"
         )}
       >
         <span className="relative flex h-7 w-7 items-center justify-center">

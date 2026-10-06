@@ -100,7 +100,7 @@ export function ProfileForm({
           rows={4}
           defaultValue={profile.bio ?? ""}
           placeholder="Vertel iets over jezelf..."
-          className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+          className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
         />
       </div>
 
@@ -140,7 +140,7 @@ export function ProfileForm({
       </div>
 
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {state.error}
         </p>
       )}

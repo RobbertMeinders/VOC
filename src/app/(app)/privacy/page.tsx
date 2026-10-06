@@ -50,7 +50,7 @@ export default function PrivacyVeiligheidPage() {
       <div className="flex flex-col gap-3">
         {SECTIONS.map(({ icon: Icon, title, body }) => (
           <div key={title} className="flex gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-voc-red-light text-voc-red">
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-voc-red-light text-voc-red-text">
               <Icon size={18} />
             </span>
             <div className="min-w-0">
@@ -65,7 +65,7 @@ export default function PrivacyVeiligheidPage() {
         Geen enkel systeem is volledig zonder risico — we nemen redelijke technische en organisatorische
         maatregelen om je gegevens te beschermen. Vragen over je gegevens? Neem contact op met het bestuur, of
         pas je voorkeuren aan op{" "}
-        <Link href="/instellingen" className="font-medium text-voc-red hover:underline">
+        <Link href="/instellingen" className="font-medium text-voc-red-text hover:underline">
           Instellingen
         </Link>
         .

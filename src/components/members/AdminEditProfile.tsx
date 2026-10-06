@@ -15,7 +15,7 @@ export function AdminEditProfile({ member, avatarUrl }: { member: Profile; avata
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 text-sm font-medium text-voc-red hover:underline"
+        className="flex items-center gap-1.5 text-sm font-medium text-voc-red-text hover:underline"
       >
         <Pencil size={14} />
         Profiel bewerken

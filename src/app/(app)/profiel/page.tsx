@@ -51,7 +51,7 @@ export default async function ProfielPage() {
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">
           <Link
             href={`/bedrijven/${membership.company.id}`}
-            className="flex items-center gap-2 text-sm text-foreground hover:text-voc-red"
+            className="flex items-center gap-2 text-sm text-foreground hover:text-voc-red-text"
           >
             <Building2 size={16} className="text-muted" />
             Werkzaam bij <span className="font-medium">{membership.company.name}</span>

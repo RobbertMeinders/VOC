@@ -28,7 +28,7 @@ export function CompanyLogo({
       {logoUrl ? (
         <Image src={logoUrl} alt={name} width={width} height={size} className="h-full w-full object-contain" />
       ) : (
-        <Building2 size={Math.round(size * 0.45)} className="text-voc-red" />
+        <Building2 size={Math.round(size * 0.45)} className="text-voc-red-text" />
       )}
     </div>
   );

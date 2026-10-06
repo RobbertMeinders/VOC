@@ -74,15 +74,15 @@ export function SetPasswordForm() {
           value={passwordRepeat}
           onChange={(e) => setPasswordRepeat(e.target.value)}
         />
-        {mismatch && <p className="text-xs text-voc-red">De wachtwoorden komen niet overeen.</p>}
+        {mismatch && <p className="text-xs text-voc-red-text">De wachtwoorden komen niet overeen.</p>}
       </div>
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {state.error}
         </p>
       )}
       <SubmitButton disabled={mismatch} />
-      <Link href="/instellingen" className="text-center text-sm font-medium text-voc-red hover:underline">
+      <Link href="/instellingen" className="text-center text-sm font-medium text-voc-red-text hover:underline">
         Annuleren
       </Link>
     </form>

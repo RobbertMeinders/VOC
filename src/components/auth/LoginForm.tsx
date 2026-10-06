@@ -41,7 +41,7 @@ function PasswordLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSwi
         Blijf ingelogd
       </label>
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {state.error}
         </p>
       )}
@@ -49,7 +49,7 @@ function PasswordLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSwi
       <button
         type="button"
         onClick={onSwitch}
-        className="text-center text-sm font-medium text-voc-red hover:underline"
+        className="text-center text-sm font-medium text-voc-red-text hover:underline"
       >
         Inloggen zonder wachtwoord
       </button>
@@ -70,7 +70,7 @@ function MagicLinkLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSw
         <button
           type="button"
           onClick={onSwitch}
-          className="text-center text-sm font-medium text-voc-red hover:underline"
+          className="text-center text-sm font-medium text-voc-red-text hover:underline"
         >
           Terug naar inloggen met wachtwoord
         </button>
@@ -103,7 +103,7 @@ function MagicLinkLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSw
       <button
         type="button"
         onClick={onSwitch}
-        className="text-center text-sm font-medium text-voc-red hover:underline"
+        className="text-center text-sm font-medium text-voc-red-text hover:underline"
       >
         Inloggen met wachtwoord
       </button>

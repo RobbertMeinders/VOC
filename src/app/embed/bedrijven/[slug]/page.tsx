@@ -65,7 +65,7 @@ export default async function BedrijfEmbedDetailPage({ params }: { params: Promi
           staat. */}
       <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
         <EmbedAutoHeight />
-        <Link href="/embed/bedrijven" className="flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red hover:underline">
+        <Link href="/embed/bedrijven" className="flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red-text hover:underline">
           <ArrowLeft size={16} />
           Terug naar bedrijvengids
         </Link>

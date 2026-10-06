@@ -38,7 +38,7 @@ export function ActivityCard({
   const badges = (
     <div className="mt-2 flex flex-wrap items-center gap-2">
       {isOfficial && (
-        <span className="rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red">
+        <span className="rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red-text">
           VOC-activiteit
         </span>
       )}
@@ -86,7 +86,7 @@ export function ActivityCard({
             <Image src={imageUrl} alt={activity.title} fill sizes="(min-width: 640px) 700px, 100vw" className="object-cover" />
           </div>
         ) : (
-          <div className="flex h-44 w-full items-center justify-center bg-voc-red-light text-voc-red sm:h-52">
+          <div className="flex h-44 w-full items-center justify-center bg-voc-red-light text-voc-red-text sm:h-52">
             <CalendarDays size={48} />
           </div>
         )}
@@ -120,7 +120,7 @@ export function ActivityCard({
           </div>
         ) : (
           <div
-            className="flex shrink-0 items-center justify-center self-stretch rounded-xl bg-voc-red-light text-voc-red"
+            className="flex shrink-0 items-center justify-center self-stretch rounded-xl bg-voc-red-light text-voc-red-text"
             style={{ width: imageWidth }}
           >
             <CalendarDays size={26} />
@@ -137,7 +137,7 @@ export function ActivityCard({
         />
       ) : (
         <div
-          className="flex shrink-0 items-center justify-center self-start rounded-xl bg-voc-red-light text-voc-red"
+          className="flex shrink-0 items-center justify-center self-start rounded-xl bg-voc-red-light text-voc-red-text"
           style={{ height: imageWidth, width: imageWidth }}
         >
           <CalendarDays size={34} />

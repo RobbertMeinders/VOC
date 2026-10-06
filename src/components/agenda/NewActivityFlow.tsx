@@ -23,7 +23,7 @@ export function NewActivityFlow({ board }: { board: boolean }) {
             onClick={() => setSource("voc")}
             className="flex flex-1 items-start gap-3 rounded-2xl border border-border bg-surface p-4 text-left shadow-sm hover:border-voc-red"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red-text">
               <CalendarDays size={20} />
             </span>
             <span>

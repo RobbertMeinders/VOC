@@ -32,11 +32,11 @@ function ShortcutButton({
       href={href}
       className="group flex flex-col items-center gap-2.5 rounded-2xl border border-border bg-surface px-3 py-5 text-center shadow-sm transition-all duration-500 ease-out hover:-translate-y-0.5 hover:border-voc-red hover:shadow-md"
     >
-      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-voc-red-light text-voc-red transition-transform duration-500 ease-out group-hover:scale-105">
+      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-voc-red-light text-voc-red-text transition-transform duration-500 ease-out group-hover:scale-105">
         <Icon size={26} />
       </span>
       <span className="min-w-0">
-        <span className="block truncate text-sm font-semibold text-foreground group-hover:text-voc-red">{label}</span>
+        <span className="block truncate text-sm font-semibold text-foreground group-hover:text-voc-red-text">{label}</span>
         {typeof count === "number" && (
           <span className="block text-xs text-muted">
             {count} {countLabel}
@@ -162,7 +162,7 @@ export default async function HomePage() {
                 className="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-24 sm:w-24"
               />
             ) : (
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red sm:h-24 sm:w-24">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red-text sm:h-24 sm:w-24">
                 <CalendarDays size={24} className="sm:hidden" />
                 <CalendarDays size={30} className="hidden sm:block" />
               </div>

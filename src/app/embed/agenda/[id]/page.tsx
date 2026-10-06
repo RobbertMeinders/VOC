@@ -80,7 +80,7 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
       <div className="flex flex-col gap-4 p-4">
         <EmbedAutoHeight />
         <div className="flex items-center justify-between gap-3">
-          <Link href="/embed/agenda" className="flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red hover:underline">
+          <Link href="/embed/agenda" className="flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red-text hover:underline">
             <ArrowLeft size={16} />
             Terug naar agenda
           </Link>
@@ -95,7 +95,7 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
           // eslint-disable-next-line @next/next/no-img-element -- publieke, external-embed pagina: geen framework-afhankelijkheden
           <img src={imageUrl} alt={activity.title} className="h-80 w-full rounded-xl object-cover" />
         ) : (
-          <div className="flex h-80 w-full items-center justify-center rounded-xl bg-voc-red-light text-voc-red">
+          <div className="flex h-80 w-full items-center justify-center rounded-xl bg-voc-red-light text-voc-red-text">
             <CalendarDays size={40} />
           </div>
         )}

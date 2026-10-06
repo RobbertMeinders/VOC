@@ -26,7 +26,7 @@ type AuditLogRow = {
 const STATUS_BADGE: Record<Activity["status"], string> = {
   approved: "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400",
   pending: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",
-  rejected: "bg-voc-red-light text-voc-red",
+  rejected: "bg-voc-red-light text-voc-red-text",
 };
 const STATUS_LABEL: Record<Activity["status"], string> = {
   approved: "Goedgekeurd",
@@ -137,7 +137,7 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
                     </span>
                   )}
                 </div>
-                <Link href={`/agenda/${activity.id}`} className="text-sm font-medium text-foreground hover:text-voc-red">
+                <Link href={`/agenda/${activity.id}`} className="text-sm font-medium text-foreground hover:text-voc-red-text">
                   {activity.title}
                 </Link>
                 <p className="text-xs text-muted">{formatActivityDate(activity.starts_at)}</p>
@@ -168,14 +168,14 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
                 <Link
                   href={`/agenda/${activity.id}/bewerken`}
                   aria-label="Bewerken"
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red-text"
                 >
                   <Pencil size={14} />
                 </Link>
                 <DeleteButton
                   onDelete={deleteActivityAction.bind(null, activity.id, false)}
                   confirmMessage="Weet je zeker dat je deze activiteit wilt verwijderen? Aanmeldingen worden ook verwijderd."
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-voc-red hover:border-voc-red"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-voc-red"
                 />
               </div>
             </div>

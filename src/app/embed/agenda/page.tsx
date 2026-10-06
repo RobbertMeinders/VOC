@@ -47,7 +47,7 @@ function ActivityCard({
         // eslint-disable-next-line @next/next/no-img-element -- a public, external-embed page: keep it framework-agnostic and dependency-free
         <img src={imageUrl} alt={activity.title} className="h-48 w-full object-cover" />
       ) : (
-        <div className="flex h-48 w-full items-center justify-center bg-voc-red-light text-voc-red">
+        <div className="flex h-48 w-full items-center justify-center bg-voc-red-light text-voc-red-text">
           <CalendarDays size={32} />
         </div>
       )}

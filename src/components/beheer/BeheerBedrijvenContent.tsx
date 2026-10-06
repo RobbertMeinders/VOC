@@ -77,7 +77,7 @@ export async function BeheerBedrijvenContent({ searchParams }: { searchParams?: 
             <Link
               href={`/bedrijven/${company.id}/bewerken`}
               aria-label="Bewerken"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red-text"
             >
               <Pencil size={13} />
             </Link>
@@ -85,7 +85,7 @@ export async function BeheerBedrijvenContent({ searchParams }: { searchParams?: 
               <DeleteButton
                 onDelete={deleteCompanyAction.bind(null, company.id, false)}
                 confirmMessage={`Weet je zeker dat je ${company.name} definitief wilt verwijderen?`}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-voc-red hover:border-voc-red"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-voc-red"
                 size={13}
               />
             )}

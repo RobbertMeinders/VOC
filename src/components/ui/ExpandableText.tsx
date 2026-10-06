@@ -53,7 +53,7 @@ export function ExpandableText({
         <button
           type="button"
           onClick={() => setExpanded((e) => !e)}
-          className="mt-1 text-xs font-medium text-voc-red hover:underline"
+          className="mt-1 text-xs font-medium text-voc-red-text hover:underline"
         >
           {expanded ? collapseLabel : expandLabel}
         </button>

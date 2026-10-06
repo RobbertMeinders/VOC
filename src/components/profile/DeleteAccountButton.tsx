@@ -33,12 +33,12 @@ export function DeleteAccountButton() {
         type="button"
         onClick={handleClick}
         disabled={isPending}
-        className="flex items-center gap-1.5 rounded-full border border-voc-red px-3 py-1.5 text-sm font-medium text-voc-red hover:bg-voc-red-light disabled:opacity-60"
+        className="flex items-center gap-1.5 rounded-full border border-voc-red px-3 py-1.5 text-sm font-medium text-voc-red-text hover:bg-voc-red-light disabled:opacity-60"
       >
         <Trash2 size={14} />
         {isPending ? "Bezig…" : "Account verwijderen"}
       </button>
-      {error && <p className="text-right text-xs text-voc-red">{error}</p>}
+      {error && <p className="text-right text-xs text-voc-red-text">{error}</p>}
     </div>
   );
 }

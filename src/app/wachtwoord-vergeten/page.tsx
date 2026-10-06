@@ -20,7 +20,7 @@ export default function ForgotPasswordPage() {
           <ForgotPasswordForm />
         </div>
         <p className="mt-6 text-center text-sm text-muted">
-          <Link href="/login" className="font-medium text-voc-red hover:underline">
+          <Link href="/login" className="font-medium text-voc-red-text hover:underline">
             Terug naar inloggen
           </Link>
         </p>

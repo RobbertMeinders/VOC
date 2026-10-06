@@ -48,7 +48,7 @@ export function CompanyMembershipRequests({
         Alleen zichtbaar voor bestaande collega&apos;s bij dit bedrijf en bestuur/beheer.
       </p>
       {error && (
-        <p role="alert" className="mb-3 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+        <p role="alert" className="mb-3 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {error}
         </p>
       )}
@@ -72,7 +72,7 @@ export function CompanyMembershipRequests({
                 disabled={isPending}
                 onClick={() => decide(request.id, "approved")}
                 aria-label="Goedkeuren"
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-voc-red-light text-voc-red hover:bg-voc-red hover:text-white disabled:opacity-50"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-voc-red-light text-voc-red-text hover:bg-voc-red hover:text-white disabled:opacity-50"
               >
                 <Check size={16} />
               </button>

@@ -45,14 +45,14 @@ export function OrganizationAccountToggle({
           disabled={pending}
           className={
             value
-              ? "rounded-full border border-border px-3 py-1.5 text-xs font-medium text-voc-red hover:border-voc-red disabled:opacity-60"
+              ? "rounded-full border border-border px-3 py-1.5 text-xs font-medium text-voc-red-text hover:border-voc-red disabled:opacity-60"
               : "rounded-full bg-voc-red px-3 py-1.5 text-xs font-medium text-white hover:bg-voc-red-dark disabled:opacity-60"
           }
         >
           {pending ? "Bezig…" : value ? "Toon in ledenlijst" : "Verberg uit ledenlijst"}
         </button>
       </div>
-      {error && <p className="text-xs text-voc-red">{error}</p>}
+      {error && <p className="text-xs text-voc-red-text">{error}</p>}
     </div>
   );
 }

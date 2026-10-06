@@ -177,7 +177,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
               type="button"
               onClick={() => setOpen(false)}
               aria-label="Sluiten"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
             >
               <X size={16} />
             </button>
@@ -192,7 +192,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
             className={clsx("p-4", dragActive && "bg-voc-red-light")}
           >
             {dragActive && (
-              <p className="mb-2 text-center text-xs font-medium text-voc-red">Zet bestanden hier neer om toe te voegen</p>
+              <p className="mb-2 text-center text-xs font-medium text-voc-red-text">Zet bestanden hier neer om toe te voegen</p>
             )}
             <div className="flex items-start gap-3">
               <Avatar firstName={author.first_name} lastName={author.last_name} avatarUrl={author.avatarUrl} size={40} />
@@ -206,7 +206,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
             </div>
 
             <div className="mt-3 sm:ml-[52px]">
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-4 text-sm font-medium text-muted hover:border-voc-red hover:text-voc-red">
+              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-4 text-sm font-medium text-muted hover:border-voc-red hover:text-voc-red-text">
                 <Upload size={22} />
                 Foto&apos;s of PDF toevoegen
                 <input
@@ -231,7 +231,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
                         <img src={preview.url} alt={preview.name} className="h-full w-full object-cover" />
                       ) : (
                         <div className="flex h-full w-full flex-col items-center justify-center gap-1 px-1 text-center">
-                          <FileText size={18} className="text-voc-red" />
+                          <FileText size={18} className="text-voc-red-text" />
                           <span className="line-clamp-2 text-[10px] text-muted">{preview.name}</span>
                         </div>
                       )}
@@ -261,13 +261,13 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
             </div>
 
             {showTagHint && !postType && (
-              <p role="alert" className="mt-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red sm:ml-[52px]">
+              <p role="alert" className="mt-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text sm:ml-[52px]">
                 Kies eerst een label (vraag, aanbod, nieuws of overig) voordat je kunt plaatsen.
               </p>
             )}
 
             {state.error && (
-              <p role="alert" className="mt-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red sm:ml-[52px]">
+              <p role="alert" className="mt-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text sm:ml-[52px]">
                 {state.error}
               </p>
             )}

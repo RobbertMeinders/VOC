@@ -181,7 +181,7 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, beheerBadge }
         onClick={toggle}
         className={clsx(
           "flex h-14 w-full flex-col items-center justify-center gap-0.5 text-xs font-medium",
-          active || open ? "text-voc-red" : "text-muted"
+          active || open ? "text-voc-red-text" : "text-muted"
         )}
       >
         <Avatar

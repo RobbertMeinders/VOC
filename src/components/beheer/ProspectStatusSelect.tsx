@@ -34,7 +34,7 @@ export function ProspectStatusSelect({ prospectId, initialStatus }: { prospectId
         value={status}
         disabled={isPending}
         onChange={(e) => handleChange(e.target.value as ProspectStatus)}
-        className="h-9 rounded-lg border border-border bg-surface px-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20 disabled:opacity-60"
+        className="h-9 rounded-lg border border-input-border bg-surface px-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20 disabled:opacity-60"
       >
         {(Object.keys(PROSPECT_STATUS_LABELS) as ProspectStatus[]).map((value) => (
           <option key={value} value={value}>
@@ -42,7 +42,7 @@ export function ProspectStatusSelect({ prospectId, initialStatus }: { prospectId
           </option>
         ))}
       </select>
-      {error && <p className="text-right text-xs text-voc-red">{error}</p>}
+      {error && <p className="text-right text-xs text-voc-red-text">{error}</p>}
     </div>
   );
 }

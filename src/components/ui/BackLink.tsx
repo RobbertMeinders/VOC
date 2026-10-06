@@ -10,7 +10,7 @@ import { ArrowLeft } from "lucide-react";
 // wordt gedeeld.
 export function BackLink({ href, label }: { href: string; label: string }) {
   return (
-    <Link href={href} className="mb-3 flex w-fit items-center gap-1.5 text-sm text-muted hover:text-voc-red">
+    <Link href={href} className="mb-3 flex w-fit items-center gap-1.5 text-sm text-muted hover:text-voc-red-text">
       <ArrowLeft size={16} />
       {label}
     </Link>

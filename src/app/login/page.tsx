@@ -31,14 +31,14 @@ export default async function LoginPage({
           <LoginForm redirectTo={next ?? "/"} />
           <Link
             href="/wachtwoord-vergeten"
-            className="mt-4 block text-center text-sm font-medium text-voc-red hover:underline"
+            className="mt-4 block text-center text-sm font-medium text-voc-red-text hover:underline"
           >
             Wachtwoord vergeten?
           </Link>
         </div>
         <p className="mt-6 text-center text-sm text-muted">
           Nieuw lid?{" "}
-          <Link href="/toegang-aanvragen" className="font-medium text-voc-red hover:underline">
+          <Link href="/toegang-aanvragen" className="font-medium text-voc-red-text hover:underline">
             Vraag toegang aan
           </Link>
           .

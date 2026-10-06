@@ -46,7 +46,7 @@ export function CompanyHeader({
                   href={company.website}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center gap-1 break-all text-voc-red hover:underline"
+                  className="flex items-center gap-1 break-all text-voc-red-text hover:underline"
                 >
                   <Globe size={14} className="shrink-0" />
                   {company.website.replace(/^https?:\/\//, "")}
@@ -62,13 +62,13 @@ export function CompanyHeader({
             <Link
               href={editHref}
               aria-label="Bewerken"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red sm:hidden"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red-text sm:hidden"
             >
               <Pencil size={14} />
             </Link>
             <Link
               href={editHref}
-              className="hidden shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-voc-red hover:text-voc-red sm:flex"
+              className="hidden shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-voc-red hover:text-voc-red-text sm:flex"
             >
               <Pencil size={14} />
               Bewerken
@@ -103,13 +103,13 @@ export function CompanyHeader({
             </p>
           )}
           {company.phone && (
-            <a href={`tel:${company.phone}`} className="flex items-center gap-1 hover:text-voc-red">
+            <a href={`tel:${company.phone}`} className="flex items-center gap-1 hover:text-voc-red-text">
               <Phone size={14} className="shrink-0" />
               {company.phone}
             </a>
           )}
           {company.email && (
-            <a href={`mailto:${company.email}`} className="flex items-center gap-1 hover:text-voc-red">
+            <a href={`mailto:${company.email}`} className="flex items-center gap-1 hover:text-voc-red-text">
               <Mail size={14} className="shrink-0" />
               {company.email}
             </a>

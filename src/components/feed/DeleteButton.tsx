@@ -36,7 +36,7 @@ export function DeleteButton({
           });
         }
       }}
-      className={className ?? "text-muted hover:text-voc-red disabled:opacity-50"}
+      className={className ?? "text-muted hover:text-voc-red-text disabled:opacity-50"}
     >
       <Trash2 size={size} />
     </button>

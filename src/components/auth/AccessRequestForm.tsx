@@ -105,7 +105,7 @@ export function AccessRequestForm() {
           id="message"
           name="message"
           rows={3}
-          className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+          className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
           placeholder="Bijvoorbeeld: waarom je graag lid wilt worden"
         />
       </div>
@@ -117,7 +117,7 @@ export function AccessRequestForm() {
         </span>
       </label>
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {state.error}
         </p>
       )}

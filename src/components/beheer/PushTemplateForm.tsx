@@ -85,7 +85,7 @@ export function PushTemplateForm({ template }: { template: PushTemplate }) {
               value={body}
               onChange={(e) => setBody(e.target.value)}
               required
-              className="rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+              className="rounded-lg border border-input-border bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
             />
           </div>
         </div>
@@ -93,7 +93,7 @@ export function PushTemplateForm({ template }: { template: PushTemplate }) {
         <div className="flex flex-col gap-1.5">
           <p className="text-sm font-medium text-foreground">Voorbeeld</p>
           <div className="flex min-h-[120px] items-start gap-3 rounded-lg border border-border bg-white p-4 shadow-sm">
-            <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-voc-red-light text-voc-red">
+            <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-voc-red-light text-voc-red-text">
               <Bell size={16} />
             </div>
             <div className="min-w-0">
@@ -105,7 +105,7 @@ export function PushTemplateForm({ template }: { template: PushTemplate }) {
       </div>
 
       {state.error && (
-        <p role="alert" className="mb-3 mt-4 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+        <p role="alert" className="mb-3 mt-4 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {state.error}
         </p>
       )}

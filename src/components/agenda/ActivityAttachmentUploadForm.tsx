@@ -28,7 +28,7 @@ export function ActivityAttachmentUploadForm({ activityId }: { activityId: strin
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 text-sm font-medium text-voc-red hover:underline"
+        className="flex items-center gap-1.5 text-sm font-medium text-voc-red-text hover:underline"
       >
         <Paperclip size={14} />
         Bijlage toevoegen
@@ -46,10 +46,10 @@ export function ActivityAttachmentUploadForm({ activityId }: { activityId: strin
         onChange={(e) => {
           void compressInputFile(e.target);
         }}
-        className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
+        className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red-text hover:file:bg-voc-red/20"
       />
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {state.error}
         </p>
       )}

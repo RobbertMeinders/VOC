@@ -173,7 +173,7 @@ export function ActivityForm({
           name="description"
           rows={4}
           defaultValue={activity?.description ?? ""}
-          className="rounded-lg border border-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+          className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
         />
       </div>
 
@@ -308,7 +308,7 @@ export function ActivityForm({
               const compressed = await compressInputFile(input);
               if (compressed) setPreview(URL.createObjectURL(compressed));
             }}
-            className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
+            className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red-text hover:file:bg-voc-red/20"
           />
         </div>
       )}
@@ -323,7 +323,7 @@ export function ActivityForm({
           type="file"
           multiple
           accept="application/pdf,image/png,image/jpeg,.doc,.docx,.ppt,.pptx"
-          className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red hover:file:bg-voc-red/20"
+          className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red-text hover:file:bg-voc-red/20"
         />
       </div>
 
@@ -368,7 +368,7 @@ export function ActivityForm({
       )}
 
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {state.error}
         </p>
       )}

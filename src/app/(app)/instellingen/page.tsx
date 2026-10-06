@@ -55,7 +55,7 @@ export default async function InstellingenPage() {
       >
         <Link
           href="/wachtwoord-instellen"
-          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red"
+          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red-text"
         >
           <KeyRound size={14} />
           Instellen
@@ -127,7 +127,7 @@ export default async function InstellingenPage() {
       <SettingRow label="Privacy & veiligheid" description="Hoe het portaal met je gegevens en toegang omgaat.">
         <Link
           href="/privacy"
-          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red"
+          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red-text"
         >
           <ShieldCheck size={14} />
           Bekijken
@@ -141,7 +141,7 @@ export default async function InstellingenPage() {
         <a
           href="/api/profiel/export"
           download
-          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red"
+          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red-text"
         >
           <Download size={14} />
           Downloaden

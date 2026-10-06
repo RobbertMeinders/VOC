@@ -46,7 +46,7 @@ export function Sidebar({
           "flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-all duration-150",
           indented ? "px-3 pl-10" : "px-3",
           active
-            ? "bg-voc-red-light text-voc-red"
+            ? "bg-voc-red-light text-voc-red-text"
             : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
@@ -80,7 +80,7 @@ export function Sidebar({
         className={clsx(
           "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
           active
-            ? "bg-voc-red-light text-voc-red"
+            ? "bg-voc-red-light text-voc-red-text"
             : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >

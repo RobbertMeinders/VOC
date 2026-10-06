@@ -16,7 +16,7 @@ export function ActivityAttachmentRow({
 }) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-sm">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red-text">
         <FileText size={18} />
       </div>
       <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{attachment.file_name}</p>

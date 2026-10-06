@@ -51,7 +51,7 @@ export function AttendedActivitiesOverlay({ memberId, onClose }: { memberId: str
               type="button"
               onClick={onClose}
               aria-label="Sluiten"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
             >
               <X size={16} />
             </button>

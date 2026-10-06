@@ -53,7 +53,7 @@ export function DocumentRow({
             }
           }}
           disabled={!previewable}
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red disabled:cursor-default"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red-text disabled:cursor-default"
         >
           <FileText size={18} />
         </button>
@@ -83,7 +83,7 @@ export function DocumentRow({
             }}
             title="Bekijken"
             aria-label="Bekijken"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
           >
             <Eye size={16} />
           </button>
@@ -97,7 +97,7 @@ export function DocumentRow({
             onClick={trackView}
             title="Downloaden"
             aria-label="Downloaden"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
           >
             <Download size={16} />
           </a>
@@ -125,7 +125,7 @@ export function DocumentRow({
                 type="button"
                 onClick={() => setPreviewOpen(false)}
                 aria-label="Sluiten"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
               >
                 <X size={18} />
               </button>

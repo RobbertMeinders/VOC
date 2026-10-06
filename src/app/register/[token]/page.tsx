@@ -25,7 +25,7 @@ export default async function RegisterPage({ params }: { params: Promise<{ token
             <p className="text-sm text-muted">
               Er ging iets mis bij het verbinden met de database. Probeer het later opnieuw.
             </p>
-            <p className="mt-4 rounded-lg bg-voc-red-light px-3 py-2 text-left text-xs text-voc-red">
+            <p className="mt-4 rounded-lg bg-voc-red-light px-3 py-2 text-left text-xs text-voc-red-text">
               {error.message}
             </p>
           </div>

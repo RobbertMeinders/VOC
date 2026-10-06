@@ -116,13 +116,13 @@ export async function MemberProfileContent({ id }: { id: string }) {
               <Link
                 href="/profiel"
                 aria-label="Profiel aanpassen"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red sm:hidden"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red-text sm:hidden"
               >
                 <Pencil size={14} />
               </Link>
               <Link
                 href="/profiel"
-                className="hidden shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-voc-red hover:text-voc-red sm:flex"
+                className="hidden shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-voc-red hover:text-voc-red-text sm:flex"
               >
                 <Pencil size={14} />
                 Profiel aanpassen

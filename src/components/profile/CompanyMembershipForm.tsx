@@ -43,7 +43,7 @@ export function CompanyMembershipForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 text-sm font-medium text-voc-red hover:underline"
+        className="flex items-center gap-1.5 text-sm font-medium text-voc-red-text hover:underline"
       >
         <Building2 size={14} />
         Bedrijf wijzigen
@@ -56,7 +56,7 @@ export function CompanyMembershipForm({
       <p className="text-sm font-medium text-foreground">Bij welk bedrijf werk je?</p>
       <CompanySelector />
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {state.error}
         </p>
       )}

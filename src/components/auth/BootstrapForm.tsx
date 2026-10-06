@@ -60,7 +60,7 @@ export function BootstrapForm() {
         <p className="text-xs text-muted">Minimaal 8 tekens.</p>
       </div>
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {state.error}
         </p>
       )}

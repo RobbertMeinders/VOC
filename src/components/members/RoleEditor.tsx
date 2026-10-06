@@ -54,7 +54,7 @@ export function RoleEditor({
           name="role"
           defaultValue={currentRole}
           aria-label="Rol wijzigen"
-          className="h-9 flex-1 rounded-lg border border-border bg-surface px-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+          className="h-9 flex-1 rounded-lg border border-input-border bg-surface px-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
         >
           {(Object.keys(ROLE_LABELS) as UserRole[]).map((role) => (
             <option key={role} value={role}>
@@ -65,7 +65,7 @@ export function RoleEditor({
         <SubmitButton />
       </div>
       {state.error && (
-        <p role="alert" className="text-xs text-voc-red">
+        <p role="alert" className="text-xs text-voc-red-text">
           {state.error}
         </p>
       )}

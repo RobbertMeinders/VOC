@@ -24,7 +24,7 @@ export default async function BootstrapRegisterPage() {
               Er is al een account aangemaakt op dit ledenportaal. Nieuwe leden hebben een
               uitnodigingslink van het bestuur nodig.
             </p>
-            <Link href="/login" className="mt-4 inline-block text-sm font-medium text-voc-red hover:underline">
+            <Link href="/login" className="mt-4 inline-block text-sm font-medium text-voc-red-text hover:underline">
               Naar het inlogscherm
             </Link>
           </div>

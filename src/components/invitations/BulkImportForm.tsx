@@ -53,7 +53,7 @@ export function BulkImportForm() {
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
-        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-8 text-sm font-medium text-muted hover:border-voc-red hover:text-voc-red">
+        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-8 text-sm font-medium text-muted hover:border-voc-red hover:text-voc-red-text">
           <Upload size={18} />
           CSV-bestand kiezen
           <input
@@ -71,7 +71,7 @@ export function BulkImportForm() {
           Verwachte kolommen (in elke volgorde): voornaam, achternaam, email, telefoon, bedrijf, bezoekersadres,
           postcode, vestigingsplaats. Een bedrijf dat nog niet bestaat wordt automatisch aangemaakt met het
           opgegeven adres.{" "}
-          <a href="/voorbeeld-leden-import.csv" download className="underline hover:text-voc-red">
+          <a href="/voorbeeld-leden-import.csv" download className="underline hover:text-voc-red-text">
             Voorbeeldbestand downloaden
           </a>
           .
@@ -112,7 +112,7 @@ export function BulkImportForm() {
                         type="button"
                         onClick={() => removeRow(index)}
                         aria-label="Rij verwijderen"
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-voc-red-light hover:text-voc-red"
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-voc-red-light hover:text-voc-red-text"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -145,7 +145,7 @@ export function BulkImportForm() {
           )}
           {result.skipped.length > 0 && (
             <div className="mt-2">
-              <p className="text-sm font-medium text-voc-red">{result.skipped.length} rij(en) overgeslagen:</p>
+              <p className="text-sm font-medium text-voc-red-text">{result.skipped.length} rij(en) overgeslagen:</p>
               <ul className="mt-1 list-inside list-disc text-xs text-muted">
                 {result.skipped.map((s, i) => (
                   <li key={i}>

@@ -28,7 +28,7 @@ export function AttendedActivitiesToggle({ initialVisible }: { initialVisible: b
       {/* Zichtbare foutmelding i.p.v. de schakelaar stil terug te laten
           klappen — dat laatste oogt alsof de knop het niet doet, zonder
           enige aanwijzing waarom. */}
-      {error && <p className="text-right text-xs text-voc-red">{error}</p>}
+      {error && <p className="text-right text-xs text-voc-red-text">{error}</p>}
     </div>
   );
 }

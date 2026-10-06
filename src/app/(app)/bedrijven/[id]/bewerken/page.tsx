@@ -51,7 +51,7 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
           <DeleteButton
             onDelete={deleteCompanyAction.bind(null, company.id)}
             confirmMessage={`Weet je zeker dat je ${company.name} definitief wilt verwijderen?`}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red hover:border-voc-red"
+            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red-text hover:border-voc-red"
             size={14}
           />
         </div>

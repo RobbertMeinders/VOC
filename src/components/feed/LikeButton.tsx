@@ -57,7 +57,7 @@ export function LikeButton({
       className={clsx(
         "flex items-center gap-1.5 rounded-full font-medium transition-colors",
         size === "sm" ? "px-2 py-1 text-xs" : "px-2.5 py-1.5 text-sm",
-        liked ? "text-voc-red" : "text-muted hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+        liked ? "text-voc-red-text" : "text-muted hover:bg-black/[.04] dark:hover:bg-white/[.06]"
       )}
     >
       <ThumbsUp key={String(liked)} size={size === "sm" ? 13 : 16} className={clsx(liked && "fill-voc-red animate-pop")} />

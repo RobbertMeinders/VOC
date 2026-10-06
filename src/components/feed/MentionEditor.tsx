@@ -185,7 +185,7 @@ export function MentionEditor({
         onBlur={() => window.setTimeout(() => setOpen(false), 120)}
         suppressContentEditableWarning
         style={maxHeight ? { maxHeight, overflowY: "auto" } : undefined}
-        className={`mention-editor ${minHeightClassName} w-full resize-none break-words rounded-2xl border border-border bg-background px-3.5 py-1.5 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20`}
+        className={`mention-editor ${minHeightClassName} w-full resize-none break-words rounded-2xl border border-input-border bg-background px-3.5 py-1.5 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20`}
       />
       <input ref={hiddenInputRef} type="hidden" name={name} />
       {open && <MentionDropdown results={results} onSelect={handleSelect} />}

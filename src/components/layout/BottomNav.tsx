@@ -47,7 +47,7 @@ export function BottomNav({
                 href={href}
                 className={clsx(
                   "relative flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-transform duration-150 active:scale-90",
-                  active ? "text-voc-red" : "text-muted"
+                  active ? "text-voc-red-text" : "text-muted"
                 )}
               >
                 <span className="relative flex h-7 w-7 items-center justify-center">

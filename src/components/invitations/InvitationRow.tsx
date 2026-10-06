@@ -51,7 +51,7 @@ export function InvitationRow({ invitation }: { invitation: Invitation }) {
           {ROLE_LABELS[invitation.role]} · verloopt {new Date(invitation.expires_at).toLocaleDateString("nl-NL")}
         </p>
         {sendResult && (
-          <p className={`mt-1 text-xs ${sendResult === "verstuurd" ? "text-green-600" : "text-voc-red"}`}>
+          <p className={`mt-1 text-xs ${sendResult === "verstuurd" ? "text-green-600" : "text-voc-red-text"}`}>
             {sendResult === "verstuurd" ? "E-mail verstuurd." : sendResult}
           </p>
         )}
@@ -91,7 +91,7 @@ export function InvitationRow({ invitation }: { invitation: Invitation }) {
             type="submit"
             title="Intrekken"
             aria-label="Uitnodiging intrekken"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-voc-red-light hover:text-voc-red"
+            className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-voc-red-light hover:text-voc-red-text"
           >
             <X size={16} />
           </button>

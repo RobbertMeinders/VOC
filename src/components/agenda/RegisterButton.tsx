@@ -76,7 +76,7 @@ export function RegisterButton({
         <p className="text-xs text-muted">Deze activiteit is vol, maar je kunt je op de wachtlijst zetten.</p>
       )}
       {error && (
-        <p role="alert" className="text-sm text-voc-red">
+        <p role="alert" className="text-sm text-voc-red-text">
           {error}
         </p>
       )}

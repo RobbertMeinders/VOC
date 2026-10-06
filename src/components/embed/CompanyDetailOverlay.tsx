@@ -64,7 +64,7 @@ export function CompanyDetailOverlay({
             type="button"
             onClick={onClose}
             aria-label="Sluiten"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-foreground shadow-sm hover:border-voc-red hover:text-voc-red"
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-foreground shadow-sm hover:border-voc-red hover:text-voc-red-text"
           >
             <X size={18} />
           </button>

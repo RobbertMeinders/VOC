@@ -18,7 +18,7 @@ function SuggestionImage({ imageUrl, kind }: { imageUrl: string | null; kind: Me
   }
   const Icon = kind === "profiel" ? User : Building2;
   return (
-    <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-voc-red-light text-voc-red">
+    <span className="flex h-[22px] w-[22px] shrink-0 items-center justify-center rounded-full bg-voc-red-light text-voc-red-text">
       <Icon size={12} />
     </span>
   );

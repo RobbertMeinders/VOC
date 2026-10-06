@@ -27,7 +27,7 @@ export function MemberRoleStatusFilter() {
       <select
         value={searchParams.get("role") ?? ""}
         onChange={(e) => updateParam(searchParams, pathname, router, "role", e.target.value)}
-        className="h-9 rounded-lg border border-border bg-surface px-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        className="h-9 rounded-lg border border-input-border bg-surface px-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
       >
         <option value="">Alle rollen</option>
         {(Object.keys(ROLE_LABELS) as UserRole[]).map((role) => (
@@ -39,7 +39,7 @@ export function MemberRoleStatusFilter() {
       <select
         value={searchParams.get("active") ?? ""}
         onChange={(e) => updateParam(searchParams, pathname, router, "active", e.target.value)}
-        className="h-9 rounded-lg border border-border bg-surface px-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        className="h-9 rounded-lg border border-input-border bg-surface px-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
       >
         <option value="">Alle statussen</option>
         <option value="actief">Actief</option>

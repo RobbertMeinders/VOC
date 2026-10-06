@@ -49,7 +49,7 @@ export function CompanySelector({ initialSelected = null }: { initialSelected?: 
             <select
               name="new_company_industry"
               defaultValue=""
-              className="h-10 rounded-lg border border-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+              className="h-10 rounded-lg border border-input-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
             >
               <option value="">Kies een branche</option>
               {INDUSTRIES.map((industry) => (
@@ -101,7 +101,7 @@ function CompanyPicker({ selected, onSelect }: { selected: CompanyOption | null;
           <p className="text-sm font-medium text-foreground">{selected.name}</p>
           {selected.city && <p className="text-xs text-muted">{selected.city}</p>}
         </div>
-        <button type="button" onClick={() => onSelect(null)} className="text-sm font-medium text-voc-red hover:underline">
+        <button type="button" onClick={() => onSelect(null)} className="text-sm font-medium text-voc-red-text hover:underline">
           Wijzig
         </button>
       </div>
@@ -123,7 +123,7 @@ function CompanyPicker({ selected, onSelect }: { selected: CompanyOption | null;
                   onSelect(company);
                   setQuery("");
                 }}
-                className="block w-full px-3 py-2 text-left text-sm hover:bg-voc-red-light hover:text-voc-red"
+                className="block w-full px-3 py-2 text-left text-sm hover:bg-voc-red-light hover:text-voc-red-text"
               >
                 {company.name}
                 {company.city && <span className="text-muted"> — {company.city}</span>}

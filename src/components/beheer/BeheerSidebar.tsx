@@ -46,7 +46,7 @@ export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
         onClick={onNavigate}
         className={clsx(
           "flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
-          active ? "bg-voc-red-light text-voc-red" : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+          active ? "bg-voc-red-light text-voc-red-text" : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
         <Icon size={16} strokeWidth={active ? 2.5 : 2} />
@@ -64,7 +64,7 @@ export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
           aria-expanded={open}
           className="flex w-full items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5 text-sm font-medium text-foreground shadow-sm"
         >
-          {activeItem && <activeItem.icon size={16} className="text-voc-red" />}
+          {activeItem && <activeItem.icon size={16} className="text-voc-red-text" />}
           {activeItem?.label ?? "Beheer"}
           <ChevronDown size={16} className={clsx("ml-auto transition-transform duration-200", open && "rotate-180")} />
         </button>

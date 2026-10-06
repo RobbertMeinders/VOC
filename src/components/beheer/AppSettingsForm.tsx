@@ -69,7 +69,7 @@ function LogoUpload({ currentLogoUrl }: { currentLogoUrl: string | null }) {
           </form>
           {(currentLogoUrl || state.logoUrl) && (
             <form action={removeAppLogoAction}>
-              <button type="submit" className="text-xs font-medium text-muted hover:text-voc-red">
+              <button type="submit" className="text-xs font-medium text-muted hover:text-voc-red-text">
                 Terug naar het standaardlogo
               </button>
             </form>
@@ -77,7 +77,7 @@ function LogoUpload({ currentLogoUrl }: { currentLogoUrl: string | null }) {
         </div>
       </div>
       {state.error && (
-        <p role="alert" className="text-sm text-voc-red">
+        <p role="alert" className="text-sm text-voc-red-text">
           {state.error}
         </p>
       )}
@@ -120,7 +120,7 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
         </div>
 
         {state.error && (
-          <p role="alert" className="mt-4 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red">
+          <p role="alert" className="mt-4 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
             {state.error}
           </p>
         )}

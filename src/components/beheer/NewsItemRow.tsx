@@ -36,7 +36,7 @@ export function NewsItemRow({ item, imageUrl }: { item: NewsItem; imageUrl: stri
         onClick={() => setEditing(true)}
         title="Bewerken"
         aria-label="Bewerken"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red dark:hover:bg-white/[.08]"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
       >
         <Pencil size={16} />
       </button>

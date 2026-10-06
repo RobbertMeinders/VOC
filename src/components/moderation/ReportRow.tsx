@@ -49,7 +49,7 @@ export function ReportRow({ report }: { report: ReportRowData }) {
   return (
     <div className="flex flex-col gap-2 border-b border-border py-4 last:border-0">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red">
+        <span className="rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red-text">
           {REASON_LABELS[report.reason] ?? report.reason}
         </span>
         <span className="text-xs text-muted">
@@ -61,7 +61,7 @@ export function ReportRow({ report }: { report: ReportRowData }) {
         <div className="rounded-lg bg-black/[.03] px-3 py-2 dark:bg-white/[.05]">
           <p className="text-xs font-medium text-muted">Bericht van {report.post.authorName}</p>
           <p className="mt-0.5 line-clamp-3 text-sm text-foreground">{report.post.content}</p>
-          <Link href={`/community?highlight=${report.post.id}`} className="mt-1 inline-block text-xs text-voc-red hover:underline">
+          <Link href={`/community?highlight=${report.post.id}`} className="mt-1 inline-block text-xs text-voc-red-text hover:underline">
             Bekijk in de feed
           </Link>
         </div>
