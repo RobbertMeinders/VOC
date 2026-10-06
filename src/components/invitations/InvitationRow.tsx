@@ -1,101 +1,101 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { Check, Clock, Copy, Mail, X } from "lucide-react";
+import { useState } from "react";
 import { ROLE_LABELS } from "@/lib/auth/roles";
-import type { Invitation } from "./InvitationList";
-import {
-  extendInvitationAction,
-  revokeInvitationAction,
-  sendInvitationEmailAction,
-} from "@/app/(app)/beheer/uitnodigingen/actions";
+import { ActionMenu, type ActionMenuItem } from "@/components/ui/ActionMenu";
+import { isInvitationExpired, type Invitation } from "./InvitationList";
+import { extendInvitationAction, revokeInvitationAction, sendInvitationEmailAction } from "@/app/(app)/beheer/uitnodigingen/actions";
 
-export function InvitationRow({ invitation }: { invitation: Invitation }) {
-  const [copied, setCopied] = useState(false);
-  const [sending, setSending] = useState(false);
-  const [sendResult, setSendResult] = useState<string | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+function StatusBadge({ invitation }: { invitation: Invitation }) {
+  if (isInvitationExpired(invitation)) {
+    return <span className="rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red-text">Verlopen</span>;
+  }
+  if (invitation.last_sent_at) {
+    return (
+      <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-500/10 dark:text-green-400">
+        Verstuurd {new Date(invitation.last_sent_at).toLocaleDateString("nl-NL")}
+      </span>
+    );
+  }
+  return (
+    <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-xs font-medium text-muted dark:bg-white/[.08]">
+      Niet verstuurd
+    </span>
+  );
+}
+
+export function InvitationRow({
+  invitation,
+  selected,
+  onToggleSelected,
+}: {
+  invitation: Invitation;
+  selected: boolean;
+  onToggleSelected: () => void;
+}) {
+  const [feedback, setFeedback] = useState<string | null>(null);
 
   const link = typeof window !== "undefined" ? `${window.location.origin}/register/${invitation.token}` : "";
   const name = [invitation.first_name, invitation.last_name].filter(Boolean).join(" ");
 
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
-
-  async function copyLink() {
-    await navigator.clipboard.writeText(link);
-    setCopied(true);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => setCopied(false), 2000);
+  // Vergelijkt de huidige waarde i.p.v. een losse timeout-ref bij te houden
+  // -- scheelt het opruimen/overschrijven van een eerdere timer als iemand
+  // snel twee menu-acties achter elkaar uitvoert.
+  function showFeedback(message: string) {
+    setFeedback(message);
+    setTimeout(() => setFeedback((current) => (current === message ? null : current)), 2500);
   }
 
-  async function sendEmail() {
-    setSending(true);
-    setSendResult(null);
-    const { error } = await sendInvitationEmailAction(invitation.id);
-    setSending(false);
-    setSendResult(error ?? "verstuurd");
+  const items: ActionMenuItem[] = [];
+  if (invitation.email) {
+    items.push({
+      label: "Verstuur e-mail",
+      onClick: async () => {
+        const { error } = await sendInvitationEmailAction(invitation.id);
+        showFeedback(error ?? "E-mail verstuurd.");
+      },
+    });
   }
+  items.push({
+    label: "Kopieer link",
+    onClick: () => {
+      void navigator.clipboard.writeText(link);
+      showFeedback("Link gekopieerd.");
+    },
+  });
+  items.push({
+    label: "Verleng met 14 dagen",
+    onClick: () => {
+      void extendInvitationAction(invitation.id);
+    },
+  });
+  items.push({
+    label: "Intrekken",
+    danger: true,
+    onClick: () => {
+      void revokeInvitationAction(invitation.id);
+    },
+  });
 
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-3 last:border-0">
-      <div>
-        <p className="text-sm font-medium text-foreground">
-          {name || invitation.email || "Geen naam/e-mailadres opgegeven"}
-        </p>
-        <p className="text-xs text-muted">
-          {name && invitation.email ? `${invitation.email} · ` : ""}
-          {ROLE_LABELS[invitation.role]} · verloopt {new Date(invitation.expires_at).toLocaleDateString("nl-NL")}
-        </p>
-        {sendResult && (
-          <p className={`mt-1 text-xs ${sendResult === "verstuurd" ? "text-green-600" : "text-voc-red-text"}`}>
-            {sendResult === "verstuurd" ? "E-mail verstuurd." : sendResult}
+    <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-2.5 last:border-0">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <input type="checkbox" checked={selected} onChange={onToggleSelected} className="shrink-0 rounded" />
+        <div className="min-w-0">
+          <p className="truncate text-sm font-medium text-foreground">
+            {name || invitation.email || "Geen naam/e-mailadres opgegeven"}
+            {invitation.company && <span className="font-normal text-muted"> — {invitation.company.name}</span>}
           </p>
-        )}
+          <p className="truncate text-xs text-muted">
+            {name && invitation.email ? `${invitation.email} · ` : ""}
+            {ROLE_LABELS[invitation.role]} · verloopt {new Date(invitation.expires_at).toLocaleDateString("nl-NL")}
+          </p>
+          {feedback && <p className="mt-0.5 text-xs text-muted">{feedback}</p>}
+        </div>
       </div>
-      <div className="flex items-center gap-2">
-        {invitation.email && (
-          <button
-            type="button"
-            onClick={sendEmail}
-            disabled={sending}
-            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-black/[.04] disabled:opacity-50 dark:hover:bg-white/[.06]"
-          >
-            <Mail size={14} />
-            {sending ? "Versturen…" : "Verstuur e-mail"}
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={copyLink}
-          className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-        >
-          {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
-          {copied ? "Gekopieerd" : "Kopieer link"}
-        </button>
-        <form action={extendInvitationAction.bind(null, invitation.id)}>
-          <button
-            type="submit"
-            title="Verleng met 14 dagen"
-            aria-label="Uitnodiging verlengen"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-          >
-            <Clock size={16} />
-          </button>
-        </form>
-        <form action={revokeInvitationAction.bind(null, invitation.id)}>
-          <button
-            type="submit"
-            title="Intrekken"
-            aria-label="Uitnodiging intrekken"
-            className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-voc-red-light hover:text-voc-red-text"
-          >
-            <X size={16} />
-          </button>
-        </form>
+      <div className="flex shrink-0 items-center gap-2">
+        <StatusBadge invitation={invitation} />
+        <ActionMenu items={items} />
       </div>
     </div>
   );

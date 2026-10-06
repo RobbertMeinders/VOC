@@ -115,6 +115,9 @@ export async function createInvitationFromAccessRequestAction(requestId: string)
 
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
   const { error: emailError } = await sendTemplatedEmail("uitnodiging", request.email, { link });
+  if (!emailError) {
+    await supabase.from("invitations").update({ last_sent_at: new Date().toISOString() }).eq("token", invitation.token);
+  }
 
   return { success: true, emailSent: !emailError, emailError };
 }

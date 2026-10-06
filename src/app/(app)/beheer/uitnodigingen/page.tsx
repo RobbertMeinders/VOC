@@ -17,7 +17,7 @@ export default async function UitnodigingenPage({ searchParams }: { searchParams
 
   const { data: allInvitations } = await supabase
     .from("invitations")
-    .select("*")
+    .select("*, company:companies(name)")
     .eq("status", "pending")
     .order("created_at", { ascending: false })
     .returns<Invitation[]>();

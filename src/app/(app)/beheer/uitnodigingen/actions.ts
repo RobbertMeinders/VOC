@@ -39,6 +39,9 @@ export async function createInvitationAction(
 
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
   const { error: emailError } = await sendTemplatedEmail("uitnodiging", email, { link });
+  if (!emailError) {
+    await supabase.from("invitations").update({ last_sent_at: new Date().toISOString() }).eq("token", invitation.token);
+  }
 
   // De uitnodiging zelf is al aangemaakt en blijft via "kopieer link" bruikbaar,
   // ook als het versturen van de mail zelf mislukt (bijv. Resend nog niet
@@ -98,5 +101,76 @@ export async function sendInvitationEmailAction(id: string): Promise<{ error?: s
 
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
   const { error } = await sendTemplatedEmail("uitnodiging", invitation.email, { link });
+  if (!error) {
+    await supabase.from("invitations").update({ last_sent_at: new Date().toISOString() }).eq("id", id);
+    revalidatePath("/beheer/uitnodigingen");
+  }
   return { error };
+}
+
+export type BulkActionResult = { succeeded: number; failed: number; error?: string };
+
+// Bulk-tegenhangers van de losse rij-acties hierboven (zie B2 uit de
+// UX-review: 137 uitnodigingen één voor één aanklikken is onwerkbaar) —
+// opereren op een door het bestuur geselecteerde subset i.p.v. "alle
+// openstaande" zoals de bestaande "Verleng alle"-knop.
+export async function bulkSendInvitationEmailsAction(ids: string[]): Promise<BulkActionResult> {
+  await requireBoard();
+  const supabase = await createClient();
+
+  const { data: invitations } = await supabase
+    .from("invitations")
+    .select("id, token, email, status")
+    .in("id", ids)
+    .eq("status", "pending");
+
+  const withEmail = (invitations ?? []).filter((i): i is typeof i & { email: string } => Boolean(i.email));
+  if (withEmail.length === 0) {
+    return { succeeded: 0, failed: ids.length, error: "Geen van de geselecteerde uitnodigingen heeft een e-mailadres." };
+  }
+
+  let succeeded = 0;
+  const sentIds: string[] = [];
+  for (const invitation of withEmail) {
+    const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
+    const { error } = await sendTemplatedEmail("uitnodiging", invitation.email, { link });
+    if (!error) {
+      succeeded += 1;
+      sentIds.push(invitation.id);
+    }
+  }
+
+  if (sentIds.length > 0) {
+    await supabase.from("invitations").update({ last_sent_at: new Date().toISOString() }).in("id", sentIds);
+  }
+
+  revalidatePath("/beheer/uitnodigingen");
+  return { succeeded, failed: ids.length - succeeded };
+}
+
+export async function bulkExtendInvitationsAction(ids: string[]): Promise<BulkActionResult> {
+  await requireBoard();
+  const supabase = await createClient();
+  const { error, count } = await supabase
+    .from("invitations")
+    .update({ expires_at: new Date(Date.now() + EXTENDED_VALIDITY_MS).toISOString() }, { count: "exact" })
+    .in("id", ids)
+    .eq("status", "pending");
+
+  revalidatePath("/beheer/uitnodigingen");
+  if (error) return { succeeded: 0, failed: ids.length, error: "Verlengen is niet gelukt." };
+  return { succeeded: count ?? ids.length, failed: ids.length - (count ?? ids.length) };
+}
+
+export async function bulkRevokeInvitationsAction(ids: string[]): Promise<BulkActionResult> {
+  await requireBoard();
+  const supabase = await createClient();
+  const { error, count } = await supabase
+    .from("invitations")
+    .update({ status: "revoked" }, { count: "exact" })
+    .in("id", ids);
+
+  revalidatePath("/beheer/uitnodigingen");
+  if (error) return { succeeded: 0, failed: ids.length, error: "Intrekken is niet gelukt." };
+  return { succeeded: count ?? ids.length, failed: ids.length - (count ?? ids.length) };
 }

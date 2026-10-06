@@ -138,6 +138,7 @@ export interface Database {
           job_title: string | null;
           company_id: string | null;
           imported: boolean;
+          last_sent_at: string | null;
         };
         Insert: Partial<Database["public"]["Tables"]["invitations"]["Row"]>;
         Update: Partial<Database["public"]["Tables"]["invitations"]["Row"]>;
