@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { usePathname } from "next/navigation";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 
 // De vier menu-overlays (zoeken, notificaties, netwerk, account) leven allemaal
@@ -23,6 +24,19 @@ const OverlayContext = createContext<OverlayContextValue | null>(null);
 
 export function OverlayProvider({ children }: { children: ReactNode }) {
   const [openOverlay, setOpenOverlay] = useState<OverlayKey | null>(null);
+  const pathname = usePathname();
+  const prevPathnameRef = useRef(pathname);
+
+  // Vangnet voor elke overlay die zijn eigen "sluit bij navigatie"-link mist
+  // (bv. browser-terugknop, of een link ergens anders op de pagina die geen
+  // close() aanroept): een pathname-wijziging betekent per definitie dat de
+  // gebruiker is weggenavigeerd, dus geen van deze vier overlays hoort dan
+  // nog open te staan.
+  useEffect(() => {
+    if (prevPathnameRef.current === pathname) return;
+    prevPathnameRef.current = pathname;
+    setOpenOverlay(null);
+  }, [pathname]);
 
   // Achtergrond niet laten scrollen terwijl een overlay open staat — zonder
   // dit kan de focus op een input in een fixed paneel (Zoeken) de pagina op

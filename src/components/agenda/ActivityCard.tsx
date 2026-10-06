@@ -95,7 +95,7 @@ export function ActivityCard({
           <p className="mt-1 text-sm text-muted">{formatActivityDate(activity.starts_at)}</p>
           {activity.location && (
             <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted">
-              <MapPin size={14} />
+              <MapPin size={14} className="shrink-0" />
               {activity.location}
             </p>
           )}
@@ -154,7 +154,7 @@ export function ActivityCard({
             hele kaart lager. */}
         {activity.location && !isSubmitted && (
           <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted">
-            <MapPin size={14} />
+            <MapPin size={14} className="shrink-0" />
             {activity.location}
           </p>
         )}

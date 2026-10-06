@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Building2, ChevronDown, ChevronUp, Users } from "lucide-react";
@@ -30,8 +31,29 @@ export function NetworkChooser({
   badgeCount: number;
   variant?: "mobile" | "sidebar";
 }) {
-  const { open, toggle, close } = useOverlay("netwerk");
+  const sharedOverlay = useOverlay("netwerk");
+  // Sidebar-variant: eigen lokale open/dicht-stand i.p.v. de gedeelde
+  // OverlayContext. Dit submenu klapt alleen inline open binnen de sidebar
+  // (geen backdrop, dekt niets af), dus het hoort niet mee te doen aan de
+  // gedeelde scroll-lock die voor de ECHTE popovers (Zoeken, Notificaties,
+  // account, en de mobiele variant hieronder) nodig is — anders bleef de
+  // pagina op slot staan zolang dit submenu openstond, ook zonder dat je
+  // ergens heen navigeerde.
+  const [localOpen, setLocalOpen] = useState(false);
+  const open = variant === "sidebar" ? localOpen : sharedOverlay.open;
+  const toggle = variant === "sidebar" ? () => setLocalOpen((v) => !v) : sharedOverlay.toggle;
+  const close = variant === "sidebar" ? () => setLocalOpen(false) : sharedOverlay.close;
   const pathname = usePathname();
+  const prevPathnameRef = useRef(pathname);
+  // Submenu ook dichtklappen als je via een ándere sidebar-link wegnavigeert
+  // (bv. Agenda, Documenten, Home) i.p.v. via de eigen Leden/Bedrijven-links
+  // hieronder — anders bleef het, nu onschadelijk maar wel slordig, gewoon
+  // openstaan op de nieuwe pagina.
+  useEffect(() => {
+    if (prevPathnameRef.current === pathname) return;
+    prevPathnameRef.current = pathname;
+    setLocalOpen(false);
+  }, [pathname]);
   const active = pathname.startsWith("/leden") || pathname.startsWith("/bedrijven");
   // Alleen op mobiel is dit nog een los gepositioneerd paneel (zie
   // useFixedAnchor hieronder) — de sidebar-variant klapt inline open, dus
@@ -96,14 +118,15 @@ export function NetworkChooser({
         type="button"
         onClick={toggle}
         className={clsx(
-          "relative flex h-14 w-full flex-col items-center justify-center gap-0.5 text-xs font-medium",
+          "relative flex h-14 w-full flex-col items-center justify-center gap-0.5 text-xs font-medium transition-transform duration-150 active:scale-90",
           active ? "text-voc-red" : "text-muted"
         )}
       >
-        <span className="relative">
-          <Users size={22} strokeWidth={active ? 2.5 : 2} />
+        <span className="relative flex h-7 w-7 items-center justify-center">
+          {active && <span className="animate-pop absolute inset-0 rounded-full bg-voc-red-light" />}
+          <Users size={22} strokeWidth={active ? 2.5 : 2} className="relative" />
           {badgeCount > 0 && (
-            <span className="absolute -right-1.5 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-voc-red px-1 text-[10px] font-medium text-white">
+            <span className="animate-pop absolute -right-1.5 -top-1.5 z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-voc-red px-1 text-[10px] font-medium text-white">
               {badgeCount > 9 ? "9+" : badgeCount}
             </span>
           )}
