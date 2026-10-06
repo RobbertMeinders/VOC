@@ -22,8 +22,8 @@ export default async function AanvragenPage() {
     <div>
       <h1 className="mb-1 text-xl font-semibold text-foreground">Toegangsaanvragen</h1>
       <p className="mb-6 text-sm text-muted">
-        Mensen die via het inlogscherm om toegang hebben gevraagd. Beoordeel en nodig ze zo nodig
-        uit via <span className="font-medium text-foreground">Uitnodigingen</span>.
+        Mensen die via het inlogscherm of het aanmeldformulier om toegang hebben gevraagd. Nodig ze
+        direct uit — naam, bedrijf en adres worden overgenomen in de uitnodiging.
       </p>
 
       <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
