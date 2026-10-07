@@ -3,6 +3,7 @@ import { isAdmin } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { cachedQuery } from "@/lib/cache/queryCache";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { BeheerBedrijvenListClient, type BeheerCompanyRow } from "@/components/beheer/BeheerBedrijvenListClient";
 import { NewCompanyButton } from "@/components/beheer/NewCompanyButton";
 
@@ -39,8 +40,7 @@ export async function BeheerBedrijvenContent() {
 
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold text-foreground">Bedrijven beheren</h1>
-      <p className="mb-4 text-sm text-muted">Bedrijfsprofiel snel aanpassen, direct vanuit dit overzicht.</p>
+      <PageHeader title="Bedrijven beheren" description="Bedrijfsprofiel snel aanpassen, direct vanuit dit overzicht." />
 
       <NewCompanyButton />
 

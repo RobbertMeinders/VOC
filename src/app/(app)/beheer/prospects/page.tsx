@@ -3,6 +3,7 @@ import { UserSearch } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { ProspectRow, type Prospect } from "@/components/beheer/ProspectRow";
 
 export const metadata: Metadata = { title: "Potentiële leden" };
@@ -19,11 +20,10 @@ export default async function ProspectsPage() {
 
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold text-foreground">Potentiële leden</h1>
-      <p className="mb-2 text-sm text-muted">
-        Niet-leden die zich via de openbare agenda-embed hebben aangemeld voor een activiteit. Wordt automatisch
-        bijgewerkt bij elke nieuwe aanmelding en na 90 dagen zonder nieuwe aanmelding automatisch verwijderd.
-      </p>
+      <PageHeader
+        title="Potentiële leden"
+        description="Niet-leden die zich via de openbare agenda-embed hebben aangemeld voor een activiteit. Wordt automatisch bijgewerkt bij elke nieuwe aanmelding en na 90 dagen zonder nieuwe aanmelding automatisch verwijderd."
+      />
       <p className="mb-6 text-sm text-muted">
         Gebruik het e-mailadres om zelf contact op te nemen (bijv. na de activiteit, of om te vragen of diegene lid
         wil worden), en zet daarna de status: <span className="text-foreground">Wil lid worden</span> als iemand

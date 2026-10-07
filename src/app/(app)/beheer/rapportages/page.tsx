@@ -3,6 +3,7 @@ import { Flag } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { ReportRow, type ReportResolution, type ReportRowData } from "@/components/moderation/ReportRow";
 
 export const metadata: Metadata = { title: "Rapportages" };
@@ -98,8 +99,7 @@ export default async function RapportagesPage() {
 
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold text-foreground">Rapportages</h1>
-      <p className="mb-6 text-sm text-muted">Door leden gerapporteerde berichten uit de community-feed.</p>
+      <PageHeader title="Rapportages" description="Door leden gerapporteerde berichten uit de community-feed." />
 
       <div className="mb-6 rounded-2xl border border-border bg-surface p-4 shadow-sm">
         <h2 className="mb-2 text-sm font-semibold text-foreground">Openstaand</h2>

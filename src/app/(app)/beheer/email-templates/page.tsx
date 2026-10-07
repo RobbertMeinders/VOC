@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { EmailTemplateForm } from "@/components/beheer/EmailTemplateForm";
 import { PushTemplateForm } from "@/components/beheer/PushTemplateForm";
 import type { Database } from "@/lib/types/database";
@@ -70,13 +71,15 @@ export default async function EmailTemplatesPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">E-mailtemplates</h1>
-        <p className="text-sm text-muted">
-          Inhoud van de mails die de app zelf verstuurt. Gebruik <code>{"{{link}}"}</code> op de plek
-          waar de link moet komen.
-        </p>
-      </div>
+      <PageHeader
+        title="E-mailtemplates"
+        description={
+          <>
+            Inhoud van de mails die de app zelf verstuurt. Gebruik <code>{"{{link}}"}</code> op de plek waar de
+            link moet komen.
+          </>
+        }
+      />
 
       {emails.length > 0 && activeEmailTemplate && (
         <div className="flex min-w-0 flex-col gap-3">

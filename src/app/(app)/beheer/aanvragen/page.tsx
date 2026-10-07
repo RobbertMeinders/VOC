@@ -3,6 +3,7 @@ import { UserPlus } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { AccessRequestRow, type AccessRequest } from "@/components/invitations/AccessRequestRow";
 
 export const metadata: Metadata = { title: "Toegangsaanvragen" };
@@ -20,11 +21,10 @@ export default async function AanvragenPage() {
 
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold text-foreground">Toegangsaanvragen</h1>
-      <p className="mb-6 text-sm text-muted">
-        Mensen die via het inlogscherm of het aanmeldformulier om toegang hebben gevraagd. Nodig ze
-        direct uit — naam, bedrijf en adres worden overgenomen in de uitnodiging.
-      </p>
+      <PageHeader
+        title="Toegangsaanvragen"
+        description="Mensen die via het inlogscherm of het aanmeldformulier om toegang hebben gevraagd. Nodig ze direct uit — naam, bedrijf en adres worden overgenomen in de uitnodiging."
+      />
 
       <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
         {requests && requests.length > 0 ? (

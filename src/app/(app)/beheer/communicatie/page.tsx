@@ -3,6 +3,7 @@ import { Megaphone, Plus } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { CommunicationRow } from "@/components/beheer/CommunicationRow";
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { createCommunicationAction } from "./actions";
@@ -28,23 +29,21 @@ export default async function BeheerCommunicatiePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">Communicatie</h1>
-          <p className="text-sm text-muted">
-            Centrale plek voor campagnes en algemene e-mailcommunicatie naar leden.
-          </p>
-        </div>
-        <form action={createCommunicationAction}>
-          <button
-            type="submit"
-            className="flex shrink-0 items-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
-          >
-            <Plus size={16} />
-            Nieuwe campagne
-          </button>
-        </form>
-      </div>
+      <PageHeader
+        title="Communicatie"
+        description="Centrale plek voor campagnes en algemene e-mailcommunicatie naar leden."
+        action={
+          <form action={createCommunicationAction}>
+            <button
+              type="submit"
+              className="flex w-full items-center justify-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark sm:w-auto"
+            >
+              <Plus size={16} />
+              Nieuwe campagne
+            </button>
+          </form>
+        }
+      />
 
       {(communications ?? []).length === 0 ? (
         <ComingSoon

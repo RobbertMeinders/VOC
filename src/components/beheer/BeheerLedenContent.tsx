@@ -2,6 +2,7 @@ import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { cachedQuery } from "@/lib/cache/queryCache";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { BeheerLedenListClient, type BeheerMemberRow } from "@/components/beheer/BeheerLedenListClient";
 import { isAdmin } from "@/lib/auth/roles";
 import type { Database } from "@/lib/types/database";
@@ -65,8 +66,7 @@ export async function BeheerLedenContent() {
 
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold text-foreground">Leden beheren</h1>
-      <p className="mb-4 text-sm text-muted">Rol wijzigen en activeren/deactiveren, direct vanuit dit overzicht.</p>
+      <PageHeader title="Leden beheren" description="Rol wijzigen en activeren/deactiveren, direct vanuit dit overzicht." />
 
       <BeheerLedenListClient members={members} viewerId={viewer.id} canEditRole={isAdmin(viewer.role)} />
     </div>

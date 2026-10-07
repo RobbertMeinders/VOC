@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { DeleteButton } from "@/components/feed/DeleteButton";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { NewsletterEditor } from "@/components/beheer/NewsletterEditor";
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { deleteCommunicationAction } from "../actions";
@@ -77,18 +78,19 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold text-foreground">{communication.subject}</h1>
-          <p className="mt-0.5 text-xs text-muted">{statusLabel}</p>
-        </div>
-        {communication.status !== "verzonden" && (
-          <DeleteButton
-            confirmMessage={`Weet je zeker dat je "${communication.subject}" wilt verwijderen?`}
-            onDelete={deleteCommunicationAction.bind(null, communication.id)}
-          />
-        )}
-      </div>
+      <PageHeader
+        title={communication.subject}
+        description={statusLabel}
+        back={{ href: "/beheer/communicatie", label: "Terug naar communicatie" }}
+        action={
+          communication.status !== "verzonden" && (
+            <DeleteButton
+              confirmMessage={`Weet je zeker dat je "${communication.subject}" wilt verwijderen?`}
+              onDelete={deleteCommunicationAction.bind(null, communication.id)}
+            />
+          )
+        }
+      />
 
       <NewsletterEditor
         communication={communication}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { headers } from "next/headers";
 import { requireAdmin } from "@/lib/auth/session";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { CopyEmbedCode } from "@/components/beheer/CopyEmbedCode";
 
 export const metadata: Metadata = { title: "Embed-codes" };
@@ -94,13 +95,10 @@ export default async function EmbedCodesPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">Embed-codes</h1>
-        <p className="text-sm text-muted">
-          Plak deze code in een HTML/iframe-blok op de openbare VOC-website (bijv. in Elementor) om het
-          bijbehorende onderdeel daar te tonen.
-        </p>
-      </div>
+      <PageHeader
+        title="Embed-codes"
+        description="Plak deze code in een HTML/iframe-blok op de openbare VOC-website (bijv. in Elementor) om het bijbehorende onderdeel daar te tonen."
+      />
 
       <div className="flex flex-col gap-4">
         {EMBEDS.map((embed) => {

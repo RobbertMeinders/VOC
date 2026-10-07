@@ -4,6 +4,7 @@ import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { NewsItemForm } from "@/components/beheer/NewsItemForm";
 import { NewsItemRow } from "@/components/beheer/NewsItemRow";
 import type { Database } from "@/lib/types/database";
@@ -30,13 +31,10 @@ export default async function BeheerNieuwsPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">Nieuws</h1>
-        <p className="text-sm text-muted">
-          Officiële mededelingen vanuit bestuur — staan los van de community-feed, bovenaan het dashboard en op de
-          nieuwspagina voor alle leden.
-        </p>
-      </div>
+      <PageHeader
+        title="Nieuws"
+        description="Officiële mededelingen vanuit bestuur — staan los van de community-feed, bovenaan het dashboard en op de nieuwspagina voor alle leden."
+      />
 
       <NewsItemForm />
 

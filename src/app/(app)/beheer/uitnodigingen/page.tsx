@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Clock } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { InviteForm } from "@/components/invitations/InviteForm";
 import { InvitationList, type Invitation } from "@/components/invitations/InvitationList";
 import { extendAllInvitationsAction } from "./actions";
@@ -24,11 +25,10 @@ export default async function UitnodigingenPage() {
 
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold text-foreground">Uitnodigingen</h1>
-      <p className="mb-6 text-sm text-muted">
-        Nodig nieuwe leden uit voor het ledenportaal. Vul een e-mailadres in om de uitnodiging
-        automatisch te versturen, of laat het leeg en deel de link zelf.
-      </p>
+      <PageHeader
+        title="Uitnodigingen"
+        description="Nodig nieuwe leden uit voor het ledenportaal. Vul een e-mailadres in om de uitnodiging automatisch te versturen, of laat het leeg en deel de link zelf."
+      />
 
       <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
         <InviteForm canInviteBoard={profile.role === "beheerder"} />

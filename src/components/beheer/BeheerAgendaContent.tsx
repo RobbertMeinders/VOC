@@ -5,6 +5,7 @@ import { clsx } from "clsx";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
 import { ApproveActivityForm } from "@/components/agenda/ApproveActivityForm";
@@ -105,19 +106,28 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
-          <h1 className="mb-1 text-xl font-semibold text-foreground">Agenda beheren</h1>
-          <p className="text-sm text-muted">Alle activiteiten met status, goedkeuren/afwijzen/bewerken/verwijderen.</p>
-        </div>
-        <Link
-          href="/agenda/nieuw"
-          className="flex shrink-0 items-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
-        >
-          <Plus size={16} />
-          Nieuwe activiteit
-        </Link>
-      </div>
+      <PageHeader
+        title="Agenda beheren"
+        description="Alle activiteiten met status, goedkeuren/afwijzen/bewerken/verwijderen."
+        action={
+          <Link
+            href="/agenda/nieuw"
+            className="flex items-center justify-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
+          >
+            <Plus size={16} />
+            Nieuwe activiteit
+          </Link>
+        }
+        floatingAction={
+          <Link
+            href="/agenda/nieuw"
+            aria-label="Nieuwe activiteit"
+            className="flex h-14 w-14 items-center justify-center rounded-full bg-voc-red text-white shadow-lg hover:bg-voc-red-dark"
+          >
+            <Plus size={24} />
+          </Link>
+        }
+      />
 
       <div className="mb-4 flex gap-1.5 overflow-x-auto">
         {STATUS_FILTERS.map((filter) => (

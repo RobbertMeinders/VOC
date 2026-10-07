@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { requireBoard } from "@/lib/auth/session";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { LineTrend, BarTrend, Funnel } from "@/components/beheer/statistics/Charts";
 import {
   getActivityStats,
@@ -417,10 +418,10 @@ export default async function StatistiekenPage({
 
   return (
     <div className="flex flex-col gap-4">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">Statistieken</h1>
-        <p className="text-sm text-muted">Belangrijkste cijfers over leden, community, activiteiten, e-mail en push.</p>
-      </div>
+      <PageHeader
+        title="Statistieken"
+        description="Belangrijkste cijfers over leden, community, activiteiten, e-mail en push."
+      />
 
       <div className="flex flex-col gap-2">
         <div className="flex gap-1.5 overflow-x-auto">
