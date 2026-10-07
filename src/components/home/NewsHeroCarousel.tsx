@@ -94,7 +94,18 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
       onPointerCancel={handlePointerCancel}
     >
       {slides.map((slide, slideIndex) => {
-        const offset = slideIndex - index;
+        // Kortste cirkelvormige afstand i.p.v. een kale aftrekking: bij de
+        // stap van de laatste naar de eerste slide (de "wrap") gaf
+        // `slideIndex - index` een sprong van bijna de volle lengte in de
+        // verkeerde richting (de nieuwe eerste slide kwam van links het
+        // scherm in slepen i.p.v. door te schuiven zoals elke andere
+        // stap) — de carrousel leek daardoor telkens terug te springen.
+        // Door steeds de kortste weg rond de cirkel te nemen, wordt die
+        // wrap-stap identiek aan elke gewone stap: nieuwe slide komt altijd
+        // van rechts, vorige schuift altijd naar links weg.
+        let offset = slideIndex - index;
+        if (offset > slides.length / 2) offset -= slides.length;
+        if (offset < -slides.length / 2) offset += slides.length;
         // Elke slide staat op een eigen horizontale positie t.o.v. de
         // actieve: huidige op 0%, volgende op 100% (rechts, buiten beeld),
         // vorige op -100% (links, buiten beeld) — zo schuift bij een
