@@ -22,34 +22,21 @@ import { clsx } from "clsx";
 // kiest tussen de twee vaste achtergronden — "background" voor een select
 // die (samen met een naastliggend <textarea>) verdiept moet liggen in een
 // al bg-surface-gekleurd paneel (bv. een overlay-kaart).
-// `variant="bare"` laat rand en achtergrond helemaal weg (alleen tekst +
-// chevron, met een hover-vlak) — voor een instellingenrij naast een
-// Switch, waar een volle invoerveld-doos te zwaar oogt naast zo'n lichte
-// schakelaar. `surface` wordt dan genegeerd.
 export const Select = forwardRef<
   HTMLSelectElement,
-  SelectHTMLAttributes<HTMLSelectElement> & {
-    invalid?: boolean;
-    surface?: "surface" | "background";
-    variant?: "bordered" | "bare";
-  }
->(function Select({ className, invalid, surface = "surface", variant = "bordered", children, ...props }, ref) {
+  SelectHTMLAttributes<HTMLSelectElement> & { invalid?: boolean; surface?: "surface" | "background" }
+>(function Select({ className, invalid, surface = "surface", children, ...props }, ref) {
   return (
     <div className="relative">
       <select
         ref={ref}
         aria-invalid={invalid || undefined}
         className={clsx(
-          "appearance-none rounded-lg pr-9 text-sm text-foreground",
-          variant === "bare"
-            ? "hover:bg-black/[.04] dark:hover:bg-white/[.06] focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-            : clsx(
-                "border",
-                surface === "surface" ? "bg-surface" : "bg-background",
-                invalid
-                  ? "border-voc-red focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-                  : "border-input-border focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-              ),
+          "appearance-none rounded-lg border pr-9 text-sm text-foreground",
+          surface === "surface" ? "bg-surface" : "bg-background",
+          invalid
+            ? "border-voc-red focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+            : "border-input-border focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20",
           "disabled:cursor-not-allowed disabled:opacity-60",
           className
         )}

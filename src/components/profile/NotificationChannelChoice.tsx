@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Select } from "@/components/ui/Select";
+import { clsx } from "clsx";
 import { updateNotificationChannelAction } from "@/app/(app)/profiel/actions";
 
 type Category = "activities" | "feed";
@@ -14,9 +14,20 @@ function toChoice(push: boolean, email: boolean): Choice {
   return "none";
 }
 
-// Communicatieplan: één keuze i.p.v. losse push/e-mail-schakelaars, zodat
-// "beide" een bewuste keuze is i.p.v. de ongemerkte standaard die het
-// voorheen was.
+const OPTIONS: { value: Choice; label: string }[] = [
+  { value: "push", label: "Push" },
+  { value: "email", label: "Mail" },
+  { value: "both", label: "Beide" },
+  { value: "none", label: "Geen" },
+];
+
+// Communicatieplan: één keuze i.p.v. losse push/e-mail-schakelaars. Zelfde
+// segment-pil-stijl als ThemeToggle (bg-background-pil met een rode actieve
+// knop) i.p.v. een <select> — een dropdown stak qua gewicht en, in donker
+// thema, qua contrast af tegen de schakelaars verderop op dezelfde pagina.
+// flex-wrap vangt op dat 4 opties op een smal scherm niet naast een lange
+// rijlabel ("Reacties en vermeldingen") passen — breekt dan netjes naar 2x2
+// i.p.v. van de pagina af te lopen.
 export function NotificationChannelChoice({
   category,
   initialPush,
@@ -31,6 +42,7 @@ export function NotificationChannelChoice({
   const [isPending, startTransition] = useTransition();
 
   function handleChange(next: Choice) {
+    if (next === choice) return;
     const previous = choice;
     setChoice(next);
     setError(null);
@@ -45,18 +57,22 @@ export function NotificationChannelChoice({
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <Select
-        variant="bare"
-        value={choice}
-        disabled={isPending}
-        onChange={(e) => handleChange(e.target.value as Choice)}
-        className="h-9 pl-2.5 font-medium"
-      >
-        <option value="push">Pushmelding</option>
-        <option value="email">E-mail</option>
-        <option value="both">Beide</option>
-        <option value="none">Geen</option>
-      </Select>
+      <div className="inline-flex flex-wrap justify-end gap-y-1 rounded-lg border border-border bg-background p-1">
+        {OPTIONS.map(({ value, label }) => (
+          <button
+            key={value}
+            type="button"
+            disabled={isPending}
+            onClick={() => handleChange(value)}
+            className={clsx(
+              "rounded-md px-2.5 py-1 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+              choice === value ? "bg-voc-red text-white" : "text-muted hover:text-foreground"
+            )}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
       {error && <p className="text-right text-xs text-voc-red-text">{error}</p>}
     </div>
   );
