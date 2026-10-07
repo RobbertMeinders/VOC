@@ -7,7 +7,7 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { formatActivityDate } from "@/lib/format/date";
-import { OnboardingChecklist, type OnboardingStep } from "@/components/home/OnboardingChecklist";
+import { ProfilePhotoPrompt } from "@/components/home/ProfilePhotoPrompt";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Home" };
@@ -52,35 +52,27 @@ export default async function HomePage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: activities }, { count: companyCount }, { count: memberCount }, { data: newsItems }, { count: companyMembershipCount }, { count: pushSubscriptionCount }] =
-    await Promise.all([
-      supabase
-        .from("activities")
-        .select("*")
-        .eq("status", "approved")
-        .gte("starts_at", new Date().toISOString())
-        .order("starts_at", { ascending: true })
-        .limit(1)
-        .returns<ActivityRow[]>(),
-      supabase.from("companies").select("id", { count: "exact", head: true }),
-      supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
-      supabase.from("news_items").select("*").order("created_at", { ascending: false }).limit(1).returns<NewsItemRow[]>(),
-      // UX-review U1: deze twee tellingen bepalen alleen of de welkomst-
-      // checklist hieronder die stap als klaar markeert.
-      supabase.from("company_members").select("id", { count: "exact", head: true }).eq("profile_id", profile.id),
-      supabase.from("push_subscriptions").select("id", { count: "exact", head: true }).eq("profile_id", profile.id),
-    ]);
+  const [{ data: activities }, { count: companyCount }, { count: memberCount }, { data: newsItems }] = await Promise.all([
+    supabase
+      .from("activities")
+      .select("*")
+      .eq("status", "approved")
+      .gte("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: true })
+      .limit(1)
+      .returns<ActivityRow[]>(),
+    supabase.from("companies").select("id", { count: "exact", head: true }),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
+    supabase.from("news_items").select("*").order("created_at", { ascending: false }).limit(1).returns<NewsItemRow[]>(),
+  ]);
 
   const nextActivity = activities?.[0] ?? null;
   const latestNews = newsItems?.[0] ?? null;
 
-  const onboardingSteps: OnboardingStep[] = [
-    { key: "photo", label: "Profielfoto toevoegen", done: Boolean(profile.avatar_url), href: "/profiel" },
-    { key: "job_title", label: "Functie invullen", done: Boolean(profile.job_title), href: "/profiel" },
-    { key: "company", label: "Bedrijf koppelen", done: (companyMembershipCount ?? 0) > 0, href: "/profiel" },
-    { key: "push", label: "Pushmeldingen aanzetten", done: (pushSubscriptionCount ?? 0) > 0, href: "/instellingen" },
-  ];
-  const showOnboarding = !profile.onboarding_dismissed_at && onboardingSteps.some((step) => !step.done);
+  // UX-review U1: functie en bedrijf staan al bij registratie in het
+  // formulier (geprefilled vanuit de uitnodiging), dus alleen een
+  // ontbrekende profielfoto is nog iets om na registratie aan te vullen.
+  const showPhotoPrompt = !profile.onboarding_dismissed_at && !profile.avatar_url;
 
   const [nextActivityImageUrl, myRegistration, newsImageUrl] = await Promise.all([
     nextActivity ? getSignedStorageUrl("activity-images", nextActivity.image_url) : Promise.resolve(null),
@@ -104,7 +96,7 @@ export default async function HomePage() {
         </p>
       </div>
 
-      {showOnboarding && <OnboardingChecklist steps={onboardingSteps} />}
+      {showPhotoPrompt && <ProfilePhotoPrompt />}
 
       {latestNews && (
         <section>

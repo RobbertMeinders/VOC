@@ -126,9 +126,9 @@ export async function updateAttendedActivitiesVisibilityAction(visible: boolean)
 // embed (/embed/bedrijven), onder "Werkzaam bij" van het eigen bedrijf.
 // Standaard uit (0050_public_company_directory.sql): dit is bewust een
 // eigen, per-persoon keuze, geen bedrijfsbrede aan/uit-knop.
-// UX-review U1: de welkomst-checklist op Home verdwijnt ook als je 'm zelf
-// wegklikt (naast automatisch zodra alle vier stappen klaar zijn) — dat moet
-// iets vastleggen, anders komt de banner na elke login terug.
+// UX-review U1: de profielfoto-prompt op Home verdwijnt ook als je 'm zelf
+// wegklikt (naast automatisch zodra er een foto staat) — dat moet iets
+// vastleggen, anders komt de banner na elke login terug.
 export async function dismissOnboardingAction(): Promise<{ error?: string }> {
   const profile = await requireProfile();
   const supabase = await createClient();
