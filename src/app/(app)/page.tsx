@@ -2,12 +2,13 @@ import type { Metadata } from "next";
 import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { Building2, CalendarDays, FileText, MapPin, Megaphone, MessageCircle, Users } from "lucide-react";
+import { Building2, CalendarDays, FileText, MapPin, MessageCircle, Users } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { getSignedStorageUrl } from "@/lib/supabase/storage";
+import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { formatActivityDate } from "@/lib/format/date";
 import { ProfilePhotoPrompt } from "@/components/home/ProfilePhotoPrompt";
+import { NewsHeroCarousel } from "@/components/home/NewsHeroCarousel";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Home" };
@@ -63,18 +64,17 @@ export default async function HomePage() {
       .returns<ActivityRow[]>(),
     supabase.from("companies").select("id", { count: "exact", head: true }),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
-    supabase.from("news_items").select("*").order("created_at", { ascending: false }).limit(1).returns<NewsItemRow[]>(),
+    supabase.from("news_items").select("*").order("created_at", { ascending: false }).limit(3).returns<NewsItemRow[]>(),
   ]);
 
   const nextActivity = activities?.[0] ?? null;
-  const latestNews = newsItems?.[0] ?? null;
 
   // UX-review U1: functie en bedrijf staan al bij registratie in het
   // formulier (geprefilled vanuit de uitnodiging), dus alleen een
   // ontbrekende profielfoto is nog iets om na registratie aan te vullen.
   const showPhotoPrompt = !profile.onboarding_dismissed_at && !profile.avatar_url;
 
-  const [nextActivityImageUrl, myRegistration, newsImageUrl] = await Promise.all([
+  const [nextActivityImageUrl, myRegistration, newsImageUrls] = await Promise.all([
     nextActivity ? getSignedStorageUrl("activity-images", nextActivity.image_url) : Promise.resolve(null),
     nextActivity
       ? supabase
@@ -84,8 +84,20 @@ export default async function HomePage() {
           .eq("profile_id", profile.id)
           .maybeSingle()
       : Promise.resolve({ data: null }),
-    latestNews ? getSignedStorageUrl("news-images", latestNews.image_url) : Promise.resolve(null),
+    getSignedStorageUrls(
+      supabase,
+      "news-images",
+      (newsItems ?? []).map((item) => item.image_url)
+    ),
   ]);
+
+  const newsSlides = (newsItems ?? []).map((item) => ({
+    id: item.id,
+    title: item.title,
+    subtitle: item.subtitle,
+    body: item.body,
+    imageUrl: item.image_url ? newsImageUrls.get(item.image_url) ?? null : null,
+  }));
 
   return (
     <div className="flex flex-col gap-6">
@@ -98,37 +110,10 @@ export default async function HomePage() {
 
       {showPhotoPrompt && <ProfilePhotoPrompt />}
 
-      {latestNews && (
+      {newsSlides.length > 0 && (
         <section>
           <h2 className="mb-2 text-sm font-semibold text-foreground">Nieuws</h2>
-          <Link href="/nieuws" className="group relative block h-80 overflow-hidden rounded-2xl shadow-sm sm:h-[28rem]">
-            {newsImageUrl ? (
-              <Image
-                src={newsImageUrl}
-                alt=""
-                fill
-                sizes="(max-width: 640px) 100vw, 768px"
-                className="object-cover object-[center_30%] transition-transform duration-700 ease-out group-hover:scale-105"
-              />
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-voc-red">
-                <Megaphone size={72} className="text-white/20" />
-              </div>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-black/0" />
-            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
-              <span className="inline-block rounded-full bg-voc-red px-2.5 py-1 text-xs font-semibold text-white">
-                Nieuws
-              </span>
-              <p className="mt-2 line-clamp-2 text-xl font-bold leading-tight text-white sm:text-3xl">
-                {latestNews.title}
-              </p>
-              {latestNews.subtitle && (
-                <p className="mt-1 line-clamp-1 text-sm font-medium text-white/90 sm:text-base">{latestNews.subtitle}</p>
-              )}
-              <p className="mt-1.5 line-clamp-2 text-sm text-white/70 sm:line-clamp-1">{latestNews.body}</p>
-            </div>
-          </Link>
+          <NewsHeroCarousel slides={newsSlides} />
           <Link
             href="/nieuws"
             className="mx-auto mt-3 flex h-11 w-full max-w-72 items-center justify-center rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-all duration-150 hover:bg-black/[.03] active:scale-95 dark:hover:bg-white/[.06]"
