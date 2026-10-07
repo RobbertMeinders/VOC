@@ -14,8 +14,7 @@ import { BEHEER_SECTIONS, type BeheerNavItem } from "./beheer-nav-items";
 // een horizontaal scrollbare pillenrij met 14 items over 6 secties
 // onhandig (geen sectiekoppen zichtbaar, veel heen-en-weer scrollen om iets
 // te vinden) — daarom daar in plaats daarvan een knop met de huidige
-// sectie die de volledige, gegroepeerde lijst uitklapt, net als
-// NetworkChooser's sidebar-variant.
+// sectie die de volledige, gegroepeerde lijst inline uitklapt.
 export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);

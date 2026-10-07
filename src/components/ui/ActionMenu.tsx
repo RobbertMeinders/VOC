@@ -48,7 +48,7 @@ export function ActionMenu({ items }: { items: ActionMenuItem[] }) {
           item sloot het menu via de backdrop i.p.v. de knop te raken — item
           leek niets te doen (zie het "kan niet verwijderen/bewerken"-bugrapport).
           Positie komt van useFixedAnchor (de knop zelf), zelfde patroon als
-          NetworkChooser se mobiele popover. */}
+          andere losse popovers (zoeken, notificaties, accountmenu). */}
       {open && rect && (
         <FloatingPortal>
           <div className="fixed inset-0 z-30 cursor-pointer" onClick={() => setOpen(false)} />

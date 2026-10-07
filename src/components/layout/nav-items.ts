@@ -26,11 +26,10 @@ export const AGENDA_NAV_ITEM: NavItem = { href: "/agenda", label: "Agenda", icon
 export const LEDEN_NAV_ITEM: NavItem = { href: "/leden", label: "Leden", icon: Users };
 export const BEDRIJVEN_NAV_ITEM: NavItem = { href: "/bedrijven", label: "Bedrijven", icon: Building2 };
 
-// Leden en bedrijven zijn allebei "wie zit er in het netwerk" — op mobiel is
-// dit een enkel nav-item dat eerst een Bedrijven/Leden-keuze toont
-// (NetworkChooser); op desktop is het de enige sidebar-ingang die uitklapt
-// naar twee subitems (Sidebar.tsx). De bestaande tab-switch op de leden- en
-// bedrijvenpagina's zelf (NetworkTabs) blijft daarnaast gewoon bestaan.
+// Leden en bedrijven zijn allebei "wie zit er in het netwerk" — "Netwerk"
+// navigeert direct naar /leden (review-bevinding U3: drie verschillende
+// mechanismen voor dezelfde keuze was verwarrend), de tab-switch op de
+// leden- en bedrijvenpagina's zelf (NetworkTabs) doet de rest.
 export const NETWERK_NAV_ITEM: NavItem = {
   href: "/leden",
   label: "Netwerk",
@@ -43,8 +42,7 @@ export const DOCUMENTEN_NAV_ITEM: NavItem = { href: "/documenten", label: "Docum
 export const ZOEKEN_NAV_ITEM: NavItem = { href: "/zoeken", label: "Zoeken", icon: Search };
 export const BEHEER_NAV_ITEM: NavItem = { href: "/beheer", label: "Beheer", icon: LayoutDashboard, badgeKey: "beheer" };
 
-// Mobiele bottom nav: precies 4 hoofditems. Netwerk tikken opent eerst een
-// keuze (Bedrijven | Leden) i.p.v. direct te navigeren — zie BottomNav.tsx.
+// Mobiele bottom nav: precies 4 hoofditems.
 export const MOBILE_PRIMARY_NAV_ITEMS: NavItem[] = [
   HOME_NAV_ITEM,
   AGENDA_NAV_ITEM,
@@ -52,12 +50,11 @@ export const MOBILE_PRIMARY_NAV_ITEMS: NavItem[] = [
   NETWERK_NAV_ITEM,
 ];
 
-// Desktop sidebar: platte lijst. Netwerk opent in Sidebar.tsx een popover
-// (Leden/Bedrijven) i.p.v. een eigen route te hebben; Zoeken en Notificaties
-// zitten niet in deze lijst maar als compacte icoontjes naast het logo (net
-// als Zoeken al op mobiel deed) — allebei een snel-in-en-uit-popover i.p.v.
-// een echte navigatiebestemming, dus dat verdient geen even brede rij als de
-// rest van het menu.
+// Desktop sidebar: platte lijst. Zoeken en Notificaties zitten niet in deze
+// lijst maar als compacte icoontjes naast het logo (net als Zoeken al op
+// mobiel deed) — allebei een snel-in-en-uit-popover i.p.v. een echte
+// navigatiebestemming, dus dat verdient geen even brede rij als de rest van
+// het menu.
 export const DESKTOP_NAV_ITEMS: NavItem[] = [
   HOME_NAV_ITEM,
   AGENDA_NAV_ITEM,

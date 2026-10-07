@@ -166,7 +166,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
     // FloatingPortal: zonder dit rendert dit paneel ter plekke in <main>, dat
     // vóór BottomNav in de DOM staat — bij gelijke z-index wint dan de later
     // gerenderde BottomNav de klik, waardoor die onder dit paneel aanklikbaar
-    // bleef (zelfde bugklasse als bij NotificationCenter/NetworkChooser).
+    // bleef (zelfde bugklasse als bij NotificationCenter).
     <FloatingPortal>
       <div className="fixed inset-0 z-40 cursor-pointer bg-black/60 animate-fade-in" onClick={() => setOpen(false)} />
       <div className="fixed inset-x-3 top-1/2 z-50 -translate-y-1/2 sm:inset-x-0 sm:mx-auto sm:w-full sm:max-w-xl sm:px-3 md:left-72">

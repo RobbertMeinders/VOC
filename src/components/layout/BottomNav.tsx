@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import { MOBILE_PRIMARY_NAV_ITEMS, isNavItemActive } from "./nav-items";
-import { NetworkChooser } from "./NetworkChooser";
 import { MobileProfileMenu } from "./ProfileMenu";
 import type { Profile } from "@/lib/auth/session";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
@@ -31,15 +30,6 @@ export function BottomNav({
         {MOBILE_PRIMARY_NAV_ITEMS.map((item) => {
           const { href, label, icon: Icon, badgeKey } = item;
           const count = badgeKey ? unread[badgeKey] : 0;
-
-          if (item.label === "Netwerk") {
-            return (
-              <li key={href} className="flex-1">
-                <NetworkChooser badgeCount={count} />
-              </li>
-            );
-          }
-
           const active = isNavItemActive(item, pathname);
           return (
             <li key={href} className="flex-1">

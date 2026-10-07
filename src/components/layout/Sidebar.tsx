@@ -8,7 +8,6 @@ import { DESKTOP_NAV_ITEMS, isNavItemActive, type NavItem } from "./nav-items";
 import { NavBadge } from "./NavBadge";
 import { Logo } from "@/components/ui/Logo";
 import { SidebarProfileMenu } from "./ProfileMenu";
-import { NetworkChooser } from "./NetworkChooser";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { SearchOverlay } from "@/components/search/SearchOverlay";
 import { VocSocialLinks } from "@/components/ui/VocSocialLinks";
@@ -114,16 +113,7 @@ export function Sidebar({
         </div>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1">
-        {DESKTOP_NAV_ITEMS.map((item) => {
-          if (item.label === "Netwerk") {
-            // Klik opent een popover (Leden/Bedrijven) net als het
-            // accountmenu, i.p.v. een altijd-uitgeklapt submenu.
-            return <NetworkChooser key={item.href} badgeCount={unread.netwerk} variant="sidebar" />;
-          }
-          return renderItem(item);
-        })}
-      </nav>
+      <nav className="flex flex-1 flex-col gap-1">{DESKTOP_NAV_ITEMS.map((item) => renderItem(item))}</nav>
 
       <nav className="mt-2 flex flex-col gap-1 border-t border-border pt-2">{accountItems.map(renderAccountItem)}</nav>
 
