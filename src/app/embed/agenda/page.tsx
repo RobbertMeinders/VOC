@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { CalendarDays, MapPin, Users } from "lucide-react";
+import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { formatActivityDate } from "@/lib/format/date";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
+import { isWebsiteTheme, withEmbedTheme } from "@/lib/embed/theme";
+import { openSans } from "@/lib/fonts/openSans";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "VOC Agenda" };
@@ -30,15 +33,17 @@ function ActivityCard({
   imageUrl,
   count,
   isPast = false,
+  thema,
 }: {
   activity: Activity;
   imageUrl: string | null;
   count: number;
   isPast?: boolean;
+  thema?: string;
 }) {
   return (
     <Link
-      href={`/embed/agenda/${activity.id}`}
+      href={withEmbedTheme(`/embed/agenda/${activity.id}`, thema)}
       className={`overflow-hidden rounded-2xl border border-border bg-surface shadow-sm ${
         isPast ? "opacity-80 grayscale-[50%]" : "transition-all duration-500 ease-out hover:scale-[1.008] hover:shadow-md"
       }`}
@@ -69,8 +74,13 @@ function ActivityCard({
   );
 }
 
-export default async function AgendaEmbedPage({ searchParams }: { searchParams: Promise<{ activiteit?: string }> }) {
-  const { activiteit } = await searchParams;
+export default async function AgendaEmbedPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ activiteit?: string; thema?: string }>;
+}) {
+  const { activiteit, thema } = await searchParams;
+  const websiteTheme = isWebsiteTheme(thema);
   const supabase = await createClient();
 
   // Komt van het scriptje in de gegenereerde embed-code (/beheer/embed-codes),
@@ -85,7 +95,7 @@ export default async function AgendaEmbedPage({ searchParams }: { searchParams: 
       .eq("slug", activiteit)
       .eq("status", "approved")
       .maybeSingle();
-    if (match) redirect(`/embed/agenda/${match.id}`);
+    if (match) redirect(withEmbedTheme(`/embed/agenda/${match.id}`, thema));
   }
 
   const [{ data: upcoming }, { data: past }] = await Promise.all([
@@ -128,7 +138,11 @@ export default async function AgendaEmbedPage({ searchParams }: { searchParams: 
     // min-h-screen dekt deze div alleen zijn eigen (kortere) inhoud af — het
     // stuk daaronder blijft dan <body> zelf, die bij een donker OS-thema
     // alsnog donker inkleurt en als een zwarte balk onderin zichtbaar werd.
-    <div data-theme="light" className="min-h-screen bg-surface">
+    <div
+      data-theme="light"
+      data-embed-theme={websiteTheme ? "website" : undefined}
+      className={clsx("min-h-screen bg-surface", websiteTheme && openSans.variable)}
+    >
       <div className="flex flex-col gap-6 p-4">
         <EmbedAutoHeight />
         {/* Deze titel + intro staan hier i.p.v. los op de WordPress-pagina
@@ -160,6 +174,7 @@ export default async function AgendaEmbedPage({ searchParams }: { searchParams: 
                 activity={activity}
                 imageUrl={activity.image_url ? (imageUrls.get(activity.image_url) ?? null) : null}
                 count={counts.get(activity.id) ?? 0}
+                thema={thema}
               />
             ))}
           </div>
@@ -176,6 +191,7 @@ export default async function AgendaEmbedPage({ searchParams }: { searchParams: 
                   imageUrl={activity.image_url ? (imageUrls.get(activity.image_url) ?? null) : null}
                   count={counts.get(activity.id) ?? 0}
                   isPast
+                  thema={thema}
                 />
               ))}
             </div>

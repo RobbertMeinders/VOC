@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
+import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/server";
 import { publicLogoUrl } from "@/lib/supabase/storage";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
+import { isWebsiteTheme } from "@/lib/embed/theme";
+import { openSans } from "@/lib/fonts/openSans";
 import { BedrijvenEmbedList } from "./BedrijvenEmbedList";
 
 export const metadata: Metadata = { title: "VOC Bedrijvengids" };
@@ -18,9 +21,10 @@ export const metadata: Metadata = { title: "VOC Bedrijvengids" };
 export default async function BedrijvenEmbedPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; branche?: string }>;
+  searchParams: Promise<{ q?: string; branche?: string; thema?: string }>;
 }) {
-  const { q, branche } = await searchParams;
+  const { q, branche, thema } = await searchParams;
+  const websiteTheme = isWebsiteTheme(thema);
   const supabase = await createClient();
 
   const { data } = await supabase.rpc("get_public_companies");
@@ -47,14 +51,18 @@ export default async function BedrijvenEmbedPage({
     tagline: c.tagline,
     latitude: c.latitude,
     longitude: c.longitude,
-    href: `/embed/bedrijven/${c.slug}`,
+    href: websiteTheme ? `/embed/bedrijven/${c.slug}?thema=website` : `/embed/bedrijven/${c.slug}`,
   }));
 
   return (
     // Zie /embed/agenda/page.tsx voor waarom data-theme="light" + min-h-screen
     // hier samen nodig zijn (voorkomt de donkere balk die <body> anders
     // onderin liet doorschemeren bij een donker OS-thema).
-    <div data-theme="light" className="min-h-screen bg-surface">
+    <div
+      data-theme="light"
+      data-embed-theme={websiteTheme ? "website" : undefined}
+      className={clsx("min-h-screen bg-surface", websiteTheme && openSans.variable)}
+    >
       {/* De iframe zelf volgt gewoon de breedte van de WordPress-pagina (geen
           eigen CSS-breedte-truc meer, zie /beheer/embed-codes — dat brak op
           deze site). Deze max-w-wrapper zorgt dat de inhoud zelf een

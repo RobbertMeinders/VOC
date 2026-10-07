@@ -2,10 +2,13 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls, publicLogoUrl } from "@/lib/supabase/storage";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
 import { CompanyDetailContent, type CompanyDetailData } from "@/components/embed/CompanyDetailContent";
+import { isWebsiteTheme, withEmbedTheme } from "@/lib/embed/theme";
+import { openSans } from "@/lib/fonts/openSans";
 
 export const metadata: Metadata = { title: "VOC Bedrijvengids" };
 
@@ -18,8 +21,16 @@ export const metadata: Metadata = { title: "VOC Bedrijvengids" };
 // deze pagina navigeert. get_public_company() (0050_public_company_directory.sql)
 // geeft notFound() al impliciet: een niet-opt-in of niet-bestaand bedrijf
 // komt gewoon leeg terug.
-export default async function BedrijfEmbedDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function BedrijfEmbedDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ thema?: string }>;
+}) {
   const { slug } = await params;
+  const { thema } = await searchParams;
+  const websiteTheme = isWebsiteTheme(thema);
   const supabase = await createClient();
 
   const { data } = await supabase.rpc("get_public_company", { p_slug: slug });
@@ -59,12 +70,19 @@ export default async function BedrijfEmbedDetailPage({ params }: { params: Promi
     // Zie /embed/agenda/page.tsx voor waarom data-theme="light" + min-h-screen
     // hier samen nodig zijn (voorkomt de donkere balk die <body> anders
     // onderin liet doorschemeren bij een donker OS-thema).
-    <div data-theme="light" className="min-h-screen bg-surface">
+    <div
+      data-theme="light"
+      data-embed-theme={websiteTheme ? "website" : undefined}
+      className={clsx("min-h-screen bg-surface", websiteTheme && openSans.variable)}
+    >
       {/* Zie /embed/bedrijven/page.tsx voor waarom deze max-w-wrapper hier
           staat. */}
       <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
         <EmbedAutoHeight />
-        <Link href="/embed/bedrijven" className="flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red-text hover:underline">
+        <Link
+          href={withEmbedTheme("/embed/bedrijven", thema)}
+          className="flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red-text hover:underline"
+        >
           <ArrowLeft size={16} />
           Terug naar bedrijvengids
         </Link>

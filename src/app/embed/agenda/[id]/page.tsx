@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, CalendarDays, MapPin, Users } from "lucide-react";
+import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { formatActivityDate } from "@/lib/format/date";
@@ -10,6 +11,8 @@ import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
 import { ShareActivityButton } from "@/components/embed/ShareActivityButton";
 import { RegisterButton } from "@/components/agenda/RegisterButton";
 import { MemberOrVisitorRegistration } from "@/components/embed/MemberOrVisitorRegistration";
+import { isWebsiteTheme, withEmbedTheme } from "@/lib/embed/theme";
+import { openSans } from "@/lib/fonts/openSans";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -20,8 +23,16 @@ export const metadata: Metadata = { title: "VOC Agenda" };
 // zelf. Alleen goedgekeurde activiteiten zijn hier bereikbaar (notFound()
 // voor pending/rejected of een onbestaand id), ongeacht wat iemand als URL
 // intypt.
-export default async function AgendaEmbedDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function AgendaEmbedDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ thema?: string }>;
+}) {
   const { id } = await params;
+  const { thema } = await searchParams;
+  const websiteTheme = isWebsiteTheme(thema);
   const supabase = await createClient();
 
   const { data: activity } = await supabase
@@ -76,11 +87,18 @@ export default async function AgendaEmbedDetailPage({ params }: { params: Promis
     // Zie /embed/agenda/page.tsx voor waarom data-theme="light" + min-h-screen
     // hier samen nodig zijn (voorkomt de donkere balk die <body> anders
     // onderin liet doorschemeren bij een donker OS-thema).
-    <div data-theme="light" className="min-h-screen bg-surface">
+    <div
+      data-theme="light"
+      data-embed-theme={websiteTheme ? "website" : undefined}
+      className={clsx("min-h-screen bg-surface", websiteTheme && openSans.variable)}
+    >
       <div className="flex flex-col gap-4 p-4">
         <EmbedAutoHeight />
         <div className="flex items-center justify-between gap-3">
-          <Link href="/embed/agenda" className="flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red-text hover:underline">
+          <Link
+            href={withEmbedTheme("/embed/agenda", thema)}
+            className="flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red-text hover:underline"
+          >
             <ArrowLeft size={16} />
             Terug naar agenda
           </Link>

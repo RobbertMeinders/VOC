@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
+import { clsx } from "clsx";
 import { AccessRequestForm } from "@/components/auth/AccessRequestForm";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
+import { isWebsiteTheme } from "@/lib/embed/theme";
+import { openSans } from "@/lib/fonts/openSans";
 
 export const metadata: Metadata = { title: "Aanmelden bij de VOC" };
 
@@ -9,7 +12,9 @@ export const metadata: Metadata = { title: "Aanmelden bij de VOC" };
 // Dezelfde inzending als /toegang-aanvragen (access_requests, zie
 // 0022_richer_access_requests.sql): het bestuur beoordeelt en nodigt
 // desgewenst uit via /beheer/instroom.
-export default function AanmeldenEmbedPage() {
+export default async function AanmeldenEmbedPage({ searchParams }: { searchParams: Promise<{ thema?: string }> }) {
+  const { thema } = await searchParams;
+  const websiteTheme = isWebsiteTheme(thema);
   // data-theme="light" + min-h-screen: dwingt het lichte thema af over de
   // HELE zichtbare iframe-hoogte (niet alleen de eigen inhoud) — anders
   // blijft <body> daaronder zichtbaar en kleurt die donker in bij een
@@ -19,7 +24,11 @@ export default function AanmeldenEmbedPage() {
   // voor gebruik hier vs. op /toegang-aanvragen (waar het OS/toggle-thema
   // wél gewoon gevolgd moet worden).
   return (
-    <div data-theme="light" className="min-h-screen bg-surface">
+    <div
+      data-theme="light"
+      data-embed-theme={websiteTheme ? "website" : undefined}
+      className={clsx("min-h-screen bg-surface", websiteTheme && openSans.variable)}
+    >
       <div className="p-4">
         <EmbedAutoHeight />
         <div className="mx-auto w-full max-w-2xl rounded-2xl border border-border bg-surface p-5 shadow-sm">
