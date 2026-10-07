@@ -4,7 +4,10 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { FieldError } from "@/components/ui/FieldError";
 import { createInvitationAction, type CreateInvitationState } from "@/app/(app)/beheer/uitnodigingen/actions";
+import { useFieldValidation } from "@/lib/validation/useFieldValidation";
+import { validateEmail } from "@/lib/validation/fields";
 
 const initialState: CreateInvitationState = {};
 
@@ -19,14 +22,32 @@ function SubmitButton() {
 
 export function InviteForm({ canInviteBoard }: { canInviteBoard: boolean }) {
   const [state, formAction] = useActionState(createInvitationAction, initialState);
+  const { errors, validateField, validateAll } = useFieldValidation({
+    email: (value) => validateEmail(value),
+  });
 
   return (
-    <form action={formAction} className="flex flex-col gap-3 sm:flex-row sm:items-end">
+    <form
+      action={formAction}
+      onSubmit={(e) => {
+        if (!validateAll(new FormData(e.currentTarget))) e.preventDefault();
+      }}
+      className="flex flex-col gap-3 sm:flex-row sm:items-end"
+    >
       <div className="flex-1">
         <label htmlFor="email" className="mb-1.5 block text-sm font-medium text-foreground">
           E-mailadres (optioneel)
         </label>
-        <Input id="email" name="email" type="email" placeholder="naam@bedrijf.nl" />
+        <Input
+          id="email"
+          name="email"
+          type="text"
+          inputMode="email"
+          placeholder="naam@bedrijf.nl"
+          invalid={Boolean(errors.email)}
+          onBlur={(e) => validateField("email", e.target.value)}
+        />
+        <FieldError message={errors.email} />
       </div>
 
       {canInviteBoard && (

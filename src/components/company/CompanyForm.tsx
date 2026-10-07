@@ -6,11 +6,15 @@ import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Switch } from "@/components/ui/Switch";
+import { FieldError } from "@/components/ui/FieldError";
+import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
 import { CompanyLogo } from "./CompanyLogo";
 import { updateCompanyAction, type UpdateCompanyState } from "@/app/(app)/bedrijven/[id]/actions";
 import { compressInputFile } from "@/lib/image/compress";
 import { INDUSTRIES } from "@/lib/constants/industries";
 import { useToast } from "@/lib/ui/ToastContext";
+import { useFieldValidation } from "@/lib/validation/useFieldValidation";
+import { validateUrl, validateEmail } from "@/lib/validation/fields";
 import type { Database } from "@/lib/types/database";
 
 type Company = Database["public"]["Tables"]["companies"]["Row"];
@@ -32,6 +36,13 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
   const [preview, setPreview] = useState<string | null>(null);
   const shownLogo = preview ?? logoUrl;
   const toast = useToast();
+  const { errors, validateField, validateAll } = useFieldValidation({
+    website: (value) => validateUrl(value),
+    linkedin_url: (value) => validateUrl(value),
+    instagram_url: (value) => validateUrl(value),
+    facebook_url: (value) => validateUrl(value),
+    email: (value) => validateEmail(value),
+  });
 
   useEffect(() => {
     if (state.success) toast("Opgeslagen.");
@@ -63,7 +74,14 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    <form
+      action={formAction}
+      onSubmit={(e) => {
+        if (!validateAll(new FormData(e.currentTarget))) e.preventDefault();
+      }}
+      className="flex flex-col gap-5"
+    >
+      <FormErrorSummary errors={errors} />
       <div className="flex items-center gap-4">
         <div className="relative">
           <CompanyLogo logoUrl={shownLogo} name={company.name} size={72} wide />
@@ -159,7 +177,17 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
         <label htmlFor="website" className="text-sm font-medium text-foreground">
           Website
         </label>
-        <Input id="website" name="website" type="url" defaultValue={company.website ?? ""} placeholder="https://" />
+        <Input
+          id="website"
+          name="website"
+          type="text"
+          inputMode="url"
+          defaultValue={company.website ?? ""}
+          placeholder="https://"
+          invalid={Boolean(errors.website)}
+          onBlur={(e) => validateField("website", e.target.value)}
+        />
+        <FieldError message={errors.website} />
       </div>
 
       <div className="flex flex-col gap-3">
@@ -171,10 +199,14 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           <Input
             id="linkedin_url"
             name="linkedin_url"
-            type="url"
+            type="text"
+            inputMode="url"
             defaultValue={company.linkedin_url ?? ""}
             placeholder="https://www.linkedin.com/company/..."
+            invalid={Boolean(errors.linkedin_url)}
+            onBlur={(e) => validateField("linkedin_url", e.target.value)}
           />
+          <FieldError message={errors.linkedin_url} />
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="instagram_url" className="text-xs font-medium text-muted">
@@ -183,10 +215,14 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           <Input
             id="instagram_url"
             name="instagram_url"
-            type="url"
+            type="text"
+            inputMode="url"
             defaultValue={company.instagram_url ?? ""}
             placeholder="https://www.instagram.com/..."
+            invalid={Boolean(errors.instagram_url)}
+            onBlur={(e) => validateField("instagram_url", e.target.value)}
           />
+          <FieldError message={errors.instagram_url} />
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="facebook_url" className="text-xs font-medium text-muted">
@@ -195,10 +231,14 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           <Input
             id="facebook_url"
             name="facebook_url"
-            type="url"
+            type="text"
+            inputMode="url"
             defaultValue={company.facebook_url ?? ""}
             placeholder="https://www.facebook.com/..."
+            invalid={Boolean(errors.facebook_url)}
+            onBlur={(e) => validateField("facebook_url", e.target.value)}
           />
+          <FieldError message={errors.facebook_url} />
         </div>
       </div>
 
@@ -254,7 +294,17 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           <label htmlFor="email" className="text-sm font-medium text-foreground">
             E-mailadres
           </label>
-          <Input id="email" name="email" type="email" defaultValue={company.email ?? ""} placeholder="info@bedrijf.nl" />
+          <Input
+            id="email"
+            name="email"
+            type="text"
+            inputMode="email"
+            defaultValue={company.email ?? ""}
+            placeholder="info@bedrijf.nl"
+            invalid={Boolean(errors.email)}
+            onBlur={(e) => validateField("email", e.target.value)}
+          />
+          <FieldError message={errors.email} />
         </div>
       </div>
       <p className="-mt-3 text-xs text-muted">

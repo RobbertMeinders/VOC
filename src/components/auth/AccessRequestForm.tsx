@@ -4,7 +4,11 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { FieldError } from "@/components/ui/FieldError";
+import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
 import { submitAccessRequestAction, type AccessRequestState } from "@/app/toegang-aanvragen/actions";
+import { useFieldValidation } from "@/lib/validation/useFieldValidation";
+import { validateEmail, validateUrl } from "@/lib/validation/fields";
 
 const initialState: AccessRequestState = {};
 
@@ -19,6 +23,10 @@ function SubmitButton() {
 
 export function AccessRequestForm() {
   const [state, formAction] = useActionState(submitAccessRequestAction, initialState);
+  const { errors, validateField, validateAll } = useFieldValidation({
+    email: (value) => validateEmail(value, true),
+    website: (value) => validateUrl(value),
+  });
 
   if (state.success) {
     return (
@@ -30,7 +38,14 @@ export function AccessRequestForm() {
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-4">
+    <form
+      action={formAction}
+      onSubmit={(e) => {
+        if (!validateAll(new FormData(e.currentTarget))) e.preventDefault();
+      }}
+      className="flex flex-col gap-4"
+    >
+      <FormErrorSummary errors={errors} />
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="first_name" className="text-sm font-medium text-foreground">
@@ -75,7 +90,17 @@ export function AccessRequestForm() {
         <label htmlFor="email" className="text-sm font-medium text-foreground">
           E-mailadres
         </label>
-        <Input id="email" name="email" type="email" required autoComplete="email" placeholder="naam@bedrijf.nl" />
+        <Input
+          id="email"
+          name="email"
+          type="text"
+          inputMode="email"
+          autoComplete="email"
+          placeholder="naam@bedrijf.nl"
+          invalid={Boolean(errors.email)}
+          onBlur={(e) => validateField("email", e.target.value)}
+        />
+        <FieldError message={errors.email} />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
@@ -95,7 +120,17 @@ export function AccessRequestForm() {
         <label htmlFor="website" className="text-sm font-medium text-foreground">
           Website
         </label>
-        <Input id="website" name="website" type="url" autoComplete="url" placeholder="https://" />
+        <Input
+          id="website"
+          name="website"
+          type="text"
+          inputMode="url"
+          autoComplete="url"
+          placeholder="https://"
+          invalid={Boolean(errors.website)}
+          onBlur={(e) => validateField("website", e.target.value)}
+        />
+        <FieldError message={errors.website} />
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="message" className="text-sm font-medium text-foreground">

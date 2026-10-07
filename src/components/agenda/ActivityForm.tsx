@@ -6,9 +6,13 @@ import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Switch } from "@/components/ui/Switch";
+import { FieldError } from "@/components/ui/FieldError";
+import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
 import { compressInputFile } from "@/lib/image/compress";
 import { useUnsavedChanges } from "@/lib/ui/UnsavedChangesContext";
 import { useToast } from "@/lib/ui/ToastContext";
+import { useFieldValidation } from "@/lib/validation/useFieldValidation";
+import { validateUrl } from "@/lib/validation/fields";
 import type { ActivityFormState } from "@/app/(app)/agenda/actions";
 import type { Database } from "@/lib/types/database";
 
@@ -103,6 +107,9 @@ export function ActivityForm({
     initialSource ?? (activity?.source as "voc" | "lid") ?? (showTypePicker ? "voc" : "lid")
   );
   const [externalRegistration, setExternalRegistration] = useState(Boolean(activity?.external_registration_url));
+  const { errors, validateField, validateAll } = useFieldValidation({
+    external_registration_url: (value) => validateUrl(value, externalRegistration),
+  });
   const [allowPublicRegistration, setAllowPublicRegistration] = useState(activity?.allow_public_registration ?? false);
   // Standaard uit bij een NIEUWE activiteit — niet elke publicatie hoort
   // per se een pushmelding/mail te verdienen, dus dat is een bewuste keuze
@@ -126,7 +133,15 @@ export function ActivityForm({
     // bestand/checkbox — in één keer op; de niet-native schakelaars (Switch,
     // de type-pillen hieronder) markeren zichzelf expliciet, want een
     // <button onClick> bubbelt niet als een change-event.
-    <form action={formAction} onChange={() => setDirty(true)} className="flex flex-col gap-5">
+    <form
+      action={formAction}
+      onChange={() => setDirty(true)}
+      onSubmit={(e) => {
+        if (!validateAll(new FormData(e.currentTarget))) e.preventDefault();
+      }}
+      className="flex flex-col gap-5"
+    >
+      <FormErrorSummary errors={errors} />
       <input type="hidden" name="source" value={source} />
       {showTypePicker && (
         <div className="flex flex-col gap-1.5">
@@ -282,13 +297,18 @@ export function ActivityForm({
             Aanmelden via externe website
           </label>
           {externalRegistration && (
-            <Input
-              name="external_registration_url"
-              type="url"
-              defaultValue={activity?.external_registration_url ?? ""}
-              placeholder="https://"
-              required
-            />
+            <>
+              <Input
+                name="external_registration_url"
+                type="text"
+                inputMode="url"
+                defaultValue={activity?.external_registration_url ?? ""}
+                placeholder="https://"
+                invalid={Boolean(errors.external_registration_url)}
+                onBlur={(e) => validateField("external_registration_url", e.target.value)}
+              />
+              <FieldError message={errors.external_registration_url} />
+            </>
           )}
           {!externalRegistration && (
             <p className="text-xs text-muted">Zonder vinkje gebruikt deze activiteit de gewone VOC-aanmeldfunctie.</p>

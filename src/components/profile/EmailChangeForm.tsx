@@ -4,7 +4,10 @@ import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { FieldError } from "@/components/ui/FieldError";
 import { changeEmailAction, type ChangeEmailState } from "@/app/(app)/profiel/actions";
+import { useFieldValidation } from "@/lib/validation/useFieldValidation";
+import { validateEmail } from "@/lib/validation/fields";
 
 const initialState: ChangeEmailState = {};
 
@@ -20,6 +23,9 @@ function SubmitButton() {
 export function EmailChangeForm({ currentEmail }: { currentEmail: string }) {
   const [state, formAction] = useActionState(changeEmailAction, initialState);
   const [open, setOpen] = useState(false);
+  const { errors, validateField, validateAll } = useFieldValidation({
+    email: (value) => validateEmail(value, true),
+  });
 
   if (state.success) {
     return (
@@ -38,11 +44,27 @@ export function EmailChangeForm({ currentEmail }: { currentEmail: string }) {
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-2 rounded-lg border border-border p-3">
+    <form
+      action={formAction}
+      onSubmit={(e) => {
+        if (!validateAll(new FormData(e.currentTarget))) e.preventDefault();
+      }}
+      className="flex flex-col gap-2 rounded-lg border border-border p-3"
+    >
       <label htmlFor="new_email" className="text-sm font-medium text-foreground">
         Nieuw e-mailadres
       </label>
-      <Input id="new_email" name="email" type="email" defaultValue={currentEmail} required autoComplete="email" />
+      <Input
+        id="new_email"
+        name="email"
+        type="text"
+        inputMode="email"
+        defaultValue={currentEmail}
+        autoComplete="email"
+        invalid={Boolean(errors.email)}
+        onBlur={(e) => validateField("email", e.target.value)}
+      />
+      <FieldError message={errors.email} />
       {state.error && (
         <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {state.error}

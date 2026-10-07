@@ -7,9 +7,13 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
 import { Switch } from "@/components/ui/Switch";
+import { FieldError } from "@/components/ui/FieldError";
+import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
 import { updateProfileAction, type UpdateProfileState } from "@/app/(app)/profiel/actions";
 import { compressInputFile } from "@/lib/image/compress";
 import { useToast } from "@/lib/ui/ToastContext";
+import { useFieldValidation } from "@/lib/validation/useFieldValidation";
+import { validateUrl } from "@/lib/validation/fields";
 import type { Profile } from "@/lib/auth/session";
 
 const initialState: UpdateProfileState = {};
@@ -37,6 +41,9 @@ export function ProfileForm({
   const [showPhone, setShowPhone] = useState(profile.show_phone);
   const [showEmail, setShowEmail] = useState(profile.show_email);
   const toast = useToast();
+  const { errors, validateField, validateAll } = useFieldValidation({
+    linkedin_url: (value) => validateUrl(value),
+  });
 
   // UX-review U4: "Opgeslagen." stond als kleine groene tekst onderaan het
   // formulier — bij dit lange formulier op mobiel vaak buiten beeld. Toast
@@ -47,7 +54,14 @@ export function ProfileForm({
   }, [state]);
 
   return (
-    <form action={formAction} className="flex flex-col gap-5">
+    <form
+      action={formAction}
+      onSubmit={(e) => {
+        if (!validateAll(new FormData(e.currentTarget))) e.preventDefault();
+      }}
+      className="flex flex-col gap-5"
+    >
+      <FormErrorSummary errors={errors} />
       <div className="flex items-center gap-4">
         <div className="relative">
           <Avatar
@@ -143,10 +157,14 @@ export function ProfileForm({
         <Input
           id="linkedin_url"
           name="linkedin_url"
-          type="url"
+          type="text"
+          inputMode="url"
           defaultValue={profile.linkedin_url ?? ""}
           placeholder="https://www.linkedin.com/in/..."
+          invalid={Boolean(errors.linkedin_url)}
+          onBlur={(e) => validateField("linkedin_url", e.target.value)}
         />
+        <FieldError message={errors.linkedin_url} />
       </div>
 
       {state.error && (
