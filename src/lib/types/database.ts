@@ -44,6 +44,7 @@ export interface Database {
           bio: string | null;
           is_organization_account: boolean;
           publicly_visible: boolean;
+          onboarding_dismissed_at: string | null;
           created_at: string;
           updated_at: string;
         };
