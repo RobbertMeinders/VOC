@@ -32,17 +32,24 @@ function Cell({
   remainingCount,
   onClick,
   className,
+  label,
 }: {
   image: FeedAttachment;
   remainingCount?: number;
   onClick: () => void;
   className?: string;
+  label: string;
 }) {
   const [loaded, setLoaded] = useState(false);
 
   if (!image.url) return null;
   return (
-    <button type="button" onClick={onClick} className={clsx("relative overflow-hidden bg-black/[.03] dark:bg-white/[.03]", className)}>
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={remainingCount ? `${label}, en nog ${remainingCount} foto's` : label}
+      className={clsx("relative overflow-hidden bg-black/[.03] dark:bg-white/[.03]", className)}
+    >
       {/* opacity-0 -> 100 i.p.v. direct scherp verschijnen: zonder dit kan een
           foto die pas laat in beeld scrollt (bv. na scrollIntoView vanuit een
           notificatie-highlight) er als een abrupte "pop"/herlaad-flits uitzien
@@ -73,7 +80,7 @@ function Cell({
 // zorgt daarnaast dat een (bijna-)vierkante foto op een brede desktop-
 // postkolom niet alsnog torenhoog wordt — de breedte blijft vol, alleen de
 // hoogte wordt begrensd (dus weer "breder, niet hoger" i.p.v. cropping).
-function SingleCell({ image, onClick }: { image: FeedAttachment; onClick: () => void }) {
+function SingleCell({ image, onClick, label }: { image: FeedAttachment; onClick: () => void; label: string }) {
   const [ratio, setRatio] = useState(1);
   const [loaded, setLoaded] = useState(false);
 
@@ -83,6 +90,7 @@ function SingleCell({ image, onClick }: { image: FeedAttachment; onClick: () => 
     <button
       type="button"
       onClick={onClick}
+      aria-label={label}
       // transition op aspect-ratio: zonder dit sprong het kaartje in één
       // frame van het vierkante startformaat naar de echte beeldverhouding
       // zodra de foto klaar was met laden — vooral zichtbaar bij een foto
@@ -127,7 +135,7 @@ export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
   return (
     <>
       <div className="mt-3 overflow-hidden rounded-xl">
-        {visible.length === 1 && <SingleCell image={visible[0]} onClick={() => setLightboxIndex(0)} />}
+        {visible.length === 1 && <SingleCell image={visible[0]} onClick={() => setLightboxIndex(0)} label="Foto bekijken" />}
 
         {/* 2 foto's: elke cel apart vierkant i.p.v. de hele rij vierkant maken
             — bij 2 naast elkaar geplaatste vierkanten is de rij vanzelf 2:1
@@ -138,14 +146,20 @@ export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
         {visible.length === 2 && (
           <div className="grid grid-cols-2 gap-0.5">
             {visible.map((image, i) => (
-              <Cell key={image.id} image={image} onClick={() => setLightboxIndex(i)} className="aspect-square" />
+              <Cell
+                key={image.id}
+                image={image}
+                onClick={() => setLightboxIndex(i)}
+                className="aspect-square"
+                label={`Foto ${i + 1} van ${images.length} bekijken`}
+              />
             ))}
           </div>
         )}
 
         {visible.length >= 3 && (
           <div className="grid aspect-square w-full grid-rows-[2fr_1fr] gap-0.5" style={{ maxHeight: MAX_HEIGHT }}>
-            <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} />
+            <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} label={`Foto 1 van ${images.length} bekijken`} />
             <div
               className={clsx("grid grid-rows-[1fr] gap-0.5", visible.length === 3 ? "grid-cols-2" : "grid-cols-3")}
             >
@@ -155,6 +169,7 @@ export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
                   image={image}
                   onClick={() => setLightboxIndex(i + 1)}
                   remainingCount={i === visible.length - 2 ? remaining : undefined}
+                  label={`Foto ${i + 2} van ${images.length} bekijken`}
                 />
               ))}
             </div>
