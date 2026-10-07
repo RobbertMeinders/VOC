@@ -85,7 +85,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
       <FormErrorSummary errors={errors} />
       <div className="flex items-center gap-4">
         <div className="relative">
-          <CompanyLogo logoUrl={shownLogo} name={company.name} size={72} wide />
+          <CompanyLogo logoUrl={shownLogo} name={company.name} size={72} />
           <label
             htmlFor="logo"
             className="absolute -bottom-1 -right-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-voc-red text-white shadow-sm hover:bg-voc-red-dark"

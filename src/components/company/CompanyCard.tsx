@@ -27,7 +27,7 @@ export function CompanyCard({ company }: { company: CompanyListItem }) {
       onClick={company.onClick}
       className="animate-rise-in flex min-w-0 items-center gap-4 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-500 ease-out hover:scale-[1.008] hover:border-voc-red hover:shadow-md"
     >
-      <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={80} wide />
+      <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={80} />
       <div className="min-w-0 flex-1">
         <p className="line-clamp-2 break-words text-sm font-medium leading-snug text-foreground">{company.name}</p>
         {company.tagline ? (
