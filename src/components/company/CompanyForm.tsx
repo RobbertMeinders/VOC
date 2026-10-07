@@ -105,9 +105,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
             }}
           />
         </div>
-        <p className="text-xs text-muted">
-          Klik op het camera-icoon om een logo te uploaden. Bij voorkeur een liggend PNG met transparante achtergrond.
-        </p>
+        <p className="text-xs text-muted">Klik op het camera-icoon om een logo te uploaden.</p>
       </div>
 
       <div className="flex flex-col gap-1.5">
