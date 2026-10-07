@@ -42,6 +42,7 @@ import {
   type UploadImageState,
 } from "@/app/(app)/beheer/communicatie/actions";
 import { renderNewsletterHtml } from "@/lib/newsletter/render";
+import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 import { formatActivityDate } from "@/lib/format/date";
 import type { NewsletterAlign, NewsletterBlock } from "@/lib/newsletter/types";
 import type { Database } from "@/lib/types/database";
@@ -584,6 +585,7 @@ export function NewsletterEditor({
   logoUrl: string | null;
 }) {
   const router = useRouter();
+  const confirm = useConfirm();
   const formId = `newsletter-editor-${communication.id}`;
   const updateWithId = updateCommunicationAction.bind(null, communication.id);
   const [state, formAction] = useActionState(updateWithId, initialState);
@@ -613,9 +615,15 @@ export function NewsletterEditor({
   async function handleSend() {
     const isRetry = communication.status === "verzenden_mislukt";
     const confirmMessage = isRetry
-      ? `Opnieuw proberen te versturen aan de ${activeMemberCount - sentCount} leden die 'm nog niet ontvingen. Dit kan niet ongedaan worden gemaakt. Doorgaan?`
-      : `Dit verstuurt "${communication.subject}" naar ${activeMemberCount} actieve leden. Dit kan niet ongedaan worden gemaakt. Doorgaan?`;
-    if (!window.confirm(confirmMessage)) return;
+      ? `Opnieuw proberen te versturen aan de ${activeMemberCount - sentCount} leden die 'm nog niet ontvingen.`
+      : `Dit verstuurt "${communication.subject}" naar ${activeMemberCount} actieve leden.`;
+    const confirmed = await confirm({
+      title: isRetry ? "Opnieuw proberen te versturen?" : "Campagne versturen?",
+      description: `${confirmMessage} Dit kan niet ongedaan worden gemaakt.`,
+      confirmLabel: isRetry ? "Opnieuw proberen" : "Versturen",
+      danger: true,
+    });
+    if (!confirmed) return;
 
     setSendPending(true);
     setSendResult(null);
@@ -632,9 +640,13 @@ export function NewsletterEditor({
   async function handleSchedule() {
     if (!scheduledAtInput) return;
     const iso = new Date(scheduledAtInput).toISOString();
-    if (!window.confirm(`Campagne inplannen voor ${new Date(iso).toLocaleString("nl-NL")}? Dit kan niet ongedaan worden gemaakt.`)) {
-      return;
-    }
+    const confirmed = await confirm({
+      title: "Campagne inplannen?",
+      description: `Wordt verstuurd op ${new Date(iso).toLocaleString("nl-NL")}. Dit kan niet ongedaan worden gemaakt.`,
+      confirmLabel: "Inplannen",
+      danger: true,
+    });
+    if (!confirmed) return;
     setSchedulePending(true);
     setScheduleError(null);
     const result = await scheduleNewsletterAction(communication.id, iso);
@@ -647,7 +659,13 @@ export function NewsletterEditor({
   }
 
   async function handleCancelSchedule() {
-    if (!window.confirm("Planning annuleren? De campagne wordt weer een concept.")) return;
+    const confirmed = await confirm({
+      title: "Planning annuleren?",
+      description: "De campagne wordt weer een concept.",
+      confirmLabel: "Planning annuleren",
+      danger: true,
+    });
+    if (!confirmed) return;
     setSchedulePending(true);
     setScheduleError(null);
     const result = await cancelScheduleAction(communication.id);

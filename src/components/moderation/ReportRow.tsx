@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import Link from "next/link";
 import { formatRelativeTime } from "@/lib/format/date";
 import { resolveReportAction } from "@/app/(app)/beheer/rapportages/actions";
+import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 
 const REASON_LABELS: Record<string, string> = {
   ongepast: "Ongepast",
@@ -27,10 +28,11 @@ export type ReportRowData = {
 export function ReportRow({ report }: { report: ReportRowData }) {
   const [resolved, setResolved] = useState(false);
   const [isPending, startTransition] = useTransition();
+  const confirm = useConfirm();
 
   if (resolved) return null;
 
-  function resolve(decision: "deleted" | "dismissed") {
+  async function resolve(decision: "deleted" | "dismissed") {
     // Alleen bij "verwijderen" is er een bericht nodig — "afwijzen" moet ook
     // werken als het bericht al op een andere manier weg is (report.post is
     // dan null, zie de "Dit bericht is al verwijderd."-melding hieronder).
@@ -38,7 +40,13 @@ export function ReportRow({ report }: { report: ReportRowData }) {
     // nooit als afgehandeld gemarkeerd kon worden.
     if (decision === "deleted") {
       if (!report.post) return;
-      if (!window.confirm("Dit bericht definitief verwijderen?")) return;
+      const confirmed = await confirm({
+        title: "Bericht verwijderen?",
+        description: "Dit bericht wordt definitief verwijderd.",
+        confirmLabel: "Bericht verwijderen",
+        danger: true,
+      });
+      if (!confirmed) return;
     }
     startTransition(async () => {
       await resolveReportAction(report.id, decision, report.post?.id ?? null);

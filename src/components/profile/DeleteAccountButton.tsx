@@ -3,19 +3,24 @@
 import { useState, useTransition } from "react";
 import { Trash2 } from "lucide-react";
 import { deleteMyAccountAction } from "@/app/(app)/profiel/actions";
+import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 
 export function DeleteAccountButton() {
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const confirm = useConfirm();
 
-  function handleClick() {
-    const confirmed = window.confirm(
-      "Weet je zeker dat je je account wilt verwijderen?\n\n" +
+  async function handleClick() {
+    const confirmed = await confirm({
+      title: "Account verwijderen?",
+      description:
         "Je wordt direct uitgelogd en het account is niet meer bruikbaar. Persoonsgegevens (naam, e-mail, " +
         "telefoon, foto, functie, bio) worden na 90 dagen automatisch gewist. Geplaatste berichten en reacties " +
         'blijven staan, wel voortaan onder "Verwijderd lid". Binnen die 90 dagen kan alleen het bestuur dit nog ' +
-        "ongedaan maken."
-    );
+        "ongedaan maken.",
+      confirmLabel: "Account verwijderen",
+      danger: true,
+    });
     if (!confirmed) return;
 
     setError(null);

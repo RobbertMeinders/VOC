@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { updateMemberActiveAction } from "@/app/(app)/leden/[id]/actions";
+import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 
 export function MemberActiveToggle({
   memberId,
@@ -15,20 +16,24 @@ export function MemberActiveToggle({
   const [active, setActive] = useState(initialActive);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const confirm = useConfirm();
 
-  function handleToggle() {
+  async function handleToggle() {
     const next = !active;
 
     // Alleen bij het deactiveren zelf bevestigen (met de gevolgen erbij) —
     // heractiveren is altijd veilig/omkeerbaar.
     if (!next) {
-      const confirmed = window.confirm(
-        "Weet je zeker dat je dit lid wilt deactiveren?\n\n" +
+      const confirmed = await confirm({
+        title: "Lid deactiveren?",
+        description:
           "Het account is dan direct niet meer bruikbaar en verdwijnt uit de ledenlijst. " +
           "Persoonsgegevens (naam, e-mail, telefoon, foto, functie, bio) worden na 90 dagen automatisch " +
           "verwijderd, tenzij het lid binnen die termijn weer geactiveerd wordt. " +
-          "Geplaatste berichten en reacties blijven staan, wel voortaan onder \"Verwijderd lid\"."
-      );
+          'Geplaatste berichten en reacties blijven staan, wel voortaan onder "Verwijderd lid".',
+        confirmLabel: "Deactiveren",
+        danger: true,
+      });
       if (!confirmed) return;
     }
 

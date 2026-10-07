@@ -3,6 +3,7 @@
 import { useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Trash2 } from "lucide-react";
+import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 
 export function DeleteButton({
   onDelete,
@@ -17,6 +18,7 @@ export function DeleteButton({
 }) {
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const confirm = useConfirm();
 
   return (
     <button
@@ -24,8 +26,9 @@ export function DeleteButton({
       title="Verwijderen"
       aria-label="Verwijderen"
       disabled={isPending}
-      onClick={() => {
-        if (window.confirm(confirmMessage)) {
+      onClick={async () => {
+        const confirmed = await confirm({ title: "Verwijderen?", description: confirmMessage, confirmLabel: "Verwijderen", danger: true });
+        if (confirmed) {
           startTransition(async () => {
             await onDelete();
             // Server Components lijst-pagina's tonen de verwijderde rij pas

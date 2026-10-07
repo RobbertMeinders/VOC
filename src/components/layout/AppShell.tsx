@@ -13,6 +13,7 @@ import {
 import { OverlayProvider } from "@/lib/ui/OverlayContext";
 import { OverlayOriginProvider } from "@/lib/ui/OverlayOriginContext";
 import { UnsavedChangesProvider } from "@/lib/ui/UnsavedChangesContext";
+import { ConfirmDialogProvider } from "@/lib/ui/ConfirmDialogContext";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { MobileHeader } from "./MobileHeader";
@@ -51,18 +52,20 @@ export function AppShell({
       <OverlayOriginProvider>
         <MarkNotificationReadProvider value={markRead}>
           <UnsavedChangesProvider>
-            <AppShellBody
-              profile={profile}
-              unread={unread}
-              avatarUrl={avatarUrl}
-              companyId={companyId}
-              companyName={companyName}
-              logoUrl={logoUrl}
-              siteName={siteName}
-              modal={modal}
-            >
-              {children}
-            </AppShellBody>
+            <ConfirmDialogProvider>
+              <AppShellBody
+                profile={profile}
+                unread={unread}
+                avatarUrl={avatarUrl}
+                companyId={companyId}
+                companyName={companyName}
+                logoUrl={logoUrl}
+                siteName={siteName}
+                modal={modal}
+              >
+                {children}
+              </AppShellBody>
+            </ConfirmDialogProvider>
           </UnsavedChangesProvider>
         </MarkNotificationReadProvider>
       </OverlayOriginProvider>

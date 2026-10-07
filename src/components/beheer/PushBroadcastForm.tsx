@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { sendPushBroadcastAction, type PushBroadcastState } from "@/app/(app)/beheer/pushbericht/actions";
+import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 
 const initialState: PushBroadcastState = {};
 
@@ -19,14 +20,31 @@ function SubmitButton() {
 
 export function PushBroadcastForm() {
   const [state, formAction] = useActionState(sendPushBroadcastAction, initialState);
+  const formRef = useRef<HTMLFormElement>(null);
+  const confirmedRef = useRef(false);
+  const confirm = useConfirm();
 
   return (
     <form
+      ref={formRef}
       action={formAction}
       onSubmit={(e) => {
-        if (!window.confirm("Weet je zeker dat je dit pushbericht naar alle abonnees wilt versturen?")) {
-          e.preventDefault();
+        if (confirmedRef.current) {
+          confirmedRef.current = false;
+          return;
         }
+        e.preventDefault();
+        void confirm({
+          title: "Pushbericht versturen?",
+          description: "Dit gaat direct naar alle abonnees.",
+          confirmLabel: "Versturen",
+          danger: true,
+        }).then((confirmed) => {
+          if (confirmed) {
+            confirmedRef.current = true;
+            formRef.current?.requestSubmit();
+          }
+        });
       }}
       className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6 shadow-sm"
     >

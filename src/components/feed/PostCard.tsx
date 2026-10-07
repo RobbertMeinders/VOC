@@ -14,6 +14,7 @@ import { CommentForm } from "./CommentForm";
 import { LikersOverlay } from "./LikersOverlay";
 import { ReportPostOverlay } from "./ReportPostOverlay";
 import { MentionEditor } from "./MentionEditor";
+import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 import {
   deleteCommentAction,
   deletePostAction,
@@ -227,6 +228,7 @@ function CommentRow({
 }) {
   const [showLikers, setShowLikers] = useState(false);
   const [editing, setEditing] = useState(false);
+  const confirm = useConfirm();
 
   return (
     <div id={`comment-${comment.id}`} className="flex items-start gap-2 scroll-mt-20">
@@ -270,8 +272,13 @@ function CommentRow({
                           {
                             label: "Verwijderen",
                             danger: true,
-                            onClick: () => {
-                              if (window.confirm("Reactie verwijderen?")) {
+                            onClick: async () => {
+                              const confirmed = await confirm({
+                                title: "Reactie verwijderen?",
+                                confirmLabel: "Verwijderen",
+                                danger: true,
+                              });
+                              if (confirmed) {
                                 void deleteCommentAction(comment.id).then((result) => {
                                   if (result.error) window.alert(result.error);
                                   else onDeleted(comment.id);
@@ -334,6 +341,7 @@ export function PostCard({
   const [showAllComments, setShowAllComments] = useState(forceCommentsOpen);
   const [showLikers, setShowLikers] = useState(false);
   const [reporting, setReporting] = useState(false);
+  const confirm = useConfirm();
   const isOwnPost = post.author.id === currentUserId;
   const canEditPost = isOwnPost || canEditOthers;
   const canDeletePost = canModerate || isOwnPost;
@@ -367,8 +375,13 @@ export function PostCard({
                     {
                       label: "Verwijderen",
                       danger: true,
-                      onClick: () => {
-                        if (window.confirm("Weet je zeker dat je dit bericht wilt verwijderen?")) {
+                      onClick: async () => {
+                        const confirmed = await confirm({
+                          title: "Bericht verwijderen?",
+                          confirmLabel: "Verwijderen",
+                          danger: true,
+                        });
+                        if (confirmed) {
                           void deletePostAction(post.id).then((result) => {
                             if (result.error) window.alert(result.error);
                             else onDeleted(post.id);
