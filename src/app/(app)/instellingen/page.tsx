@@ -64,7 +64,7 @@ export default async function InstellingenPage() {
 
       <SettingGroup
         label="Meldingen"
-        description="Per soort melding kies je zelf: pushmelding, e-mail, beide, of geen. Voor toegangsaanvragen, bedrijfskoppelingen, rapportages en de uitkomst van je eigen aanvraag/wachtlijstplek krijg je altijd bericht — dat is niet instelbaar."
+        description="Kies per soort melding: pushmelding, e-mail, beide, of geen. Voor dingen die rechtstreeks over jou gaan — zoals de uitkomst van een aanvraag — krijg je altijd bericht, dat staat vast."
       >
         <SettingSubRow label="Dit apparaat">
           <PushToggle />
@@ -78,7 +78,7 @@ export default async function InstellingenPage() {
           <NotificationChannelChoice category="feed" initialPush={profile.push_feed} initialEmail={profile.email_feed} />
         </SettingSubRow>
 
-        <SettingSubRow label="Campagnes van VOC">
+        <SettingSubRow label="Nieuwsbrieven">
           <EmailCampaignsToggle initialEnabled={data?.email_campaigns ?? true} />
         </SettingSubRow>
       </SettingGroup>

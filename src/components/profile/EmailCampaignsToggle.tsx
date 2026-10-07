@@ -28,7 +28,7 @@ export function EmailCampaignsToggle({ initialEnabled }: { initialEnabled: boole
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <Switch checked={enabled} onChange={toggle} disabled={isPending} label="Campagnes van VOC" />
+      <Switch checked={enabled} onChange={toggle} disabled={isPending} label="Nieuwsbrieven" />
       {error && <p className="text-right text-xs text-voc-red-text">{error}</p>}
     </div>
   );

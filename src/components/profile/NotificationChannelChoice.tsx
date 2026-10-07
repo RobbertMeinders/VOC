@@ -46,10 +46,11 @@ export function NotificationChannelChoice({
   return (
     <div className="flex flex-col items-end gap-1">
       <Select
+        variant="bare"
         value={choice}
         disabled={isPending}
         onChange={(e) => handleChange(e.target.value as Choice)}
-        className="h-9 pl-2.5"
+        className="h-9 pl-2.5 font-medium"
       >
         <option value="push">Pushmelding</option>
         <option value="email">E-mail</option>
