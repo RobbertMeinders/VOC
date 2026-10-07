@@ -91,10 +91,15 @@ export async function CompanyProfileContent({ id }: { id: string }) {
           binnenkomt en de kaart+ledenlijst het scherm al vullen. */}
       {canSeeRequests && <CompanyMembershipRequests companyId={id} requests={pendingRequests} />}
 
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij dit bedrijf</h2>
-        <CompanyMemberList members={members} />
-      </div>
+      {/* UX-review V6: deze kaart liet op bijna elk bedrijf alleen "Nog geen
+          leden gekoppeld aan dit bedrijf." zien — een lege sectie verbergen
+          is hier duidelijker dan een kale zin tonen. */}
+      {members.length > 0 && (
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij dit bedrijf</h2>
+          <CompanyMemberList members={members} />
+        </div>
+      )}
 
       {company.show_address && company.latitude !== null && company.longitude !== null && (
         <CompanyLocationMap

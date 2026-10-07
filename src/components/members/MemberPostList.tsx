@@ -52,10 +52,6 @@ export function MemberPostList({
     );
   }
 
-  if (posts.length === 0) {
-    return <p className="text-sm text-muted">Nog geen berichten geplaatst.</p>;
-  }
-
   return (
     <>
       <div className="flex flex-col gap-4">

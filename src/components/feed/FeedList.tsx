@@ -9,6 +9,7 @@ import { authenticateRealtime } from "@/lib/realtime/authenticate";
 import { getCommentAction, getPostAction, loadMoreFeedPostsAction, logPostViewAction } from "@/app/(app)/actions";
 import { FEED_PAGE_SIZE } from "@/lib/feed/pagination";
 import { useInfiniteScroll } from "@/lib/dom/useInfiniteScroll";
+import { ComingSoon } from "@/components/ui/ComingSoon";
 import { PostComposer } from "./PostComposer";
 import { PostCard } from "./PostCard";
 import { POST_TYPES, POST_TYPE_LABELS } from "@/lib/feed/postType";
@@ -198,17 +199,15 @@ export function FeedList({
           )}
         </div>
       ) : (
-        <div className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-border py-16 text-center">
-          <MessageSquare size={28} className="text-muted" />
-          <p className="text-sm font-medium text-foreground">
-            {posts.length === 0 ? "Nog geen berichten" : `Geen berichten met label "${POST_TYPE_LABELS[filter as FeedPostType]}"`}
-          </p>
-          <p className="max-w-xs text-sm text-muted">
-            {posts.length === 0
+        <ComingSoon
+          icon={MessageSquare}
+          title={posts.length === 0 ? "Nog geen berichten" : `Geen berichten met label "${POST_TYPE_LABELS[filter as FeedPostType]}"`}
+          description={
+            posts.length === 0
               ? "Zodra leden updates delen met het netwerk, verschijnen ze hier in de community-feed."
-              : "Probeer een ander label, of bekijk alle berichten."}
-          </p>
-        </div>
+              : "Probeer een ander label, of bekijk alle berichten."
+          }
+        />
       )}
     </div>
   );

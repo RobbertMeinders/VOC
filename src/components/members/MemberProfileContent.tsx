@@ -198,16 +198,18 @@ export async function MemberProfileContent({ id }: { id: string }) {
         </div>
       )}
 
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-foreground">Berichten</h2>
-        <MemberPostList
-          memberId={id}
-          initialPosts={posts}
-          currentUserId={viewer.id}
-          canModerate={isBoard(viewer.role)}
-          canEditOthers={isAdmin(viewer.role)}
-        />
-      </div>
+      {posts.length > 0 && (
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Berichten</h2>
+          <MemberPostList
+            memberId={id}
+            initialPosts={posts}
+            currentUserId={viewer.id}
+            canModerate={isBoard(viewer.role)}
+            canEditOthers={isAdmin(viewer.role)}
+          />
+        </div>
+      )}
 
       {isBoard(viewer.role) && (
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">

@@ -13,6 +13,9 @@ export type NavItem = {
   // Koppelt dit item aan een sectie van ongelezen-notificatie-aantallen
   // (zie useUnreadNotificationCount), voor het badge-getal op het item zelf.
   badgeKey?: keyof UnreadNotificationSections;
+  // Waar dat getal over gaat, voor de hover-tooltip op de badge (UX-review
+  // U9) — een los getal legt zichzelf niet uit.
+  badgeLabel?: string;
 };
 
 export function isNavItemActive(item: NavItem, pathname: string): boolean {
@@ -22,7 +25,13 @@ export function isNavItemActive(item: NavItem, pathname: string): boolean {
 
 export const HOME_NAV_ITEM: NavItem = { href: "/", label: "Home", icon: Home };
 export const COMMUNITY_NAV_ITEM: NavItem = { href: "/community", label: "Community", icon: MessageCircle };
-export const AGENDA_NAV_ITEM: NavItem = { href: "/agenda", label: "Agenda", icon: CalendarDays, badgeKey: "agenda" };
+export const AGENDA_NAV_ITEM: NavItem = {
+  href: "/agenda",
+  label: "Agenda",
+  icon: CalendarDays,
+  badgeKey: "agenda",
+  badgeLabel: "ongelezen melding(en) over de agenda",
+};
 export const LEDEN_NAV_ITEM: NavItem = { href: "/leden", label: "Leden", icon: Users };
 export const BEDRIJVEN_NAV_ITEM: NavItem = { href: "/bedrijven", label: "Bedrijven", icon: Building2 };
 
@@ -36,6 +45,7 @@ export const NETWERK_NAV_ITEM: NavItem = {
   icon: Users,
   activeMatch: (pathname) => pathname.startsWith("/leden") || pathname.startsWith("/bedrijven"),
   badgeKey: "netwerk",
+  badgeLabel: "ongelezen melding(en) over het netwerk",
 };
 
 export const DOCUMENTEN_NAV_ITEM: NavItem = { href: "/documenten", label: "Documenten", icon: FileText };

@@ -2,10 +2,11 @@
 
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { Pencil } from "lucide-react";
+import { Building2, Pencil } from "lucide-react";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { ListToolbar } from "@/components/ui/ListToolbar";
+import { ComingSoon } from "@/components/ui/ComingSoon";
 import { matchesSearch } from "@/lib/search/normalize";
 import { useUrlFilterState } from "@/lib/dom/useUrlFilterState";
 import { deleteCompanyAction } from "@/app/(app)/bedrijven/[id]/actions";
@@ -71,7 +72,9 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
             )}
           </div>
         ))}
-        {filtered.length === 0 && <p className="text-sm text-muted">Geen bedrijven gevonden.</p>}
+        {filtered.length === 0 && (
+          <ComingSoon icon={Building2} title="Geen bedrijven gevonden" description="Pas je zoekopdracht aan." />
+        )}
       </div>
     </>
   );

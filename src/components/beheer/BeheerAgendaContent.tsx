@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { Pencil, Plus } from "lucide-react";
+import { CalendarDays, Pencil, Plus } from "lucide-react";
 import { clsx } from "clsx";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { ComingSoon } from "@/components/ui/ComingSoon";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
 import { ApproveActivityForm } from "@/components/agenda/ApproveActivityForm";
@@ -117,7 +118,9 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
       </div>
 
       <div className="flex flex-col gap-3">
-        {(activities ?? []).length === 0 && <p className="text-sm text-muted">Geen activiteiten gevonden.</p>}
+        {(activities ?? []).length === 0 && (
+          <ComingSoon icon={CalendarDays} title="Geen activiteiten gevonden" description="Pas het filter aan of maak een nieuwe activiteit aan." />
+        )}
         {(activities ?? []).map((activity) => {
           const decisionLog = latestLog(activity.id, ["activity_approved", "activity_rejected"]);
           const updateLog = latestLog(activity.id, ["activity_updated"]);

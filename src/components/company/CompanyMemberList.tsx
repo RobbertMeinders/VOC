@@ -10,10 +10,6 @@ export type CompanyMember = {
 };
 
 export function CompanyMemberList({ members }: { members: CompanyMember[] }) {
-  if (members.length === 0) {
-    return <p className="text-sm text-muted">Nog geen leden gekoppeld aan dit bedrijf.</p>;
-  }
-
   return (
     <div className="flex flex-col divide-y divide-border">
       {members.map((member) => (

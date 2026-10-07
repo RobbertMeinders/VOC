@@ -35,7 +35,7 @@ export function Sidebar({
   const pathname = usePathname();
 
   function renderItem(item: NavItem, indented = false) {
-    const { href, label, icon: Icon, badgeKey } = item;
+    const { href, label, icon: Icon, badgeKey, badgeLabel } = item;
     const active = isNavItemActive(item, pathname);
     return (
       <Link
@@ -53,7 +53,7 @@ export function Sidebar({
         {label}
         {badgeKey && (
           <span className="ml-auto">
-            <NavBadge count={unread[badgeKey]} />
+            <NavBadge count={unread[badgeKey]} label={badgeLabel ? `${unread[badgeKey]} ${badgeLabel}` : undefined} />
           </span>
         )}
       </Link>
@@ -87,7 +87,7 @@ export function Sidebar({
         {label}
         {Boolean(badge) && (
           <span className="ml-auto">
-            <NavBadge count={badge!} />
+            <NavBadge count={badge!} label={`${badge} openstaande melding(en) in beheer`} />
           </span>
         )}
       </Link>

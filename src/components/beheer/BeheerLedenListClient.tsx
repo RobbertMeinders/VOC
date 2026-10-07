@@ -2,12 +2,14 @@
 
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
+import { Users } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { RoleEditor } from "@/components/members/RoleEditor";
 import { MemberActiveToggle } from "@/components/members/MemberActiveToggle";
 import { OrganizationAccountToggle } from "@/components/members/OrganizationAccountToggle";
 import { DeleteMemberButton } from "@/components/members/DeleteMemberButton";
 import { ListToolbar, type ListToolbarFilter } from "@/components/ui/ListToolbar";
+import { ComingSoon } from "@/components/ui/ComingSoon";
 import { matchesSearch } from "@/lib/search/normalize";
 import { useUrlFilterState } from "@/lib/dom/useUrlFilterState";
 import { ROLE_LABELS } from "@/lib/auth/roles";
@@ -89,7 +91,7 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
       />
 
       <div className="flex flex-col gap-3">
-        {filtered.length === 0 && <p className="text-sm text-muted">Geen leden gevonden.</p>}
+        {filtered.length === 0 && <ComingSoon icon={Users} title="Geen leden gevonden" description="Pas je zoekopdracht of filter aan." />}
         {filtered.map((member) => (
           <div key={member.id} className="rounded-2xl border border-border bg-surface p-3 shadow-sm">
             <Link href={`/leden/${member.id}`} className="flex items-center gap-3 hover:opacity-80">
