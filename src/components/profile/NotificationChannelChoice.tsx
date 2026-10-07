@@ -25,9 +25,12 @@ const OPTIONS: { value: Choice; label: string }[] = [
 // segment-pil-stijl als ThemeToggle (bg-background-pil met een rode actieve
 // knop) i.p.v. een <select> — een dropdown stak qua gewicht en, in donker
 // thema, qua contrast af tegen de schakelaars verderop op dezelfde pagina.
-// flex-wrap vangt op dat 4 opties op een smal scherm niet naast een lange
-// rijlabel ("Reacties en vermeldingen") passen — breekt dan netjes naar 2x2
-// i.p.v. van de pagina af te lopen.
+// Geen flex-wrap: dat brak de 4 opties op mobiel lelijk over 2-3 ongelijke
+// regels (de rij in instellingen/page.tsx staat daarom op mobiel onder het
+// label i.p.v. ernaast, zodat deze pil altijd de volle breedte heeft en in
+// één keurige rij past). w-full hier gaat mee in die volle breedte; vanaf
+// sm: (waar de rij weer naast het label staat) krimpt hij terug naar zijn
+// eigen inhoud.
 export function NotificationChannelChoice({
   category,
   initialPush,
@@ -56,8 +59,8 @@ export function NotificationChannelChoice({
   }
 
   return (
-    <div className="flex flex-col items-end gap-1">
-      <div className="inline-flex flex-wrap justify-end gap-y-1 rounded-lg border border-border bg-background p-1">
+    <div className="flex w-full flex-col items-end gap-1 sm:w-auto">
+      <div className="flex w-full justify-between rounded-lg border border-border bg-background p-1 sm:w-auto sm:justify-end sm:gap-1">
         {OPTIONS.map(({ value, label }) => (
           <button
             key={value}
@@ -65,7 +68,7 @@ export function NotificationChannelChoice({
             disabled={isPending}
             onClick={() => handleChange(value)}
             className={clsx(
-              "rounded-md px-2.5 py-1 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60",
+              "flex-1 rounded-md px-2.5 py-1 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none",
               choice === value ? "bg-voc-red text-white" : "text-muted hover:text-foreground"
             )}
           >
