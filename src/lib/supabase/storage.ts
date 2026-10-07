@@ -121,3 +121,19 @@ export async function getSignedStorageUrls(
   }
   return map;
 }
+
+/**
+ * UX-review E6: a signed URL gets a fresh, unique token on every call, so
+ * neither the browser nor Next.js' image optimizer could ever cache a
+ * company logo on the public bedrijvengids embed — every page view, for
+ * every visitor, re-downloaded every logo. Logos only ever appear there for
+ * companies with `is_publicly_visible = true` (the same condition
+ * `is_public_company()`/the `company_logos_public_select` storage policy
+ * already enforce), so there's nothing extra to protect by going through a
+ * signed URL — a stable, long-cached path via `/api/embed/logo/[path]`
+ * (see that route) is safe and lets the browser actually reuse the logo
+ * across page views and visitors.
+ */
+export function publicLogoUrl(logoPath: string | null): string | null {
+  return logoPath ? `/api/embed/logo/${logoPath}` : null;
+}

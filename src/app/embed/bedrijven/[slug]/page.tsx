@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
+import { getSignedStorageUrls, publicLogoUrl } from "@/lib/supabase/storage";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
 import { CompanyDetailContent, type CompanyDetailData } from "@/components/embed/CompanyDetailContent";
 
@@ -27,18 +27,15 @@ export default async function BedrijfEmbedDetailPage({ params }: { params: Promi
 
   if (!company) notFound();
 
-  const [logoUrl, avatarUrls] = await Promise.all([
-    getSignedStorageUrl("company-logos", company.logo_url),
-    getSignedStorageUrls(
-      supabase,
-      "avatars",
-      company.employees.map((e) => e.avatar_url)
-    ),
-  ]);
+  const avatarUrls = await getSignedStorageUrls(
+    supabase,
+    "avatars",
+    company.employees.map((e) => e.avatar_url)
+  );
 
   const detail: CompanyDetailData = {
     name: company.name,
-    logoUrl,
+    logoUrl: publicLogoUrl(company.logo_url),
     tagline: company.tagline,
     description: company.description,
     industry: company.industry,

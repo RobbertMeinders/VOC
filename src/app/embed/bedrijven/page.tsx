@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
-import { getSignedStorageUrls } from "@/lib/supabase/storage";
+import { publicLogoUrl } from "@/lib/supabase/storage";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
 import { BedrijvenEmbedList } from "./BedrijvenEmbedList";
 
@@ -37,19 +37,13 @@ export default async function BedrijvenEmbedPage({
     return matchesQuery && matchesBranche;
   });
 
-  const logoUrls = await getSignedStorageUrls(
-    supabase,
-    "company-logos",
-    filtered.map((c) => c.logo_url)
-  );
-
   const items = filtered.map((c) => ({
     id: c.id,
     slug: c.slug,
     name: c.name,
     industry: c.industry,
     city: c.city,
-    logoUrl: c.logo_url ? (logoUrls.get(c.logo_url) ?? null) : null,
+    logoUrl: publicLogoUrl(c.logo_url),
     tagline: c.tagline,
     latitude: c.latitude,
     longitude: c.longitude,

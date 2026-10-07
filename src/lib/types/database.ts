@@ -668,6 +668,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: boolean;
       };
+      is_public_company: {
+        Args: { p_company_id: string };
+        Returns: boolean;
+      };
       is_admin: {
         Args: Record<string, never>;
         Returns: boolean;

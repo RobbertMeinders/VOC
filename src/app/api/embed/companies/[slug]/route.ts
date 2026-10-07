@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
+import { getSignedStorageUrls, publicLogoUrl } from "@/lib/supabase/storage";
 import type { CompanyDetailData } from "@/components/embed/CompanyDetailContent";
 
 // Client-side aangeroepen door CompanyDetailOverlay (klik op een bedrijf in
@@ -21,18 +21,15 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
     return NextResponse.json({ error: "not_found" }, { status: 404 });
   }
 
-  const [logoUrl, avatarUrls] = await Promise.all([
-    getSignedStorageUrl("company-logos", company.logo_url),
-    getSignedStorageUrls(
-      supabase,
-      "avatars",
-      company.employees.map((e) => e.avatar_url)
-    ),
-  ]);
+  const avatarUrls = await getSignedStorageUrls(
+    supabase,
+    "avatars",
+    company.employees.map((e) => e.avatar_url)
+  );
 
   const result: CompanyDetailData = {
     name: company.name,
-    logoUrl,
+    logoUrl: publicLogoUrl(company.logo_url),
     tagline: company.tagline,
     description: company.description,
     industry: company.industry,
