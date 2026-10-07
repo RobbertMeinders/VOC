@@ -31,7 +31,7 @@ export async function createInvitationAction(
     return { error: "Uitnodiging aanmaken is niet gelukt. Probeer het opnieuw." };
   }
 
-  revalidatePath("/beheer/uitnodigingen");
+  revalidatePath("/beheer/instroom");
 
   if (!email) {
     return { success: true };
@@ -53,7 +53,7 @@ export async function revokeInvitationAction(id: string) {
   await requireBoard();
   const supabase = await createClient();
   await supabase.from("invitations").update({ status: "revoked" }).eq("id", id);
-  revalidatePath("/beheer/uitnodigingen");
+  revalidatePath("/beheer/instroom");
 }
 
 const EXTENDED_VALIDITY_MS = 14 * 24 * 60 * 60 * 1000;
@@ -66,7 +66,7 @@ export async function extendInvitationAction(id: string) {
     .update({ expires_at: new Date(Date.now() + EXTENDED_VALIDITY_MS).toISOString() })
     .eq("id", id)
     .eq("status", "pending");
-  revalidatePath("/beheer/uitnodigingen");
+  revalidatePath("/beheer/instroom");
 }
 
 // Voor bulk-geïmporteerde uitnodigingen (leden-import) die nog niet verstuurd
@@ -79,7 +79,7 @@ export async function extendAllInvitationsAction() {
     .from("invitations")
     .update({ expires_at: new Date(Date.now() + EXTENDED_VALIDITY_MS).toISOString() })
     .eq("status", "pending");
-  revalidatePath("/beheer/uitnodigingen");
+  revalidatePath("/beheer/instroom");
 }
 
 export async function sendInvitationEmailAction(id: string): Promise<{ error?: string }> {
@@ -103,7 +103,7 @@ export async function sendInvitationEmailAction(id: string): Promise<{ error?: s
   const { error } = await sendTemplatedEmail("uitnodiging", invitation.email, { link });
   if (!error) {
     await supabase.from("invitations").update({ last_sent_at: new Date().toISOString() }).eq("id", id);
-    revalidatePath("/beheer/uitnodigingen");
+    revalidatePath("/beheer/instroom");
   }
   return { error };
 }
@@ -144,7 +144,7 @@ export async function bulkSendInvitationEmailsAction(ids: string[]): Promise<Bul
     await supabase.from("invitations").update({ last_sent_at: new Date().toISOString() }).in("id", sentIds);
   }
 
-  revalidatePath("/beheer/uitnodigingen");
+  revalidatePath("/beheer/instroom");
   return { succeeded, failed: ids.length - succeeded };
 }
 
@@ -157,7 +157,7 @@ export async function bulkExtendInvitationsAction(ids: string[]): Promise<BulkAc
     .in("id", ids)
     .eq("status", "pending");
 
-  revalidatePath("/beheer/uitnodigingen");
+  revalidatePath("/beheer/instroom");
   if (error) return { succeeded: 0, failed: ids.length, error: "Verlengen is niet gelukt." };
   return { succeeded: count ?? ids.length, failed: ids.length - (count ?? ids.length) };
 }
@@ -170,7 +170,7 @@ export async function bulkRevokeInvitationsAction(ids: string[]): Promise<BulkAc
     .update({ status: "revoked" }, { count: "exact" })
     .in("id", ids);
 
-  revalidatePath("/beheer/uitnodigingen");
+  revalidatePath("/beheer/instroom");
   if (error) return { succeeded: 0, failed: ids.length, error: "Intrekken is niet gelukt." };
   return { succeeded: count ?? ids.length, failed: ids.length - (count ?? ids.length) };
 }

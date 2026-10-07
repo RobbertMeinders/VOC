@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Aanmelden bij de VOC" };
 // publieke VOC-site — vervangt het externe WordPress-aanmeldformulier.
 // Dezelfde inzending als /toegang-aanvragen (access_requests, zie
 // 0022_richer_access_requests.sql): het bestuur beoordeelt en nodigt
-// desgewenst uit via /beheer/aanvragen.
+// desgewenst uit via /beheer/instroom.
 export default function AanmeldenEmbedPage() {
   // data-theme="light" + min-h-screen: dwingt het lichte thema af over de
   // HELE zichtbare iframe-hoogte (niet alleen de eigen inhoud) — anders

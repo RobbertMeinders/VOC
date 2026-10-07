@@ -9,7 +9,7 @@ import { getAppSettings } from "@/lib/settings/app-settings";
 import { createCommunicationAction } from "./actions";
 import type { Database } from "@/lib/types/database";
 
-export const metadata: Metadata = { title: "Communicatie" };
+export const metadata: Metadata = { title: "Nieuwsbrieven" };
 
 type Communication = Database["public"]["Tables"]["communications"]["Row"] & {
   activity: { title: string } | null;
@@ -30,7 +30,7 @@ export default async function BeheerCommunicatiePage() {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        title="Communicatie"
+        title="Nieuwsbrieven"
         description="Centrale plek voor campagnes en algemene e-mailcommunicatie naar leden."
         action={
           <form action={createCommunicationAction}>

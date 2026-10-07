@@ -6,17 +6,14 @@ import {
   CalendarDays,
   Code,
   Flag,
-  Inbox,
   LayoutDashboard,
   Mail,
   Megaphone,
   Newspaper,
   Send,
   Settings,
-  Upload,
   UserPlus,
   Users,
-  UserSearch,
 } from "lucide-react";
 
 // adminOnly ontbreekt (= false) voor inhoudelijk-beheer-items (bestuurslid +
@@ -52,8 +49,8 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
   {
     title: "Communicatie",
     items: [
-      { href: "/beheer/communicatie", label: "Campagnes", icon: Megaphone },
-      { href: "/beheer/notificaties", label: "Notificaties", icon: Bell },
+      { href: "/beheer/communicatie", label: "Nieuwsbrieven", icon: Megaphone },
+      { href: "/beheer/notificaties", label: "Verzendlog", icon: Bell },
     ],
   },
   {
@@ -67,7 +64,7 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     items: [
       { href: "/beheer/nieuws", label: "Nieuws", icon: Newspaper },
       { href: "/beheer/agenda", label: "Activiteiten", icon: CalendarDays },
-      { href: "/beheer/rapportages", label: "Rapportages", icon: Flag },
+      { href: "/beheer/rapportages", label: "Moderatie", icon: Flag },
     ],
   },
   {
@@ -75,10 +72,7 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     items: [
       { href: "/beheer/leden", label: "Leden", icon: Users },
       { href: "/beheer/bedrijven", label: "Bedrijven", icon: Building2 },
-      { href: "/beheer/uitnodigingen", label: "Uitnodigingen", icon: UserPlus },
-      { href: "/beheer/aanvragen", label: "Toegangsaanvragen", icon: Inbox },
-      { href: "/beheer/prospects", label: "Potentiële leden", icon: UserSearch },
-      { href: "/beheer/leden-import", label: "Leden importeren", icon: Upload },
+      { href: "/beheer/instroom", label: "Instroom", icon: UserPlus },
     ],
   },
   {

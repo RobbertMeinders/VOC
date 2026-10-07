@@ -137,7 +137,7 @@ export function BulkImportForm() {
             <p className="text-sm text-green-600">
               {result.imported} uitnodiging{result.imported === 1 ? "" : "en"} aangemaakt (nog geen e-mail
               verstuurd) — te vinden bij{" "}
-              <Link href="/beheer/uitnodigingen" className="underline">
+              <Link href="/beheer/instroom?tab=uitnodigingen" className="underline">
                 Uitnodigingen
               </Link>
               .

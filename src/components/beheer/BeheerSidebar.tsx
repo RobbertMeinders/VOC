@@ -11,7 +11,7 @@ import { BEHEER_SECTIONS, type BeheerNavItem } from "./beheer-nav-items";
 // Permanent zij-menu voor alle /beheer/*-pagina's (zie BeheerLayout) i.p.v.
 // een los kaartjes-overzicht op /beheer zelf. Op desktop een altijd
 // zichtbare verticale kolom, direct naast de hoofdnavigatie. Op mobiel bleek
-// een horizontaal scrollbare pillenrij met 14 items over 6 secties
+// een horizontaal scrollbare pillenrij met veel items over meerdere secties
 // onhandig (geen sectiekoppen zichtbaar, veel heen-en-weer scrollen om iets
 // te vinden) — daarom daar in plaats daarvan een knop met de huidige
 // sectie die de volledige, gegroepeerde lijst inline uitklapt.

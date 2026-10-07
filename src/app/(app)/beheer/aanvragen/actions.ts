@@ -11,7 +11,7 @@ export async function markAccessRequestHandledAction(id: string) {
   await requireBoard();
   const supabase = await createClient();
   await supabase.from("access_requests").update({ status: "handled" }).eq("id", id);
-  revalidatePath("/beheer/aanvragen");
+  revalidatePath("/beheer/instroom");
 }
 
 export type InviteFromAccessRequestState = { error?: string; success?: boolean; emailSent?: boolean; emailError?: string };
@@ -110,8 +110,7 @@ export async function createInvitationFromAccessRequestAction(requestId: string)
   }
 
   await supabase.from("access_requests").update({ status: "handled" }).eq("id", requestId);
-  revalidatePath("/beheer/aanvragen");
-  revalidatePath("/beheer/uitnodigingen");
+  revalidatePath("/beheer/instroom");
 
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
   const { error: emailError } = await sendTemplatedEmail("uitnodiging", request.email, { link });

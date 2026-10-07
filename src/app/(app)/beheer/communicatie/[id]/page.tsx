@@ -81,7 +81,7 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
       <PageHeader
         title={communication.subject}
         description={statusLabel}
-        back={{ href: "/beheer/communicatie", label: "Terug naar communicatie" }}
+        back={{ href: "/beheer/communicatie", label: "Terug naar nieuwsbrieven" }}
         action={
           communication.status !== "verzonden" && (
             <DeleteButton

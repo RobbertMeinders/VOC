@@ -6,7 +6,7 @@ import { ComingSoon } from "@/components/ui/ComingSoon";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { ReportRow, type ReportResolution, type ReportRowData } from "@/components/moderation/ReportRow";
 
-export const metadata: Metadata = { title: "Rapportages" };
+export const metadata: Metadata = { title: "Moderatie" };
 
 const RESOLVED_LIMIT = 20;
 
@@ -99,7 +99,7 @@ export default async function RapportagesPage() {
 
   return (
     <div>
-      <PageHeader title="Rapportages" description="Door leden gerapporteerde berichten uit de community-feed." />
+      <PageHeader title="Moderatie" description="Door leden gerapporteerde berichten uit de community-feed." />
 
       <div className="mb-6 rounded-2xl border border-border bg-surface p-4 shadow-sm">
         <h2 className="mb-2 text-sm font-semibold text-foreground">Openstaand</h2>

@@ -193,6 +193,6 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
     return { imported: 0, skipped: [...skipped, { row: 0, email: "", reason: "Importeren is niet gelukt: " + error.message }] };
   }
 
-  revalidatePath("/beheer/uitnodigingen");
+  revalidatePath("/beheer/instroom");
   return { imported: toInsert.length, skipped };
 }

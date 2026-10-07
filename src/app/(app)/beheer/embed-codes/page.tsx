@@ -16,7 +16,7 @@ const EMBEDS = [
   {
     kind: "aanmelden",
     label: "Word lid",
-    description: "Aanmeldformulier voor nieuwe leden (komt bij Beheer > Toegangsaanvragen terecht).",
+    description: "Aanmeldformulier voor nieuwe leden (komt bij Beheer > Instroom terecht).",
     // Starthoogte vóór de eerste echte hoogtemeting — dit formulier heeft
     // elf velden onder elkaar, dus 600 (de generieke starthoogte) laat de
     // verstuurknop er al staan zonder dat er ooit een hoogte-update binnen

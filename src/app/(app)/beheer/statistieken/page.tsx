@@ -24,7 +24,7 @@ const TABS = [
   { key: "activiteiten", label: "Activiteiten" },
   { key: "email", label: "E-mail" },
   { key: "push", label: "Push" },
-  { key: "nieuwsbrief", label: "Campagnes" },
+  { key: "nieuwsbrief", label: "Nieuwsbrieven" },
 ] as const;
 
 const PERIOD_OPTIONS: { key: StatsPeriod; label: string }[] = [
