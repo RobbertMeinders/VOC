@@ -19,7 +19,7 @@ export default async function BeheerNieuwsPage() {
   const { data: newsItems } = await supabase
     .from("news_items")
     .select("*")
-    .order("created_at", { ascending: false })
+    .order("position", { ascending: true })
     .returns<NewsItem[]>();
 
   const urls = await getSignedStorageUrls(
@@ -42,8 +42,14 @@ export default async function BeheerNieuwsPage() {
 
       {newsItems && newsItems.length > 0 ? (
         <div className="flex flex-col gap-2">
-          {newsItems.map((item) => (
-            <NewsItemRow key={item.id} item={item} imageUrl={item.image_url ? (urls.get(item.image_url) ?? null) : null} />
+          {newsItems.map((item, index) => (
+            <NewsItemRow
+              key={item.id}
+              item={item}
+              imageUrl={item.image_url ? (urls.get(item.image_url) ?? null) : null}
+              isFirst={index === 0}
+              isLast={index === newsItems.length - 1}
+            />
           ))}
         </div>
       ) : (

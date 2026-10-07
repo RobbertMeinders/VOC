@@ -30,9 +30,21 @@ export async function createNewsItemAction(_prevState: NewsFormState, formData: 
   }
 
   const supabase = await createClient();
+
+  // Nieuw bericht komt bovenaan (laagste position = eerst getoond), zoals
+  // de oude created_at-desc-sortering ook altijd deed — een bestuurslid kan
+  // het daarna zelf verplaatsen.
+  const { data: topItem } = await supabase
+    .from("news_items")
+    .select("position")
+    .order("position", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  const position = topItem ? topItem.position - 1 : 0;
+
   const { data: newsItem, error } = await supabase
     .from("news_items")
-    .insert({ title, subtitle: subtitle || null, body, created_by: profile.id })
+    .insert({ title, subtitle: subtitle || null, body, created_by: profile.id, position })
     .select("id")
     .single();
 
@@ -103,6 +115,33 @@ export async function updateNewsItemAction(
 
   revalidateNews();
   return { success: true };
+}
+
+export async function moveNewsItemAction(newsItemId: string, direction: "up" | "down"): Promise<void> {
+  await requireBoard();
+  const supabase = await createClient();
+
+  // Positie wisselen met de buur in die richting — een regel "hoger/lager
+  // zetten" i.p.v. een losstaand sorteergetal te laten invullen.
+  const { data: items } = await supabase
+    .from("news_items")
+    .select("id, position")
+    .order("position", { ascending: true });
+
+  if (!items) return;
+  const index = items.findIndex((item) => item.id === newsItemId);
+  const swapIndex = direction === "up" ? index - 1 : index + 1;
+  if (index === -1 || swapIndex < 0 || swapIndex >= items.length) return;
+
+  const current = items[index];
+  const swapWith = items[swapIndex];
+
+  await Promise.all([
+    supabase.from("news_items").update({ position: swapWith.position }).eq("id", current.id),
+    supabase.from("news_items").update({ position: current.position }).eq("id", swapWith.id),
+  ]);
+
+  revalidateNews();
 }
 
 export async function deleteNewsItemAction(newsItemId: string): Promise<void> {

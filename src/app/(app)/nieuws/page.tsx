@@ -24,7 +24,7 @@ export default async function NieuwsPage() {
   // kent geen per-gebruiker variatie), dus dit resultaat delen is veilig —
   // zelfde patroon als documenten-page-data.
   const { data: newsItems } = await cachedQuery("nieuws-page-data", 60_000, () =>
-    supabase.from("news_items").select("*").order("created_at", { ascending: false }).returns<NewsItem[]>()
+    supabase.from("news_items").select("*").order("position", { ascending: true }).returns<NewsItem[]>()
   );
 
   const urls = await getSignedStorageUrls(

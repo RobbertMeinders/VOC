@@ -64,7 +64,7 @@ export default async function HomePage() {
       .returns<ActivityRow[]>(),
     supabase.from("companies").select("id", { count: "exact", head: true }),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
-    supabase.from("news_items").select("*").order("created_at", { ascending: false }).limit(3).returns<NewsItemRow[]>(),
+    supabase.from("news_items").select("*").order("position", { ascending: true }).limit(3).returns<NewsItemRow[]>(),
   ]);
 
   const nextActivity = activities?.[0] ?? null;

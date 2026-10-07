@@ -371,6 +371,7 @@ export interface Database {
           subtitle: string | null;
           body: string;
           image_url: string | null;
+          position: number;
           created_by: string | null;
           created_at: string;
           updated_at: string;
