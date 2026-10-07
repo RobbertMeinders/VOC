@@ -1,10 +1,12 @@
 "use client";
 
 import { Suspense, useMemo, useState } from "react";
+import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
 import { RoleEditor } from "@/components/members/RoleEditor";
 import { MemberActiveToggle } from "@/components/members/MemberActiveToggle";
 import { OrganizationAccountToggle } from "@/components/members/OrganizationAccountToggle";
+import { DeleteMemberButton } from "@/components/members/DeleteMemberButton";
 import { ListToolbar, type ListToolbarFilter } from "@/components/ui/ListToolbar";
 import { matchesSearch } from "@/lib/search/normalize";
 import { useUrlFilterState } from "@/lib/dom/useUrlFilterState";
@@ -90,7 +92,7 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
         {filtered.length === 0 && <p className="text-sm text-muted">Geen leden gevonden.</p>}
         {filtered.map((member) => (
           <div key={member.id} className="rounded-2xl border border-border bg-surface p-3 shadow-sm">
-            <div className="flex items-center gap-3">
+            <Link href={`/leden/${member.id}`} className="flex items-center gap-3 hover:opacity-80">
               <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={40} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-foreground">
@@ -101,11 +103,16 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                   {!member.is_active && " · Gedeactiveerd"}
                 </p>
               </div>
-            </div>
-            <div className={`mt-2 grid grid-cols-1 gap-2 ${canEditRole ? "sm:grid-cols-3" : "sm:grid-cols-2"}`}>
+            </Link>
+            <div
+              className={`mt-2 grid grid-cols-1 gap-2 ${canEditRole ? "sm:grid-cols-4" : "sm:grid-cols-2"}`}
+            >
               {canEditRole && <RoleEditor memberId={member.id} currentRole={member.role} compact />}
               {member.id !== viewerId && <MemberActiveToggle memberId={member.id} initialActive={member.is_active} compact />}
               <OrganizationAccountToggle memberId={member.id} initialValue={member.is_organization_account} compact />
+              {canEditRole && member.id !== viewerId && (
+                <DeleteMemberButton memberId={member.id} memberName={`${member.first_name} ${member.last_name}`} />
+              )}
             </div>
           </div>
         ))}

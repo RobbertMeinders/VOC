@@ -656,6 +656,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: { profile_id: string; old_avatar_url: string | null }[];
       };
+      anonymize_profile_now: {
+        Args: { p_id: string };
+        Returns: { profile_id: string; old_avatar_url: string | null }[];
+      };
       has_any_profiles: {
         Args: Record<string, never>;
         Returns: boolean;

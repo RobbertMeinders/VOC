@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin, requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
@@ -106,6 +107,64 @@ export async function updateMemberActiveAction(memberId: string, isActive: boole
   invalidateQuery("beheer-leden-page-data");
   revalidatePath(`/leden/${memberId}`);
   return { success: true };
+}
+
+export type DeleteMemberState = { error?: string };
+
+// Direct verwijderen i.p.v. de 90-dagen-wachttijd van updateMemberActiveAction
+// (die alleen deactiveert) — zelfde eindresultaat (persoonsgegevens gewist,
+// account onbruikbaar, geplaatste berichten/reacties blijven staan onder
+// "Verwijderd lid"), maar nu meteen via anonymize_profile_now()
+// (0078_anonymize_profile_now.sql). Haalt de bedrijfskoppeling meteen weg en
+// verdwijnt daardoor (is_active=false) ook meteen uit de ledenlijst.
+export async function deleteMemberAction(memberId: string): Promise<DeleteMemberState> {
+  const viewer = await requireAdmin();
+
+  if (memberId === viewer.id) {
+    return { error: "Je kunt jezelf niet op deze manier verwijderen." };
+  }
+
+  const supabase = await createClient();
+
+  const { data: target } = await supabase.from("profiles").select("role").eq("id", memberId).single();
+  if (target?.role === "beheerder") {
+    const { count } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "beheerder")
+      .eq("is_active", true);
+    if ((count ?? 0) <= 1) {
+      return { error: "Er moet minstens één actieve beheerder overblijven." };
+    }
+  }
+
+  // company_members_self_or_board_delete (0001_init.sql) staat bestuur/
+  // beheer toe om ook andermans koppeling te verwijderen.
+  await supabase.from("company_members").delete().eq("profile_id", memberId);
+
+  const admin = createAdminClient();
+  const { data: anonymized, error } = await admin.rpc("anonymize_profile_now", { p_id: memberId });
+
+  if (error || !anonymized || anonymized.length === 0) {
+    return { error: "Verwijderen is niet gelukt. Probeer het opnieuw." };
+  }
+
+  const [{ old_avatar_url }] = anonymized;
+  await admin.auth.admin.updateUserById(memberId, { email: `verwijderd-${memberId}@voc-ledenportaal.invalid` });
+  if (old_avatar_url) {
+    await admin.storage.from("avatars").remove([old_avatar_url]);
+  }
+
+  await logAuditAction("member_deleted", "profile", memberId);
+
+  invalidateQuery("leden-page-data");
+  invalidateQuery("beheer-leden-page-data");
+  invalidateQuery("bedrijven-page-data");
+  invalidateQuery("beheer-bedrijven-page-data");
+  revalidatePath("/leden");
+  revalidatePath("/beheer/leden");
+  revalidatePath(`/leden/${memberId}`);
+  return {};
 }
 
 export type UpdateMemberOrganizationAccountState = { error?: string; success?: boolean };
