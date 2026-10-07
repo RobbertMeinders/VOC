@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, Globe, Lock } from "lucide-react";
+import { Building2, Globe, Lock, MapPin } from "lucide-react";
 import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
 import { Avatar } from "@/components/ui/Avatar";
 import { PopupLoginLink } from "@/components/embed/PopupLoginLink";
@@ -13,6 +13,8 @@ export type CompanyDetailData = {
   description: string | null;
   industry: string | null;
   city: string | null;
+  address: string | null;
+  postalCode: string | null;
   website: string | null;
   linkedinUrl: string | null;
   instagramUrl: string | null;
@@ -61,6 +63,12 @@ export function CompanyDetailContent({ company }: { company: CompanyDetailData }
             {company.tagline && <p className="mt-0.5 text-sm text-muted">{company.tagline}</p>}
             {(company.industry || company.city) && (
               <p className="mt-0.5 text-sm text-muted">{[company.industry, company.city].filter(Boolean).join(" · ")}</p>
+            )}
+            {company.address && (
+              <p className="mt-0.5 flex items-center gap-1 text-sm text-muted">
+                <MapPin size={13} className="shrink-0" />
+                {[company.address, [company.postalCode, company.city].filter(Boolean).join(" ")].filter(Boolean).join(", ")}
+              </p>
             )}
             {company.website && (
               <a

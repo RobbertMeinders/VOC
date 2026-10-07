@@ -638,6 +638,8 @@ export interface Database {
           description: string | null;
           industry: string | null;
           city: string | null;
+          address: string | null;
+          postal_code: string | null;
           website: string | null;
           linkedin_url: string | null;
           instagram_url: string | null;

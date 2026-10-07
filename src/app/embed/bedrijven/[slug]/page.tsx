@@ -43,6 +43,8 @@ export default async function BedrijfEmbedDetailPage({ params }: { params: Promi
     description: company.description,
     industry: company.industry,
     city: company.city,
+    address: company.address,
+    postalCode: company.postal_code,
     website: company.website,
     linkedinUrl: company.linkedin_url,
     instagramUrl: company.instagram_url,
