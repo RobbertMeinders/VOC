@@ -83,26 +83,25 @@ e-mailinfra en hoeft niet aangepast te worden tenzij je 'm wilt aanpassen aan de
 
 ## E-mail
 
-Uitnodigingen en wachtwoord-reset verstuurt de app zelf via [Resend](https://resend.com), met
-sjablonen die bestuur/beheer kan bewerken via `/beheer/email-templates` (tabel
-`email_templates`, zie `0014_email_templates.sql`) — in plaats van Supabase Auth's ingebouwde,
-alleen-in-het-Supabase-dashboard-bewerkbare mails.
+Uitnodigingen, wachtwoord-reset en nieuwsbrieven verstuurt de app zelf via SMTP (de mailbox van je
+eigen hosting/domein, via [nodemailer](https://nodemailer.com)), met sjablonen die bestuur/beheer
+kan bewerken via `/beheer/email-templates` (tabel `email_templates`, zie `0014_email_templates.sql`)
+— in plaats van Supabase Auth's ingebouwde, alleen-in-het-Supabase-dashboard-bewerkbare mails.
 
 Benodigde environment variables (zie `.env.local.example`):
-- `RESEND_API_KEY` — vereist een bij Resend geverifieerd domein om naar willekeurige adressen te
-  kunnen versturen; zonder geverifieerd domein kun je alleen naar je eigen Resend-accountmail testen.
-- `EMAIL_FROM` — een afzenderadres op dat geverifieerde domein.
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD` — de SMTP-gegevens van je hosting/domein
+  (te vinden in het hostingpaneel, meestal bij "E-mailaccounts"). Poort 465 = impliciet TLS, 587 =
+  STARTTLS (automatisch geregeld door nodemailer).
+- `EMAIL_FROM` — een afzenderadres op dat domein, meestal gelijk aan `SMTP_USER`.
 - `SITE_URL` — basis-URL zonder trailing slash, gebruikt om links in de mails op te bouwen.
 - `SUPABASE_SERVICE_ROLE_KEY` — nodig voor `auth.admin.generateLink()` (genereert alleen de
   reset-token, zonder dat Supabase zelf een mail verstuurt); server-only, nooit in clientcode.
-- `RESEND_WEBHOOK_SECRET` — optioneel, voor "geopende e-mails" in Statistieken > Notificaties.
-  Zet Open Tracking + een webhook naar `/api/webhooks/resend` aan in het Resend-dashboard (zie
-  `.env.local.example`); de handtekening wordt geverifieerd volgens Svix' schema (Resends eigen
-  webhook-provider), zonder losse dependency.
 
-Verstuurt de e-mail niet (ontbrekende/foutieve Resend-configuratie), dan blijft de rest van de flow
+Verstuurt de e-mail niet (ontbrekende/foutieve SMTP-configuratie), dan blijft de rest van de flow
 werken: een uitnodiging is nog steeds aangemaakt en de link nog steeds handmatig te kopiëren en
-delen vanaf `/beheer/uitnodigingen`.
+delen vanaf `/beheer/instroom`. Een gewone SMTP-mailbox levert (anders dan een e-maildienst als
+Resend) geen open/klik-webhook — "geopende e-mails" in Statistieken > Notificaties blijft daardoor
+op 0 staan; de rest van de statistieken werkt gewoon door.
 
 ### 3. Database-migraties
 

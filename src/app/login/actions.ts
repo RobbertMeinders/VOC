@@ -86,7 +86,7 @@ export async function signInWithMagicLinkAction(
     try {
       // Zelfde patroon als wachtwoord-reset: generateLink maakt alleen de
       // token, geen Supabase-mail — zo blijft dit via ons eigen (door
-      // bestuur bewerkbare) template en Resend lopen. Bestaat het
+      // bestuur bewerkbare) template en de eigen SMTP-mailbox lopen. Bestaat het
       // e-mailadres niet, dan gooit generateLink hier een error — die
       // lekken we bewust niet naar de aanvrager (zie catch hieronder).
       const admin = createAdminClient();

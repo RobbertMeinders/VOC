@@ -33,8 +33,9 @@ export async function GET(request: Request) {
       link: item.link,
     });
     if (result.providerId) {
-      // Resend's eigen send-id, nodig om een latere open-webhook
-      // (/api/webhooks/resend, Fase F) aan deze rij te koppelen.
+      // SMTP-message-id, puur voor eigen logging/debugging — een generieke
+      // SMTP-mailbox levert (anders dan Resend) geen open/klik-webhook, dus
+      // "geopende e-mails" in Statistieken blijft hierna op 0 staan.
       await supabase.rpc("set_notification_email_provider_id", {
         p_notification_id: item.notification_id,
         p_provider_id: result.providerId,

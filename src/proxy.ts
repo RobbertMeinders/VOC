@@ -20,8 +20,8 @@ export const config = {
      *   notificationclick, which never carries a Supabase session cookie
      *   either; the route itself derives the profile from the
      *   notification id server-side, so no auth is needed or expected here.
-     * - api/webhooks/* — hit by external services (Resend) with their own
-     *   signature-based auth (Svix), never a Supabase session cookie.
+     * - api/webhooks/* — reserved for routes hit by external services with
+     *   their own signature-based auth, never a Supabase session cookie.
      *
      * api/embed/* is DELIBERATELY NOT excluded here (unlike the paths
      * above): those routes call getCurrentProfile(), which trusts the

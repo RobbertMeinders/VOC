@@ -44,7 +44,7 @@ export async function createInvitationAction(
   }
 
   // De uitnodiging zelf is al aangemaakt en blijft via "kopieer link" bruikbaar,
-  // ook als het versturen van de mail zelf mislukt (bijv. Resend nog niet
+  // ook als het versturen van de mail zelf mislukt (bijv. SMTP nog niet
   // geconfigureerd) — dat mag het aanmaken niet blokkeren.
   return { success: true, emailSent: !emailError, emailError: emailError };
 }

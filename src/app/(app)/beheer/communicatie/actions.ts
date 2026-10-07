@@ -270,7 +270,7 @@ export type SendNewsletterState = { error?: string; total?: number; sent?: numbe
 // Kernregel: nooit een halve verzending als succesvol rapporteren. Elke
 // ontvanger krijgt zijn eigen notifications-rij (claim_newsletter_recipients,
 // 0067_newsletter_send.sql) die hier, direct na de individuele
-// Resend-aanroep, pas als verstuurd wordt gemarkeerd — nooit vooraf, nooit
+// verzend-aanroep, pas als verstuurd wordt gemarkeerd — nooit vooraf, nooit
 // in bulk. Breekt deze functie halverwege af (bv. door een functie-timeout
 // bij een groot ledenaantal), dan staat alles wat al écht verstuurd is ook
 // al als zodanig vastgelegd; nogmaals op "Versturen" klikken (of "Opnieuw

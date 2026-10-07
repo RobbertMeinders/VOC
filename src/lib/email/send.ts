@@ -1,19 +1,66 @@
 import "server-only";
 
-import { Resend } from "resend";
+import nodemailer from "nodemailer";
+import type { Transporter } from "nodemailer";
 import { createClient } from "@/lib/supabase/server";
 import { renderTemplate } from "@/lib/template/render";
 import { escapeHtml } from "@/lib/text/escape-html";
 
 export { escapeHtml };
 
+// Verstuurt via de SMTP-mailbox van de eigen hosting (bijv. info@vocveendam.nl)
+// i.p.v. een los account bij een externe e-maildienst (Resend e.d.) — geen
+// extra accountje, geen aparte factuur, en geen limiet bovenop wat de hosting
+// zelf al toestaat. Eén gecachete transporter per serverproces i.p.v. per
+// verzending een nieuwe SMTP-verbinding opzetten.
+let cachedTransporter: Transporter | null = null;
+
+function getTransporter(): Transporter | null {
+  const host = process.env.SMTP_HOST;
+  const port = Number(process.env.SMTP_PORT ?? "587");
+  const user = process.env.SMTP_USER;
+  const password = process.env.SMTP_PASSWORD;
+  if (!host) return null;
+
+  if (!cachedTransporter) {
+    cachedTransporter = nodemailer.createTransport({
+      host,
+      port,
+      // Poort 465 is impliciet TLS vanaf de eerste byte; elke andere poort
+      // (587, 25, ...) start onversleuteld en schakelt zelf over via
+      // STARTTLS — nodemailer regelt dat laatste automatisch zodra de server
+      // het aanbiedt, dus secure moet hier alleen voor 465 aan.
+      secure: port === 465,
+      auth: user ? { user, pass: password } : undefined,
+    });
+  }
+  return cachedTransporter;
+}
+
 // Wordt gebruikt door inlog-/wachtwoordschermen om mail-afhankelijke opties
 // (magic link, wachtwoord-reset) tijdelijk te verbergen i.p.v. een valse
-// "we hebben een mail gestuurd"-melding te tonen terwijl er geen Resend-key
-// is (bv. nog geen bestuursakkoord op het portaal) — zie sendTemplatedEmail
-// hieronder voor dezelfde check.
+// "we hebben een mail gestuurd"-melding te tonen terwijl er geen SMTP-
+// configuratie is (bv. nog geen bestuursakkoord op het portaal) — zie
+// sendMail hieronder voor dezelfde check.
 export function isEmailConfigured(): boolean {
-  return Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
+  return Boolean(process.env.SMTP_HOST && process.env.EMAIL_FROM);
+}
+
+type SendResult = { error?: string; providerId?: string };
+
+async function sendMail(to: string, subject: string, html: string, from?: string): Promise<SendResult> {
+  const transporter = getTransporter();
+  const defaultFrom = process.env.EMAIL_FROM;
+  if (!transporter || !defaultFrom) {
+    return { error: "E-mail versturen is niet geconfigureerd (SMTP_HOST / EMAIL_FROM ontbreken)." };
+  }
+
+  try {
+    const info = await transporter.sendMail({ from: from ?? defaultFrom, to, subject, html });
+    return { providerId: info.messageId };
+  } catch {
+    return { error: "Versturen van de e-mail is niet gelukt." };
+  }
 }
 
 // Notificatietypes met een beheerbaar email_templates-record (0039_
@@ -41,7 +88,7 @@ function notificationPreferencesFooter(): string {
 
 /**
  * Renders a board-editable template (see email_templates /
- * get_email_template()) and sends it via Resend. Used both from
+ * get_email_template()) and sends it via SMTP. Used both from
  * authenticated contexts (uitnodigingen) and anonymous ones (wachtwoord
  * vergeten) — the template is read through a security definer RPC so an
  * anonymous caller can still read the (non-secret) template content.
@@ -51,7 +98,7 @@ export async function sendTemplatedEmail(
   to: string,
   variables: Record<string, string>,
   options?: { includePreferencesFooter?: boolean }
-): Promise<{ error?: string; providerId?: string }> {
+): Promise<SendResult> {
   const supabase = await createClient();
   const { data: templates, error: templateError } = await supabase.rpc("get_email_template", {
     p_key: templateKey,
@@ -62,87 +109,40 @@ export async function sendTemplatedEmail(
     return { error: `E-mailtemplate '${templateKey}' kon niet worden geladen.` };
   }
 
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM;
-  if (!apiKey || !from) {
-    return { error: "E-mail versturen is niet geconfigureerd (RESEND_API_KEY / EMAIL_FROM ontbreken)." };
-  }
-
-  const resend = new Resend(apiKey);
   // Subject is platte tekst (geen HTML-rendering), dus ongewijzigde
   // variabelen; de HTML-body krijgt elke variabele HTML-geëscaped.
   const subject = renderTemplate(template.subject, variables);
   const escapedVariables = Object.fromEntries(Object.entries(variables).map(([key, value]) => [key, escapeHtml(value)]));
   const html = renderTemplate(template.body_html, escapedVariables) + (options?.includePreferencesFooter ? notificationPreferencesFooter() : "");
 
-  try {
-    const { data, error } = await resend.emails.send({ from, to, subject, html });
-    if (error) return { error: "Versturen van de e-mail is niet gelukt." };
-    return { providerId: data?.id };
-  } catch {
-    return { error: "Versturen van de e-mail is niet gelukt." };
-  }
+  return sendMail(to, subject, html);
 }
 
-// Kale e-mail rechtstreeks via Resend, zonder board-beheerde content —
-// fallback voor notificatietypes zonder template (of wanneer het template
-// nog niet geladen kon worden).
-async function sendRawNotificationEmail(
-  to: string,
-  title: string,
-  body: string | null,
-  linkUrl: string
-): Promise<{ error?: string; providerId?: string }> {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM;
-  if (!apiKey || !from) {
-    return { error: "E-mail versturen is niet geconfigureerd (RESEND_API_KEY / EMAIL_FROM ontbreken)." };
-  }
-
+// Kale e-mail zonder board-beheerde content — fallback voor
+// notificatietypes zonder template (of wanneer het template nog niet
+// geladen kon worden).
+async function sendRawNotificationEmail(to: string, title: string, body: string | null, linkUrl: string): Promise<SendResult> {
   const linkHtml = linkUrl ? `<p><a href="${escapeHtml(linkUrl)}">Bekijk in het ledenportaal</a></p>` : "";
   const html = `<p>${escapeHtml(body ?? "")}</p>${linkHtml}${notificationPreferencesFooter()}`;
-
-  const resend = new Resend(apiKey);
-  try {
-    const { data, error } = await resend.emails.send({ from, to, subject: title, html });
-    if (error) return { error: "Versturen van de e-mail is niet gelukt." };
-    return { providerId: data?.id };
-  } catch {
-    return { error: "Versturen van de e-mail is niet gelukt." };
-  }
+  return sendMail(to, title, html);
 }
 
 /**
- * Verstuurt losse, al-gerenderde HTML rechtstreeks via Resend — gebruikt
- * door de nieuwsbrief (testmail én, later, de definitieve verzending), die
- * zijn eigen HTML bouwt via renderNewsletterHtml() in plaats van via een
- * {{var}}-template. senderName overschrijft alleen de weergavenaam, niet
- * het onderliggende, geverifieerde afzenderadres uit EMAIL_FROM.
+ * Verstuurt losse, al-gerenderde HTML — gebruikt door de nieuwsbrief
+ * (testmail én de definitieve verzending), die zijn eigen HTML bouwt via
+ * renderNewsletterHtml() in plaats van via een {{var}}-template. senderName
+ * overschrijft alleen de weergavenaam, niet het onderliggende, in SMTP_USER
+ * geverifieerde afzenderadres uit EMAIL_FROM.
  */
-export async function sendRawHtmlEmail(
-  to: string,
-  subject: string,
-  html: string,
-  senderName?: string | null
-): Promise<{ error?: string; providerId?: string }> {
-  const apiKey = process.env.RESEND_API_KEY;
+export async function sendRawHtmlEmail(to: string, subject: string, html: string, senderName?: string | null): Promise<SendResult> {
   const defaultFrom = process.env.EMAIL_FROM;
-  if (!apiKey || !defaultFrom) {
-    return { error: "E-mail versturen is niet geconfigureerd (RESEND_API_KEY / EMAIL_FROM ontbreken)." };
-  }
+  if (!defaultFrom) return sendMail(to, subject, html);
 
   const fromAddressMatch = defaultFrom.match(/<([^>]+)>/);
   const fromAddress = fromAddressMatch ? fromAddressMatch[1] : defaultFrom;
   const from = senderName ? `${senderName} <${fromAddress}>` : defaultFrom;
 
-  const resend = new Resend(apiKey);
-  try {
-    const { data, error } = await resend.emails.send({ from, to, subject, html });
-    if (error) return { error: "Versturen van de e-mail is niet gelukt." };
-    return { providerId: data?.id };
-  } catch {
-    return { error: "Versturen van de e-mail is niet gelukt." };
-  }
+  return sendMail(to, subject, html, from);
 }
 
 /**
@@ -152,15 +152,12 @@ export async function sendRawHtmlEmail(
  * NOTIFICATION_EMAIL_TEMPLATE_KEYS) als dat bestaat, anders een kale mail
  * met de rauwe titel/body — zodat notificatietypes zonder eigen template
  * (moderatie, de uitkomst van je eigen aanvraag/inzending, …) gewoon
- * blijven werken. De geretourneerde providerId (Resend's eigen send-id)
- * wordt door de cron opgeslagen op de notificatie-rij, zodat een latere
- * open-webhook (Fase F, /api/webhooks/resend) 'm aan de juiste rij kan
- * koppelen.
+ * blijven werken.
  */
 export async function sendNotificationEmail(
   to: string,
   notification: { type: string; title: string; body: string | null; link: string | null }
-): Promise<{ error?: string; providerId?: string }> {
+): Promise<SendResult> {
   const siteUrl = process.env.SITE_URL ?? "";
   const linkUrl = notification.link ? `${siteUrl}${notification.link}` : "";
 
