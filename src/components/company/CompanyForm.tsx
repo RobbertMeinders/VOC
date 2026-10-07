@@ -105,7 +105,12 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
             }}
           />
         </div>
-        <p className="text-xs text-muted">Klik op het camera-icoon om een logo te uploaden.</p>
+        <p className="text-xs text-muted">
+          Klik op het camera-icoon om een logo te uploaden. Gebruik bij voorkeur een PNG met transparante achtergrond
+          (of SVG) — andere formaten worden bij het uploaden omgezet naar een ondoorzichtige JPEG, waardoor een
+          gekleurde achtergrond in het logo altijd als vierkant/rechthoekig blok zichtbaar blijft. Afmeting maakt
+          niet uit, het logo wordt nooit uitgesneden.
+        </p>
       </div>
 
       <div className="flex flex-col gap-1.5">

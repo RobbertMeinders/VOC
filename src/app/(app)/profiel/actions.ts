@@ -189,38 +189,29 @@ export async function updateShowEmailAction(visible: boolean): Promise<{ error?:
   return {};
 }
 
-// Granulaire notificatievoorkeuren, per kanaal (push/e-mail) en categorie —
-// los van de globale push-aan/uit-schakelaar (device-niveau, zie PushToggle).
-// get_pending_push_notifications / get_pending_email_notifications
-// (0037_retention_and_push_preferences.sql / 0038_email_notification_
-// preferences.sql) lezen deze kolommen; buiten deze drie categorieën gaat
-// alles altijd door (moderatie-meldingen voor bestuur/beheer, en de
-// uitkomst van je eigen aanvraag/inzending). Eén gedeelde helper i.p.v. zes
-// losse kopieën van dezelfde update-logica; de kolomnaam wordt via expliciete
-// takken bepaald (i.p.v. een computed property key) omdat Supabase's typed
-// client een computed key op een union-type niet tegen de kolomtypes kan
-// valideren.
-async function updateNotificationPreference(
-  channel: "push" | "email",
-  category: "activities" | "feed" | "new_members",
-  enabled: boolean
+// Communicatieplan: één keuze per categorie i.p.v. twee losse push/e-mail-
+// schakelaars — zo kan een lid niet meer (zoals voorheen, allebei stond
+// standaard aan) ongemerkt dubbel gemeld worden over dezelfde gebeurtenis.
+// "Nieuwe leden" heeft geen keuze meer (zie get_pending_push_notifications/
+// get_pending_email_notifications, migratie 0079): te lage urgentie voor een
+// instant kanaal, blijft wel gewoon zichtbaar in de bel en de ledenlijst.
+// Buiten "activities"/"feed" gaat alles altijd door (moderatiemeldingen voor
+// bestuur/beheer, en de uitkomst van je eigen aanvraag/inzending/wachtlijst-
+// plek).
+export async function updateNotificationChannelAction(
+  category: "activities" | "feed",
+  choice: "push" | "email" | "both" | "none"
 ): Promise<{ error?: string }> {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const column = `${channel}_${category}` as const;
+  const pushEnabled = choice === "push" || choice === "both";
+  const emailEnabled = choice === "email" || choice === "both";
+
   const update =
-    column === "push_activities"
-      ? { push_activities: enabled }
-      : column === "push_feed"
-        ? { push_feed: enabled }
-        : column === "push_new_members"
-          ? { push_new_members: enabled }
-          : column === "email_activities"
-            ? { email_activities: enabled }
-            : column === "email_feed"
-              ? { email_feed: enabled }
-              : { email_new_members: enabled };
+    category === "activities"
+      ? { push_activities: pushEnabled, email_activities: emailEnabled }
+      : { push_feed: pushEnabled, email_feed: emailEnabled };
 
   const { error } = await supabase.from("profiles").update(update).eq("id", profile.id);
 
@@ -228,30 +219,6 @@ async function updateNotificationPreference(
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
   return {};
-}
-
-export async function updatePushActivitiesAction(enabled: boolean): Promise<{ error?: string }> {
-  return updateNotificationPreference("push", "activities", enabled);
-}
-
-export async function updatePushFeedAction(enabled: boolean): Promise<{ error?: string }> {
-  return updateNotificationPreference("push", "feed", enabled);
-}
-
-export async function updatePushNewMembersAction(enabled: boolean): Promise<{ error?: string }> {
-  return updateNotificationPreference("push", "new_members", enabled);
-}
-
-export async function updateEmailActivitiesAction(enabled: boolean): Promise<{ error?: string }> {
-  return updateNotificationPreference("email", "activities", enabled);
-}
-
-export async function updateEmailFeedAction(enabled: boolean): Promise<{ error?: string }> {
-  return updateNotificationPreference("email", "feed", enabled);
-}
-
-export async function updateEmailNewMembersAction(enabled: boolean): Promise<{ error?: string }> {
-  return updateNotificationPreference("email", "new_members", enabled);
 }
 
 // Los van updateNotificationPreference hierboven — campagnes (0067_

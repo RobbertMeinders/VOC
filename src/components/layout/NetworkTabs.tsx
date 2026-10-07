@@ -22,7 +22,9 @@ export function NetworkTabs() {
             href={tab.href}
             className={clsx(
               "rounded-md px-3 py-1.5 text-sm font-medium",
-              active ? "bg-voc-red text-white" : "text-muted hover:text-foreground"
+              active
+                ? "bg-voc-red text-white"
+                : "bg-black/[.04] text-muted hover:bg-black/[.07] hover:text-foreground dark:bg-white/[.06] dark:hover:bg-white/[.1]"
             )}
           >
             {tab.label}

@@ -7,7 +7,7 @@ import { PushToggle } from "@/components/profile/PushToggle";
 import { ThemeToggle } from "@/components/profile/ThemeToggle";
 import { AttendedActivitiesToggle } from "@/components/profile/AttendedActivitiesToggle";
 import { ShowContactToggle } from "@/components/profile/ShowContactToggle";
-import { NotificationCategoryToggle } from "@/components/profile/NotificationCategoryToggle";
+import { NotificationChannelChoice } from "@/components/profile/NotificationChannelChoice";
 import { EmailCampaignsToggle } from "@/components/profile/EmailCampaignsToggle";
 import { ShowAddressToggle } from "@/components/company/ShowAddressToggle";
 import { PubliclyVisibleToggle } from "@/components/profile/PubliclyVisibleToggle";
@@ -62,35 +62,20 @@ export default async function InstellingenPage() {
         </Link>
       </SettingRow>
 
-      <SettingGroup label="Pushmeldingen" description="Ontvang een melding op dit apparaat. Per soort melding los aan of uit te zetten.">
+      <SettingGroup
+        label="Meldingen"
+        description="Per soort melding kies je zelf: pushmelding, e-mail, beide, of geen. Voor toegangsaanvragen, bedrijfskoppelingen, rapportages en de uitkomst van je eigen aanvraag/wachtlijstplek krijg je altijd bericht — dat is niet instelbaar."
+      >
         <SettingSubRow label="Dit apparaat">
           <PushToggle />
         </SettingSubRow>
 
         <SettingSubRow label="Activiteiten">
-          <NotificationCategoryToggle channel="push" category="activities" initialEnabled={profile.push_activities} />
+          <NotificationChannelChoice category="activities" initialPush={profile.push_activities} initialEmail={profile.email_activities} />
         </SettingSubRow>
 
         <SettingSubRow label="Reacties en vermeldingen">
-          <NotificationCategoryToggle channel="push" category="feed" initialEnabled={profile.push_feed} />
-        </SettingSubRow>
-
-        <SettingSubRow label="Nieuwe leden">
-          <NotificationCategoryToggle channel="push" category="new_members" initialEnabled={profile.push_new_members} />
-        </SettingSubRow>
-      </SettingGroup>
-
-      <SettingGroup label="E-mailmeldingen" description="Ontvang een melding per e-mail. Per soort melding los aan of uit te zetten.">
-        <SettingSubRow label="Activiteiten">
-          <NotificationCategoryToggle channel="email" category="activities" initialEnabled={profile.email_activities} />
-        </SettingSubRow>
-
-        <SettingSubRow label="Reacties en vermeldingen">
-          <NotificationCategoryToggle channel="email" category="feed" initialEnabled={profile.email_feed} />
-        </SettingSubRow>
-
-        <SettingSubRow label="Nieuwe leden">
-          <NotificationCategoryToggle channel="email" category="new_members" initialEnabled={profile.email_new_members} />
+          <NotificationChannelChoice category="feed" initialPush={profile.push_feed} initialEmail={profile.email_feed} />
         </SettingSubRow>
 
         <SettingSubRow label="Campagnes van VOC">

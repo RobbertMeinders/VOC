@@ -23,6 +23,8 @@ export default async function BeheerNotificatiesPage() {
   await requireBoard();
   const supabase = await createClient();
 
+  // E-mail-open-events worden niet meer verzameld (zie de "E-mail geopend"-
+  // kolom hieronder) — alleen push-opens nog ophalen.
   const [{ data: notifications }, { data: openEvents }] = await Promise.all([
     supabase
       .from("notifications")
@@ -34,12 +36,10 @@ export default async function BeheerNotificatiesPage() {
   ]);
 
   const openedPushIds = new Set<string>();
-  const openedEmailIds = new Set<string>();
   for (const e of openEvents ?? []) {
     if (!e.target_id) continue;
     const channel = (e.metadata as { channel?: string } | null)?.channel;
     if (channel === "push") openedPushIds.add(e.target_id);
-    if (channel === "email") openedEmailIds.add(e.target_id);
   }
 
   return (
@@ -59,7 +59,12 @@ export default async function BeheerNotificatiesPage() {
               <th className="px-4 py-2 text-center font-medium">Push verstuurd</th>
               <th className="px-4 py-2 text-center font-medium">Push geopend</th>
               <th className="px-4 py-2 text-center font-medium">E-mail verstuurd</th>
-              <th className="px-4 py-2 text-center font-medium">E-mail geopend</th>
+              <th
+                className="px-4 py-2 text-center font-medium"
+                title="Niet beschikbaar: de eigen SMTP-mailbox levert geen open-tracking (dat vereiste eerder een Resend-webhook). Staat daarom altijd op n.v.t."
+              >
+                E-mail geopend
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -77,9 +82,7 @@ export default async function BeheerNotificatiesPage() {
                 <td className="px-4 py-2 text-center">
                   <ChannelStatus sent={Boolean(n.emailed_at)} />
                 </td>
-                <td className="px-4 py-2 text-center">
-                  <ChannelStatus sent={openedEmailIds.has(n.id)} />
-                </td>
+                <td className="px-4 py-2 text-center text-xs text-muted">n.v.t.</td>
               </tr>
             ))}
             {(notifications ?? []).length === 0 && (
@@ -92,6 +95,9 @@ export default async function BeheerNotificatiesPage() {
           </tbody>
         </table>
       </div>
+      <p className="text-xs text-muted">
+        &quot;E-mail geopend&quot; staat op n.v.t.: de eigen SMTP-mailbox levert geen open-tracking.
+      </p>
     </div>
   );
 }

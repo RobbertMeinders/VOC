@@ -328,6 +328,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
           <form action={createCommunicationFromActivityAction.bind(null, activity.id)}>
             <button
               type="submit"
+              title="Bewuste extra stap — leden krijgen al automatisch een melding zodra deze activiteit gepubliceerd wordt. Gebruik dit voor extra aandacht (bijv. weinig aanmeldingen), niet als standaardactie."
               className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red"
             >
               <Megaphone size={14} />

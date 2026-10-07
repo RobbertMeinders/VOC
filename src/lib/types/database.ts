@@ -745,6 +745,10 @@ export interface Database {
         Args: { p_endpoint: string; p_profile_id?: string | null };
         Returns: undefined;
       };
+      notify_report_resolved: {
+        Args: { p_report_id: string; p_decision: string };
+        Returns: undefined;
+      };
       set_notification_email_provider_id: {
         Args: { p_notification_id: string; p_provider_id: string };
         Returns: undefined;
