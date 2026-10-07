@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import { CheckCircle2, Clock, XCircle, type LucideIcon } from "lucide-react";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { deleteCommunicationAction } from "@/app/(app)/beheer/communicatie/actions";
 import { renderNewsletterHtml } from "@/lib/newsletter/render";
@@ -94,8 +95,18 @@ function StatusBadge({ status }: { status: string }) {
     verzenden_mislukt: "Verzending onderbroken",
     ingepland: "Ingepland",
   };
+  // UX-review T5: status ook herkenbaar voor kleurenblinden, niet alleen op kleur.
+  const icons: Record<string, LucideIcon> = {
+    verzonden: CheckCircle2,
+    verzenden_mislukt: XCircle,
+    ingepland: Clock,
+  };
+  const Icon = icons[status];
   return (
-    <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${styles[status] ?? styles.concept}`}>
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${styles[status] ?? styles.concept}`}
+    >
+      {Icon && <Icon size={11} />}
       {labels[status] ?? status}
     </span>
   );

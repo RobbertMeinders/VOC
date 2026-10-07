@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
-import { CalendarDays, Download, MapPin, Megaphone, Pencil, Users } from "lucide-react";
+import { CalendarDays, Clock, Download, MapPin, Megaphone, Pencil, Users, XCircle } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
@@ -173,12 +173,14 @@ export async function ActivityDetailContent({ id }: { id: string }) {
                 </span>
               )}
               {activity.status === "pending" && (
-                <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+                <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+                  <Clock size={11} />
                   Ter goedkeuring
                 </span>
               )}
               {activity.status === "rejected" && (
-                <span className="rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red-text">
+                <span className="flex items-center gap-1 rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red-text">
+                  <XCircle size={11} />
                   Afgewezen
                 </span>
               )}

@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { CalendarDays, Pencil, Plus } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, Pencil, Plus, XCircle } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -34,6 +35,22 @@ const STATUS_LABEL: Record<Activity["status"], string> = {
   pending: "Ter goedkeuring",
   rejected: "Afgewezen",
 };
+// UX-review T5: status ook herkenbaar voor kleurenblinden, niet alleen op kleur.
+const STATUS_ICON: Record<Activity["status"], LucideIcon> = {
+  approved: CheckCircle2,
+  pending: Clock,
+  rejected: XCircle,
+};
+
+function StatusBadge({ status }: { status: Activity["status"] }) {
+  const Icon = STATUS_ICON[status];
+  return (
+    <span className={`flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[status]}`}>
+      <Icon size={11} />
+      {STATUS_LABEL[status]}
+    </span>
+  );
+}
 
 const STATUS_FILTERS: { key: "alle" | Activity["status"]; label: string }[] = [
   { key: "alle", label: "Alle" },
@@ -131,9 +148,7 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="mb-1 flex flex-wrap items-center gap-2">
-                  <span className={`rounded-full px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[activity.status]}`}>
-                    {STATUS_LABEL[activity.status]}
-                  </span>
+                  <StatusBadge status={activity.status} />
                   {activity.source === "lid" && (
                     <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-xs font-medium text-muted dark:bg-white/[.08]">
                       Ingebracht

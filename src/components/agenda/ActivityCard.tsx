@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { clsx } from "clsx";
-import { CalendarDays, MapPin, Users } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, MapPin, Users } from "lucide-react";
 import { formatActivityDate } from "@/lib/format/date";
 import type { Database } from "@/lib/types/database";
 
@@ -48,17 +48,20 @@ export function ActivityCard({
         </span>
       )}
       {activity.status === "pending" && (
-        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+        <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+          <Clock size={11} />
           Ter goedkeuring
         </span>
       )}
       {isRegistered && !isWaitlisted && (
-        <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-500/10 dark:text-green-400">
+        <span className="flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-500/10 dark:text-green-400">
+          <CheckCircle2 size={11} />
           Je bent aangemeld
         </span>
       )}
       {isWaitlisted && (
-        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+        <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+          <Clock size={11} />
           Op de wachtlijst
         </span>
       )}
