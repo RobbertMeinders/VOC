@@ -106,12 +106,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           />
         </div>
         <p className="text-xs text-muted">
-          Klik op het camera-icoon om een logo te uploaden. Gebruik bij voorkeur een PNG met transparante achtergrond
-          (of SVG) — andere formaten worden bij het uploaden omgezet naar een ondoorzichtige JPEG, waardoor een
-          gekleurde achtergrond in het logo altijd als vierkant/rechthoekig blok zichtbaar blijft. Het logo wordt
-          nooit uitgesneden, dus een exacte afmeting is niet nodig — een liggend logo (breedte ongeveer 1,5 tot 2 keer
-          de hoogte, bijv. 400×250px) vult de tegel wel het netst; bij een heel smal/hoog of heel breed logo blijft
-          zichtbaar lege ruimte over.
+          Klik op het camera-icoon om een logo te uploaden. Bij voorkeur een liggend PNG met transparante achtergrond.
         </p>
       </div>
 
