@@ -7,26 +7,23 @@ export const metadata: Metadata = { title: "Embed-codes" };
 
 const EMBEDS = [
   {
-    id: "voc-embed-agenda",
-    path: "/embed/agenda",
+    kind: "agenda",
     label: "Agenda",
     description: "Overzicht van goedgekeurde activiteiten, doorklikbaar naar aanmelden.",
     startHeight: 600,
   },
   {
-    id: "voc-embed-aanmelden",
-    path: "/embed/aanmelden",
+    kind: "aanmelden",
     label: "Word lid",
     description: "Aanmeldformulier voor nieuwe leden (komt bij Beheer > Toegangsaanvragen terecht).",
     // Starthoogte vóór de eerste echte hoogtemeting — dit formulier heeft
     // elf velden onder elkaar, dus 600 (de generieke starthoogte) laat de
     // verstuurknop er al staan zonder dat er ooit een hoogte-update binnen
-    // is gekomen (zie EmbedAutoHeight's vangnetten hieronder).
+    // is gekomen (zie EmbedAutoHeight's vangnetten in embed.js).
     startHeight: 1100,
   },
   {
-    id: "voc-embed-bedrijven",
-    path: "/embed/bedrijven",
+    kind: "bedrijven",
     label: "Bedrijvengids",
     description: "Overzicht van bedrijven die opt-in zijn voor de openbare bedrijvengids (zie Instellingen).",
     startHeight: 600,
@@ -55,69 +52,16 @@ export default async function EmbedCodesPage() {
 
       <div className="flex flex-col gap-4">
         {EMBEDS.map((embed) => {
-          // Het scriptje luistert naar de hoogte die de embed-pagina zelf
-          // doorgeeft (zie EmbedAutoHeight) en zet de iframe daarop — zonder
-          // dit zou de iframe op de opgegeven starthoogte (600) blijven
-          // staan, met een eigen scrollbalkje zodra de inhoud langer is.
-          //
-          // Voor de agenda-embed: leest ook een leesbaar #-anker (bv.
-          // "#open-borrel") in de URL van DEZE (WordPress-)pagina uit — dat
-          // kan het scriptje hier wél, in tegenstelling tot de iframe-inhoud
-          // zelf, die vanwege cross-origin nooit bij de hash van de
-          // omliggende pagina kan. Dat anker komt uit de "Delen"-knop op de
-          // activiteit-detailpagina (zie ShareActivityButton, marketingUrl).
-          // Het scriptje geeft de slug enkel door als ?activiteit=<slug> —
-          // /embed/agenda zoekt 'm zelf op en stuurt de iframe door, zodat
-          // een gedeelde link altijd de echte site opent, direct
-          // doorgesprongen naar de juiste activiteit, i.p.v. de kale
-          // embed-URL zonder sitenavigatie eromheen.
-          const hashRedirect =
-            embed.id === "voc-embed-agenda"
-              ? `
-  var slug = window.location.hash.replace(/^#/, '');
-  if (slug) {
-    iframe.src = '${origin}/embed/agenda?activiteit=' + encodeURIComponent(slug);
-  }`
-              : "";
-          const code = `<iframe id="${embed.id}" src="${origin}${embed.path}" width="100%" height="${embed.startHeight}" style="border:0;" allow="clipboard-write; web-share" title="VOC ${embed.label}"></iframe>
-<script>
-(function () {
-  var iframe = document.getElementById('${embed.id}');
-  // Hoogte van een eventuele vaste/sticky menubalk bovenaan de website —
-  // pas dit getal aan als de titel van een geopende pagina/detail er nu nog
-  // (deels) achter wegvalt. 0 als de site geen vaste menubalk heeft.
-  var STICKY_HEADER_HEIGHT = 100;
-  window.addEventListener('message', function (event) {
-    if (event.source !== iframe.contentWindow || !event.data) return;
-    if (event.data.type === 'voc-embed-height') {
-      iframe.style.height = event.data.height + 'px';
-    }
-    // Deze iframe heeft zelf geen scrollbalk (hoogte volgt de inhoud) — dus
-    // scrollen gebeurt altijd op deze pagina. Zonder dit blijft de pagina op
-    // dezelfde scrollpositie hangen zodra je vanuit een lang, naar beneden
-    // gescrold overzicht doorklikt naar een detailpagina: je ziet dan het
-    // midden van die nieuwe pagina i.p.v. de titel/context bovenaan.
-    if (event.data.type === 'voc-embed-scroll-top') {
-      var rect = iframe.getBoundingClientRect();
-      window.scrollTo({ top: window.scrollY + rect.top - STICKY_HEADER_HEIGHT - 20, behavior: 'smooth' });
-    }
-  });
-  // Dit scriptje zelf kan vertraagd laden (bijv. door een WordPress-
-  // optimalisatieplugin die scripts defer/async zet) — dan is deze listener
-  // er nog niet als de iframe zijn eerste hoogte-berichten stuurt, en die
-  // zijn dan voorgoed gemist (postMessage herhaalt niets). Vraag daarom
-  // zodra de iframe zelf klaar is met laden actief om de huidige hoogte,
-  // i.p.v. alleen te wachten op het volgende toevallige berichtje van de
-  // iframe-kant (die overigens zelf ook nog een eigen vangnet heeft: de
-  // eerste 10s na laden herhaalt 'ie zijn hoogte toch al elke seconde).
-  iframe.addEventListener('load', function () {
-    iframe.contentWindow.postMessage({ type: 'voc-embed-request-height' }, '*');
-  });
-${hashRedirect}
-})();
-</script>`;
+          // UX-review E2: dit was een complete kopie van de iframe- en
+          // hoogte-/scroll-logica per embed, geplakt als inline <script> op
+          // elke WordPress-pagina — een verbetering betekende dus alle
+          // pagina's opnieuw bijwerken. Nu staat die logica eenmalig in
+          // /public/embed.js (door dit portaal zelf gehost); de website
+          // plakt alleen nog dit korte tagje, en krijgt toekomstige fixes
+          // vanzelf mee bij de volgende paginalading.
+          const code = `<script src="${origin}/embed.js" data-embed="${embed.kind}" data-start-height="${embed.startHeight}" data-sticky-header="100" async></script>`;
           return (
-            <div key={embed.path} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+            <div key={embed.kind} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
               <p className="text-sm font-semibold text-foreground">{embed.label}</p>
               <p className="mt-0.5 text-xs text-muted">{embed.description}</p>
               <div className="mt-3">
@@ -129,17 +73,19 @@ ${hashRedirect}
       </div>
 
       <p className="text-xs text-muted">
-        De hoogte past zich automatisch aan de inhoud aan (het getal in de code is alleen de starthoogte tot de
-        pagina geladen is) — geen los scrollbalkje in het iframe nodig. Komt het listener-scriptje hierboven door een
+        Dit ene tagje plaatst de iframe zelf (geen los <code>&lt;iframe&gt;</code> meer nodig op de website) en regelt
+        de hoogte: <code>data-start-height</code> is alleen de starthoogte tot de pagina geladen is, daarna past
+        &apos;m zich automatisch aan de inhoud aan — geen los scrollbalkje in het iframe nodig. Komt dit door een
         optimalisatieplugin vertraagd tot stand, dan herhaalt de embed de eerste 10 seconden elke seconde zijn hoogte
-        én vraagt het scriptje er zelf nog eens actief naar zodra de iframe geladen is — in de praktijk zou de
-        iframe dus nooit meer op de starthoogte moeten blijven staan. De inhoud is altijd in het lichte thema, ongeacht het
-        thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen. Klik je in de agenda door naar
-        een detailpagina (of terug), dan scrollt de website automatisch weer naar de bovenkant van het embed, ook als
-        je daarvoor ver naar beneden had gescrold — staat de titel daarvan nu nog (deels) achter de menubalk van de
-        website, verhoog dan <code>STICKY_HEADER_HEIGHT</code> bovenin het scriptje. In de bedrijvengids opent een
-        bedrijf juist als overlay bovenop de lijst, precies waar je op dat moment aan het kijken bent — daar hoeft dus
-        niets te scrollen. Staat er nog een oudere versie van deze code op de website, plak &apos;m dan hier opnieuw.
+        én vraagt het scriptje er zelf nog eens actief naar zodra de iframe geladen is. De inhoud is altijd in het
+        lichte thema, ongeacht de thema-voorkeur van de bezoeker, zodat het bij een witte website blijft passen. Klik
+        je in de agenda door naar een detailpagina (of terug), dan scrollt de website automatisch weer naar de
+        bovenkant van het embed, ook als je daarvoor ver naar beneden had gescrold — staat de titel daarvan nu nog
+        (deels) achter de menubalk van de website, verhoog dan het getal in <code>data-sticky-header</code> (0 als de
+        site geen vaste menubalk heeft). In de bedrijvengids opent een bedrijf juist als overlay bovenop de lijst,
+        precies waar je op dat moment aan het kijken bent — daar hoeft dus niets te scrollen. Staat er nog een oudere
+        versie (met een los <code>&lt;iframe&gt;</code> en een lang inline scriptje) op de website, vervang die dan
+        door de nieuwe, korte code hierboven.
       </p>
       <p className="text-xs text-muted">
         De &quot;Delen&quot;-knop op een activiteit deelt naar de echte website (met een leesbaar #-anker, bijv.
