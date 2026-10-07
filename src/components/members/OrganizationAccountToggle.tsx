@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/Button";
 import { updateMemberOrganizationAccountAction } from "@/app/(app)/leden/[id]/actions";
 
 // Voor het account van de organisatie zelf (bijv. reageert als "VOC" in de
@@ -39,18 +40,9 @@ export function OrganizationAccountToggle({
         <span className="text-sm text-foreground">
           {value ? "Organisatieaccount — niet in ledenlijst" : "Gewoon lid in de ledenlijst"}
         </span>
-        <button
-          type="button"
-          onClick={handleToggle}
-          disabled={pending}
-          className={
-            value
-              ? "rounded-full border border-border px-3 py-1.5 text-xs font-medium text-voc-red-text hover:border-voc-red disabled:opacity-60"
-              : "rounded-full bg-voc-red px-3 py-1.5 text-xs font-medium text-white hover:bg-voc-red-dark disabled:opacity-60"
-          }
-        >
+        <Button type="button" variant="secondary" size="sm" onClick={handleToggle} disabled={pending}>
           {pending ? "Bezig…" : value ? "Toon in ledenlijst" : "Verberg uit ledenlijst"}
-        </button>
+        </Button>
       </div>
       {error && <p className="text-xs text-voc-red-text">{error}</p>}
     </div>

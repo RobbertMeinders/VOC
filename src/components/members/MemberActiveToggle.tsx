@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Button } from "@/components/ui/Button";
 import { updateMemberActiveAction } from "@/app/(app)/leden/[id]/actions";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 
@@ -52,18 +53,9 @@ export function MemberActiveToggle({
     <div className={compact ? "flex flex-col gap-1" : "flex flex-col gap-1.5 rounded-lg border border-border bg-background p-3"}>
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm text-foreground">Account is {active ? "actief" : "gedeactiveerd"}</span>
-        <button
-          type="button"
-          onClick={handleToggle}
-          disabled={pending}
-          className={
-            active
-              ? "rounded-full border border-border px-3 py-1.5 text-xs font-medium text-voc-red-text hover:border-voc-red disabled:opacity-60"
-              : "rounded-full bg-voc-red px-3 py-1.5 text-xs font-medium text-white hover:bg-voc-red-dark disabled:opacity-60"
-          }
-        >
+        <Button type="button" variant="secondary" size="sm" onClick={handleToggle} disabled={pending}>
           {pending ? "Bezig…" : active ? "Deactiveren" : "Activeren"}
-        </button>
+        </Button>
       </div>
       {error && <p className="text-xs text-voc-red-text">{error}</p>}
     </div>

@@ -2,22 +2,24 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import { Button } from "@/components/ui/Button";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { updateMemberRoleAction, type UpdateMemberRoleState } from "@/app/(app)/leden/[id]/actions";
 import type { UserRole } from "@/lib/types/database";
 
 const initialState: UpdateMemberRoleState = {};
 
+// UX-review V1: op een ledenrij staan rol wijzigen, deactiveren en het
+// organisatieaccount-toggle naast elkaar — met z'n drieën allemaal een rood
+// gevuld/omlijnd knopje concurreren ze om aandacht die geen van drieën
+// verdient. Secondary (outline) houdt rood gereserveerd voor de knop in de
+// bevestigingsdialoog bij echt destructieve acties.
 function SubmitButton() {
   const { pending } = useFormStatus();
   return (
-    <button
-      type="submit"
-      disabled={pending}
-      className="rounded-lg bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark disabled:opacity-60"
-    >
+    <Button type="submit" variant="secondary" size="sm" disabled={pending}>
       {pending ? "Opslaan…" : "Opslaan"}
-    </button>
+    </Button>
   );
 }
 
