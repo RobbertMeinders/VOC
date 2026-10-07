@@ -5,7 +5,6 @@ import {
   Building2,
   CalendarDays,
   Code,
-  FileText,
   Flag,
   Inbox,
   LayoutDashboard,
@@ -58,11 +57,16 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     ],
   },
   {
+    // UX-review U10: geen eigen "Documenten"-item meer hier — die pagina was
+    // een letterlijke kopie van /documenten (zelfde upload-/beheerknoppen,
+    // al zichtbaar voor bestuur/beheer in die context), zonder mappen,
+    // downloadstatistiek of bulkacties die een apart beheerscherm zouden
+    // rechtvaardigen. Eén item bewerk je in context; dat is hier /documenten
+    // zelf.
     title: "Content",
     items: [
       { href: "/beheer/nieuws", label: "Nieuws", icon: Newspaper },
       { href: "/beheer/agenda", label: "Activiteiten", icon: CalendarDays },
-      { href: "/beheer/documenten", label: "Documenten", icon: FileText },
       { href: "/beheer/rapportages", label: "Rapportages", icon: Flag },
     ],
   },
