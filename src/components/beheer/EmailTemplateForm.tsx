@@ -11,6 +11,7 @@ import {
   type UpdateEmailTemplateState,
   type UploadEmailImageState,
 } from "@/app/(app)/beheer/email-templates/actions";
+import { useToast } from "@/lib/ui/ToastContext";
 import type { Database } from "@/lib/types/database";
 
 type EmailTemplate = Database["public"]["Tables"]["email_templates"]["Row"];
@@ -104,6 +105,12 @@ export function EmailTemplateForm({ template }: { template: EmailTemplate }) {
   const [subject, setSubject] = useState(template.subject);
   const [bodyHtml, setBodyHtml] = useState(template.body_html);
   const formId = `email-template-${template.key}`;
+  const toast = useToast();
+
+  useEffect(() => {
+    if (state.success) toast("Opgeslagen.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   function insertImage(url: string) {
     setBodyHtml((prev) => `${prev}${prev && !prev.endsWith("\n") ? "\n" : ""}<img src="${url}" alt="Logo" style="max-width:200px;" />\n`);
@@ -173,8 +180,6 @@ export function EmailTemplateForm({ template }: { template: EmailTemplate }) {
             {state.error}
           </p>
         )}
-        {state.success && <p className="mb-3 mt-4 text-sm text-green-600">Opgeslagen.</p>}
-
         <div className="mt-4">
           <SubmitButton />
         </div>

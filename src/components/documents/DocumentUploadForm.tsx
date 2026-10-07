@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { uploadDocumentAction, type DocumentFormState } from "@/app/(app)/documenten/actions";
+import { useToast } from "@/lib/ui/ToastContext";
 
 const initialState: DocumentFormState = {};
 
@@ -21,6 +22,12 @@ function SubmitButton() {
 export function DocumentUploadForm({ categories }: { categories: string[] }) {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState(uploadDocumentAction, initialState);
+  const toast = useToast();
+
+  useEffect(() => {
+    if (state.success) toast("Geüpload.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   if (!open) {
     return (
@@ -64,7 +71,6 @@ export function DocumentUploadForm({ categories }: { categories: string[] }) {
           {state.error}
         </p>
       )}
-      {state.success && <p className="text-sm text-green-600">Geüpload.</p>}
       <div className="flex items-center gap-2">
         <SubmitButton />
         <button type="button" onClick={() => setOpen(false)} className="text-sm text-muted hover:underline">

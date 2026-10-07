@@ -1,11 +1,12 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { updatePushTemplateAction, type UpdatePushTemplateState } from "@/app/(app)/beheer/email-templates/actions";
+import { useToast } from "@/lib/ui/ToastContext";
 import type { Database } from "@/lib/types/database";
 
 type PushTemplate = Database["public"]["Tables"]["push_templates"]["Row"];
@@ -59,6 +60,12 @@ export function PushTemplateForm({ template }: { template: PushTemplate }) {
   const [state, formAction] = useActionState(updateWithKey, initialState);
   const [title, setTitle] = useState(template.title);
   const [body, setBody] = useState(template.body);
+  const toast = useToast();
+
+  useEffect(() => {
+    if (state.success) toast("Opgeslagen.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   return (
     <form action={formAction} className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
@@ -109,8 +116,6 @@ export function PushTemplateForm({ template }: { template: PushTemplate }) {
           {state.error}
         </p>
       )}
-      {state.success && <p className="mb-3 mt-4 text-sm text-green-600">Opgeslagen.</p>}
-
       <div className="mt-4">
         <SubmitButton />
       </div>

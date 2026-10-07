@@ -14,6 +14,7 @@ import { OverlayProvider } from "@/lib/ui/OverlayContext";
 import { OverlayOriginProvider } from "@/lib/ui/OverlayOriginContext";
 import { UnsavedChangesProvider } from "@/lib/ui/UnsavedChangesContext";
 import { ConfirmDialogProvider } from "@/lib/ui/ConfirmDialogContext";
+import { ToastProvider } from "@/lib/ui/ToastContext";
 import { Sidebar } from "./Sidebar";
 import { BottomNav } from "./BottomNav";
 import { MobileHeader } from "./MobileHeader";
@@ -53,18 +54,20 @@ export function AppShell({
         <MarkNotificationReadProvider value={markRead}>
           <UnsavedChangesProvider>
             <ConfirmDialogProvider>
-              <AppShellBody
-                profile={profile}
-                unread={unread}
-                avatarUrl={avatarUrl}
-                companyId={companyId}
-                companyName={companyName}
-                logoUrl={logoUrl}
-                siteName={siteName}
-                modal={modal}
-              >
-                {children}
-              </AppShellBody>
+              <ToastProvider>
+                <AppShellBody
+                  profile={profile}
+                  unread={unread}
+                  avatarUrl={avatarUrl}
+                  companyId={companyId}
+                  companyName={companyName}
+                  logoUrl={logoUrl}
+                  siteName={siteName}
+                  modal={modal}
+                >
+                  {children}
+                </AppShellBody>
+              </ToastProvider>
             </ConfirmDialogProvider>
           </UnsavedChangesProvider>
         </MarkNotificationReadProvider>

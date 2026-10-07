@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -9,6 +9,7 @@ import { Avatar } from "@/components/ui/Avatar";
 import { Switch } from "@/components/ui/Switch";
 import { updateProfileAction, type UpdateProfileState } from "@/app/(app)/profiel/actions";
 import { compressInputFile } from "@/lib/image/compress";
+import { useToast } from "@/lib/ui/ToastContext";
 import type { Profile } from "@/lib/auth/session";
 
 const initialState: UpdateProfileState = {};
@@ -35,6 +36,15 @@ export function ProfileForm({
   const [preview, setPreview] = useState<string | null>(null);
   const [showPhone, setShowPhone] = useState(profile.show_phone);
   const [showEmail, setShowEmail] = useState(profile.show_email);
+  const toast = useToast();
+
+  // UX-review U4: "Opgeslagen." stond als kleine groene tekst onderaan het
+  // formulier — bij dit lange formulier op mobiel vaak buiten beeld. Toast
+  // i.p.v. inline tekst zodat het altijd zichtbaar is.
+  useEffect(() => {
+    if (state.success) toast("Opgeslagen.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -144,8 +154,6 @@ export function ProfileForm({
           {state.error}
         </p>
       )}
-      {state.success && <p className="text-sm text-green-600">Opgeslagen.</p>}
-
       <div>
         <SubmitButton />
       </div>

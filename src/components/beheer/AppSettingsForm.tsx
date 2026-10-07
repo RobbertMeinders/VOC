@@ -13,6 +13,7 @@ import {
   type UpdateAppSettingsState,
   type UploadAppLogoState,
 } from "@/app/(app)/beheer/instellingen/actions";
+import { useToast } from "@/lib/ui/ToastContext";
 import type { AppSettings } from "@/lib/settings/app-settings";
 
 const initialState: UpdateAppSettingsState = {};
@@ -87,6 +88,12 @@ function LogoUpload({ currentLogoUrl }: { currentLogoUrl: string | null }) {
 
 export function AppSettingsForm({ settings }: { settings: AppSettings }) {
   const [state, formAction] = useActionState(updateAppSettingsAction, initialState);
+  const toast = useToast();
+
+  useEffect(() => {
+    if (state.success) toast("Opgeslagen.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -124,8 +131,6 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
             {state.error}
           </p>
         )}
-        {state.success && <p className="mt-4 text-sm text-green-600">Opgeslagen.</p>}
-
         <div className="mt-4">
           <SubmitButton />
         </div>

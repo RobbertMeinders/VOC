@@ -43,6 +43,7 @@ import {
 } from "@/app/(app)/beheer/communicatie/actions";
 import { renderNewsletterHtml } from "@/lib/newsletter/render";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
+import { useToast } from "@/lib/ui/ToastContext";
 import { formatActivityDate } from "@/lib/format/date";
 import type { NewsletterAlign, NewsletterBlock } from "@/lib/newsletter/types";
 import type { Database } from "@/lib/types/database";
@@ -586,9 +587,15 @@ export function NewsletterEditor({
 }) {
   const router = useRouter();
   const confirm = useConfirm();
+  const toast = useToast();
   const formId = `newsletter-editor-${communication.id}`;
   const updateWithId = updateCommunicationAction.bind(null, communication.id);
   const [state, formAction] = useActionState(updateWithId, initialState);
+
+  useEffect(() => {
+    if (state.success) toast("Opgeslagen.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
   const [subject, setSubject] = useState(communication.subject);
   const [preheader, setPreheader] = useState(communication.preheader ?? "");
   const [senderName, setSenderName] = useState(communication.sender_name ?? "");
@@ -871,7 +878,6 @@ export function NewsletterEditor({
               {state.error}
             </p>
           )}
-          {state.success && <p className="text-sm text-green-600">Opgeslagen.</p>}
 
           {!readOnly && (
             <div>

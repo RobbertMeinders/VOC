@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { Switch } from "@/components/ui/Switch";
 import { compressInputFile } from "@/lib/image/compress";
 import { useUnsavedChanges } from "@/lib/ui/UnsavedChangesContext";
+import { useToast } from "@/lib/ui/ToastContext";
 import type { ActivityFormState } from "@/app/(app)/agenda/actions";
 import type { Database } from "@/lib/types/database";
 
@@ -84,11 +85,16 @@ export function ActivityForm({
 }) {
   const [state, formAction] = useActionState(action, initialState);
   const { setDirty } = useUnsavedChanges();
+  const toast = useToast();
   // Gereset na een geslaagde submit en bij het verlaten van het formulier
   // (unmount) — zonder dit zou "niet-opgeslagen wijzigingen" blijven hangen
   // voor het volgende overlay dat open gaat.
   useEffect(() => {
-    if (state.success) setDirty(false);
+    if (state.success) {
+      setDirty(false);
+      toast("Opgeslagen.");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state.success, setDirty]);
   useEffect(() => () => setDirty(false), [setDirty]);
   const [preview, setPreview] = useState<string | null>(null);
@@ -372,8 +378,6 @@ export function ActivityForm({
           {state.error}
         </p>
       )}
-      {state.success && <p className="text-sm text-green-600">Opgeslagen.</p>}
-
       <div>
         <SubmitButton label={submitLabel} />
       </div>

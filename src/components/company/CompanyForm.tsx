@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -10,6 +10,7 @@ import { CompanyLogo } from "./CompanyLogo";
 import { updateCompanyAction, type UpdateCompanyState } from "@/app/(app)/bedrijven/[id]/actions";
 import { compressInputFile } from "@/lib/image/compress";
 import { INDUSTRIES } from "@/lib/constants/industries";
+import { useToast } from "@/lib/ui/ToastContext";
 import type { Database } from "@/lib/types/database";
 
 type Company = Database["public"]["Tables"]["companies"]["Row"];
@@ -30,6 +31,12 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
   const [state, formAction] = useActionState(updateWithId, initialState);
   const [preview, setPreview] = useState<string | null>(null);
   const shownLogo = preview ?? logoUrl;
+  const toast = useToast();
+
+  useEffect(() => {
+    if (state.success) toast("Opgeslagen.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
   // Gecontroleerd i.p.v. defaultValue: React reset een <form> na een
   // geslaagde action-submit terug naar de oorspronkelijke defaultValue van
   // elk ongecontroleerd veld — bij een lege branche (defaultValue="") sprong
@@ -259,8 +266,6 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           {state.error}
         </p>
       )}
-      {state.success && <p className="text-sm text-green-600">Opgeslagen.</p>}
-
       <div>
         <SubmitButton />
       </div>

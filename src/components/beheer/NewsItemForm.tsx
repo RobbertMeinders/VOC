@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useEffect, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { FileSelectButton } from "@/components/ui/FileSelectButton";
 import { compressInputFile } from "@/lib/image/compress";
 import { createNewsItemAction, updateNewsItemAction, type NewsFormState } from "@/app/(app)/beheer/nieuws/actions";
+import { useToast } from "@/lib/ui/ToastContext";
 import type { Database } from "@/lib/types/database";
 
 type NewsItem = Database["public"]["Tables"]["news_items"]["Row"];
@@ -36,6 +37,12 @@ export function NewsItemForm({
   const [state, formAction] = useActionState(action, initialState);
   const [preview, setPreview] = useState<string | null>(null);
   const shownImage = preview ?? imageUrl;
+  const toast = useToast();
+
+  useEffect(() => {
+    if (state.success) toast(item ? "Opgeslagen." : "Geplaatst.");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   return (
     <form
@@ -87,8 +94,6 @@ export function NewsItemForm({
           {state.error}
         </p>
       )}
-      {state.success && !item && <p className="text-sm text-green-600">Geplaatst.</p>}
-
       <div className="flex items-center gap-2">
         <SubmitButton label={item ? "Opslaan" : "Plaatsen"} pendingLabel={item ? "Opslaan…" : "Plaatsen…"} />
         {onDone && (
