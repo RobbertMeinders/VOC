@@ -102,19 +102,10 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
         // slepen komt daar de live vingerpositie (dragOffset, in px) bij,
         // zonder transition zodat die 1-op-1 meebeweegt.
         return (
-          <Link
+          <div
             key={slide.id}
-            href="/nieuws"
             aria-hidden={slideIndex !== index}
-            tabIndex={slideIndex === index ? undefined : -1}
-            draggable={false}
-            onClick={(e) => {
-              if (didDragRef.current) {
-                e.preventDefault();
-                didDragRef.current = false;
-              }
-            }}
-            className={isDragging ? "absolute inset-0 block" : "absolute inset-0 block transition-transform duration-700 ease-in-out"}
+            className={isDragging ? "absolute inset-0" : "absolute inset-0 transition-transform duration-700 ease-in-out"}
             style={{ transform: `translateX(calc(${offset * 100}% + ${dragOffset}px))` }}
           >
             {slide.imageUrl ? (
@@ -133,7 +124,21 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
               </div>
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-black/0" />
-            <div className="absolute inset-x-0 bottom-0 p-4 sm:p-6">
+            {/* Alleen de tekst is klikbaar (i.p.v. de hele slide) — zo blijft
+                swipen over de afbeelding mogelijk zonder dat een sleep per
+                ongeluk als klik naar /nieuws telt. */}
+            <Link
+              href="/nieuws"
+              tabIndex={slideIndex === index ? undefined : -1}
+              draggable={false}
+              onClick={(e) => {
+                if (didDragRef.current) {
+                  e.preventDefault();
+                  didDragRef.current = false;
+                }
+              }}
+              className="absolute inset-x-0 bottom-0 block p-4 sm:p-6"
+            >
               <span className="inline-block rounded-full bg-voc-red px-2.5 py-1 text-xs font-semibold text-white">
                 Nieuws
               </span>
@@ -142,8 +147,8 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
                 <p className="mt-1 line-clamp-1 text-sm font-medium text-white/90 sm:text-base">{slide.subtitle}</p>
               )}
               <p className="mt-1.5 line-clamp-2 text-sm text-white/70 sm:line-clamp-1">{slide.body}</p>
-            </div>
-          </Link>
+            </Link>
+          </div>
         );
       })}
 

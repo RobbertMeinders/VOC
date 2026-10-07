@@ -9,6 +9,7 @@ import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storag
 import { formatActivityDate } from "@/lib/format/date";
 import { ProfilePhotoPrompt } from "@/components/home/ProfilePhotoPrompt";
 import { NewsHeroCarousel } from "@/components/home/NewsHeroCarousel";
+import { SectionHeader } from "@/components/ui/SectionHeader";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Home" };
@@ -112,14 +113,8 @@ export default async function HomePage() {
 
       {newsSlides.length > 0 && (
         <section>
-          <h2 className="mb-2 text-sm font-semibold text-foreground">Nieuws</h2>
+          <SectionHeader title="Nieuws" href="/nieuws" linkLabel="Alle nieuws" />
           <NewsHeroCarousel slides={newsSlides} />
-          <Link
-            href="/nieuws"
-            className="mx-auto mt-3 flex h-11 w-full max-w-72 items-center justify-center rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-all duration-150 hover:bg-black/[.03] active:scale-95 dark:hover:bg-white/[.06]"
-          >
-            Alle nieuws
-          </Link>
         </section>
       )}
 
@@ -140,7 +135,7 @@ export default async function HomePage() {
       </section>
 
       <section>
-        <h2 className="mb-2 text-sm font-semibold text-foreground">Eerstvolgende activiteit</h2>
+        <SectionHeader title="Eerstvolgende activiteit" href="/agenda" linkLabel="Hele agenda" />
         {nextActivity ? (
           <Link
             href={`/agenda/${nextActivity.id}`}
@@ -189,12 +184,6 @@ export default async function HomePage() {
             <p className="text-sm text-muted">Er staat nog geen activiteit gepland.</p>
           </div>
         )}
-        <Link
-          href="/agenda"
-          className="mx-auto mt-3 flex h-11 w-full max-w-72 items-center justify-center rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground transition-all duration-150 hover:bg-black/[.03] active:scale-95 dark:hover:bg-white/[.06]"
-        >
-          Hele agenda
-        </Link>
       </section>
     </div>
   );
