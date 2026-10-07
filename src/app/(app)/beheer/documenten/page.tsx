@@ -7,5 +7,5 @@ export const metadata: Metadata = { title: "Documenten beheren" };
 // en verwijderknoppen al voor bestuur/beheer) — deze route is puur een
 // kortere weg vanuit /beheer, geen aparte pagina om te onderhouden.
 export default function BeheerDocumentenPage() {
-  return <DocumentenPage searchParams={Promise.resolve({})} />;
+  return <DocumentenPage />;
 }

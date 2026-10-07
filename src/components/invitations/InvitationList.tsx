@@ -1,9 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { Clock, Mail, X } from "lucide-react";
 import type { Database } from "@/lib/types/database";
 import { InvitationRow } from "./InvitationRow";
+import { ListToolbar } from "@/components/ui/ListToolbar";
+import { matchesSearch } from "@/lib/search/normalize";
+import { useUrlFilterState } from "@/lib/dom/useUrlFilterState";
 import {
   bulkExtendInvitationsAction,
   bulkRevokeInvitationsAction,
@@ -21,15 +24,26 @@ export function isInvitationExpired(invitation: Invitation): boolean {
   return new Date(invitation.expires_at).getTime() < Date.now();
 }
 
-export function InvitationList({ invitations }: { invitations: Invitation[] }) {
+function InvitationListInner({ invitations }: { invitations: Invitation[] }) {
+  const { getInitial, setParam } = useUrlFilterState();
+  const [query, setQuery] = useState(() => getInitial("q"));
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [onlyUnsent, setOnlyUnsent] = useState(false);
   const [bulkPending, setBulkPending] = useState(false);
   const [bulkMessage, setBulkMessage] = useState<string | null>(null);
 
+  function handleQueryChange(value: string) {
+    setQuery(value);
+    setParam("q", value);
+  }
+
   const visible = useMemo(
-    () => (onlyUnsent ? invitations.filter((i) => !i.last_sent_at) : invitations),
-    [invitations, onlyUnsent]
+    () =>
+      invitations.filter((i) => {
+        if (onlyUnsent && i.last_sent_at) return false;
+        return matchesSearch([i.first_name, i.last_name, i.email], query);
+      }),
+    [invitations, onlyUnsent, query]
   );
   // Selectie blijft bestaan t.o.v. de volledige lijst (niet alleen het
   // gefilterde deel) zodat wisselen van filter niemand uit de selectie
@@ -76,6 +90,14 @@ export function InvitationList({ invitations }: { invitations: Invitation[] }) {
 
   return (
     <div>
+      <ListToolbar
+        searchValue={query}
+        onSearchChange={handleQueryChange}
+        searchPlaceholder="Zoek op naam of e-mailadres…"
+        resultCount={visible.length}
+        totalCount={invitations.length}
+      />
+
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <label className="flex items-center gap-1.5 text-xs text-muted">
           <input type="checkbox" checked={onlyUnsent} onChange={(e) => setOnlyUnsent(e.target.checked)} className="rounded" />
@@ -141,5 +163,13 @@ export function InvitationList({ invitations }: { invitations: Invitation[] }) {
         </div>
       )}
     </div>
+  );
+}
+
+export function InvitationList(props: { invitations: Invitation[] }) {
+  return (
+    <Suspense>
+      <InvitationListInner {...props} />
+    </Suspense>
   );
 }

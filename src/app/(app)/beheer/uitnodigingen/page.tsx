@@ -1,37 +1,26 @@
-import { Suspense } from "react";
 import type { Metadata } from "next";
 import { Clock } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { InviteForm } from "@/components/invitations/InviteForm";
 import { InvitationList, type Invitation } from "@/components/invitations/InvitationList";
-import { DocumentSearch } from "@/components/documents/DocumentSearch";
 import { extendAllInvitationsAction } from "./actions";
 
 export const metadata: Metadata = { title: "Uitnodigingen" };
 
-export default async function UitnodigingenPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
+export default async function UitnodigingenPage() {
   const profile = await requireBoard();
-  const { q } = await searchParams;
   const supabase = await createClient();
 
+  // Zoeken filtert nu client-side (InvitationList) — "Verleng alle met 14
+  // dagen" hieronder werkt bewust op alle openstaande uitnodigingen, niet
+  // alleen de gefilterde.
   const { data: allInvitations } = await supabase
     .from("invitations")
     .select("*, company:companies(name)")
     .eq("status", "pending")
     .order("created_at", { ascending: false })
     .returns<Invitation[]>();
-
-  // "Verleng alle met 14 dagen" hieronder werkt bewust op alle openstaande
-  // uitnodigingen, niet alleen de gefilterde — zoeken is puur om deze lange
-  // (bv. bulk-geïmporteerde) lijst terug te vinden, niet om de bulkactie te
-  // beperken.
-  const query = (q ?? "").trim().toLowerCase();
-  const invitations = query
-    ? (allInvitations ?? []).filter((i) =>
-        `${i.first_name ?? ""} ${i.last_name ?? ""} ${i.email ?? ""}`.toLowerCase().includes(query)
-      )
-    : allInvitations;
 
   return (
     <div>
@@ -61,17 +50,7 @@ export default async function UitnodigingenPage({ searchParams }: { searchParams
           )}
         </div>
 
-        {(allInvitations?.length ?? 0) > 0 && (
-          <Suspense>
-            <DocumentSearch placeholder="Zoek op naam of e-mailadres…" />
-          </Suspense>
-        )}
-
-        {query && invitations?.length === 0 ? (
-          <p className="text-sm text-muted">Geen uitnodigingen gevonden.</p>
-        ) : (
-          <InvitationList invitations={invitations ?? []} />
-        )}
+        <InvitationList invitations={allInvitations ?? []} />
       </div>
     </div>
   );
