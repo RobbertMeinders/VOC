@@ -70,11 +70,17 @@ export default async function InstellingenPage() {
           <PushToggle />
         </SettingSubRow>
 
+        <SettingSubRow label="Nieuwsbrieven">
+          <EmailCampaignsToggle initialEnabled={data?.email_campaigns ?? true} />
+        </SettingSubRow>
+
         {/* Geen SettingSubRow hier: die dwingt de waarde in een smalle kolom
             rechts van het label, en 4 opties passen daar op mobiel niet
             naast elkaar (brak eerder lelijk af over 2-3 regels). Op mobiel
             staat het label daarom boven en krijgt de keuze de volle breedte;
-            vanaf sm: weer naast elkaar, net als de andere rijen. */}
+            vanaf sm: weer naast elkaar, net als de andere rijen. Na de twee
+            schakelaars hierboven i.p.v. ertussen: scheidt de simpele
+            aan/uit-rijen van de pil-keuzes, oogt rustiger dan afwisselen. */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
           <span className="text-sm text-foreground">Activiteiten</span>
           <NotificationChannelChoice category="activities" initialPush={profile.push_activities} initialEmail={profile.email_activities} />
@@ -84,10 +90,6 @@ export default async function InstellingenPage() {
           <span className="text-sm text-foreground">Reacties en vermeldingen</span>
           <NotificationChannelChoice category="feed" initialPush={profile.push_feed} initialEmail={profile.email_feed} />
         </div>
-
-        <SettingSubRow label="Nieuwsbrieven">
-          <EmailCampaignsToggle initialEnabled={data?.email_campaigns ?? true} />
-        </SettingSubRow>
       </SettingGroup>
 
       <SettingGroup label="Privacy" description="Zichtbaar voor andere leden op je profiel of de bedrijfspagina.">
