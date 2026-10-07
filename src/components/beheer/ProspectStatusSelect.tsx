@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Select } from "@/components/ui/Select";
 import { updateProspectStatusAction, type ProspectStatus } from "@/app/(app)/beheer/prospects/actions";
 
 export const PROSPECT_STATUS_LABELS: Record<ProspectStatus, string> = {
@@ -30,18 +31,18 @@ export function ProspectStatusSelect({ prospectId, initialStatus }: { prospectId
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <select
+      <Select
         value={status}
         disabled={isPending}
         onChange={(e) => handleChange(e.target.value as ProspectStatus)}
-        className="h-9 rounded-lg border border-input-border bg-surface px-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20 disabled:opacity-60"
+        className="h-9 pl-2"
       >
         {(Object.keys(PROSPECT_STATUS_LABELS) as ProspectStatus[]).map((value) => (
           <option key={value} value={value}>
             {PROSPECT_STATUS_LABELS[value]}
           </option>
         ))}
-      </select>
+      </Select>
       {error && <p className="text-right text-xs text-voc-red-text">{error}</p>}
     </div>
   );

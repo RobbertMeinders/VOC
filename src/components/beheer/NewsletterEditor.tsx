@@ -27,6 +27,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
 import { FileSelectButton } from "@/components/ui/FileSelectButton";
 import { compressInputFile } from "@/lib/image/compress";
@@ -305,13 +306,13 @@ function EventBlockEditor({
   if (!block.activityId) {
     return (
       <div className="flex flex-col gap-2">
-        <select
+        <Select
           defaultValue=""
           disabled={pending}
           onChange={(e) => {
             if (e.target.value) applySnapshot(e.target.value);
           }}
-          className="h-11 w-full rounded-lg border border-input-border bg-surface px-3.5 text-base text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+          className="h-11 w-full pl-3.5"
         >
           <option value="" disabled>
             {pending ? "Laden…" : "Kies een activiteit…"}
@@ -321,7 +322,7 @@ function EventBlockEditor({
               {activity.title} — {formatActivityDate(activity.starts_at)}
             </option>
           ))}
-        </select>
+        </Select>
         {error && <p className="text-sm text-voc-red-text">{error}</p>}
       </div>
     );

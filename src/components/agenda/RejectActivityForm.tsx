@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { Select } from "@/components/ui/Select";
 
 const REASON_TEMPLATES = [
   "Past niet binnen het doel van de VOC-agenda",
@@ -35,13 +36,14 @@ export function RejectActivityForm({
 
   return (
     <div className="w-full">
-      <select
+      <Select
         onChange={(e) => {
           if (e.target.value) setReason(e.target.value);
           e.target.value = "";
         }}
         defaultValue=""
-        className="w-full rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        surface="background"
+        className="h-10 w-full pl-3"
       >
         <option value="" disabled>
           Kies een reden (optioneel als startpunt)…
@@ -51,7 +53,7 @@ export function RejectActivityForm({
             {template}
           </option>
         ))}
-      </select>
+      </Select>
       <textarea
         value={reason}
         onChange={(e) => setReason(e.target.value)}

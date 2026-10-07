@@ -4,6 +4,7 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Search } from "lucide-react";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 
 export function CompanyFilters({ branches }: { branches: string[] }) {
   const router = useRouter();
@@ -51,10 +52,10 @@ export function CompanyFilters({ branches }: { branches: string[] }) {
           className="pl-9"
         />
       </div>
-      <select
+      <Select
         defaultValue={searchParams.get("branche") ?? ""}
         onChange={(e) => handleBranchChange(e.target.value)}
-        className="h-10 rounded-lg border border-input-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        className="h-10 pl-3"
       >
         <option value="">Alle branches</option>
         {branches.map((branche) => (
@@ -62,7 +63,7 @@ export function CompanyFilters({ branches }: { branches: string[] }) {
             {branche}
           </option>
         ))}
-      </select>
+      </Select>
     </div>
   );
 }

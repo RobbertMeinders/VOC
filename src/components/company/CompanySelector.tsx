@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { INDUSTRIES } from "@/lib/constants/industries";
 import { searchCompaniesAction, type CompanyOption } from "@/app/register/[token]/actions";
 
@@ -46,18 +47,14 @@ export function CompanySelector({ initialSelected = null }: { initialSelected?: 
         <div className="flex flex-col gap-3 rounded-lg border border-border p-3">
           <Input name="new_company_name" placeholder="Bedrijfsnaam" required />
           <div className="grid grid-cols-2 gap-3">
-            <select
-              name="new_company_industry"
-              defaultValue=""
-              className="h-10 rounded-lg border border-input-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-            >
+            <Select name="new_company_industry" defaultValue="" className="h-10 pl-3">
               <option value="">Kies een branche</option>
               {INDUSTRIES.map((industry) => (
                 <option key={industry} value={industry}>
                   {industry}
                 </option>
               ))}
-            </select>
+            </Select>
             <Input name="new_company_city" placeholder="Vestigingsplaats" />
           </div>
           <Input name="new_company_website" placeholder="Website (optioneel)" type="url" />

@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
 import { FieldError } from "@/components/ui/FieldError";
 import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
@@ -147,13 +148,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           <label htmlFor="industry" className="text-sm font-medium text-foreground">
             Branche
           </label>
-          <select
-            id="industry"
-            name="industry"
-            value={industry}
-            onChange={(e) => setIndustry(e.target.value)}
-            className="h-10 rounded-lg border border-input-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-          >
+          <Select id="industry" name="industry" value={industry} onChange={(e) => setIndustry(e.target.value)} className="h-10 pl-3">
             <option value="">Kies een branche</option>
             {INDUSTRIES.map((option) => (
               <option key={option} value={option}>
@@ -163,7 +158,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
             {industry && !(INDUSTRIES as readonly string[]).includes(industry) && (
               <option value={industry}>{industry}</option>
             )}
-          </select>
+          </Select>
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="city" className="text-sm font-medium text-foreground">

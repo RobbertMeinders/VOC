@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Select } from "@/components/ui/Select";
 import { FieldError } from "@/components/ui/FieldError";
 import { createInvitationAction, type CreateInvitationState } from "@/app/(app)/beheer/uitnodigingen/actions";
 import { useFieldValidation } from "@/lib/validation/useFieldValidation";
@@ -55,16 +56,16 @@ export function InviteForm({ canInviteBoard }: { canInviteBoard: boolean }) {
           <label htmlFor="role" className="mb-1.5 block text-sm font-medium text-foreground">
             Rol
           </label>
-          <select
+          <Select
             id="role"
             name="role"
             defaultValue="lid"
-            className="h-10 rounded-lg border border-input-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+            className="h-10 pl-3"
           >
             <option value="lid">Lid</option>
             <option value="bestuurslid">Bestuurslid</option>
             <option value="beheerder">Beheerder</option>
-          </select>
+          </Select>
         </div>
       )}
 

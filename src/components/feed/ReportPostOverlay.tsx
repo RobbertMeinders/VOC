@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
+import { Select } from "@/components/ui/Select";
 import { reportPostAction } from "@/app/(app)/actions";
 
 const REASONS: { value: string; label: string }[] = [
@@ -66,17 +67,18 @@ export function ReportPostOverlay({ postId, onClose }: { postId: string; onClose
           ) : (
             <div className="p-4">
               <label className="text-xs font-medium text-muted">Reden</label>
-              <select
+              <Select
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+                surface="background"
+                className="mt-1 h-10 w-full pl-3"
               >
                 {REASONS.map((r) => (
                   <option key={r.value} value={r.value}>
                     {r.label}
                   </option>
                 ))}
-              </select>
+              </Select>
               <label className="mt-3 block text-xs font-medium text-muted">
                 Toelichting {reason === "anders" && "(verplicht)"}
               </label>

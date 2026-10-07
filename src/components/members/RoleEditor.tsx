@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/Button";
+import { Select } from "@/components/ui/Select";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { updateMemberRoleAction, type UpdateMemberRoleState } from "@/app/(app)/leden/[id]/actions";
 import type { UserRole } from "@/lib/types/database";
@@ -51,19 +52,13 @@ export function RoleEditor({
         </label>
       )}
       <div className="flex items-center gap-2">
-        <select
-          id="role"
-          name="role"
-          defaultValue={currentRole}
-          aria-label="Rol wijzigen"
-          className="h-9 flex-1 rounded-lg border border-input-border bg-surface px-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-        >
+        <Select id="role" name="role" defaultValue={currentRole} aria-label="Rol wijzigen" className="h-9 flex-1 pl-2">
           {(Object.keys(ROLE_LABELS) as UserRole[]).map((role) => (
             <option key={role} value={role}>
               {ROLE_LABELS[role]}
             </option>
           ))}
-        </select>
+        </Select>
         <SubmitButton />
       </div>
       {state.error && (
