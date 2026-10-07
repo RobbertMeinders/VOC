@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { Building2, Globe, Lock, MapPin } from "lucide-react";
+import { Globe, Lock, MapPin } from "lucide-react";
 import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
 import { Avatar } from "@/components/ui/Avatar";
+import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { PopupLoginLink } from "@/components/embed/PopupLoginLink";
 
 export type CompanyDetailData = {
@@ -29,35 +29,11 @@ export type CompanyDetailData = {
 // i.p.v. rauwe database-rijen, zodat dit component zelf geen server- of
 // client-specifieke data-ophaal-logica hoeft te kennen.
 export function CompanyDetailContent({ company }: { company: CompanyDetailData }) {
-  // Een enkele mislukte laadpoging (bijv. een net-verlopen signed URL) liet
-  // hier de kale, lelijke "afbeelding niet gevonden"-icoon van de browser
-  // zien i.p.v. onze eigen nette fallback — deze vlag valt terug op die
-  // fallback zodra de <img> zelf een fout meldt.
-  const [logoFailed, setLogoFailed] = useState(false);
-
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-2xl bg-surface p-4 shadow-lg">
         <div className="flex items-start gap-4">
-          {company.logoUrl && !logoFailed ? (
-            // De meeste bedrijfslogo's zijn liggend, niet vierkant — object-cover
-            // in een vierkant vlak sneed die aan de zijkanten af (zie CompanyLogo,
-            // waar dit al met object-contain is opgelost). bg-white: contrast voor
-            // logo's met een transparante achtergrond.
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-border bg-white">
-              {/* eslint-disable-next-line @next/next/no-img-element -- publieke, external-embed pagina: geen framework-afhankelijkheden */}
-              <img
-                src={company.logoUrl}
-                alt={company.name}
-                onError={() => setLogoFailed(true)}
-                className="h-full w-full object-contain"
-              />
-            </div>
-          ) : (
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-voc-red-light text-voc-red-text">
-              <Building2 size={28} />
-            </div>
-          )}
+          <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={64} />
           <div className="min-w-0">
             <h1 className="text-xl font-semibold text-foreground">{company.name}</h1>
             {company.tagline && <p className="mt-0.5 text-sm text-muted">{company.tagline}</p>}

@@ -1,3 +1,6 @@
+"use client";
+
+import { useState } from "react";
 import Image from "next/image";
 import { Building2 } from "lucide-react";
 
@@ -36,13 +39,20 @@ export function CompanyLogo({
   name: string;
   size?: number;
 }) {
+  // Eén mislukte laadpoging (bv. een verlopen signed URL) liet hier het kale,
+  // lelijke "afbeelding niet gevonden"-icoon van de browser zien i.p.v. de
+  // eigen Building2-fallback — deze vlag valt terug op die fallback zodra de
+  // afbeelding zelf een fout meldt, voor alle gebruiksplekken tegelijk i.p.v.
+  // dat losse embed-pagina's dit ieder apart moeten regelen.
+  const [failed, setFailed] = useState(false);
   const width = Math.round(size * 1.35);
+  const showImage = logoUrl && !failed;
   return (
     <div
       className="relative flex shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border bg-white dark:bg-[#EDEDED]"
       style={{ width, height: size }}
     >
-      {logoUrl ? (
+      {showImage ? (
         <>
           <span
             aria-hidden
@@ -51,7 +61,14 @@ export function CompanyLogo({
           >
             {initials(name)}
           </span>
-          <Image src={logoUrl} alt={name} width={width} height={size} className="relative h-full w-full object-contain" />
+          <Image
+            src={logoUrl}
+            alt={name}
+            width={width}
+            height={size}
+            onError={() => setFailed(true)}
+            className="relative h-full w-full object-contain"
+          />
         </>
       ) : (
         <Building2 size={Math.round(size * 0.45)} className="text-voc-red-text" />
