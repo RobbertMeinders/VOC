@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
-import type { LucideIcon } from "lucide-react";
 import Link from "next/link";
 import Image from "next/image";
-import { Building2, CalendarDays, FileText, MapPin, MessageCircle, Users } from "lucide-react";
+import { CalendarDays, MapPin } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
@@ -17,58 +16,22 @@ export const metadata: Metadata = { title: "Home" };
 type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
 type NewsItemRow = Database["public"]["Tables"]["news_items"]["Row"];
 
-function ShortcutButton({
-  href,
-  icon: Icon,
-  label,
-  count,
-  countLabel,
-}: {
-  href: string;
-  icon: LucideIcon;
-  label: string;
-  count?: number;
-  countLabel?: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group flex flex-col items-center gap-2.5 rounded-2xl border border-border bg-surface px-3 py-5 text-center shadow-sm transition-all duration-500 ease-out hover:-translate-y-0.5 hover:border-voc-red hover:shadow-md"
-    >
-      <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-voc-red-light text-voc-red-text transition-transform duration-500 ease-out group-hover:scale-105">
-        <Icon size={26} />
-      </span>
-      <span className="min-w-0">
-        <span className="block truncate text-sm font-semibold text-foreground group-hover:text-voc-red-text">{label}</span>
-        {typeof count === "number" && (
-          <span className="block text-xs text-muted">
-            {count} {countLabel}
-          </span>
-        )}
-      </span>
-    </Link>
-  );
-}
-
 export default async function HomePage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: activities }, { count: companyCount }, { count: memberCount }, { data: newsItems }, { count: companyMemberCount }] =
-    await Promise.all([
-      supabase
-        .from("activities")
-        .select("*")
-        .eq("status", "approved")
-        .gte("starts_at", new Date().toISOString())
-        .order("starts_at", { ascending: true })
-        .limit(1)
-        .returns<ActivityRow[]>(),
-      supabase.from("companies").select("id", { count: "exact", head: true }),
-      supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
-      supabase.from("news_items").select("*").order("position", { ascending: true }).limit(3).returns<NewsItemRow[]>(),
-      supabase.from("company_members").select("id", { count: "exact", head: true }).eq("profile_id", profile.id),
-    ]);
+  const [{ data: activities }, { data: newsItems }, { count: companyMemberCount }] = await Promise.all([
+    supabase
+      .from("activities")
+      .select("*")
+      .eq("status", "approved")
+      .gte("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: true })
+      .limit(1)
+      .returns<ActivityRow[]>(),
+    supabase.from("news_items").select("*").order("position", { ascending: true }).limit(3).returns<NewsItemRow[]>(),
+    supabase.from("company_members").select("id", { count: "exact", head: true }).eq("profile_id", profile.id),
+  ]);
 
   const nextActivity = activities?.[0] ?? null;
 
@@ -81,7 +44,7 @@ export default async function HomePage() {
   const missingProfileInfo = !profile.avatar_url || !profile.job_title || (companyMemberCount ?? 0) === 0;
   const showPhotoPrompt = !profile.onboarding_dismissed_at && missingProfileInfo;
 
-  const [nextActivityImageUrl, myRegistration, newsImageUrls] = await Promise.all([
+  const [nextActivityImageUrl, myRegistration, newsImageUrls, { data: myRegistrationRows }] = await Promise.all([
     nextActivity ? getSignedStorageUrl("activity-images", nextActivity.image_url) : Promise.resolve(null),
     nextActivity
       ? supabase
@@ -96,7 +59,20 @@ export default async function HomePage() {
       "news-images",
       (newsItems ?? []).map((item) => item.image_url)
     ),
+    // UX-review punt 7/8: "Snelle toegang" herhaalde gewoon het hoofdmenu;
+    // vervangen door iets persoonlijks — de eigen, nog komende aanmeldingen.
+    supabase
+      .from("activity_registrations")
+      .select("is_waitlisted, activity:activities(*)")
+      .eq("profile_id", profile.id)
+      .returns<{ is_waitlisted: boolean; activity: ActivityRow | null }[]>(),
   ]);
+
+  const now = new Date();
+  const myUpcomingRegistrations = (myRegistrationRows ?? [])
+    .filter((r): r is { is_waitlisted: boolean; activity: ActivityRow } => r.activity !== null && new Date(r.activity.starts_at) >= now)
+    .sort((a, b) => new Date(a.activity.starts_at).getTime() - new Date(b.activity.starts_at).getTime())
+    .slice(0, 3);
 
   const newsSlides = (newsItems ?? []).map((item) => ({
     id: item.id,
@@ -130,21 +106,34 @@ export default async function HomePage() {
         </section>
       )}
 
-      <section>
-        <h2 className="mb-2 text-sm font-semibold text-foreground">Snelle toegang</h2>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <ShortcutButton href="/leden" icon={Users} label="Leden" count={memberCount ?? undefined} countLabel="leden" />
-          <ShortcutButton
-            href="/bedrijven"
-            icon={Building2}
-            label="Bedrijven"
-            count={companyCount ?? undefined}
-            countLabel="bedrijven"
-          />
-          <ShortcutButton href="/documenten" icon={FileText} label="Documenten" />
-          <ShortcutButton href="/community" icon={MessageCircle} label="Community" />
-        </div>
-      </section>
+      {myUpcomingRegistrations.length > 0 && (
+        <section>
+          <SectionHeader title="Mijn aanmeldingen" href="/agenda?type=mijn-aanmeldingen" linkLabel="Alle aanmeldingen" />
+          <div className="flex flex-col gap-2">
+            {myUpcomingRegistrations.map(({ activity, is_waitlisted }) => (
+              <Link
+                key={activity.id}
+                href={`/agenda/${activity.id}`}
+                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm hover:border-voc-red"
+              >
+                <div className="min-w-0">
+                  <p className="truncate text-sm font-medium text-foreground">{activity.title}</p>
+                  <p className="text-xs text-muted">{formatActivityDate(activity.starts_at)}</p>
+                </div>
+                <span
+                  className={
+                    is_waitlisted
+                      ? "shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
+                      : "shrink-0 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-500/10 dark:text-green-400"
+                  }
+                >
+                  {is_waitlisted ? "Wachtlijst" : "Aangemeld"}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       <section>
         <SectionHeader title="Eerstvolgende activiteit" href="/agenda" linkLabel="Hele agenda" />

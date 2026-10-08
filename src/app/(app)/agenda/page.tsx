@@ -18,6 +18,7 @@ const TYPE_TABS = [
   { value: undefined, label: "Alles" },
   { value: "activiteit", label: "Activiteiten" },
   { value: "ingebracht", label: "Door lid toegevoegd" },
+  { value: "mijn-aanmeldingen", label: "Mijn aanmeldingen" },
 ] as const;
 
 export default async function AgendaPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
@@ -31,13 +32,14 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
     supabase.from("activity_registrations").select("activity_id, is_waitlisted").eq("profile_id", profile.id),
   ]);
 
+  const myRegistrationByActivity = new Map((myRegistrations ?? []).map((r) => [r.activity_id, r.is_waitlisted]));
+
   const activities = (allActivities ?? []).filter((a) => {
     if (type === "activiteit") return a.source === "voc";
     if (type === "ingebracht") return a.source === "lid";
+    if (type === "mijn-aanmeldingen") return myRegistrationByActivity.has(a.id);
     return true;
   });
-
-  const myRegistrationByActivity = new Map((myRegistrations ?? []).map((r) => [r.activity_id, r.is_waitlisted]));
   const registrationCounts = new Map<string, number>();
   for (const registration of allRegistrations ?? []) {
     if (registration.is_waitlisted) continue;
@@ -93,7 +95,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
         </Link>
       </div>
 
-      <div className="mb-4 inline-flex rounded-lg border border-border bg-surface p-1">
+      <div className="mb-4 flex overflow-x-auto rounded-lg border border-border bg-surface p-1">
         {TYPE_TABS.map((tab) => {
           const active = (type ?? undefined) === tab.value;
           return (
@@ -102,8 +104,8 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
               href={tab.value ? `/agenda?type=${tab.value}` : "/agenda"}
               className={
                 active
-                  ? "rounded-md bg-voc-red px-3 py-1.5 text-sm font-medium text-white"
-                  : "rounded-md px-3 py-1.5 text-sm font-medium text-muted hover:text-foreground"
+                  ? "shrink-0 rounded-md bg-voc-red px-3 py-1.5 text-sm font-medium text-white"
+                  : "shrink-0 rounded-md px-3 py-1.5 text-sm font-medium text-muted hover:text-foreground"
               }
             >
               {tab.label}
