@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { after } from "next/server";
 import { requireBoard, requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
@@ -9,6 +10,7 @@ import { uploadDocument } from "@/lib/supabase/uploadDocument";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
 import { sendRawHtmlEmail, escapeHtml } from "@/lib/email/send";
+import { dispatchPendingPushNotifications } from "@/lib/notifications/dispatch-push";
 
 export type ActionResult = { error?: string };
 
@@ -113,6 +115,11 @@ export async function unregisterFromActivityAction(activityId: string): Promise<
   invalidateQuery("statistieken-activiteiten");
   revalidatePath(`/agenda/${activityId}`);
   revalidatePath("/agenda");
+  // UX-review punt 2: de promote_next_waitlisted-trigger zette net een
+  // notifications-rij voor wie van de wachtlijst promoveerde — direct
+  // dispatchen i.p.v. tot de volgende cron-run wachten. after() blokkeert de
+  // respons aan de gebruiker niet; de dagelijkse cron blijft vangnet.
+  after(() => dispatchPendingPushNotifications(10));
   return {};
 }
 
@@ -378,6 +385,7 @@ export async function cancelActivityAction(activityId: string, message: string):
       await sendRawHtmlEmail(recipient.email, "Activiteit afgelast", `<p>${escapeHtml(body)}</p>`);
     }
   }
+  after(() => dispatchPendingPushNotifications(50));
 
   await logAuditAction("activity_cancelled", "activity", activityId);
   invalidateQuery("statistieken-activiteiten");
@@ -412,6 +420,7 @@ export async function notifyActivityChangeAction(activityId: string, message: st
       await sendRawHtmlEmail(recipient.email, "Activiteit gewijzigd", `<p>${escapeHtml(body)}</p>`);
     }
   }
+  after(() => dispatchPendingPushNotifications(50));
 
   await logAuditAction("activity_change_notified", "activity", activityId);
   return { success: true };
@@ -448,6 +457,13 @@ export async function decideActivitySubmissionAction(
 
   revalidatePath(`/agenda/${activityId}`);
   revalidatePath("/agenda");
+
+  // UX-review punt 2: bij goedkeuren maakt notify_activity_published direct
+  // de new_activity-notificaties aan — niet laten wachten op de dagelijkse
+  // cron.
+  if (decision === "approved") {
+    after(() => dispatchPendingPushNotifications(10));
+  }
 }
 
 // Onderscheidt "aangemeld" van "echt geweest" — bestuur vinkt na afloop af

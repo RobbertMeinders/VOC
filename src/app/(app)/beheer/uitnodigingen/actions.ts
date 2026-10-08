@@ -4,7 +4,42 @@ import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { sendTemplatedEmail } from "@/lib/email/send";
+import { invalidateQuery } from "@/lib/cache/queryCache";
 import type { UserRole } from "@/lib/types/database";
+
+// UX-review punt 17: mirror van de bedrijf-opzoek/aanmaak-logica in
+// createInvitationFromAccessRequestAction (beheer/aanvragen/actions.ts) —
+// hier zonder adres/geocoding, want het handmatige uitnodigingsformulier
+// vraagt die velden niet.
+async function resolveCompanyIdFromForm(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  formData: FormData
+): Promise<string | null> {
+  const companyMode = String(formData.get("company_mode") ?? "");
+  if (companyMode === "existing") {
+    const companyId = String(formData.get("company_id") ?? "").trim();
+    return companyId || null;
+  }
+  if (companyMode === "new") {
+    const name = String(formData.get("new_company_name") ?? "").trim();
+    if (!name) return null;
+    const industry = String(formData.get("new_company_industry") ?? "").trim() || null;
+    const city = String(formData.get("new_company_city") ?? "").trim() || null;
+    const website = String(formData.get("new_company_website") ?? "").trim() || null;
+    const slug = `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "")}-${Math.random().toString(36).slice(2, 8)}`;
+    const { data: createdCompany } = await supabase
+      .from("companies")
+      .insert({ name, slug, industry, city, website })
+      .select("id")
+      .single();
+    if (createdCompany) {
+      invalidateQuery("bedrijven-page-data");
+      invalidateQuery("beheer-bedrijven-page-data");
+      return createdCompany.id;
+    }
+  }
+  return null;
+}
 
 const DEFAULT_VALIDITY_MS = 14 * 24 * 60 * 60 * 1000;
 
@@ -17,12 +52,16 @@ export async function createInvitationAction(
   const profile = await requireBoard();
   const email = String(formData.get("email") ?? "").trim();
   const role = String(formData.get("role") ?? "lid") as UserRole;
+  const firstName = String(formData.get("first_name") ?? "").trim();
+  const lastName = String(formData.get("last_name") ?? "").trim();
 
   if (role !== "lid" && profile.role !== "beheerder") {
     return { error: "Alleen een beheerder kan bestuursleden of beheerders uitnodigen." };
   }
 
   const supabase = await createClient();
+  const companyId = await resolveCompanyIdFromForm(supabase, formData);
+
   // Zonder e-mailadres is de link vanaf aanmaken al bruikbaar/deelbaar (geen
   // verzendmoment om op te wachten) — dan krijgt hij meteen een vervaldatum.
   // Mét e-mailadres blijft expires_at NULL ("nog niet verstuurd") totdat de
@@ -33,6 +72,9 @@ export async function createInvitationAction(
       email: email || null,
       role,
       invited_by: profile.id,
+      first_name: firstName || null,
+      last_name: lastName || null,
+      company_id: companyId,
       expires_at: email ? null : new Date(Date.now() + DEFAULT_VALIDITY_MS).toISOString(),
     })
     .select("token")

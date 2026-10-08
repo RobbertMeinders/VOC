@@ -4,10 +4,8 @@ import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
 import { Users } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
-import { RoleEditor } from "@/components/members/RoleEditor";
-import { MemberActiveToggle } from "@/components/members/MemberActiveToggle";
+import { MemberRowMenu } from "@/components/members/MemberRowMenu";
 import { OrganizationAccountToggle } from "@/components/members/OrganizationAccountToggle";
-import { DeleteMemberButton } from "@/components/members/DeleteMemberButton";
 import { ListToolbar, type ListToolbarFilter } from "@/components/ui/ListToolbar";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { matchesSearch } from "@/lib/search/normalize";
@@ -97,27 +95,31 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
         {filtered.length === 0 && <ComingSoon icon={Users} title="Geen leden gevonden" description="Pas je zoekopdracht of filter aan." />}
         {filtered.map((member) => (
           <div key={member.id} className="rounded-2xl border border-border bg-surface p-3 shadow-sm">
-            <Link href={`/leden/${member.id}`} className="flex items-center gap-3 hover:opacity-80">
-              <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={40} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">
-                  {member.first_name} {member.last_name}
-                </p>
-                <p className="truncate text-xs text-muted">
-                  {ROLE_LABELS[member.role]}
-                  {!member.is_active && " · Gedeactiveerd"}
-                </p>
-              </div>
-            </Link>
-            <div
-              className={`mt-2 grid grid-cols-1 gap-2 ${canEditRole ? "sm:grid-cols-4" : "sm:grid-cols-2"}`}
-            >
-              {canEditRole && <RoleEditor memberId={member.id} currentRole={member.role} compact />}
-              {member.id !== viewerId && <MemberActiveToggle memberId={member.id} initialActive={member.is_active} compact />}
+            <div className="flex items-center gap-3">
+              <Link href={`/leden/${member.id}`} className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-80">
+                <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={40} />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-foreground">
+                    {member.first_name} {member.last_name}
+                    {member.companyName && <span className="font-normal text-muted"> — {member.companyName}</span>}
+                  </p>
+                  <p className="truncate text-xs text-muted">
+                    {ROLE_LABELS[member.role]}
+                    {!member.is_active && " · Gedeactiveerd"}
+                  </p>
+                </div>
+              </Link>
+              <MemberRowMenu
+                memberId={member.id}
+                memberName={`${member.first_name} ${member.last_name}`}
+                currentRole={member.role}
+                isActive={member.is_active}
+                canEditRole={canEditRole}
+                isSelf={member.id === viewerId}
+              />
+            </div>
+            <div className="mt-2">
               <OrganizationAccountToggle memberId={member.id} initialValue={member.is_organization_account} compact />
-              {canEditRole && member.id !== viewerId && (
-                <DeleteMemberButton memberId={member.id} memberName={`${member.first_name} ${member.last_name}`} />
-              )}
             </div>
           </div>
         ))}

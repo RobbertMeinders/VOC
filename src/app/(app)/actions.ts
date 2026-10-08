@@ -1,5 +1,6 @@
 "use server";
 
+import { after } from "next/server";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/auth/roles";
@@ -7,6 +8,7 @@ import { fetchCommentById, fetchFeedPosts, fetchPostById } from "@/lib/feed/quer
 import { FEED_PAGE_SIZE } from "@/lib/feed/pagination";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { logEvent } from "@/lib/events/log";
+import { dispatchPendingPushNotifications } from "@/lib/notifications/dispatch-push";
 import type { FeedComment, FeedPost, FeedPostType } from "@/lib/feed/types";
 import type { FeedReportReason } from "@/lib/types/database";
 
@@ -172,6 +174,11 @@ export async function createCommentAction(
   if (error) {
     return { error: "Reageren is niet gelukt. Probeer het opnieuw." };
   }
+
+  // UX-review punt 2: notify_on_feed_comment/dispatch_mention_notifications
+  // zetten net een notifications-rij voor de auteur (en eventueel getagde
+  // leden) — direct dispatchen i.p.v. tot de volgende cron-run wachten.
+  after(() => dispatchPendingPushNotifications(10));
 
   return { success: true };
 }

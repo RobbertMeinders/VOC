@@ -1,52 +1,14 @@
 import { NextResponse } from "next/server";
-import { createAdminClient } from "@/lib/supabase/admin";
-import { sendNotificationEmail } from "@/lib/email/send";
+import { dispatchPendingEmailNotifications } from "@/lib/notifications/dispatch-email";
 
-// Mirror van /api/cron/send-push — zelfde CRON_SECRET-patroon, zelfde
-// pending/mark-afhandeling, nu voor het e-mailkanaal
-// (get_pending_email_notifications / mark_notifications_emailed,
-// 0038_email_notification_preferences.sql).
+// Mirror van /api/cron/send-push — zelfde CRON_SECRET-patroon, blijft het
+// vangnet voor het e-mailkanaal.
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
   if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // get_pending_email_notifications geeft echte e-mailadressen van leden
-  // terug — staat sinds 0060_restrict_cron_only_rpcs_and_registration_
-  // update.sql alleen nog open voor service_role, dus deze cron (heeft toch
-  // geen gebruikerssessie) gaat voortaan via de admin-client i.p.v. de
-  // sessie-gebonden client.
-  const supabase = createAdminClient();
-  const { data: pending, error } = await supabase.rpc("get_pending_email_notifications", { p_limit: 50 });
-
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
-  }
-
-  const emailedIds: string[] = [];
-  for (const item of pending ?? []) {
-    const result = await sendNotificationEmail(item.email, {
-      type: item.type,
-      title: item.title,
-      body: item.body,
-      link: item.link,
-    });
-    if (result.providerId) {
-      // SMTP-message-id, puur voor eigen logging/debugging — een generieke
-      // SMTP-mailbox levert (anders dan Resend) geen open/klik-webhook, dus
-      // "geopende e-mails" in Statistieken blijft hierna op 0 staan.
-      await supabase.rpc("set_notification_email_provider_id", {
-        p_notification_id: item.notification_id,
-        p_provider_id: result.providerId,
-      });
-    }
-    emailedIds.push(item.notification_id);
-  }
-
-  if (emailedIds.length > 0) {
-    await supabase.rpc("mark_notifications_emailed", { p_ids: emailedIds });
-  }
-
-  return NextResponse.json({ sent: emailedIds.length });
+  const result = await dispatchPendingEmailNotifications(50);
+  return NextResponse.json({ sent: result.sent });
 }
