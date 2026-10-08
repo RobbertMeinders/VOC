@@ -167,6 +167,55 @@ export async function deleteMemberAction(memberId: string): Promise<DeleteMember
   return {};
 }
 
+export type GenerateLoginLinkState = { error?: string; link?: string };
+
+// UX-review punt 4: bestuur moet een lid soms kunnen helpen inloggen (bv.
+// telefonisch support). Hergebruikt hetzelfde generateLink(magiclink) +
+// /auth/confirm-mechanisme als de eigen "inloggen zonder wachtwoord"-knop op
+// /login (login/actions.ts) i.p.v. een nieuw, eigen tokensysteem te bouwen —
+// de link is eenmalig, raakt automatisch ongeldig (Supabase's eigen Email
+// OTP-vervaltijd) en wordt nergens in onze eigen database opgeslagen.
+export async function generateLoginLinkAction(memberId: string): Promise<GenerateLoginLinkState> {
+  const viewer = await requireBoard();
+
+  const supabase = await createClient();
+  const { data: target } = await supabase
+    .from("profiles")
+    .select("email, role, is_active")
+    .eq("id", memberId)
+    .maybeSingle();
+
+  if (!target) {
+    return { error: "Lid niet gevonden." };
+  }
+  if (!target.is_active) {
+    return { error: "Dit account is gedeactiveerd." };
+  }
+  // Een gewoon bestuurslid mag geen inloglink genereren voor een ander
+  // bestuurslid of beheerder — alleen de beheerder mag dat.
+  if (target.role !== "lid" && viewer.role !== "beheerder") {
+    return { error: "Alleen een beheerder kan een inloglink genereren voor een bestuurslid of beheerder." };
+  }
+
+  const admin = createAdminClient();
+  const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
+    type: "magiclink",
+    email: target.email,
+  });
+  const hashedToken = linkData?.properties?.hashed_token;
+
+  if (linkError || !hashedToken) {
+    return { error: "Inloglink genereren is niet gelukt." };
+  }
+
+  const link = `${process.env.SITE_URL ?? ""}/auth/confirm?token_hash=${hashedToken}&type=magiclink&next=${encodeURIComponent("/")}`;
+
+  // Nooit het token/de link zelf loggen — alleen wie, wanneer en voor wie.
+  await logAuditAction("member_login_link_generated", "profile", memberId);
+
+  return { link };
+}
+
 export type UpdateMemberOrganizationAccountState = { error?: string; success?: boolean };
 
 // Markeert een profiel als "dit is de organisatie zelf, geen collega" —

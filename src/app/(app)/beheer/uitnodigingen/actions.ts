@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { sendTemplatedEmail } from "@/lib/email/send";
 import type { UserRole } from "@/lib/types/database";
 
+const DEFAULT_VALIDITY_MS = 14 * 24 * 60 * 60 * 1000;
+
 export type CreateInvitationState = { error?: string; success?: boolean; emailSent?: boolean; emailError?: string };
 
 export async function createInvitationAction(
@@ -21,9 +23,18 @@ export async function createInvitationAction(
   }
 
   const supabase = await createClient();
+  // Zonder e-mailadres is de link vanaf aanmaken al bruikbaar/deelbaar (geen
+  // verzendmoment om op te wachten) — dan krijgt hij meteen een vervaldatum.
+  // Mét e-mailadres blijft expires_at NULL ("nog niet verstuurd") totdat de
+  // verzending hieronder echt slaagt.
   const { data: invitation, error } = await supabase
     .from("invitations")
-    .insert({ email: email || null, role, invited_by: profile.id })
+    .insert({
+      email: email || null,
+      role,
+      invited_by: profile.id,
+      expires_at: email ? null : new Date(Date.now() + DEFAULT_VALIDITY_MS).toISOString(),
+    })
     .select("token")
     .single();
 
@@ -40,7 +51,13 @@ export async function createInvitationAction(
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
   const { error: emailError } = await sendTemplatedEmail("uitnodiging", email, { link });
   if (!emailError) {
-    await supabase.from("invitations").update({ last_sent_at: new Date().toISOString() }).eq("token", invitation.token);
+    await supabase
+      .from("invitations")
+      .update({
+        last_sent_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + DEFAULT_VALIDITY_MS).toISOString(),
+      })
+      .eq("token", invitation.token);
   }
 
   // De uitnodiging zelf is al aangemaakt en blijft via "kopieer link" bruikbaar,
@@ -56,7 +73,7 @@ export async function revokeInvitationAction(id: string) {
   revalidatePath("/beheer/instroom");
 }
 
-const EXTENDED_VALIDITY_MS = 14 * 24 * 60 * 60 * 1000;
+const EXTENDED_VALIDITY_MS = DEFAULT_VALIDITY_MS;
 
 export async function extendInvitationAction(id: string) {
   await requireBoard();
@@ -102,7 +119,13 @@ export async function sendInvitationEmailAction(id: string): Promise<{ error?: s
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
   const { error } = await sendTemplatedEmail("uitnodiging", invitation.email, { link });
   if (!error) {
-    await supabase.from("invitations").update({ last_sent_at: new Date().toISOString() }).eq("id", id);
+    await supabase
+      .from("invitations")
+      .update({
+        last_sent_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + DEFAULT_VALIDITY_MS).toISOString(),
+      })
+      .eq("id", id);
     revalidatePath("/beheer/instroom");
   }
   return { error };
@@ -141,7 +164,13 @@ export async function bulkSendInvitationEmailsAction(ids: string[]): Promise<Bul
   }
 
   if (sentIds.length > 0) {
-    await supabase.from("invitations").update({ last_sent_at: new Date().toISOString() }).in("id", sentIds);
+    await supabase
+      .from("invitations")
+      .update({
+        last_sent_at: new Date().toISOString(),
+        expires_at: new Date(Date.now() + DEFAULT_VALIDITY_MS).toISOString(),
+      })
+      .in("id", sentIds);
   }
 
   revalidatePath("/beheer/instroom");

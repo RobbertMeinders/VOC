@@ -36,6 +36,8 @@ export async function registerAction(
   const newCompanyIndustry = String(formData.get("new_company_industry") ?? "").trim();
   const newCompanyCity = String(formData.get("new_company_city") ?? "").trim();
   const newCompanyWebsite = String(formData.get("new_company_website") ?? "").trim();
+  const password = String(formData.get("password") ?? "");
+  const passwordRepeat = String(formData.get("password_repeat") ?? "");
 
   if (!email || !firstName || !lastName) {
     return { error: "Vul alle verplichte velden in." };
@@ -46,13 +48,19 @@ export async function registerAction(
   if (companyMode === "new" && !newCompanyName) {
     return { error: "Vul de bedrijfsnaam in." };
   }
+  if (password.length < 8) {
+    return { error: "Kies een wachtwoord van minimaal 8 tekens." };
+  }
+  if (password !== passwordRepeat) {
+    return { error: "De wachtwoorden komen niet overeen." };
+  }
 
-  // Wachtwoordloos account aanmaken: we genereren zelf een invite-token
-  // (service-role, net als bij wachtwoord-reset) en verifiëren 'm meteen
-  // hierna met de gewone server-client — dat schrijft de sessiecookies
-  // direct weg, dus geen tweede e-mail of extra klik nodig. auth.users
-  // wordt hierbij aangemaakt, wat de bestaande handle_new_user()-trigger
-  // triggert (leest dezelfde metadata als voorheen via signUp).
+  // Account aanmaken: we genereren zelf een invite-token (service-role, net
+  // als bij wachtwoord-reset) en verifiëren 'm meteen hierna met de gewone
+  // server-client — dat schrijft de sessiecookies direct weg, dus geen
+  // tweede e-mail of extra klik nodig. auth.users wordt hierbij aangemaakt,
+  // wat de bestaande handle_new_user()-trigger triggert (leest dezelfde
+  // metadata als voorheen via signUp).
   const admin = createAdminClient();
   const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
     type: "invite",
@@ -103,6 +111,10 @@ export async function registerAction(
   }
 
   await supabase.from("profiles").update({ last_active_at: new Date().toISOString() }).eq("id", verifyData.user.id);
+
+  // Account bestaat nu al; een fout hier mag de activatie niet blokkeren —
+  // het lid kan het wachtwoord later alsnog zetten via Instellingen.
+  await supabase.auth.updateUser({ password });
 
   redirect("/");
 }

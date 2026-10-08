@@ -15,6 +15,7 @@ import { isAdmin, isBoard } from "@/lib/auth/roles";
 import { RoleEditor } from "@/components/members/RoleEditor";
 import { AdminEditProfile } from "@/components/members/AdminEditProfile";
 import { MemberActiveToggle } from "@/components/members/MemberActiveToggle";
+import { GenerateLoginLinkButton } from "@/components/members/GenerateLoginLinkButton";
 import { fetchFeedPostsByAuthor } from "@/lib/feed/queries";
 import { MEMBER_PROFILE_LIST_PREVIEW } from "@/lib/feed/pagination";
 import type { Database } from "@/lib/types/database";
@@ -218,6 +219,7 @@ export async function MemberProfileContent({ id }: { id: string }) {
             {isAdmin(viewer.role) && <RoleEditor memberId={member.id} currentRole={member.role} />}
             <AdminEditProfile member={member} avatarUrl={avatarUrl} />
             {member.id !== viewer.id && <MemberActiveToggle memberId={member.id} initialActive={member.is_active} />}
+            {member.id !== viewer.id && member.is_active && <GenerateLoginLinkButton memberId={member.id} />}
           </div>
         </div>
       )}

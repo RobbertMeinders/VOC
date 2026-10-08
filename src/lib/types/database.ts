@@ -129,7 +129,7 @@ export interface Database {
           role: UserRole;
           invited_by: string | null;
           status: InvitationStatus;
-          expires_at: string;
+          expires_at: string | null;
           accepted_by: string | null;
           accepted_at: string | null;
           created_at: string;

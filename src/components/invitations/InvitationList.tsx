@@ -20,8 +20,12 @@ export type Invitation = Database["public"]["Tables"]["invitations"]["Row"] & {
 // "Verlopen" wordt bewust niet uit invitations.status gelezen — die blijft
 // altijd "pending" (er is geen cron die 'm omzet naar het bestaande
 // 'expired'-enumlid), dus de echte status komt uit expires_at vs. nu.
+// expires_at is NULL voor een uitnodiging die nog nooit verstuurd is (de
+// vervalklok start pas bij een geslaagde verzending) — die is dus niet
+// "verlopen", wel nog niet geldig (zie StatusBadge: valt terug op "Niet
+// verstuurd" via last_sent_at).
 export function isInvitationExpired(invitation: Invitation): boolean {
-  return new Date(invitation.expires_at).getTime() < Date.now();
+  return invitation.expires_at !== null && new Date(invitation.expires_at).getTime() < Date.now();
 }
 
 function InvitationListInner({ invitations }: { invitations: Invitation[] }) {

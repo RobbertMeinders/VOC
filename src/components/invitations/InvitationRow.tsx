@@ -88,7 +88,10 @@ export function InvitationRow({
           </p>
           <p className="truncate text-xs text-muted">
             {name && invitation.email ? `${invitation.email} · ` : ""}
-            {ROLE_LABELS[invitation.role]} · verloopt {new Date(invitation.expires_at).toLocaleDateString("nl-NL")}
+            {ROLE_LABELS[invitation.role]} ·{" "}
+            {invitation.expires_at
+              ? `verloopt ${new Date(invitation.expires_at).toLocaleDateString("nl-NL")}`
+              : "verloopt pas na versturen"}
           </p>
           {feedback && <p className="mt-0.5 text-xs text-muted">{feedback}</p>}
         </div>

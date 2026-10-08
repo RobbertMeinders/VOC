@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -17,10 +17,10 @@ export type RegisterPrefill = {
   company: CompanyOption | null;
 };
 
-function SubmitButton() {
+function SubmitButton({ disabled }: { disabled?: boolean }) {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" className="w-full" disabled={pending}>
+    <Button type="submit" className="w-full" disabled={pending || disabled}>
       {pending ? "Account activeren…" : "Account activeren"}
     </Button>
   );
@@ -37,6 +37,9 @@ export function RegisterForm({
 }) {
   const registerWithToken = registerAction.bind(null, token);
   const [state, formAction] = useActionState(registerWithToken, initialState);
+  const [password, setPassword] = useState("");
+  const [passwordRepeat, setPasswordRepeat] = useState("");
+  const mismatch = passwordRepeat.length > 0 && password !== passwordRepeat;
 
   return (
     <form action={formAction} className="flex flex-col gap-5">
@@ -106,13 +109,48 @@ export function RegisterForm({
         <CompanySelector initialSelected={prefilled?.company ?? null} />
       </div>
 
+      <div className="grid grid-cols-2 gap-4">
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="password" className="text-sm font-medium text-foreground">
+            Wachtwoord
+          </label>
+          <Input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={8}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+          <p className="text-xs text-muted">Minimaal 8 tekens.</p>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="password_repeat" className="text-sm font-medium text-foreground">
+            Herhaal wachtwoord
+          </label>
+          <Input
+            id="password_repeat"
+            name="password_repeat"
+            type="password"
+            autoComplete="new-password"
+            required
+            minLength={8}
+            value={passwordRepeat}
+            onChange={(e) => setPasswordRepeat(e.target.value)}
+          />
+          {mismatch && <p className="text-xs text-voc-red-text">Komt niet overeen.</p>}
+        </div>
+      </div>
+
       {state.error && (
         <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {state.error}
         </p>
       )}
 
-      <SubmitButton />
+      <SubmitButton disabled={mismatch} />
     </form>
   );
 }
