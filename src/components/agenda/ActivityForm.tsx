@@ -267,6 +267,7 @@ export function ActivityForm({
             required
           />
           <input type="hidden" name="starts_at" value={startsAtIso} />
+          <p className="text-xs text-muted">Bv. 24-12-2026 20:00.</p>
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="ends_at_time" className="text-sm font-medium text-foreground">
@@ -308,6 +309,7 @@ export function ActivityForm({
                 max="2099-12-31T23:59"
               />
               <input type="hidden" name="registration_deadline" value={deadlineIso} />
+              <p className="text-xs text-muted">Bv. 20-12-2026 23:59.</p>
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="max_participants" className="text-sm font-medium text-foreground">

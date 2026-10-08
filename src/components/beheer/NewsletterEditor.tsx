@@ -970,7 +970,7 @@ export function NewsletterEditor({
               title="Voorbeeld nieuwsbrief"
               srcDoc={previewHtml}
               sandbox=""
-              className={`h-[min(78vh,900px)] rounded-lg border border-border bg-white transition-[width] ${
+              className={`h-[min(78vh,900px)] rounded-lg border border-border bg-white transition-[width] dark:ring-1 dark:ring-white/10 ${
                 previewDevice === "desktop" ? "w-full" : "w-[390px]"
               }`}
             />

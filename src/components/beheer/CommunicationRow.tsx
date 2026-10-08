@@ -57,7 +57,11 @@ function CampaignThumbnail({
 
   return (
     <div
-      className="shrink-0 overflow-hidden rounded-lg border border-border bg-white"
+      // UX-review punt 25: bg-white is bewust (toont het echte witte
+      // e-mailcanvas), maar "sprong" in donker thema als een niet-getheemd
+      // element i.p.v. een bewuste voorvertoning — een subtiele ring maakt
+      // dat verschil duidelijk.
+      className="shrink-0 overflow-hidden rounded-lg border border-border bg-white dark:ring-1 dark:ring-white/10"
       style={{ width: THUMB_WIDTH, height: THUMB_HEIGHT }}
     >
       <iframe

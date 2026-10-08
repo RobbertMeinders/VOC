@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { FileSelectButton } from "@/components/ui/FileSelectButton";
 import { uploadDocumentAction, type DocumentFormState } from "@/app/(app)/documenten/actions";
 import { useToast } from "@/lib/ui/ToastContext";
 
@@ -59,13 +60,7 @@ export function DocumentUploadForm({ categories }: { categories: string[] }) {
           ))}
         </datalist>
       </div>
-      <input
-        name="file"
-        type="file"
-        accept="application/pdf,image/png,image/jpeg,.doc,.docx,.ppt,.pptx"
-        required
-        className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red-text hover:file:bg-voc-red/20"
-      />
+      <FileSelectButton name="file" accept="application/pdf,image/png,image/jpeg,.doc,.docx,.ppt,.pptx" required />
       {state.error && (
         <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {state.error}

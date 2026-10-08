@@ -80,7 +80,13 @@ export function InvitationRow({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-2.5 last:border-0">
       <div className="flex min-w-0 flex-1 items-center gap-3">
-        <input type="checkbox" checked={selected} onChange={onToggleSelected} className="shrink-0 rounded" />
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={onToggleSelected}
+          aria-label={`Selecteer ${name || invitation.email || "deze uitnodiging"}`}
+          className="shrink-0 rounded"
+        />
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-foreground">
             {name || invitation.email || "Geen naam/e-mailadres opgegeven"}
