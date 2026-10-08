@@ -42,13 +42,13 @@ export function AccessRequestRow({ request }: { request: AccessRequest }) {
 
   return (
     <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border py-3 last:border-0">
-      <div>
+      <div className="min-w-0">
         <p className="text-sm font-medium text-foreground">
           {request.name}
           {request.job_title && <span className="font-normal text-muted"> — {request.job_title}</span>}
         </p>
         <p className="text-xs text-muted">
-          <a href={`mailto:${request.email}`} className="hover:underline">
+          <a href={`mailto:${request.email}`} className="break-all hover:underline">
             {request.email}
           </a>
           {request.phone && ` · ${request.phone}`}
@@ -63,7 +63,7 @@ export function AccessRequestRow({ request }: { request: AccessRequest }) {
         )}
         {request.website && (
           <p className="mt-0.5 text-xs text-muted">
-            <a href={request.website} target="_blank" rel="noreferrer" className="hover:underline">
+            <a href={request.website} target="_blank" rel="noreferrer" className="break-all hover:underline">
               {request.website}
             </a>
           </p>

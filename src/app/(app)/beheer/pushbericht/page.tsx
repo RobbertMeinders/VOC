@@ -12,7 +12,7 @@ export default async function PushberichtPage() {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Handmatig pushbericht"
-        description="Verstuur direct een pushbericht naar alle actieve abonnementen — los van de automatische notificaties, en zonder de persoonlijke meldingsvoorkeuren van leden."
+        description="Verstuur direct een pushbericht naar alle actieve abonnementen — los van de automatische meldingen, en zonder de persoonlijke meldingsvoorkeuren van leden."
       />
 
       <PushBroadcastForm />

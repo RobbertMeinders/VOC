@@ -24,7 +24,7 @@ export function AttendedActivitiesToggle({ initialVisible }: { initialVisible: b
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <Switch checked={visible} onChange={toggle} disabled={isPending} label="Bijgewoonde evenementen tonen" />
+      <Switch checked={visible} onChange={toggle} disabled={isPending} label="Bijgewoonde activiteiten tonen" />
       {/* Zichtbare foutmelding i.p.v. de schakelaar stil terug te laten
           klappen — dat laatste oogt alsof de knop het niet doet, zonder
           enige aanwijzing waarom. */}

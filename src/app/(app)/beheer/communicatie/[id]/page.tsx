@@ -8,7 +8,7 @@ import { NewsletterEditor } from "@/components/beheer/NewsletterEditor";
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { deleteCommunicationAction } from "../actions";
 
-export const metadata: Metadata = { title: "Campagne" };
+export const metadata: Metadata = { title: "Nieuwsbrief" };
 
 // sendNewsletterAction (aangeroepen vanaf deze pagina) loopt sequentieel
 // over elke ontvanger — ruim boven de standaard functietijd bij een

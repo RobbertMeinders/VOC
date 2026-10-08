@@ -179,7 +179,7 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
                   <StatusBadge status={activity.status} />
                   {activity.source === "lid" && (
                     <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-xs font-medium text-muted dark:bg-white/[.08]">
-                      Ingebracht
+                      Door lid toegevoegd
                     </span>
                   )}
                 </div>

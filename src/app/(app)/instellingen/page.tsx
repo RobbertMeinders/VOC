@@ -9,6 +9,7 @@ import { AttendedActivitiesToggle } from "@/components/profile/AttendedActivitie
 import { ShowContactToggle } from "@/components/profile/ShowContactToggle";
 import { NotificationChannelChoice } from "@/components/profile/NotificationChannelChoice";
 import { EmailCampaignsToggle } from "@/components/profile/EmailCampaignsToggle";
+import { EmailChangeForm } from "@/components/profile/EmailChangeForm";
 import { ShowAddressToggle } from "@/components/company/ShowAddressToggle";
 import { PubliclyVisibleToggle } from "@/components/profile/PubliclyVisibleToggle";
 import { DeleteAccountButton } from "@/components/profile/DeleteAccountButton";
@@ -49,18 +50,26 @@ export default async function InstellingenPage() {
         <ThemeToggle />
       </SettingRow>
 
-      <SettingRow
-        label="Wachtwoord"
-        description="Inloggen kan ook zonder wachtwoord via een inloglink per e-mail. Wil je toch een wachtwoord instellen of wijzigen, dan kan dat hier."
+      {/* UX-review punt 10: e-mailadres wijzigen stond los op /profiel, los
+          van wachtwoord hier — twee plekken voor "accountgegevens
+          wijzigen". Beide nu samen onder Account. */}
+      <SettingGroup
+        label="Account"
+        description="Inloggen kan ook zonder wachtwoord via een inloglink per e-mail. Wil je toch een wachtwoord instellen, of je e-mailadres wijzigen, dan kan dat hier."
       >
-        <Link
-          href="/wachtwoord-instellen"
-          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red-text"
-        >
-          <KeyRound size={14} />
-          Instellen
-        </Link>
-      </SettingRow>
+        <SettingSubRow label="Wachtwoord">
+          <Link
+            href="/wachtwoord-instellen"
+            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red-text"
+          >
+            <KeyRound size={14} />
+            Instellen
+          </Link>
+        </SettingSubRow>
+        <SettingSubRow label="E-mailadres">
+          <EmailChangeForm currentEmail={profile.email} />
+        </SettingSubRow>
+      </SettingGroup>
 
       <SettingGroup
         label="Meldingen"
@@ -101,7 +110,7 @@ export default async function InstellingenPage() {
           <ShowContactToggle field="phone" initialVisible={profile.show_phone} />
         </SettingSubRow>
 
-        <SettingSubRow label="Bijgewoonde evenementen tonen">
+        <SettingSubRow label="Bijgewoonde activiteiten tonen">
           <AttendedActivitiesToggle initialVisible={data?.show_attended_activities ?? true} />
         </SettingSubRow>
 

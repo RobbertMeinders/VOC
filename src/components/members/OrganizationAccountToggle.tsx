@@ -38,7 +38,7 @@ export function OrganizationAccountToggle({
     <div className={compact ? "flex flex-col gap-1" : "flex flex-col gap-1.5 rounded-lg border border-border bg-background p-3"}>
       <div className="flex items-center justify-between gap-3">
         <span className="text-sm text-foreground">
-          {value ? "Organisatieaccount — niet in ledenlijst" : "Gewoon lid in de ledenlijst"}
+          {value ? "Bedrijfsaccount — niet in ledenlijst" : "Gewoon lid in de ledenlijst"}
         </span>
         <Button type="button" variant="secondary" size="sm" onClick={handleToggle} disabled={pending}>
           {pending ? "Bezig…" : value ? "Toon in ledenlijst" : "Verberg uit ledenlijst"}

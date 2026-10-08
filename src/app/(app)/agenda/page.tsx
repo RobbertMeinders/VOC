@@ -17,7 +17,7 @@ type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
 const TYPE_TABS = [
   { value: undefined, label: "Alles" },
   { value: "activiteit", label: "Activiteiten" },
-  { value: "ingebracht", label: "Ingebracht" },
+  { value: "ingebracht", label: "Door lid toegevoegd" },
 ] as const;
 
 export default async function AgendaPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {

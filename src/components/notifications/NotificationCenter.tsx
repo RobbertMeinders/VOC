@@ -80,7 +80,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
   const panelContent = (
     <>
       <div className="flex items-center justify-between border-b border-border px-4 py-3">
-        <p className="text-sm font-semibold text-foreground">Notificaties</p>
+        <p className="text-sm font-semibold text-foreground">Meldingen</p>
         <button
           type="button"
           onClick={close}
@@ -100,7 +100,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
             </div>
           ))}
         {!loading && notifications?.length === 0 && (
-          <p className="px-4 py-6 text-center text-sm text-muted">Geen notificaties.</p>
+          <p className="px-4 py-6 text-center text-sm text-muted">Geen meldingen.</p>
         )}
         {!loading &&
           notifications?.map((n) => (
@@ -135,7 +135,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
         <button
           type="button"
           onClick={handleOpen}
-          aria-label="Notificaties"
+          aria-label="Meldingen"
           className={clsx(
             "relative flex h-9 w-9 items-center justify-center rounded-full text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.08]",
             open && "bg-voc-red-light text-voc-red-text"
@@ -166,7 +166,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
           <FloatingPortal>
             <div className="animate-fade-in fixed inset-x-0 bottom-0 top-14 z-50 flex flex-col bg-surface pb-[env(safe-area-inset-bottom)] md:hidden">
               <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                <p className="text-sm font-semibold text-foreground">Notificaties</p>
+                <p className="text-sm font-semibold text-foreground">Meldingen</p>
                 <button
                   type="button"
                   onClick={close}
@@ -195,7 +195,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
                     </div>
                   ))}
                 {!loading && notifications?.length === 0 && (
-                  <p className="py-6 text-center text-sm text-muted">Geen notificaties.</p>
+                  <p className="py-6 text-center text-sm text-muted">Geen meldingen.</p>
                 )}
                 {!loading && notifications && notifications.length > 0 && (
                   <NotificationList notifications={notifications} />
@@ -214,7 +214,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
         ref={anchorRef}
         type="button"
         onClick={handleOpen}
-        aria-label="Notificaties"
+        aria-label="Meldingen"
         className={clsx(
           "relative flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]",
           open && "bg-voc-red-light text-voc-red-text"

@@ -6,7 +6,7 @@ import { ComingSoon } from "@/components/ui/ComingSoon";
 import { NotificationList } from "@/components/notifications/NotificationList";
 import type { Database } from "@/lib/types/database";
 
-export const metadata: Metadata = { title: "Notificaties" };
+export const metadata: Metadata = { title: "Meldingen" };
 
 type Notification = Database["public"]["Tables"]["notifications"]["Row"];
 
@@ -28,14 +28,14 @@ export default async function NotificatiesPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-semibold text-foreground">Notificaties</h1>
+      <h1 className="mb-4 text-xl font-semibold text-foreground">Meldingen</h1>
 
       {notifications && notifications.length > 0 ? (
         <NotificationList notifications={notifications} />
       ) : (
         <ComingSoon
           icon={Bell}
-          title="Geen notificaties"
+          title="Geen meldingen"
           description="Hier verschijnen meldingen zodra er iets voor je gebeurt."
         />
       )}

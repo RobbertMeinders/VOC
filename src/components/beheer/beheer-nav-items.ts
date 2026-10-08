@@ -50,7 +50,7 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     title: "Communicatie",
     items: [
       { href: "/beheer/communicatie", label: "Nieuwsbrieven", icon: Megaphone },
-      { href: "/beheer/notificaties", label: "Verzendlog", icon: Bell },
+      { href: "/beheer/notificaties", label: "Verzonden meldingen", icon: Bell },
     ],
   },
   {
@@ -81,7 +81,7 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
       { href: "/beheer/instellingen", label: "App-instellingen", icon: Settings, adminOnly: true },
       { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail, adminOnly: true },
       { href: "/beheer/pushbericht", label: "Handmatig pushbericht", icon: Send, adminOnly: true },
-      { href: "/beheer/embed-codes", label: "Embed-codes", icon: Code, adminOnly: true },
+      { href: "/beheer/embed-codes", label: "Code voor de website", icon: Code, adminOnly: true },
     ],
   },
 ];

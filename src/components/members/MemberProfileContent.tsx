@@ -194,7 +194,7 @@ export async function MemberProfileContent({ id }: { id: string }) {
 
       {attendedActivities.length > 0 && (
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-foreground">Bijgewoonde evenementen</h2>
+          <h2 className="mb-3 text-sm font-semibold text-foreground">Bijgewoonde activiteiten</h2>
           <AttendedActivitiesSection memberId={id} activities={attendedActivities} />
         </div>
       )}

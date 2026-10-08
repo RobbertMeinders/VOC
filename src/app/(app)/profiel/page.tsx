@@ -6,7 +6,6 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { ProfileForm } from "@/components/profile/ProfileForm";
-import { EmailChangeForm } from "@/components/profile/EmailChangeForm";
 import { CompanyMembershipForm } from "@/components/profile/CompanyMembershipForm";
 import { ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
 
@@ -41,7 +40,7 @@ export default async function ProfielPage() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-foreground">Mijn profiel</h1>
+        <h1 className="text-xl font-semibold text-foreground">Profiel bewerken</h1>
         <span className={clsx("rounded-full px-2.5 py-0.5 text-xs font-medium", ROLE_BADGE_CLASS[profile.role])}>
           {ROLE_LABELS[profile.role]}
         </span>
@@ -74,9 +73,6 @@ export default async function ProfielPage() {
 
       <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
         <ProfileForm profile={profile} avatarUrl={avatarUrl} />
-        <div className="mt-4 border-t border-border pt-4">
-          <EmailChangeForm currentEmail={profile.email} />
-        </div>
       </div>
     </div>
   );

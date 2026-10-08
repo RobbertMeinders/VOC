@@ -100,7 +100,7 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
       <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
         <h2 className="text-sm font-semibold text-foreground">Logo</h2>
         <p className="mt-1 text-xs text-muted">
-          Verschijnt in de zijbalk/mobiele header van de app én bovenaan elke verstuurde campagne.
+          Verschijnt in de zijbalk/mobiele header van de app én bovenaan elke verstuurde nieuwsbrief.
         </p>
         <div className="mt-4">
           <LogoUpload currentLogoUrl={settings.logo_url} />
@@ -121,7 +121,7 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
             <label htmlFor="org_name" className="text-sm font-medium text-foreground">
               Naam van de vereniging
             </label>
-            <p className="text-xs text-muted">Gebruikt in de voettekst van campagnes en automatische notificatiemails.</p>
+            <p className="text-xs text-muted">Gebruikt in de voettekst van nieuwsbrieven en automatische e-mailmeldingen.</p>
             <Input id="org_name" name="org_name" defaultValue={settings.org_name} required className="h-11 text-base" />
           </div>
         </div>

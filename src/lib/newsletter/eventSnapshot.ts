@@ -72,6 +72,6 @@ export async function buildEventSnapshot(
     linkUrl: `${siteUrl}/agenda/${activity.id}`,
     // Komt nooit van de activiteit — een "Ververs" mag 'm dus nooit
     // overschrijven met iets anders dan wat er al stond.
-    buttonLabel: currentButtonLabel ?? "Bekijk evenement",
+    buttonLabel: currentButtonLabel ?? "Bekijk activiteit",
   };
 }

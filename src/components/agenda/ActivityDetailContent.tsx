@@ -170,7 +170,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
             <div className="mb-2 flex flex-wrap gap-2">
               {activity.source === "lid" && (
                 <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-xs font-medium text-muted dark:bg-white/[.08]">
-                  Ingebracht
+                  Door lid toegevoegd
                 </span>
               )}
               {activity.status === "pending" && (
@@ -199,7 +199,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
             </p>
           )}
           <h1 className="text-xl font-semibold text-foreground">{activity.title}</h1>
-          {submitterLabel && <p className="mt-1 text-xs text-muted">Ingebracht door {submitterLabel}</p>}
+          {submitterLabel && <p className="mt-1 text-xs text-muted">Toegevoegd door {submitterLabel}</p>}
           <div className="mt-3 flex flex-col gap-2 text-sm text-muted">
             <span className="flex items-center gap-2">
               <CalendarDays size={16} />
@@ -257,7 +257,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
               className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-voc-red-text"
             >
               <Download size={13} />
-              Toevoegen aan agenda (.ics)
+              Zet in je agenda
             </a>
           </div>
         </div>
@@ -343,9 +343,16 @@ export async function ActivityDetailContent({ id }: { id: string }) {
               className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red"
             >
               <Megaphone size={14} />
-              Communiceer over dit evenement
+              Communiceer over deze activiteit
             </button>
           </form>
+          <a
+            href={`/agenda/${activity.id}/registraties.csv`}
+            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red"
+          >
+            <Download size={14} />
+            Aanmeldingen downloaden
+          </a>
           {activity.status !== "cancelled" && confirmedCount + waitlistedRegistrations.length > 0 ? (
             <CancelActivityButton activityId={activity.id} activityTitle={activity.title} />
           ) : (

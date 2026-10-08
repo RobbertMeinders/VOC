@@ -363,7 +363,7 @@ function EventBlockEditor({
         onChange={(value) => onChange({ ...block, description: value || null })}
       />
       <Input
-        placeholder="Knoptekst, bv. “Bekijk evenement”"
+        placeholder="Knoptekst, bv. “Bekijk activiteit”"
         value={block.buttonLabel}
         onChange={(e) => onChange({ ...block, buttonLabel: e.target.value })}
         className={inputSizeClass()}
@@ -517,7 +517,7 @@ function BlockEditor({
       <BlockShell label="Knop" {...shellProps}>
         <div className="flex flex-col gap-3">
           <Input
-            placeholder="Knoptekst, bv. “Bekijk evenement”"
+            placeholder="Knoptekst, bv. “Bekijk activiteit”"
             value={block.label}
             onChange={(e) => onChange({ ...block, label: e.target.value })}
             className={inputSizeClass()}
@@ -536,7 +536,7 @@ function BlockEditor({
 
   if (block.type === "event") {
     return (
-      <BlockShell label="Evenement" {...shellProps}>
+      <BlockShell label="Activiteit" {...shellProps}>
         <EventBlockEditor block={block} onChange={onChange} activities={activities} />
       </BlockShell>
     );
@@ -626,7 +626,7 @@ export function NewsletterEditor({
       ? `Opnieuw proberen te versturen aan de ${activeMemberCount - sentCount} leden die 'm nog niet ontvingen.`
       : `Dit verstuurt "${communication.subject}" naar ${activeMemberCount} actieve leden.`;
     const confirmed = await confirm({
-      title: isRetry ? "Opnieuw proberen te versturen?" : "Campagne versturen?",
+      title: isRetry ? "Opnieuw proberen te versturen?" : "Nieuwsbrief versturen?",
       description: `${confirmMessage} Dit kan niet ongedaan worden gemaakt.`,
       confirmLabel: isRetry ? "Opnieuw proberen" : "Versturen",
       danger: true,
@@ -649,7 +649,7 @@ export function NewsletterEditor({
     if (!scheduledAtInput) return;
     const iso = new Date(scheduledAtInput).toISOString();
     const confirmed = await confirm({
-      title: "Campagne inplannen?",
+      title: "Nieuwsbrief inplannen?",
       description: `Wordt verstuurd op ${new Date(iso).toLocaleString("nl-NL")}. Dit kan niet ongedaan worden gemaakt.`,
       confirmLabel: "Inplannen",
       danger: true,
@@ -669,7 +669,7 @@ export function NewsletterEditor({
   async function handleCancelSchedule() {
     const confirmed = await confirm({
       title: "Planning annuleren?",
-      description: "De campagne wordt weer een concept.",
+      description: "De nieuwsbrief wordt weer een concept.",
       confirmLabel: "Planning annuleren",
       danger: true,
     });
@@ -711,7 +711,7 @@ export function NewsletterEditor({
                   description: null,
                   imageUrl: null,
                   linkUrl: "",
-                  buttonLabel: "Bekijk evenement",
+                  buttonLabel: "Bekijk activiteit",
                 }
               : { ...base, type: "divider" };
     setBlocks((prev) => [...prev, block]);
@@ -850,7 +850,7 @@ export function NewsletterEditor({
               className="flex items-center gap-2 rounded-full border border-border bg-surface px-4 py-2.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
             >
               <CalendarDays size={18} />
-              Evenement
+              Activiteit
             </button>
             <button
               type="button"
@@ -967,7 +967,7 @@ export function NewsletterEditor({
           </div>
           <div className="flex justify-center rounded-xl bg-black/[.03] p-3 dark:bg-white/[.04]">
             <iframe
-              title="Voorbeeld campagne"
+              title="Voorbeeld nieuwsbrief"
               srcDoc={previewHtml}
               sandbox=""
               className={`h-[min(78vh,900px)] rounded-lg border border-border bg-white transition-[width] ${

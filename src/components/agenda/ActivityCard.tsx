@@ -44,7 +44,7 @@ export function ActivityCard({
       )}
       {isSubmitted && (
         <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-xs font-medium text-muted dark:bg-white/[.08]">
-          Ingebracht
+          Door lid toegevoegd
         </span>
       )}
       {activity.status === "pending" && (

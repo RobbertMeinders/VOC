@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/auth/session";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { CopyEmbedCode } from "@/components/beheer/CopyEmbedCode";
 
-export const metadata: Metadata = { title: "Embed-codes" };
+export const metadata: Metadata = { title: "Code voor de website" };
 
 const EMBEDS = [
   {
@@ -102,7 +102,7 @@ export default async function EmbedCodesPage() {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        title="Embed-codes"
+        title="Code voor de website"
         description="Plak deze code in een HTML/iframe-blok op de openbare VOC-website (bijv. in Elementor) om het bijbehorende onderdeel daar te tonen."
       />
 

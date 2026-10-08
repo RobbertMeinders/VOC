@@ -102,7 +102,7 @@ function renderEventBlock(block: Extract<NewsletterBlock, { type: "event" }>): s
   if (!block.activityId) {
     return `<tr><td style="padding:0 24px 24px;">
       <div style="border:1px dashed ${COLORS.border};border-radius:12px;padding:20px;text-align:center;">
-        <p style="margin:0;font-size:14px;color:${COLORS.muted};font-family:${FONT};">Nog geen evenement gekozen</p>
+        <p style="margin:0;font-size:14px;color:${COLORS.muted};font-family:${FONT};">Nog geen activiteit gekozen</p>
       </div>
     </td></tr>`;
   }
@@ -125,7 +125,7 @@ function renderEventBlock(block: Extract<NewsletterBlock, { type: "event" }>): s
       ${dateLine}
       ${locationLine}
       ${description}
-      <a href="${escapeHtml(block.linkUrl)}" style="display:inline-block;margin-top:14px;background:${COLORS.green};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:${BUTTON_RADIUS};font-family:${FONT};">${escapeHtml(block.buttonLabel || "Bekijk evenement")}</a>
+      <a href="${escapeHtml(block.linkUrl)}" style="display:inline-block;margin-top:14px;background:${COLORS.green};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:${BUTTON_RADIUS};font-family:${FONT};">${escapeHtml(block.buttonLabel || "Bekijk activiteit")}</a>
     </div>
   </td></tr>`;
 }

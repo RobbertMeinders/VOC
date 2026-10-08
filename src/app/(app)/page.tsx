@@ -54,26 +54,32 @@ export default async function HomePage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: activities }, { count: companyCount }, { count: memberCount }, { data: newsItems }] = await Promise.all([
-    supabase
-      .from("activities")
-      .select("*")
-      .eq("status", "approved")
-      .gte("starts_at", new Date().toISOString())
-      .order("starts_at", { ascending: true })
-      .limit(1)
-      .returns<ActivityRow[]>(),
-    supabase.from("companies").select("id", { count: "exact", head: true }),
-    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
-    supabase.from("news_items").select("*").order("position", { ascending: true }).limit(3).returns<NewsItemRow[]>(),
-  ]);
+  const [{ data: activities }, { count: companyCount }, { count: memberCount }, { data: newsItems }, { count: companyMemberCount }] =
+    await Promise.all([
+      supabase
+        .from("activities")
+        .select("*")
+        .eq("status", "approved")
+        .gte("starts_at", new Date().toISOString())
+        .order("starts_at", { ascending: true })
+        .limit(1)
+        .returns<ActivityRow[]>(),
+      supabase.from("companies").select("id", { count: "exact", head: true }),
+      supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
+      supabase.from("news_items").select("*").order("position", { ascending: true }).limit(3).returns<NewsItemRow[]>(),
+      supabase.from("company_members").select("id", { count: "exact", head: true }).eq("profile_id", profile.id),
+    ]);
 
   const nextActivity = activities?.[0] ?? null;
 
-  // UX-review U1: functie en bedrijf staan al bij registratie in het
-  // formulier (geprefilled vanuit de uitnodiging), dus alleen een
-  // ontbrekende profielfoto is nog iets om na registratie aan te vullen.
-  const showPhotoPrompt = !profile.onboarding_dismissed_at && !profile.avatar_url;
+  // UX-review punt 23: functie en bedrijf staan bij registratie in het
+  // formulier, maar zijn daar niet verplicht (de uitnodigende bestuurder
+  // vult ze soms niet in, en het lid kan ze bij registratie ook leeg
+  // laten) — deze prompt keek eerder alleen naar de profielfoto en miste
+  // dat scenario. Nog steeds laagdrempelig/wegklikbaar, geen verplichte
+  // checklist.
+  const missingProfileInfo = !profile.avatar_url || !profile.job_title || (companyMemberCount ?? 0) === 0;
+  const showPhotoPrompt = !profile.onboarding_dismissed_at && missingProfileInfo;
 
   const [nextActivityImageUrl, myRegistration, newsImageUrls] = await Promise.all([
     nextActivity ? getSignedStorageUrl("activity-images", nextActivity.image_url) : Promise.resolve(null),
@@ -109,7 +115,13 @@ export default async function HomePage() {
         </p>
       </div>
 
-      {showPhotoPrompt && <ProfilePhotoPrompt />}
+      {showPhotoPrompt && (
+        <ProfilePhotoPrompt
+          missingPhoto={!profile.avatar_url}
+          missingJobTitle={!profile.job_title}
+          missingCompany={(companyMemberCount ?? 0) === 0}
+        />
+      )}
 
       {newsSlides.length > 0 && (
         <section>

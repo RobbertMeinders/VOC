@@ -73,5 +73,5 @@ export const BLOCK_TYPE_LABELS: Record<NewsletterBlock["type"], string> = {
   image: "Afbeelding",
   button: "Knop",
   divider: "Scheidingslijn",
-  event: "Evenement",
+  event: "Activiteit",
 };

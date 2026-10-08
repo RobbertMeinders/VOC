@@ -363,7 +363,7 @@ export default async function BeheerPage() {
                 const incomplete = !member.avatar_url || !linkedProfileIds.has(member.id);
                 return (
                   <Link key={member.id} href={`/leden/${member.id}`} className="flex items-center justify-between gap-2 py-1 hover:opacity-80">
-                    <span className="truncate text-sm text-foreground">
+                    <span className="min-w-0 flex-1 truncate text-sm text-foreground">
                       {member.first_name} {member.last_name}
                     </span>
                     <span className="flex shrink-0 items-center gap-2">

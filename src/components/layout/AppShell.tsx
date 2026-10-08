@@ -109,7 +109,10 @@ function AppShellBody({
   const wide = pathname.startsWith("/beheer");
 
   return (
-    <div className="min-h-dvh bg-background">
+    // UX-review punt 6: vangnet tegen een gemiste overflow-bug elders die de
+    // hele pagina breder dan het scherm maakt — dat liet op mobiel eerder de
+    // (fixed) bottom-nav mee opschuiven/gedeeltelijk uit beeld vallen.
+    <div className="min-h-dvh overflow-x-hidden bg-background">
       {/* UX-review Q5: geen "naar inhoud"-link, dus een toetsenbordgebruiker
           moest eerst door de volledige sidebar/navigatie tabben voor elke
           paginawissel. sr-only tot 'ie focus krijgt (eerste tab-stop in de

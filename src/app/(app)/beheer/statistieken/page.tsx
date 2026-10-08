@@ -357,7 +357,7 @@ async function NewsletterTab() {
   return (
     <div className="flex flex-col gap-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <StatCard label="Verzonden campagnes" value={stats.totalNewsletters} />
+        <StatCard label="Verzonden nieuwsbrieven" value={stats.totalNewsletters} />
         <StatCard label="Totaal verstuurd" value={stats.totalSent} />
         <StatCard label="Open rate" value={stats.openRatePercentage === null ? "—" : `${stats.openRatePercentage}%`} />
         <StatCard label="Klik rate" value={stats.clickRatePercentage === null ? "—" : `${stats.clickRatePercentage}%`} />
@@ -367,7 +367,7 @@ async function NewsletterTab() {
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-muted">
-              <th className="px-4 py-2 font-medium">Campagne</th>
+              <th className="px-4 py-2 font-medium">Nieuwsbrief</th>
               <th className="px-4 py-2 text-center font-medium">Verzonden</th>
               <th className="px-4 py-2 text-center font-medium">Geopend</th>
               <th className="px-4 py-2 text-center font-medium">%</th>
@@ -395,7 +395,7 @@ async function NewsletterTab() {
             {stats.newsletters.length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-6 text-center text-sm text-muted">
-                  Nog geen campagnes verstuurd.
+                  Nog geen nieuwsbrieven verstuurd.
                 </td>
               </tr>
             )}

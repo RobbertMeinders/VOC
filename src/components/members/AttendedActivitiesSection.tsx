@@ -38,7 +38,7 @@ export function AttendedActivitiesSection({ memberId, activities }: { memberId: 
           onClick={() => setShowAll(true)}
           className="mt-2 w-full rounded-full border border-border py-1.5 text-center text-xs font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         >
-          Bekijk alle bijgewoonde evenementen
+          Bekijk alle bijgewoonde activiteiten
         </button>
       )}
       {showAll && <AttendedActivitiesOverlay memberId={memberId} onClose={() => setShowAll(false)} />}

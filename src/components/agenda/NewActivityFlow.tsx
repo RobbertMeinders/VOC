@@ -16,7 +16,7 @@ export function NewActivityFlow({ board }: { board: boolean }) {
     return (
       <div>
         <h1 className="mb-1 text-xl font-semibold text-foreground">Nieuwe activiteit</h1>
-        <p className="mb-4 text-sm text-muted">Is dit een officiële VOC-activiteit of een ingebrachte activiteit?</p>
+        <p className="mb-4 text-sm text-muted">Is dit een officiële VOC-activiteit of een activiteit die door een lid is toegevoegd?</p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
@@ -40,7 +40,7 @@ export function NewActivityFlow({ board }: { board: boolean }) {
               <Users size={20} />
             </span>
             <span>
-              <span className="block text-sm font-semibold text-foreground">Ingebracht</span>
+              <span className="block text-sm font-semibold text-foreground">Door lid toegevoegd</span>
               <span className="block text-xs text-muted">Volgt de gewone goedkeuringslogica, net als bij een lid.</span>
             </span>
           </button>

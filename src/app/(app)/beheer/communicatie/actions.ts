@@ -340,7 +340,7 @@ export async function scheduleNewsletterAction(communicationId: string, schedule
     .eq("id", communicationId)
     .maybeSingle();
   if (!communication) {
-    return { error: "Campagne niet gevonden." };
+    return { error: "Nieuwsbrief niet gevonden." };
   }
   if (communication.status !== "concept") {
     return { error: "Alleen een concept kan ingepland worden." };
@@ -377,10 +377,10 @@ export async function cancelScheduleAction(communicationId: string): Promise<Sch
 
   const { data: communication } = await supabase.from("communications").select("status, subject").eq("id", communicationId).maybeSingle();
   if (!communication) {
-    return { error: "Campagne niet gevonden." };
+    return { error: "Nieuwsbrief niet gevonden." };
   }
   if (communication.status !== "ingepland") {
-    return { error: "Deze campagne is niet ingepland." };
+    return { error: "Deze nieuwsbrief is niet ingepland." };
   }
 
   const { error } = await supabase

@@ -31,7 +31,7 @@ export default async function BeheerCommunicatiePage() {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Nieuwsbrieven"
-        description="Centrale plek voor campagnes en algemene e-mailcommunicatie naar leden."
+        description="Centrale plek voor nieuwsbrieven en algemene e-mailcommunicatie naar leden."
         action={
           <form action={createCommunicationAction}>
             <button
@@ -39,7 +39,7 @@ export default async function BeheerCommunicatiePage() {
               className="flex w-full items-center justify-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark sm:w-auto"
             >
               <Plus size={16} />
-              Nieuwe campagne
+              Nieuwe nieuwsbrief
             </button>
           </form>
         }
@@ -49,7 +49,7 @@ export default async function BeheerCommunicatiePage() {
         <ComingSoon
           icon={Megaphone}
           title="Nog geen communicatie"
-          description="Plaats hier je eerste campagne, of ga naar een evenement en kies “Communiceer over dit evenement”."
+          description="Plaats hier je eerste nieuwsbrief, of ga naar een activiteit en kies “Communiceer over deze activiteit”."
         />
       ) : (
         <>

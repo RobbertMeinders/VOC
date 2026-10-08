@@ -4,7 +4,7 @@ import { Suspense, useMemo, useState } from "react";
 import { Clock, Mail, X } from "lucide-react";
 import type { Database } from "@/lib/types/database";
 import { InvitationRow } from "./InvitationRow";
-import { ListToolbar } from "@/components/ui/ListToolbar";
+import { ListToolbar, type ListToolbarFilter } from "@/components/ui/ListToolbar";
 import { matchesSearch } from "@/lib/search/normalize";
 import { useUrlFilterState } from "@/lib/dom/useUrlFilterState";
 import {
@@ -28,27 +28,59 @@ export function isInvitationExpired(invitation: Invitation): boolean {
   return invitation.expires_at !== null && new Date(invitation.expires_at).getTime() < Date.now();
 }
 
+const PAGE_SIZE = 25;
+
+function invitationStatus(invitation: Invitation): "niet_verstuurd" | "verstuurd" | "verlopen" {
+  if (isInvitationExpired(invitation)) return "verlopen";
+  if (invitation.last_sent_at) return "verstuurd";
+  return "niet_verstuurd";
+}
+
 function InvitationListInner({ invitations }: { invitations: Invitation[] }) {
   const { getInitial, setParam } = useUrlFilterState();
   const [query, setQuery] = useState(() => getInitial("q"));
   const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [onlyUnsent, setOnlyUnsent] = useState(false);
+  const [status, setStatus] = useState(() => getInitial("status"));
   const [bulkPending, setBulkPending] = useState(false);
   const [bulkMessage, setBulkMessage] = useState<string | null>(null);
+  // UX-review punt 22: bij een grote lijst (bv. na een CSV-import) werd dit
+  // één lange DOM-lijst — simpele client-side "Toon meer" i.p.v. een
+  // volledige paginering-component, want er bestaat nog geen herbruikbare
+  // Pagination-UI in deze codebase.
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   function handleQueryChange(value: string) {
     setQuery(value);
     setParam("q", value);
+    setVisibleCount(PAGE_SIZE);
+  }
+  function handleStatusChange(value: string) {
+    setStatus(value);
+    setParam("status", value);
+    setVisibleCount(PAGE_SIZE);
   }
 
-  const visible = useMemo(
+  const filtered = useMemo(
     () =>
       invitations.filter((i) => {
-        if (onlyUnsent && i.last_sent_at) return false;
+        if (status && invitationStatus(i) !== status) return false;
         return matchesSearch([i.first_name, i.last_name, i.email], query);
       }),
-    [invitations, onlyUnsent, query]
+    [invitations, status, query]
   );
+  const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+
+  const statusFilter: ListToolbarFilter = {
+    key: "status",
+    label: "Status",
+    value: status,
+    options: [
+      { value: "niet_verstuurd", label: "Niet verstuurd" },
+      { value: "verstuurd", label: "Verstuurd" },
+      { value: "verlopen", label: "Verlopen" },
+    ],
+    onChange: handleStatusChange,
+  };
   // Selectie blijft bestaan t.o.v. de volledige lijst (niet alleen het
   // gefilterde deel) zodat wisselen van filter niemand uit de selectie
   // haalt die je net had klaargezet voor een bulkactie.
@@ -98,15 +130,12 @@ function InvitationListInner({ invitations }: { invitations: Invitation[] }) {
         searchValue={query}
         onSearchChange={handleQueryChange}
         searchPlaceholder="Zoek op naam of e-mailadres…"
-        resultCount={visible.length}
+        resultCount={filtered.length}
         totalCount={invitations.length}
+        filters={[statusFilter]}
       />
 
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <label className="flex items-center gap-1.5 text-xs text-muted">
-          <input type="checkbox" checked={onlyUnsent} onChange={(e) => setOnlyUnsent(e.target.checked)} className="rounded" />
-          Alleen nooit verstuurd
-        </label>
+      <div className="mb-2 flex flex-wrap items-center justify-end gap-2">
         {selected.size > 0 && (
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs text-muted">{selected.size} geselecteerd</span>
@@ -143,7 +172,7 @@ function InvitationListInner({ invitations }: { invitations: Invitation[] }) {
 
       {bulkMessage && <p className="mb-2 text-xs text-muted">{bulkMessage}</p>}
 
-      {visible.length === 0 ? (
+      {filtered.length === 0 ? (
         <p className="py-6 text-sm text-muted">Geen uitnodigingen gevonden.</p>
       ) : (
         <div>
@@ -164,6 +193,15 @@ function InvitationListInner({ invitations }: { invitations: Invitation[] }) {
               onToggleSelected={() => toggle(invitation.id)}
             />
           ))}
+          {filtered.length > visible.length && (
+            <button
+              type="button"
+              onClick={() => setVisibleCount((c) => c + PAGE_SIZE)}
+              className="mt-2 w-full rounded-lg border border-border py-2 text-sm font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            >
+              Toon meer ({filtered.length - visible.length} resterend)
+            </button>
+          )}
         </div>
       )}
     </div>

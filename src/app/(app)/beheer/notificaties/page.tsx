@@ -7,7 +7,7 @@ import type { Database } from "@/lib/types/database";
 
 type Notification = Database["public"]["Tables"]["notifications"]["Row"];
 
-export const metadata: Metadata = { title: "Verzendlog" };
+export const metadata: Metadata = { title: "Verzonden meldingen" };
 
 const LOG_LIMIT = 100;
 
@@ -45,8 +45,8 @@ export default async function BeheerNotificatiesPage() {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        title="Verzendlog"
-        description={`Logboek van de ${LOG_LIMIT} meest recente notificaties — per stuk te zien of ze als push en/of e-mail zijn verstuurd en geopend.`}
+        title="Verzonden meldingen"
+        description={`Logboek van de ${LOG_LIMIT} meest recente meldingen — per stuk te zien of ze als push en/of e-mail zijn verstuurd en geopend.`}
       />
 
       <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
@@ -88,7 +88,7 @@ export default async function BeheerNotificatiesPage() {
             {(notifications ?? []).length === 0 && (
               <tr>
                 <td colSpan={7} className="px-4 py-6 text-center text-sm text-muted">
-                  Nog geen notificaties.
+                  Nog geen meldingen.
                 </td>
               </tr>
             )}
