@@ -10,6 +10,7 @@ import { formatActivityDate, formatActivityTimeOnly, formatLastActive } from "@/
 import { RegisterButton } from "@/components/agenda/RegisterButton";
 import { AttendeeList } from "@/components/agenda/AttendeeList";
 import { DeleteButton } from "@/components/feed/DeleteButton";
+import { CancelActivityButton } from "@/components/agenda/CancelActivityButton";
 import { ActivityAttachmentRow } from "@/components/agenda/ActivityAttachmentRow";
 import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
 import { ApproveActivityForm } from "@/components/agenda/ApproveActivityForm";
@@ -184,6 +185,12 @@ export async function ActivityDetailContent({ id }: { id: string }) {
                   Afgewezen
                 </span>
               )}
+              {activity.status === "cancelled" && (
+                <span className="flex items-center gap-1 rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red-text">
+                  <XCircle size={11} />
+                  Afgelast
+                </span>
+              )}
             </div>
           )}
           {activity.status === "rejected" && activity.rejection_reason && (
@@ -218,7 +225,11 @@ export async function ActivityDetailContent({ id }: { id: string }) {
           )}
 
           <div className="mt-5">
-            {activity.external_registration_url ? (
+            {activity.status === "cancelled" ? (
+              <p className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+                Deze activiteit is afgelast. Aanmelden is niet meer mogelijk.
+              </p>
+            ) : activity.external_registration_url ? (
               <a
                 href={activity.external_registration_url}
                 target="_blank"
@@ -236,7 +247,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
                 deadlinePassed={deadlinePassed}
               />
             )}
-            {activity.registration_deadline && !deadlinePassed && (
+            {activity.status !== "cancelled" && activity.registration_deadline && !deadlinePassed && (
               <p className="mt-2 text-xs text-muted">
                 Aanmelden kan tot {formatActivityDate(activity.registration_deadline)}.
               </p>
@@ -335,11 +346,15 @@ export async function ActivityDetailContent({ id }: { id: string }) {
               Communiceer over dit evenement
             </button>
           </form>
-          <DeleteButton
-            onDelete={deleteActivityAction.bind(null, activity.id)}
-            confirmMessage="Weet je zeker dat je deze activiteit wilt verwijderen? Aanmeldingen worden ook verwijderd."
-            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red-text hover:border-voc-red"
-          />
+          {activity.status !== "cancelled" && confirmedCount + waitlistedRegistrations.length > 0 ? (
+            <CancelActivityButton activityId={activity.id} activityTitle={activity.title} />
+          ) : (
+            <DeleteButton
+              onDelete={deleteActivityAction.bind(null, activity.id)}
+              confirmMessage="Weet je zeker dat je deze activiteit wilt verwijderen?"
+              className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red-text hover:border-voc-red"
+            />
+          )}
         </div>
       )}
 

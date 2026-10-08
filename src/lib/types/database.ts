@@ -6,7 +6,7 @@ export type UserRole = "lid" | "bestuurslid" | "beheerder";
 export type InvitationStatus = "pending" | "accepted" | "revoked" | "expired";
 export type FeedAttachmentType = "image" | "pdf";
 export type ActivitySource = "voc" | "lid";
-export type ActivityStatus = "pending" | "approved" | "rejected";
+export type ActivityStatus = "pending" | "approved" | "rejected" | "cancelled";
 export type FeedPostType = "vraag" | "aanbod" | "nieuws" | "overig";
 export type FeedReportReason = "ongepast" | "spam" | "misleidend" | "anders";
 export type FeedReportStatus = "open" | "afgehandeld";
@@ -748,6 +748,10 @@ export interface Database {
       notify_report_resolved: {
         Args: { p_report_id: string; p_decision: string };
         Returns: undefined;
+      };
+      notify_activity_participants: {
+        Args: { p_activity_id: string; p_type: string; p_title: string; p_body: string };
+        Returns: { email: string; name: string }[];
       };
       set_notification_email_provider_id: {
         Args: { p_notification_id: string; p_provider_id: string };

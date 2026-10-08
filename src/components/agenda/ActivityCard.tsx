@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { clsx } from "clsx";
-import { CalendarDays, CheckCircle2, Clock, MapPin, Users } from "lucide-react";
+import { CalendarDays, CheckCircle2, Clock, MapPin, Users, XCircle } from "lucide-react";
 import { formatActivityDate } from "@/lib/format/date";
 import type { Database } from "@/lib/types/database";
 
@@ -51,6 +51,12 @@ export function ActivityCard({
         <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
           <Clock size={11} />
           Ter goedkeuring
+        </span>
+      )}
+      {activity.status === "cancelled" && (
+        <span className="flex items-center gap-1 rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red-text">
+          <XCircle size={11} />
+          Afgelast
         </span>
       )}
       {isRegistered && !isWaitlisted && (

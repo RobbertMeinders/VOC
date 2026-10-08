@@ -1,19 +1,21 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import Image from "next/image";
+import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Switch } from "@/components/ui/Switch";
 import { FieldError } from "@/components/ui/FieldError";
 import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
+import { FileSelectButton } from "@/components/ui/FileSelectButton";
 import { compressInputFile } from "@/lib/image/compress";
 import { useUnsavedChanges } from "@/lib/ui/UnsavedChangesContext";
 import { useToast } from "@/lib/ui/ToastContext";
 import { useFieldValidation } from "@/lib/validation/useFieldValidation";
 import { validateUrl } from "@/lib/validation/fields";
-import type { ActivityFormState } from "@/app/(app)/agenda/actions";
+import { notifyActivityChangeAction, type ActivityFormState } from "@/app/(app)/agenda/actions";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -60,6 +62,52 @@ function SubmitButton({ label }: { label: string }) {
     <Button type="submit" disabled={pending}>
       {pending ? "Opslaan…" : label}
     </Button>
+  );
+}
+
+// UX-review punt 1/13: na een bewerking die datum/tijd/locatie raakt op een
+// activiteit met aanmeldingen, biedt updateActivityAction (offerNotifyChange)
+// dit bewerkbare bevestigingsblok aan — expliciete, eenmalige keuze i.p.v.
+// automatisch bij elke edit versturen of (het oude gedrag) stilzwijgend
+// niets doen.
+function NotifyChangePanel({ activityId, suggestedMessage }: { activityId: string; suggestedMessage: string }) {
+  const [dismissed, setDismissed] = useState(false);
+  const [sent, setSent] = useState(false);
+  const [message, setMessage] = useState(suggestedMessage);
+  const [isPending, startTransition] = useTransition();
+
+  if (dismissed || sent) {
+    return sent ? <p className="text-sm text-muted">Aangemelden zijn geïnformeerd.</p> : null;
+  }
+
+  return (
+    <div className="flex flex-col gap-2 rounded-lg border border-border bg-background p-3">
+      <p className="text-sm font-medium text-foreground">Aangemelden informeren over deze wijziging?</p>
+      <textarea
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        rows={2}
+        className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+      />
+      <div className="flex items-center gap-2">
+        <Button
+          type="button"
+          size="sm"
+          disabled={isPending}
+          onClick={() =>
+            startTransition(async () => {
+              await notifyActivityChangeAction(activityId, message);
+              setSent(true);
+            })
+          }
+        >
+          {isPending ? "Versturen…" : "Versturen"}
+        </Button>
+        <button type="button" onClick={() => setDismissed(true)} className="text-sm text-muted hover:underline">
+          Niet nu
+        </button>
+      </div>
+    </div>
   );
 }
 
@@ -236,130 +284,134 @@ export function ActivityForm({
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="registration_deadline" className="text-sm font-medium text-foreground">
-            Aanmelddeadline (optioneel)
-          </label>
-          <Input
-            id="registration_deadline"
-            type="datetime-local"
-            value={deadline}
-            onChange={(e) => setDeadline(e.target.value)}
-            max="2099-12-31T23:59"
-          />
-          <input type="hidden" name="registration_deadline" value={deadlineIso} />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="max_participants" className="text-sm font-medium text-foreground">
-            Maximum deelnemers
-          </label>
-          <Input
-            id="max_participants"
-            name="max_participants"
-            type="number"
-            min={1}
-            defaultValue={activity?.max_participants ?? ""}
-            placeholder="Onbeperkt"
-          />
-        </div>
-      </div>
-
-      <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3 py-2.5">
-        <div>
-          <p className="text-sm font-medium text-foreground">Aanmelden door niet-leden toestaan</p>
-          <p className="text-xs text-muted">
-            Uit: een bezoeker van de openbare website ziet deze activiteit wel, maar kan alleen een lid zich (via het
-            portaal) aanmelden.
-          </p>
-        </div>
-        <input type="hidden" name="allow_public_registration" value={allowPublicRegistration ? "on" : ""} />
-        <Switch
-          checked={allowPublicRegistration}
-          onChange={() => {
-            setAllowPublicRegistration((v) => !v);
-            setDirty(true);
-          }}
-          label="Aanmelden door niet-leden toestaan"
-        />
-      </div>
-
-      {source === "lid" && (
-        <div className="flex flex-col gap-1.5">
-          <label className="flex items-center gap-2 text-sm font-medium text-foreground">
-            <input
-              type="checkbox"
-              name="external_registration"
-              checked={externalRegistration}
-              onChange={(e) => setExternalRegistration(e.target.checked)}
-              className="rounded"
-            />
-            Aanmelden via externe website
-          </label>
-          {externalRegistration && (
-            <>
+      {/* UX-review punt 12: alleen titel/datum/tijd/locatie/omschrijving
+          staan los; de rest is minder vaak nodig en staat daarom achter
+          "Meer opties" i.p.v. alles plat achter elkaar. Open bij bewerken
+          (zodat al ingestelde waarden niet verstopt lijken), dicht bij
+          aanmaken. */}
+      <details open={Boolean(activity)} className="group rounded-lg border border-border bg-background">
+        <summary className="flex cursor-pointer list-none items-center justify-between gap-2 px-3 py-2.5 text-sm font-medium text-foreground">
+          Meer opties
+          <ChevronDown size={16} className="text-muted transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="flex flex-col gap-5 border-t border-border p-3">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="registration_deadline" className="text-sm font-medium text-foreground">
+                Aanmelddeadline (optioneel)
+              </label>
               <Input
-                name="external_registration_url"
-                type="text"
-                inputMode="url"
-                defaultValue={activity?.external_registration_url ?? ""}
-                placeholder="https://"
-                invalid={Boolean(errors.external_registration_url)}
-                onBlur={(e) => validateField("external_registration_url", e.target.value)}
+                id="registration_deadline"
+                type="datetime-local"
+                value={deadline}
+                onChange={(e) => setDeadline(e.target.value)}
+                max="2099-12-31T23:59"
               />
-              <FieldError message={errors.external_registration_url} />
-            </>
+              <input type="hidden" name="registration_deadline" value={deadlineIso} />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="max_participants" className="text-sm font-medium text-foreground">
+                Maximum deelnemers
+              </label>
+              <Input
+                id="max_participants"
+                name="max_participants"
+                type="number"
+                min={1}
+                defaultValue={activity?.max_participants ?? ""}
+                placeholder="Onbeperkt"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-surface px-3 py-2.5">
+            <div>
+              <p className="text-sm font-medium text-foreground">Aanmelden door niet-leden toestaan</p>
+              <p className="text-xs text-muted">
+                Uit: een bezoeker van de openbare website ziet deze activiteit wel, maar kan alleen een lid zich (via
+                het portaal) aanmelden.
+              </p>
+            </div>
+            <input type="hidden" name="allow_public_registration" value={allowPublicRegistration ? "on" : ""} />
+            <Switch
+              checked={allowPublicRegistration}
+              onChange={() => {
+                setAllowPublicRegistration((v) => !v);
+                setDirty(true);
+              }}
+              label="Aanmelden door niet-leden toestaan"
+            />
+          </div>
+
+          {source === "lid" && (
+            <div className="flex flex-col gap-1.5">
+              <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+                <input
+                  type="checkbox"
+                  name="external_registration"
+                  checked={externalRegistration}
+                  onChange={(e) => setExternalRegistration(e.target.checked)}
+                  className="rounded"
+                />
+                Aanmelden via externe website
+              </label>
+              {externalRegistration && (
+                <>
+                  <Input
+                    name="external_registration_url"
+                    type="text"
+                    inputMode="url"
+                    defaultValue={activity?.external_registration_url ?? ""}
+                    placeholder="https://"
+                    invalid={Boolean(errors.external_registration_url)}
+                    onBlur={(e) => validateField("external_registration_url", e.target.value)}
+                  />
+                  <FieldError message={errors.external_registration_url} />
+                </>
+              )}
+              {!externalRegistration && (
+                <p className="text-xs text-muted">Zonder vinkje gebruikt deze activiteit de gewone VOC-aanmeldfunctie.</p>
+              )}
+            </div>
           )}
-          {!externalRegistration && (
-            <p className="text-xs text-muted">Zonder vinkje gebruikt deze activiteit de gewone VOC-aanmeldfunctie.</p>
+
+          {canUploadImage && (
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="image" className="text-sm font-medium text-foreground">
+                Afbeelding
+              </label>
+              {shownImage && (
+                <Image src={shownImage} alt="" width={160} height={100} className="h-[100px] w-[160px] rounded-lg object-cover" />
+              )}
+              <FileSelectButton
+                id="image"
+                name="image"
+                accept="image/png,image/jpeg,image/webp"
+                onChange={async (e) => {
+                  const input = e.target;
+                  const compressed = await compressInputFile(input);
+                  if (compressed) setPreview(URL.createObjectURL(compressed));
+                }}
+              />
+            </div>
           )}
         </div>
-      )}
+      </details>
 
-      {canUploadImage && (
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor="image" className="text-sm font-medium text-foreground">
-            Afbeelding
-          </label>
-          {shownImage && (
-            <Image src={shownImage} alt="" width={160} height={100} className="h-[100px] w-[160px] rounded-lg object-cover" />
-          )}
-          <input
-            id="image"
-            name="image"
-            type="file"
-            accept="image/png,image/jpeg,image/webp"
-            onChange={async (e) => {
-              const input = e.target;
-              const compressed = await compressInputFile(input);
-              if (compressed) setPreview(URL.createObjectURL(compressed));
-            }}
-            className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red-text hover:file:bg-voc-red/20"
-          />
-        </div>
-      )}
+      {/* Bijlagen: alleen via ActivityAttachmentUploadForm, apart van dit
+          formulier (zie agenda/actions.ts) — op het bewerkscherm stonden
+          eerder twee onafhankelijke manieren om een bestand toe te voegen. */}
 
-      <div className="flex flex-col gap-1.5">
-        <label htmlFor="attachments" className="text-sm font-medium text-foreground">
-          Bijlagen (optioneel)
-        </label>
-        <input
-          id="attachments"
-          name="attachments"
-          type="file"
-          multiple
-          accept="application/pdf,image/png,image/jpeg,.doc,.docx,.ppt,.pptx"
-          className="text-sm text-foreground file:mr-3 file:cursor-pointer file:rounded-full file:border-0 file:bg-voc-red-light file:px-3 file:py-1.5 file:text-sm file:font-medium file:text-voc-red-text hover:file:bg-voc-red/20"
-        />
-      </div>
-
-      {source === "voc" && (
+      {!activity && source === "voc" && (
         // Onderaan i.p.v. bovenaan, en standaard uit: dit stond eerder als
         // eerste bovenaan het formulier met beide vinkjes al aangevinkt,
         // waardoor je zonder er expliciet bij stil te staan meteen een
         // melding naar alle leden stuurde. Nu een bewuste keuze vlak vóór
         // publiceren, in dezelfde schakelaar-stijl als de rest van de app
-        // i.p.v. kale checkboxes.
+        // i.p.v. kale checkboxes. Alleen bij AANMAKEN: bij bewerken deed deze
+        // switch niets (de onderliggende trigger reageert alleen op het
+        // eerste keer goedkeuren), wat een vals "ik heb het gemeld"-gevoel
+        // gaf — zie NotifyChangePanel voor wat daarvoor in de plaats kwam.
         <div className="flex flex-col gap-2">
           <span className="text-sm font-medium text-foreground">Notificatie bij publiceren</span>
           <p className="text-xs text-muted">
@@ -401,6 +453,10 @@ export function ActivityForm({
       <div>
         <SubmitButton label={submitLabel} />
       </div>
+
+      {activity && state.offerNotifyChange && state.suggestedChangeMessage && (
+        <NotifyChangePanel activityId={activity.id} suggestedMessage={state.suggestedChangeMessage} />
+      )}
     </form>
   );
 }

@@ -8,6 +8,7 @@ import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { uploadDocument } from "@/lib/supabase/uploadDocument";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
+import { sendRawHtmlEmail, escapeHtml } from "@/lib/email/send";
 
 export type ActionResult = { error?: string };
 
@@ -115,7 +116,16 @@ export async function unregisterFromActivityAction(activityId: string): Promise<
   return {};
 }
 
-export type ActivityFormState = { error?: string; success?: boolean };
+export type ActivityFormState = {
+  error?: string;
+  success?: boolean;
+  // Gezet door updateActivityAction wanneer datum/tijd/locatie wijzigde op
+  // een activiteit die al aanmeldingen heeft — ActivityForm toont dan een
+  // los, bewerkbaar bevestigingsblok i.p.v. de wijziging automatisch of
+  // helemaal niet te melden.
+  offerNotifyChange?: boolean;
+  suggestedChangeMessage?: string;
+};
 
 function parseActivityForm(formData: FormData) {
   const title = String(formData.get("title") ?? "").trim();
@@ -129,12 +139,6 @@ function parseActivityForm(formData: FormData) {
   const externalRegistrationChecked = formData.get("external_registration") === "on";
   const externalRegistrationUrl = String(formData.get("external_registration_url") ?? "").trim();
   const allowPublicRegistration = formData.get("allow_public_registration") === "on";
-  // Checkboxes staan alleen op het formulier als source === "voc" (zie
-  // ActivityForm) — afwezig (community-inzending) betekent gewoon het
-  // bestaande, altijd-aan gedrag; het bestuur bepaalt dit uiteindelijk toch
-  // opnieuw bij het goedkeuren (decideActivitySubmissionAction).
-  const notifyPush = formData.has("notify_push") ? formData.get("notify_push") === "on" : true;
-  const notifyEmail = formData.has("notify_email") ? formData.get("notify_email") === "on" : true;
 
   return {
     title,
@@ -145,41 +149,28 @@ function parseActivityForm(formData: FormData) {
     registration_deadline: parseIsoOrNull(deadlineRaw),
     max_participants: Number.isFinite(maxParticipantsNumber) && maxParticipantsNumber > 0 ? maxParticipantsNumber : null,
     external_registration_url: externalRegistrationChecked && externalRegistrationUrl ? externalRegistrationUrl : null,
-    notify_push: notifyPush,
-    notify_email: notifyEmail,
     allow_public_registration: allowPublicRegistration,
   };
 }
 
-const ATTACHMENT_MAX_BYTES = 15 * 1024 * 1024;
-
-// Gedeeld door create/update: bijlagen horen nu bij het aanmaken/wijzigen
-// van de activiteit zelf, niet meer bij een los formulier op de eventpagina
-// (zie ActivityAttachmentUploadForm, die alleen nog op de bewerkpagina
-// achteraf iets toevoegt).
-async function uploadActivityAttachments(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  activityId: string,
-  createdBy: string,
-  formData: FormData
-) {
-  const files = formData
-    .getAll("attachments")
-    .filter((f): f is File => f instanceof File && f.size > 0 && f.size <= ATTACHMENT_MAX_BYTES);
-  if (files.length === 0) return;
-
-  // Uploads parallelliseren i.p.v. één voor één wachten — en pas daarna in
-  // één keer alle geslaagde rijen batch-inserten, i.p.v. een aparte insert
-  // per bestand.
-  const results = await Promise.all(files.map((file) => uploadDocument(supabase, file, "activity-attachments")));
-  const rows = results
-    .map((result, i) => (("error" in result) ? null : { activity_id: activityId, storage_path: result.path, file_name: files[i].name, created_by: createdBy }))
-    .filter((row): row is NonNullable<typeof row> => row !== null);
-
-  if (rows.length > 0) {
-    await supabase.from("activity_attachments").insert(rows);
-  }
+// Alleen relevant bij het AANMAKEN van een VOC-activiteit (zie showTypePicker
+// in ActivityForm) — bij bewerken staan deze switches niet meer op het
+// formulier (UX-review punt 13: ze suggereerden bij bewerken een melding die
+// de onderliggende trigger daar nooit verstuurt) en moet updateActivityAction
+// de al-opgeslagen waarden dus ongemoeid laten.
+function parseNotifyChannels(formData: FormData) {
+  return {
+    notify_push: formData.has("notify_push") ? formData.get("notify_push") === "on" : true,
+    notify_email: formData.has("notify_email") ? formData.get("notify_email") === "on" : true,
+  };
 }
+
+// Bijlagen worden uitsluitend via ActivityAttachmentUploadForm toegevoegd
+// (addActivityAttachmentAction hieronder) — dat was eerder ook via een los
+// veld op dit formulier mogelijk, wat op het bewerkscherm twee onafhankelijke
+// upload-plekken gaf (UX-review punt 14). Een nieuwe activiteit krijgt
+// bijlagen dus pas na het aanmaken, via "Bewerken" — één plek, altijd
+// dezelfde (echte) 25MB-limiet en dezelfde Nederlandse foutmelding.
 
 export async function createActivityAction(
   _prevState: ActivityFormState,
@@ -191,6 +182,7 @@ export async function createActivityAction(
     // goedgekeurde VOC-activiteit wordt of een pending community-inzending.
     const profile = await requireProfile();
     const { title, startsAt, ...rest } = parseActivityForm(formData);
+    const notifyChannels = parseNotifyChannels(formData);
 
     if (!title || !startsAt) {
       return { error: "Titel en een geldige startdatum zijn verplicht." };
@@ -205,7 +197,7 @@ export async function createActivityAction(
     const slug = await generateUniqueSlug(supabase, title);
     const { data: activity, error } = await supabase
       .from("activities")
-      .insert({ title, starts_at: startsAt, ...rest, source, slug, created_by: profile.id })
+      .insert({ title, starts_at: startsAt, ...rest, ...notifyChannels, source, slug, created_by: profile.id })
       .select("id")
       .single();
 
@@ -220,8 +212,6 @@ export async function createActivityAction(
         await supabase.from("activities").update({ image_url: result.path }).eq("id", activity.id);
       }
     }
-
-    await uploadActivityAttachments(supabase, activity.id, profile.id, formData);
 
     revalidatePath("/agenda");
     redirect(`/agenda/${activity.id}`);
@@ -238,7 +228,7 @@ export async function updateActivityAction(
   formData: FormData
 ): Promise<ActivityFormState> {
   try {
-    const board = await requireBoard();
+    await requireBoard();
     const { title, startsAt, ...rest } = parseActivityForm(formData);
 
     if (!title || !startsAt) {
@@ -247,19 +237,19 @@ export async function updateActivityAction(
 
     const supabase = await createClient();
 
+    const { data: existing } = await supabase
+      .from("activities")
+      .select("image_url, starts_at, ends_at, location")
+      .eq("id", activityId)
+      .maybeSingle();
+
     let imagePath: string | undefined;
-    let previousImageUrl: string | null = null;
     const image = formData.get("image");
     if (image instanceof File && image.size > 0) {
-      const { data: existing } = await supabase.from("activities").select("image_url").eq("id", activityId).maybeSingle();
-      previousImageUrl = existing?.image_url ?? null;
-
       const result = await uploadImage(supabase, "activity-images", activityId, image);
       if ("error" in result) return { error: result.error };
       imagePath = result.path;
     }
-
-    await uploadActivityAttachments(supabase, activityId, board.id, formData);
 
     const { error } = await supabase
       .from("activities")
@@ -276,13 +266,35 @@ export async function updateActivityAction(
     }
 
     if (imagePath) {
-      await removePreviousImage(supabase, "activity-images", previousImageUrl);
+      await removePreviousImage(supabase, "activity-images", existing?.image_url ?? null);
     }
 
     await logAuditAction("activity_updated", "activity", activityId);
 
     revalidatePath(`/agenda/${activityId}`);
     revalidatePath("/agenda");
+
+    // UX-review punt 1/13: wie al is aangemeld, verdient een expliciet
+    // bericht als de datum/tijd/locatie wijzigt — maar automatisch versturen
+    // bij elke edit zou ruis worden, en stilzwijgend niets doen was het oude
+    // (verwarrende) gedrag. Dus: alleen een bewerkbaar voorstel aanbieden
+    // als er iets relevants veranderde ÉN er daadwerkelijk aanmeldingen zijn.
+    const relevantChange =
+      existing && (existing.starts_at !== startsAt || existing.ends_at !== rest.ends_at || existing.location !== rest.location);
+    if (relevantChange) {
+      const { count } = await supabase
+        .from("activity_registrations")
+        .select("id", { count: "exact", head: true })
+        .eq("activity_id", activityId);
+      if ((count ?? 0) > 0) {
+        return {
+          success: true,
+          offerNotifyChange: true,
+          suggestedChangeMessage: `De datum, tijd of locatie van "${title}" is gewijzigd. Bekijk de actuele gegevens in de agenda.`,
+        };
+      }
+    }
+
     return { success: true };
   } catch (cause) {
     if (isNextRedirectError(cause)) throw cause;
@@ -295,6 +307,12 @@ export async function updateActivityAction(
 // activiteit na verwijderen niet meer bestaat en je dus weg moet; false is
 // voor een lijstcontext (beheer-overzicht) die na verwijderen gewoon op
 // dezelfde plek moet blijven met de rij eruit.
+//
+// UX-review punt 21: verwijderen cascadet aanmeldingen stilzwijgend weg,
+// zonder dat de aangemelden iets horen. De UI biedt daarom bij aanmeldingen
+// > 0 geen verwijderknop meer aan (zie CancelActivityButton/ActivityDetail-
+// Content/BeheerAgendaContent), maar deze check blijft hier ook staan als
+// server-side vangnet tegen een directe aanroep.
 export async function deleteActivityAction(activityId: string, redirectAfter = true) {
   try {
     // requireProfile (niet requireBoard): RLS staat een lid ook toe zijn
@@ -302,8 +320,18 @@ export async function deleteActivityAction(activityId: string, redirectAfter = t
     // (activities_self_delete_pending) — bestuur kan altijd verwijderen.
     await requireProfile();
     const supabase = await createClient();
+
+    const { count } = await supabase
+      .from("activity_registrations")
+      .select("id", { count: "exact", head: true })
+      .eq("activity_id", activityId);
+    if ((count ?? 0) > 0) {
+      throw new Error(
+        `Deze activiteit heeft ${count} aanmelding(en) en kan daarom niet verwijderd worden. Gebruik "Afgelasten" om aangemelden te informeren.`
+      );
+    }
+
     await supabase.from("activities").delete().eq("id", activityId);
-    // Verwijderen cascadet ook de aanmeldingen van deze activiteit weg.
     invalidateQuery("statistieken-activiteiten");
     revalidatePath("/agenda");
     revalidatePath("/beheer/agenda");
@@ -313,6 +341,80 @@ export async function deleteActivityAction(activityId: string, redirectAfter = t
     console.error("[agenda] deleteActivityAction failed:", cause);
     throw cause;
   }
+}
+
+export type CancelActivityState = { error?: string; success?: boolean };
+
+// Afgelasten i.p.v. verwijderen: de activiteit blijft zichtbaar (met een
+// "Afgelast"-badge, zie ActivityDetailContent/BeheerAgendaContent) en kan
+// niet meer geboekt worden, maar bestaande aanmeldingen blijven bestaan.
+// Iedere aangemelde krijgt een gerichte melding via de bestaande
+// notifications-tabel/dispatch; niet-leden (public_activity_registrations)
+// via een losse e-mail, want die hebben geen profile_id.
+export async function cancelActivityAction(activityId: string, message: string): Promise<CancelActivityState> {
+  await requireBoard();
+  const supabase = await createClient();
+
+  const { data: activity } = await supabase.from("activities").select("title").eq("id", activityId).maybeSingle();
+  if (!activity) {
+    return { error: "Activiteit niet gevonden." };
+  }
+
+  const { error } = await supabase.from("activities").update({ status: "cancelled" }).eq("id", activityId);
+  if (error) {
+    return { error: "Afgelasten is niet gelukt. Probeer het opnieuw." };
+  }
+
+  const body = message.trim() || `"${activity.title}" is afgelast.`;
+  const { data: nonMembers } = await supabase.rpc("notify_activity_participants", {
+    p_activity_id: activityId,
+    p_type: "activity_cancelled",
+    p_title: "Activiteit afgelast",
+    p_body: body,
+  });
+
+  for (const recipient of nonMembers ?? []) {
+    if (recipient.email) {
+      await sendRawHtmlEmail(recipient.email, "Activiteit afgelast", `<p>${escapeHtml(body)}</p>`);
+    }
+  }
+
+  await logAuditAction("activity_cancelled", "activity", activityId);
+  invalidateQuery("statistieken-activiteiten");
+  revalidatePath(`/agenda/${activityId}`);
+  revalidatePath("/agenda");
+  revalidatePath("/beheer/agenda");
+  return { success: true };
+}
+
+// Door updateActivityAction's offerNotifyChange aangeboden, pas verstuurd
+// als het bestuur dat ook echt bevestigt (zie het bevestigbare tekstblok in
+// ActivityForm) — geen automatische melding bij elke bewerking.
+export async function notifyActivityChangeAction(activityId: string, message: string): Promise<CancelActivityState> {
+  await requireBoard();
+  const supabase = await createClient();
+
+  const { data: activity } = await supabase.from("activities").select("title").eq("id", activityId).maybeSingle();
+  if (!activity) {
+    return { error: "Activiteit niet gevonden." };
+  }
+
+  const body = message.trim() || `De gegevens van "${activity.title}" zijn gewijzigd.`;
+  const { data: nonMembers } = await supabase.rpc("notify_activity_participants", {
+    p_activity_id: activityId,
+    p_type: "activity_changed",
+    p_title: "Activiteit gewijzigd",
+    p_body: body,
+  });
+
+  for (const recipient of nonMembers ?? []) {
+    if (recipient.email) {
+      await sendRawHtmlEmail(recipient.email, "Activiteit gewijzigd", `<p>${escapeHtml(body)}</p>`);
+    }
+  }
+
+  await logAuditAction("activity_change_notified", "activity", activityId);
+  return { success: true };
 }
 
 export async function decideActivitySubmissionAction(

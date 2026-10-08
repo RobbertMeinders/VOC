@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { DeleteButton } from "@/components/feed/DeleteButton";
+import { CancelActivityButton } from "@/components/agenda/CancelActivityButton";
 import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
 import { ApproveActivityForm } from "@/components/agenda/ApproveActivityForm";
 import { formatActivityDate, formatActivityDateShort } from "@/lib/format/date";
@@ -30,17 +31,20 @@ const STATUS_BADGE: Record<Activity["status"], string> = {
   approved: "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400",
   pending: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",
   rejected: "bg-voc-red-light text-voc-red-text",
+  cancelled: "bg-voc-red-light text-voc-red-text",
 };
 const STATUS_LABEL: Record<Activity["status"], string> = {
   approved: "Goedgekeurd",
   pending: "Ter goedkeuring",
   rejected: "Afgewezen",
+  cancelled: "Afgelast",
 };
 // UX-review T5: status ook herkenbaar voor kleurenblinden, niet alleen op kleur.
 const STATUS_ICON: Record<Activity["status"], LucideIcon> = {
   approved: CheckCircle2,
   pending: Clock,
   rejected: XCircle,
+  cancelled: XCircle,
 };
 
 function StatusBadge({ status }: { status: Activity["status"] }) {
@@ -57,6 +61,7 @@ const STATUS_FILTERS: { key: "alle" | Activity["status"]; label: string }[] = [
   { key: "alle", label: "Alle" },
   { key: "pending", label: STATUS_LABEL.pending },
   { key: "approved", label: STATUS_LABEL.approved },
+  { key: "cancelled", label: STATUS_LABEL.cancelled },
   { key: "rejected", label: STATUS_LABEL.rejected },
 ];
 
@@ -102,6 +107,18 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
 
   function latestLog(activityId: string, actions: string[]) {
     return (logs ?? []).find((l) => l.target_id === activityId && actions.includes(l.action)) ?? null;
+  }
+
+  // UX-review punt 21: verwijderen cascadet aanmeldingen weg zonder melding
+  // — hier opgehaald zodat de rij "Afgelasten" i.p.v. "Verwijderen" kan
+  // aanbieden zodra er daadwerkelijk aanmeldingen zijn.
+  const { data: registrationRows } =
+    activityIds.length > 0
+      ? await supabase.from("activity_registrations").select("activity_id").in("activity_id", activityIds)
+      : { data: [] as { activity_id: string }[] };
+  const registrationCounts = new Map<string, number>();
+  for (const row of registrationRows ?? []) {
+    registrationCounts.set(row.activity_id, (registrationCounts.get(row.activity_id) ?? 0) + 1);
   }
 
   return (
@@ -152,6 +169,7 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
           const decisionLog = latestLog(activity.id, ["activity_approved", "activity_rejected"]);
           const updateLog = latestLog(activity.id, ["activity_updated"]);
           const creatorName = profileName(activity.created_by_profile);
+          const registrationCount = registrationCounts.get(activity.id) ?? 0;
 
           return (
           <div key={activity.id} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
@@ -200,11 +218,19 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
                 >
                   <Pencil size={14} />
                 </Link>
-                <DeleteButton
-                  onDelete={deleteActivityAction.bind(null, activity.id, false)}
-                  confirmMessage="Weet je zeker dat je deze activiteit wilt verwijderen? Aanmeldingen worden ook verwijderd."
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-voc-red"
-                />
+                {activity.status !== "cancelled" && registrationCount > 0 ? (
+                  <CancelActivityButton
+                    activityId={activity.id}
+                    activityTitle={activity.title}
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-voc-red"
+                  />
+                ) : (
+                  <DeleteButton
+                    onDelete={deleteActivityAction.bind(null, activity.id, false)}
+                    confirmMessage="Weet je zeker dat je deze activiteit wilt verwijderen?"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-voc-red"
+                  />
+                )}
               </div>
             </div>
 
