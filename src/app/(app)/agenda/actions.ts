@@ -76,11 +76,15 @@ export async function registerForActivityAction(activityId: string): Promise<Reg
     // The enforce_activity_registration_rules trigger raises a friendly Dutch
     // message for the deadline case; a unique-violation means the member is
     // already registered (e.g. a second tab). Everything else falls back to
-    // a generic message.
+    // a generic message — error.message zelf nooit tonen, dat kan een ruwe
+    // technische (en mogelijk Engelse) databasefout zijn.
     if (error.code === "23505") {
       return { error: "Je bent al aangemeld." };
     }
-    return { error: error.message || "Aanmelden is niet gelukt. Probeer het opnieuw." };
+    if (error.message?.includes("aanmelddeadline")) {
+      return { error: error.message };
+    }
+    return { error: "Aanmelden is niet gelukt. Probeer het opnieuw." };
   }
 
   // Anders bleef Statistieken > Activiteiten tot 60s (de cache-TTL) een

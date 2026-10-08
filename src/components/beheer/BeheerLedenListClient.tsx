@@ -32,7 +32,10 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
   const { getInitial, setParam } = useUrlFilterState();
   const [query, setQuery] = useState(() => getInitial("q"));
   const [role, setRole] = useState(() => getInitial("role"));
-  const [active, setActive] = useState(() => getInitial("active"));
+  // UX-review punt 24: zonder expliciete default stonden gedeactiveerde/
+  // verwijderde leden gewoon tussen de actieve leden in de lijst — alleen
+  // bewust het Status-filter op "Gedeactiveerd" zetten toont ze nog.
+  const [active, setActive] = useState(() => getInitial("active") || "actief");
 
   function handleQueryChange(value: string) {
     setQuery(value);
