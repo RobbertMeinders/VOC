@@ -22,7 +22,7 @@ export type ListToolbarFilter = {
   onChange: (value: string) => void;
 };
 
-function FilterChipGroup({ filter }: { filter: ListToolbarFilter }) {
+export function FilterChipGroup({ filter }: { filter: ListToolbarFilter }) {
   return (
     <div className="flex flex-wrap items-center gap-1.5">
       <span className="text-xs text-muted">{filter.label}:</span>
@@ -55,7 +55,7 @@ function FilterChipGroup({ filter }: { filter: ListToolbarFilter }) {
   );
 }
 
-function FilterPanelGroup({ filter }: { filter: ListToolbarFilter }) {
+export function FilterPanelGroup({ filter }: { filter: ListToolbarFilter }) {
   const [open, setOpen] = useState(false);
   useEscapeKey(open, () => setOpen(false));
   useBodyScrollLock(open);
@@ -134,6 +134,10 @@ function FilterPanelGroup({ filter }: { filter: ListToolbarFilter }) {
   );
 }
 
+export function FilterControl({ filter }: { filter: ListToolbarFilter }) {
+  return filter.options.length <= 5 ? <FilterChipGroup filter={filter} /> : <FilterPanelGroup filter={filter} />;
+}
+
 export function ListToolbar({
   searchValue,
   onSearchChange,
@@ -141,6 +145,7 @@ export function ListToolbar({
   resultCount,
   totalCount,
   filters = [],
+  showFilterButtons = true,
 }: {
   searchValue: string;
   onSearchChange: (value: string) => void;
@@ -148,6 +153,8 @@ export function ListToolbar({
   resultCount: number;
   totalCount: number;
   filters?: ListToolbarFilter[];
+  /** Zet op false als de filter-knoppen al elders (bv. naast een weergave-toggle) worden getoond — de actieve-filter-chips en "Alles wissen" blijven dan wel werken. */
+  showFilterButtons?: boolean;
 }) {
   const activeFilters = filters.filter((f) => f.value);
   const hasActiveFilter = activeFilters.length > 0 || Boolean(searchValue);
@@ -180,15 +187,11 @@ export function ListToolbar({
         </p>
       </div>
 
-      {filters.length > 0 && (
+      {showFilterButtons && filters.length > 0 && (
         <div className="flex flex-wrap items-center gap-2">
-          {filters.map((filter) =>
-            filter.options.length <= 5 ? (
-              <FilterChipGroup key={filter.key} filter={filter} />
-            ) : (
-              <FilterPanelGroup key={filter.key} filter={filter} />
-            )
-          )}
+          {filters.map((filter) => (
+            <FilterControl key={filter.key} filter={filter} />
+          ))}
         </div>
       )}
 

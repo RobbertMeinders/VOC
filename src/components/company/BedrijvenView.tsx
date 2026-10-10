@@ -4,6 +4,7 @@ import { useState } from "react";
 import dynamic from "next/dynamic";
 import { List, Map as MapIcon } from "lucide-react";
 import { clsx } from "clsx";
+import { FilterControl, type ListToolbarFilter } from "@/components/ui/ListToolbar";
 import { CompanyCard, type CompanyListItem } from "./CompanyCard";
 import type { MappableCompany } from "./CompanyMap";
 
@@ -18,7 +19,13 @@ const CompanyMap = dynamic(() => import("./CompanyMap").then((mod) => mod.Compan
 
 export type MapCapableCompany = CompanyListItem & { latitude: number | null; longitude: number | null };
 
-export function BedrijvenView({ items }: { items: MapCapableCompany[] }) {
+export function BedrijvenView({
+  items,
+  filter,
+}: {
+  items: MapCapableCompany[];
+  filter?: ListToolbarFilter;
+}) {
   const [view, setView] = useState<"lijst" | "kaart">("lijst");
 
   const withLocation: MappableCompany[] = items.filter(
@@ -27,29 +34,36 @@ export function BedrijvenView({ items }: { items: MapCapableCompany[] }) {
 
   return (
     <div>
-      <div className="mb-3 inline-flex rounded-lg border border-border bg-surface p-1">
-        <button
-          type="button"
-          onClick={() => setView("lijst")}
-          className={clsx(
-            "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
-            view === "lijst" ? "bg-voc-red text-white" : "text-muted hover:text-foreground"
-          )}
-        >
-          <List size={14} />
-          Lijst
-        </button>
-        <button
-          type="button"
-          onClick={() => setView("kaart")}
-          className={clsx(
-            "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
-            view === "kaart" ? "bg-voc-red text-white" : "text-muted hover:text-foreground"
-          )}
-        >
-          <MapIcon size={14} />
-          Kaart
-        </button>
+      {/* UX-review: branche-filter stond als losse, volle-breedte rij boven
+          deze toggle — neemt op deze ene rij samen minder ruimte in en hoort
+          hier ook inhoudelijk bij elkaar (beide bepalen de weergave van
+          dezelfde lijst). */}
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="inline-flex rounded-lg border border-border bg-surface p-1">
+          <button
+            type="button"
+            onClick={() => setView("lijst")}
+            className={clsx(
+              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
+              view === "lijst" ? "bg-voc-red text-white" : "text-muted hover:text-foreground"
+            )}
+          >
+            <List size={14} />
+            Lijst
+          </button>
+          <button
+            type="button"
+            onClick={() => setView("kaart")}
+            className={clsx(
+              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
+              view === "kaart" ? "bg-voc-red text-white" : "text-muted hover:text-foreground"
+            )}
+          >
+            <MapIcon size={14} />
+            Kaart
+          </button>
+        </div>
+        {filter && <FilterControl filter={filter} />}
       </div>
 
       {view === "lijst" ? (

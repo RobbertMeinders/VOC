@@ -58,9 +58,10 @@ function BedrijvenListInner({ items, branches }: { items: SearchableCompany[]; b
         resultCount={filtered.length}
         totalCount={items.length}
         filters={filters}
+        showFilterButtons={false}
       />
       {filtered.length > 0 ? (
-        <BedrijvenView items={filtered} />
+        <BedrijvenView items={filtered} filter={filters[0]} />
       ) : (
         <ComingSoon icon={Building2} title="Geen bedrijven gevonden" description="Pas je zoekopdracht of filter aan." />
       )}
