@@ -56,21 +56,21 @@ export default async function ProfielPage() {
             Werkzaam bij <span className="font-medium">{membership.company.name}</span>
             {membership.company.city && <span className="text-muted">— {membership.company.city}</span>}
           </Link>
-          <div className="flex items-center gap-3">
-            {/* "Bedrijf wijzigen" (hieronder, via CompanyMembershipForm) is
-                voor het koppelen aan een ándere werkgever — stond hier als
-                enige actie naast "Werkzaam bij X", wat de indruk wekte dat
-                het naar de bedrijfsgegevens zou leiden. Deze link gaat daar
-                wél direct naartoe. */}
-            <Link
-              href={`/bedrijven/${membership.company.id}/bewerken`}
-              className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-voc-red hover:text-voc-red-text"
-            >
-              <Pencil size={12} />
-              Bedrijfsgegevens bewerken
-            </Link>
-            <CompanyMembershipForm hasCompany />
-          </div>
+          {/* "Bedrijf wijzigen" (koppelen aan een ándere werkgever) stond
+              hier als enige actie naast "Werkzaam bij X", wat de indruk
+              wekte dat het naar de bedrijfsgegevens zou leiden. Die link
+              gaat daar wél direct naartoe, en staat verderop op de pagina
+              (zie onder ProfileForm) — wisselen van werkgever is zeldzaam,
+              dus hoeft hier niet naast de dagelijkse actie te staan. Subtiele
+              tekstlink i.p.v. knop — dit is een snelkoppeling, geen
+              hoofdactie van deze pagina. */}
+          <Link
+            href={`/bedrijven/${membership.company.id}/bewerken`}
+            className="flex items-center gap-1 text-xs text-muted hover:text-voc-red-text"
+          >
+            <Pencil size={11} />
+            Bedrijfsgegevens bewerken
+          </Link>
         </div>
       ) : pendingRequest?.company ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">
@@ -88,6 +88,12 @@ export default async function ProfielPage() {
       <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
         <ProfileForm profile={profile} avatarUrl={avatarUrl} />
       </div>
+
+      {membership?.company && (
+        <div className="flex justify-center">
+          <CompanyMembershipForm hasCompany />
+        </div>
+      )}
     </div>
   );
 }

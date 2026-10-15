@@ -85,7 +85,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
     >
       <FormErrorSummary errors={errors} />
       <div className="flex items-center gap-4">
-        <div className="relative">
+        <div className="relative shrink-0">
           <CompanyLogo logoUrl={shownLogo} name={company.name} size={72} />
           <label
             htmlFor="logo"

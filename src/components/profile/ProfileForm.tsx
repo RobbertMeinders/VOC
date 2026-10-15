@@ -64,7 +64,7 @@ export function ProfileForm({
     >
       <FormErrorSummary errors={errors} />
       <div className="flex items-center gap-4">
-        <div className="relative">
+        <div className="relative shrink-0">
           <Avatar
             firstName={profile.first_name}
             lastName={profile.last_name}
