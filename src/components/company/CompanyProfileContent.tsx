@@ -51,7 +51,10 @@ export async function CompanyProfileContent({ id }: { id: string }) {
       .returns<RequestRow[]>(),
   ]);
 
-  const canSeeRequests = isBoard(profile.role) || (memberRows ?? []).some((row) => row.profile.id === profile.id);
+  // Ook gebruikt voor de "Bewerken"-link in de header: bestuur/beheer of
+  // een lid van dit bedrijf mag zowel aanvragen afhandelen als de
+  // bedrijfs-/factuurgegevens bewerken (companies_member_update, RLS).
+  const canManage = isBoard(profile.role) || (memberRows ?? []).some((row) => row.profile.id === profile.id);
 
   const [logoUrl, avatarUrls] = await Promise.all([
     getSignedStorageUrl("company-logos", company.logo_url),
@@ -70,7 +73,7 @@ export async function CompanyProfileContent({ id }: { id: string }) {
     avatarUrl: row.profile.avatar_url ? (avatarUrls.get(row.profile.avatar_url) ?? null) : null,
   }));
 
-  const pendingRequests: PendingMembershipRequest[] = canSeeRequests
+  const pendingRequests: PendingMembershipRequest[] = canManage
     ? (requestRows ?? []).map((row) => ({
         id: row.id,
         profile: {
@@ -84,12 +87,12 @@ export async function CompanyProfileContent({ id }: { id: string }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <CompanyHeader company={company} logoUrl={logoUrl} editHref={isBoard(profile.role) ? `/bedrijven/${id}/bewerken` : undefined} />
+      <CompanyHeader company={company} logoUrl={logoUrl} editHref={canManage ? `/bedrijven/${id}/bewerken` : undefined} />
 
       {/* Direct onder de header, boven de kaart en ledenlijst — anders is
           deze actie makkelijk te missen als je hier via de notificatie
           binnenkomt en de kaart+ledenlijst het scherm al vullen. */}
-      {canSeeRequests && <CompanyMembershipRequests companyId={id} requests={pendingRequests} />}
+      {canManage && <CompanyMembershipRequests companyId={id} requests={pendingRequests} />}
 
       {/* UX-review V6: deze kaart liet op bijna elk bedrijf alleen "Nog geen
           leden gekoppeld aan dit bedrijf." zien — een lege sectie verbergen

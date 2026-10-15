@@ -121,6 +121,25 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["company_membership_requests"]["Row"]>;
         Relationships: [];
       };
+      company_billing_details: {
+        Row: {
+          company_id: string;
+          same_as_visit_address: boolean;
+          invoice_name: string | null;
+          invoice_address: string | null;
+          invoice_postal_code: string | null;
+          invoice_city: string | null;
+          invoice_country: string;
+          vat_number: string | null;
+          invoice_email: string | null;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["company_billing_details"]["Row"]> & {
+          company_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["company_billing_details"]["Row"]>;
+        Relationships: [];
+      };
       invitations: {
         Row: {
           id: string;

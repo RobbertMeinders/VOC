@@ -2,12 +2,14 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin, requireBoard, requireProfile } from "@/lib/auth/session";
+import { requireAdmin, requireProfile } from "@/lib/auth/session";
+import { isBoard } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { geocodeAddress } from "@/lib/geo/geocode";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
+import type { Database } from "@/lib/types/database";
 
 export type UpdateCompanyState = { error?: string; success?: boolean };
 
@@ -16,7 +18,24 @@ export async function updateCompanyAction(
   _prevState: UpdateCompanyState,
   formData: FormData
 ): Promise<UpdateCompanyState> {
-  await requireBoard();
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  // Bedrijfsgegevens bewerken was tot nu toe bestuur/beheer-only; elk
+  // gekoppeld lid mag dat nu ook, voor het eigen bedrijf. Check hier vooraf
+  // (i.p.v. alleen op de companies_member_update RLS-policy leunen) om de
+  // geocode-aanroep en logo-upload verderop over te slaan voor een
+  // niet-gerechtigde aanroep, en om een duidelijke foutmelding te geven.
+  if (!isBoard(profile.role)) {
+    const { count } = await supabase
+      .from("company_members")
+      .select("id", { count: "exact", head: true })
+      .eq("company_id", companyId)
+      .eq("profile_id", profile.id);
+    if (!count) {
+      return { error: "Je hebt geen rechten om dit bedrijf te bewerken." };
+    }
+  }
 
   const name = String(formData.get("name") ?? "").trim();
   const tagline = String(formData.get("tagline") ?? "").trim();
@@ -37,8 +56,6 @@ export async function updateCompanyAction(
   if (!name) {
     return { error: "Bedrijfsnaam is verplicht." };
   }
-
-  const supabase = await createClient();
 
   let logoPath: string | undefined;
   const logoFile = formData.get("logo");
@@ -87,30 +104,38 @@ export async function updateCompanyAction(
           : {}
       : {};
 
-  const { error } = await supabase
+  const { error, count } = await supabase
     .from("companies")
-    .update({
-      name,
-      tagline: tagline || null,
-      description: description || null,
-      industry: industry || null,
-      website: website || null,
-      city: city || null,
-      address: address || null,
-      postal_code: postalCode || null,
-      show_address: showAddress,
-      is_publicly_visible: isPubliclyVisible,
-      phone: phone || null,
-      email: email || null,
-      linkedin_url: linkedinUrl || null,
-      instagram_url: instagramUrl || null,
-      facebook_url: facebookUrl || null,
-      ...(logoPath ? { logo_url: logoPath } : {}),
-      ...coordinateUpdate,
-    })
+    .update(
+      {
+        name,
+        tagline: tagline || null,
+        description: description || null,
+        industry: industry || null,
+        website: website || null,
+        city: city || null,
+        address: address || null,
+        postal_code: postalCode || null,
+        show_address: showAddress,
+        is_publicly_visible: isPubliclyVisible,
+        phone: phone || null,
+        email: email || null,
+        linkedin_url: linkedinUrl || null,
+        instagram_url: instagramUrl || null,
+        facebook_url: facebookUrl || null,
+        ...(logoPath ? { logo_url: logoPath } : {}),
+        ...coordinateUpdate,
+      },
+      { count: "exact" }
+    )
     .eq("id", companyId);
 
-  if (error) {
+  // count=0 zonder error betekent dat de companies_member_update/
+  // companies_board_update RLS-policies de rij stilletjes niet matchten
+  // (Postgrest geeft daar geen fout voor terug) — de check hierboven vangt
+  // dit al af vóór de geocode/upload, dit is alleen een achtervang tegen een
+  // lidmaatschap dat precies tussendoor is ingetrokken.
+  if (error || !count) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
 
@@ -201,4 +226,50 @@ export async function decideCompanyMembershipRequestAction(
   }
   revalidatePath(`/bedrijven/${companyId}`);
   return {};
+}
+
+export type UpdateCompanyBillingState = { error?: string; success?: boolean };
+
+// Rechten: zelfde als updateCompanyAction (elk gekoppeld lid, of bestuur/
+// beheer) — company_billing_details_member_* (RLS) is de echte poortwachter,
+// requireProfile() hier is alleen de inlog-check.
+export async function updateCompanyBillingAction(
+  companyId: string,
+  _prevState: UpdateCompanyBillingState,
+  formData: FormData
+): Promise<UpdateCompanyBillingState> {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const sameAsVisitAddress = formData.get("same_as_visit_address") === "on";
+
+  // invoice_name/vat_number/invoice_email staan los van het vinkje (dat
+  // gaat specifiek over het adres) en worden altijd opgeslagen. De
+  // adresvelden zelf staan bij "zelfde als bezoekadres" niet eens in het
+  // formulier — die laten we dan ongemoeid, zodat een eerder ingevuld
+  // afwijkend adres intact blijft als iemand het vinkje weer aanzet en
+  // opnieuw opslaat zonder de adresvelden te wijzigen.
+  const payload: Database["public"]["Tables"]["company_billing_details"]["Insert"] = {
+    company_id: companyId,
+    same_as_visit_address: sameAsVisitAddress,
+    invoice_name: String(formData.get("invoice_name") ?? "").trim() || null,
+    vat_number: String(formData.get("vat_number") ?? "").trim() || null,
+    invoice_email: String(formData.get("invoice_email") ?? "").trim() || null,
+  };
+
+  if (!sameAsVisitAddress) {
+    payload.invoice_address = String(formData.get("invoice_address") ?? "").trim() || null;
+    payload.invoice_postal_code = String(formData.get("invoice_postal_code") ?? "").trim() || null;
+    payload.invoice_city = String(formData.get("invoice_city") ?? "").trim() || null;
+    payload.invoice_country = String(formData.get("invoice_country") ?? "").trim() || "Nederland";
+  }
+
+  const { error } = await supabase.from("company_billing_details").upsert(payload, { onConflict: "company_id" });
+
+  if (error) {
+    return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+  }
+
+  revalidatePath(`/bedrijven/${companyId}/bewerken`);
+  return { success: true };
 }
