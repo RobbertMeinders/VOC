@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Building2, Clock } from "lucide-react";
+import { Building2, Clock, Pencil } from "lucide-react";
 import { clsx } from "clsx";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -56,7 +56,21 @@ export default async function ProfielPage() {
             Werkzaam bij <span className="font-medium">{membership.company.name}</span>
             {membership.company.city && <span className="text-muted">— {membership.company.city}</span>}
           </Link>
-          <CompanyMembershipForm hasCompany />
+          <div className="flex items-center gap-3">
+            {/* "Bedrijf wijzigen" (hieronder, via CompanyMembershipForm) is
+                voor het koppelen aan een ándere werkgever — stond hier als
+                enige actie naast "Werkzaam bij X", wat de indruk wekte dat
+                het naar de bedrijfsgegevens zou leiden. Deze link gaat daar
+                wél direct naartoe. */}
+            <Link
+              href={`/bedrijven/${membership.company.id}/bewerken`}
+              className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-voc-red hover:text-voc-red-text"
+            >
+              <Pencil size={12} />
+              Bedrijfsgegevens bewerken
+            </Link>
+            <CompanyMembershipForm hasCompany />
+          </div>
         </div>
       ) : pendingRequest?.company ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">
