@@ -90,7 +90,7 @@ export function InvitationRow({
         <div className="min-w-0">
           <p className="truncate text-sm font-medium text-foreground">
             {name || invitation.email || "Geen naam/e-mailadres opgegeven"}
-            {invitation.company && <span className="font-normal text-muted"> — {invitation.company.name}</span>}
+            {invitation.company && <span className="font-normal text-muted"> · {invitation.company.name}</span>}
           </p>
           <p className="truncate text-xs text-muted">
             {name && invitation.email ? `${invitation.email} · ` : ""}

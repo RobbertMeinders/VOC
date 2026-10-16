@@ -45,7 +45,7 @@ export function AccessRequestRow({ request }: { request: AccessRequest }) {
       <div className="min-w-0">
         <p className="text-sm font-medium text-foreground">
           {request.name}
-          {request.job_title && <span className="font-normal text-muted"> — {request.job_title}</span>}
+          {request.job_title && <span className="font-normal text-muted"> · {request.job_title}</span>}
         </p>
         <p className="text-xs text-muted">
           <a href={`mailto:${request.email}`} className="break-all hover:underline">

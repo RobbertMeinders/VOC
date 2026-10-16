@@ -123,7 +123,7 @@ function CompanyPicker({ selected, onSelect }: { selected: CompanyOption | null;
                 className="block w-full px-3 py-2 text-left text-sm hover:bg-voc-red-light hover:text-voc-red-text"
               >
                 {company.name}
-                {company.city && <span className="text-muted"> — {company.city}</span>}
+                {company.city && <span className="text-muted"> · {company.city}</span>}
               </button>
             ))}
         </div>

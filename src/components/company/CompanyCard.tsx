@@ -35,7 +35,7 @@ export function CompanyCard({ company }: { company: CompanyListItem }) {
         ) : (
           <p className="mt-0.5 truncate text-xs text-muted">
             {company.industry && <span>{company.industry}</span>}
-            {company.industry && company.city && <span> — </span>}
+            {company.industry && company.city && <span> · </span>}
             {company.city && <span>{company.city}</span>}
           </p>
         )}

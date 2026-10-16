@@ -54,7 +54,7 @@ export default async function ProfielPage() {
           >
             <Building2 size={16} className="text-muted" />
             Werkzaam bij <span className="font-medium">{membership.company.name}</span>
-            {membership.company.city && <span className="text-muted">— {membership.company.city}</span>}
+            {membership.company.city && <span className="text-muted">· {membership.company.city}</span>}
           </Link>
           {/* "Bedrijf wijzigen" (koppelen aan een ándere werkgever) stond
               hier als enige actie naast "Werkzaam bij X", wat de indruk

@@ -17,7 +17,7 @@ type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
 const TYPE_TABS = [
   { value: undefined, label: "Alles" },
   { value: "activiteit", label: "Activiteiten" },
-  { value: "ingebracht", label: "Door lid toegevoegd" },
+  { value: "ingebracht", label: "Externe activiteiten" },
   { value: "mijn-aanmeldingen", label: "Mijn aanmeldingen" },
 ] as const;
 

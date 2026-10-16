@@ -217,11 +217,11 @@ export function ActivityForm({
                 source === "lid" ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
               }`}
             >
-              Door lid toegevoegd
+              Externe activiteit
             </button>
           </div>
           {source === "lid" && (
-            <p className="text-xs text-muted">Door lid toegevoegd volgt de gewone goedkeuringslogica, net als bij een lid.</p>
+            <p className="text-xs text-muted">Externe activiteiten volgen de gewone goedkeuringslogica, net als bij een lid.</p>
           )}
         </div>
       )}

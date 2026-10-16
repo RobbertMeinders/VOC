@@ -101,7 +101,7 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-sm font-medium text-foreground">
                     {member.first_name} {member.last_name}
-                    {member.companyName && <span className="font-normal text-muted"> — {member.companyName}</span>}
+                    {member.companyName && <span className="font-normal text-muted"> · {member.companyName}</span>}
                   </p>
                   <p className="truncate text-xs text-muted">
                     {ROLE_LABELS[member.role]}

@@ -25,7 +25,7 @@ export function MemberRow({ member }: { member: MemberListItem }) {
         {member.company && (
           <p className="mt-0.5 truncate text-xs text-muted">
             {member.company.name}
-            {member.company.industry && <span> — {member.company.industry}</span>}
+            {member.company.industry && <span> · {member.company.industry}</span>}
           </p>
         )}
       </div>
