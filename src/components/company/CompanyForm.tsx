@@ -120,16 +120,15 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="tagline" className="text-sm font-medium text-foreground">
-              Tagline
+              Korte omschrijving
             </label>
             <Input
               id="tagline"
               name="tagline"
               defaultValue={company.tagline ?? ""}
-              placeholder="Korte pakkende omschrijving in een paar woorden"
+              placeholder="Pakkende zin in een paar woorden"
               maxLength={120}
             />
-            <p className="text-xs text-muted">Wordt getoond op de bedrijfspagina en in het overzicht.</p>
           </div>
 
           <div className="flex flex-col gap-1.5">

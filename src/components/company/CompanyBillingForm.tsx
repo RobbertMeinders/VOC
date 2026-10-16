@@ -135,10 +135,9 @@ export function CompanyBillingForm({ company, billing }: { company: Company; bil
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="vat_number" className="text-sm font-medium text-foreground">
-                Btw-nummer
+                Btw-nummer <span className="font-normal text-muted">(optioneel)</span>
               </label>
               <Input id="vat_number" name="vat_number" defaultValue={billing?.vat_number ?? ""} placeholder="NL000000000B00" />
-              <p className="text-xs text-muted">Optioneel.</p>
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="invoice_email" className="text-sm font-medium text-foreground">
@@ -155,7 +154,6 @@ export function CompanyBillingForm({ company, billing }: { company: Company; bil
                 onBlur={(e) => validateField("invoice_email", e.target.value)}
               />
               <FieldError message={errors.invoice_email} />
-              <p className="text-xs text-muted">Alleen als dit afwijkt van het algemene e-mailadres.</p>
             </div>
           </div>
         </FormSection>

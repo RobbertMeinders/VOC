@@ -11,7 +11,10 @@ export function FormSection({ label, description, children }: { label: string; d
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <p className="text-sm font-semibold text-foreground">{label}</p>
+        {/* Bewust lichter dan een kaarttitel (h2) of een veld-/schakelaar-
+            label — anders ogen een kaarttitel + sectielabel + veldlabel
+            vlak onder elkaar als drie gelijkwaardige koppen op een rij. */}
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</p>
         {description && <p className="mt-0.5 text-xs text-muted">{description}</p>}
       </div>
       {children}
