@@ -64,10 +64,7 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
         <CompanyForm company={company} logoUrl={logoUrl} />
       </div>
       <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-        <h2 className="mb-1 text-sm font-semibold text-foreground">Factuurgegevens</h2>
-        <p className="mb-4 text-xs text-muted">
-          Alleen voor facturatie — nooit zichtbaar in de bedrijvengids of op de openbare website.
-        </p>
+        <h2 className="mb-4 text-sm font-semibold text-foreground">Factuurgegevens</h2>
         <CompanyBillingForm company={company} billing={billing ?? null} />
       </div>
       {isAdmin(profile.role) && (

@@ -255,19 +255,13 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
               <Input id="postal_code" name="postal_code" defaultValue={company.postal_code ?? ""} placeholder="9640 AB" />
             </div>
           </div>
-          <FormToggleRow
-            label="Bezoekersadres tonen"
-            description="Uitzetten verbergt het adres op de bedrijfspagina en op de kaart — handig als hier een privéadres staat."
-          >
+          <FormToggleRow label="Bezoekersadres tonen">
             <input type="hidden" name="show_address" value={showAddress ? "on" : ""} />
             <Switch checked={showAddress} onChange={() => setShowAddress((v) => !v)} label="Bezoekersadres tonen" />
           </FormToggleRow>
         </FormSection>
 
-        <FormSection
-          label="Contactgegevens"
-          description="Contactgegevens van het bedrijf; deze kunnen afwijken van de persoonlijke gegevens van medewerkers."
-        >
+        <FormSection label="Contactgegevens">
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="phone" className="text-sm font-medium text-foreground">
@@ -295,10 +289,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
         </FormSection>
 
         <FormSection label="Openbare bedrijvengids">
-          <FormToggleRow
-            label="Zichtbaar op de openbare bedrijvengids"
-            description="Toont naam, logo, branche, plaats, omschrijving en website op de bedrijvengids-embed van de VOC-website. Contactgegevens (telefoon, e-mail, adres) worden nooit publiek getoond."
-          >
+          <FormToggleRow label="Zichtbaar op de openbare bedrijvengids">
             <input type="hidden" name="is_publicly_visible" value={isPubliclyVisible ? "on" : ""} />
             <Switch
               checked={isPubliclyVisible}

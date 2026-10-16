@@ -65,10 +65,7 @@ export function CompanyBillingForm({ company, billing }: { company: Company; bil
 
       <FormSections>
         <FormSection label="Factuuradres">
-          <FormToggleRow
-            label="Factuuradres is hetzelfde als bezoekadres"
-            description="Uitzetten laat je een afwijkend factuuradres invullen. Een eerder ingevuld afwijkend adres gaat niet verloren als je dit weer aanzet."
-          >
+          <FormToggleRow label="Factuuradres is hetzelfde als bezoekadres">
             <input type="hidden" name="same_as_visit_address" value={sameAsVisitAddress ? "on" : ""} />
             <Switch
               checked={sameAsVisitAddress}
