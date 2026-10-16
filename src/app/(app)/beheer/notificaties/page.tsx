@@ -46,7 +46,7 @@ export default async function BeheerNotificatiesPage() {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Verzonden meldingen"
-        description={`Logboek van de ${LOG_LIMIT} meest recente meldingen — per stuk te zien of ze als push en/of e-mail zijn verstuurd en geopend.`}
+        description={`Logboek van de ${LOG_LIMIT} meest recente meldingen - per stuk te zien of ze als push en/of e-mail zijn verstuurd en geopend.`}
       />
 
       <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">

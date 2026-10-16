@@ -104,7 +104,7 @@ export function InviteForm({ canInviteBoard }: { canInviteBoard: boolean }) {
         </p>
       )}
       {state.success && !state.emailSent && !state.emailError && (
-        <p className="text-sm text-green-600">Uitnodiging aangemaakt. Geen e-mailadres opgegeven — deel de link hieronder zelf.</p>
+        <p className="text-sm text-green-600">Uitnodiging aangemaakt. Geen e-mailadres opgegeven - deel de link hieronder zelf.</p>
       )}
     </form>
   );

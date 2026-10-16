@@ -134,7 +134,7 @@ function ImportTab() {
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted">
         Upload een CSV-bestand met bestaande ledengegevens (voornaam, achternaam, e-mail, telefoon, bedrijf,
-        bezoekersadres, postcode, vestigingsplaats). Er wordt per rij een uitnodiging aangemaakt — zonder dat daar
+        bezoekersadres, postcode, vestigingsplaats). Er wordt per rij een uitnodiging aangemaakt - zonder dat daar
         meteen een e-mail bij verstuurd wordt; een bedrijf dat nog niet bestaat wordt automatisch aangemaakt met het
         opgegeven adres. Bekijk en pas de gegevens hieronder aan voordat je importeert; de e-mail versturen doe je
         later, per lid, vanaf de tab Uitnodigingen.
@@ -153,7 +153,7 @@ export default async function InstroomPage({ searchParams }: { searchParams: Pro
     <div>
       <PageHeader
         title="Instroom"
-        description="Van toegangsaanvraag of activiteit-aanmelding tot lid — op één plek i.p.v. verspreid over vier schermen."
+        description="Van toegangsaanvraag of activiteit-aanmelding tot lid - op één plek i.p.v. verspreid over vier schermen."
       />
 
       <div className="mb-4 flex gap-1.5 overflow-x-auto">

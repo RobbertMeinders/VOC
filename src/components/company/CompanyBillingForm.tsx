@@ -76,7 +76,7 @@ export function CompanyBillingForm({ company, billing }: { company: Company; bil
 
           {sameAsVisitAddress ? (
             <p className="rounded-lg bg-black/[.03] px-3 py-2 text-sm text-muted dark:bg-white/[.04]">
-              {visitAddressLine || "Nog geen bezoekadres ingevuld — vul dat eerst bij de bedrijfsgegevens in."}
+              {visitAddressLine || "Nog geen bezoekadres ingevuld - vul dat eerst bij de bedrijfsgegevens in."}
             </p>
           ) : (
             <>

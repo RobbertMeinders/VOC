@@ -34,7 +34,7 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
   if (rows.length > MAX_ROWS) {
     return {
       imported: 0,
-      skipped: [{ row: 0, email: "", reason: `Maximaal ${MAX_ROWS} rijen per import — splits het bestand op.` }],
+      skipped: [{ row: 0, email: "", reason: `Maximaal ${MAX_ROWS} rijen per import - splits het bestand op.` }],
     };
   }
 

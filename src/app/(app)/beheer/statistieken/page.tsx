@@ -189,7 +189,7 @@ async function ActiviteitenTab({ period }: { period: StatsPeriod }) {
         <StatCard label="Aanwezigen" value={stats.totalAttendees} />
         <StatCard
           label="Bekeken → aangemeld"
-          value={stats.viewToRegistrationPercentage === null ? "—" : `${stats.viewToRegistrationPercentage}%`}
+          value={stats.viewToRegistrationPercentage === null ? "-" : `${stats.viewToRegistrationPercentage}%`}
         />
       </div>
 
@@ -297,7 +297,7 @@ function ChannelBreakdownTable({
                 <td className="px-4 py-2 text-muted">{channel}</td>
                 <td className="px-4 py-2 text-center text-muted">{sent}</td>
                 <td className="px-4 py-2 text-center text-muted">{opened}</td>
-                <td className="px-4 py-2 text-center text-muted">{sent > 0 ? formatPercentage((opened / sent) * 100) : "—"}</td>
+                <td className="px-4 py-2 text-center text-muted">{sent > 0 ? formatPercentage((opened / sent) * 100) : "-"}</td>
                 <td className="px-4 py-2 text-muted">{formatDate(row.firstSentAt)}</td>
               </tr>
             );
@@ -322,7 +322,7 @@ async function EmailTab({ period }: { period: StatsPeriod }) {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard label={`Verzonden e-mails (${periodLabel(period)})`} value={stats.emailsSent} />
         <StatCard label={`Geopende e-mails (${periodLabel(period)})`} value={stats.emailsOpened} />
-        <StatCard label="Open rate" value={stats.openRatePercentage === null ? "—" : `${stats.openRatePercentage}%`} />
+        <StatCard label="Open rate" value={stats.openRatePercentage === null ? "-" : `${stats.openRatePercentage}%`} />
       </div>
       <ChartCard title="Openingspercentage per maand">
         <LineTrend points={stats.openRatePerMonth} suffix="%" />
@@ -359,8 +359,8 @@ async function NewsletterTab() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard label="Verzonden nieuwsbrieven" value={stats.totalNewsletters} />
         <StatCard label="Totaal verstuurd" value={stats.totalSent} />
-        <StatCard label="Open rate" value={stats.openRatePercentage === null ? "—" : `${stats.openRatePercentage}%`} />
-        <StatCard label="Klik rate" value={stats.clickRatePercentage === null ? "—" : `${stats.clickRatePercentage}%`} />
+        <StatCard label="Open rate" value={stats.openRatePercentage === null ? "-" : `${stats.openRatePercentage}%`} />
+        <StatCard label="Klik rate" value={stats.clickRatePercentage === null ? "-" : `${stats.clickRatePercentage}%`} />
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
@@ -383,13 +383,13 @@ async function NewsletterTab() {
                 <td className="px-4 py-2 text-center text-muted">{n.sent}</td>
                 <td className="px-4 py-2 text-center text-muted">{n.opened}</td>
                 <td className="px-4 py-2 text-center text-muted">
-                  {n.sent > 0 ? formatPercentage((n.opened / n.sent) * 100) : "—"}
+                  {n.sent > 0 ? formatPercentage((n.opened / n.sent) * 100) : "-"}
                 </td>
                 <td className="px-4 py-2 text-center text-muted">{n.clicked}</td>
                 <td className="px-4 py-2 text-center text-muted">
-                  {n.sent > 0 ? formatPercentage((n.clicked / n.sent) * 100) : "—"}
+                  {n.sent > 0 ? formatPercentage((n.clicked / n.sent) * 100) : "-"}
                 </td>
-                <td className="px-4 py-2 text-muted">{n.sentAt ? formatDate(n.sentAt) : "—"}</td>
+                <td className="px-4 py-2 text-muted">{n.sentAt ? formatDate(n.sentAt) : "-"}</td>
               </tr>
             ))}
             {stats.newsletters.length === 0 && (

@@ -69,7 +69,7 @@ export function RegisterButton({
       </Button>
       {registered && waitlisted && (
         <p className="text-xs text-amber-700 dark:text-amber-400">
-          Je staat op de wachtlijst — je krijgt bericht zodra er een plek vrijkomt.
+          Je staat op de wachtlijst - je krijgt bericht zodra er een plek vrijkomt.
         </p>
       )}
       {!registered && isFull && (

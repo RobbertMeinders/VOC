@@ -145,7 +145,7 @@ export function BarTrend({
                     rx={2.5}
                     fill={s.color}
                   >
-                    <title>{`${m.label} — ${s.label}: ${v}`}</title>
+                    <title>{`${m.label} - ${s.label}: ${v}`}</title>
                   </rect>
                 );
               })}

@@ -319,7 +319,7 @@ function EventBlockEditor({
           </option>
           {activities.map((activity) => (
             <option key={activity.id} value={activity.id}>
-              {activity.title} — {formatActivityDate(activity.starts_at)}
+              {activity.title} - {formatActivityDate(activity.starts_at)}
             </option>
           ))}
         </Select>
@@ -397,7 +397,7 @@ function EventBlockEditor({
           </button>
         </div>
         <p className="text-xs text-muted">
-          Ververs haalt titel, locatie, omschrijving en afbeelding opnieuw op uit de activiteit — eigen wijzigingen
+          Ververs haalt titel, locatie, omschrijving en afbeelding opnieuw op uit de activiteit - eigen wijzigingen
           daaraan gaan dan verloren. De knoptekst blijft altijd staan.
         </p>
       </div>
@@ -544,7 +544,7 @@ function BlockEditor({
 
   return (
     <BlockShell label="Scheidingslijn" {...shellProps}>
-      <p className="text-sm text-muted">Een nette, dunne lijn tussen twee blokken — geen verdere instellingen.</p>
+      <p className="text-sm text-muted">Een nette, dunne lijn tussen twee blokken - geen verdere instellingen.</p>
     </BlockShell>
   );
 }
@@ -892,7 +892,7 @@ export function NewsletterEditor({
             <p className="text-sm font-medium text-foreground">Ingepland</p>
             <p className="mt-1 text-sm text-muted">
               Wordt verstuurd aan alle {activeMemberCount} actieve leden op{" "}
-              {communication.scheduled_at ? new Date(communication.scheduled_at).toLocaleString("nl-NL") : "—"}.
+              {communication.scheduled_at ? new Date(communication.scheduled_at).toLocaleString("nl-NL") : "-"}.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <Button type="button" variant="secondary" onClick={handleCancelSchedule} disabled={schedulePending}>
@@ -909,7 +909,7 @@ export function NewsletterEditor({
             <p className="text-sm font-medium text-foreground">Versturen</p>
             <p className="mt-1 text-sm text-muted">
               {communication.status === "verzenden_mislukt"
-                ? `${sentCount} van ${activeMemberCount} actieve leden ontvingen 'm al — de rest nog niet.`
+                ? `${sentCount} van ${activeMemberCount} actieve leden ontvingen 'm al - de rest nog niet.`
                 : `Gaat naar alle ${activeMemberCount} actieve leden.`}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -921,7 +921,7 @@ export function NewsletterEditor({
               {sendResult && sendResult.total !== undefined && sendResult.sent !== undefined && (
                 <p className={`text-sm ${sendResult.sent >= sendResult.total ? "text-green-600" : "text-voc-red-text"}`}>
                   {sendResult.sent} van {sendResult.total} verzonden
-                  {sendResult.sent < sendResult.total && " — probeer het later opnieuw voor de rest."}
+                  {sendResult.sent < sendResult.total && " - probeer het later opnieuw voor de rest."}
                 </p>
               )}
             </div>

@@ -73,7 +73,7 @@ export default async function InstellingenPage() {
 
       <SettingGroup
         label="Meldingen"
-        description="Kies per soort melding: pushmelding, e-mail, beide, of geen. Voor dingen die rechtstreeks over jou gaan — zoals de uitkomst van een aanvraag — krijg je altijd bericht, dat staat vast."
+        description="Kies per soort melding: pushmelding, e-mail, beide, of geen. Voor dingen die rechtstreeks over jou gaan - zoals de uitkomst van een aanvraag - krijg je altijd bericht, dat staat vast."
       >
         <SettingSubRow label="Dit apparaat">
           <PushToggle />

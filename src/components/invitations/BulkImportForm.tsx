@@ -81,7 +81,7 @@ export function BulkImportForm() {
       {rows.length > 0 && (
         <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
-            <h2 className="text-sm font-semibold text-foreground">{rows.length} rijen gevonden — controleer voor import</h2>
+            <h2 className="text-sm font-semibold text-foreground">{rows.length} rijen gevonden - controleer voor import</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full min-w-[920px] text-sm">
@@ -136,7 +136,7 @@ export function BulkImportForm() {
           {result.imported > 0 && (
             <p className="text-sm text-green-600">
               {result.imported} uitnodiging{result.imported === 1 ? "" : "en"} aangemaakt (nog geen e-mail
-              verstuurd) — te vinden bij{" "}
+              verstuurd) - te vinden bij{" "}
               <Link href="/beheer/instroom?tab=uitnodigingen" className="underline">
                 Uitnodigingen
               </Link>

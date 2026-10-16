@@ -62,7 +62,7 @@ export default function PrivacyVeiligheidPage() {
       </div>
 
       <p className="mt-6 text-xs text-muted">
-        Geen enkel systeem is volledig zonder risico — we nemen redelijke technische en organisatorische
+        Geen enkel systeem is volledig zonder risico - we nemen redelijke technische en organisatorische
         maatregelen om je gegevens te beschermen. Vragen over je gegevens? Neem contact op met het bestuur, of
         pas je voorkeuren aan op{" "}
         <Link href="/instellingen" className="font-medium text-voc-red-text hover:underline">

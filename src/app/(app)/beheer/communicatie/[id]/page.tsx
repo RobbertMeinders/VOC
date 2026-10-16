@@ -69,7 +69,7 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
 
   const statusLabel =
     communication.status === "verzonden"
-      ? "Verzonden — alleen-lezen"
+      ? "Verzonden - alleen-lezen"
       : communication.status === "verzenden_mislukt"
         ? "Verzenden gedeeltelijk mislukt"
         : communication.status === "ingepland"

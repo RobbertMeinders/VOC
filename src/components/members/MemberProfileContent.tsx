@@ -184,7 +184,7 @@ export async function MemberProfileContent({ id }: { id: string }) {
               <p className="truncate text-sm font-medium text-foreground">{membership.company.name}</p>
               <p className="truncate text-xs text-muted">
                 {membership.company.industry && <span>{membership.company.industry}</span>}
-                {membership.company.industry && membership.company.city && <span> — </span>}
+                {membership.company.industry && membership.company.city && <span> · </span>}
                 {membership.company.city && <span>{membership.company.city}</span>}
               </p>
             </div>

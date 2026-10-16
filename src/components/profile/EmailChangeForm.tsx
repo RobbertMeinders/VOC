@@ -30,7 +30,7 @@ export function EmailChangeForm({ currentEmail }: { currentEmail: string }) {
   if (state.success) {
     return (
       <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-500/10 dark:text-green-400">
-        Check je nieuwe (en huidige) e-mailadres voor een bevestigingslink — pas na bevestigen wijzigt je e-mailadres echt.
+        Check je nieuwe (en huidige) e-mailadres voor een bevestigingslink - pas na bevestigen wijzigt je e-mailadres echt.
       </p>
     );
   }

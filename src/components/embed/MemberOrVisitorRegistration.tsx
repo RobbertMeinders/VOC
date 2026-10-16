@@ -120,7 +120,7 @@ export function MemberOrVisitorRegistration({
             Log in om je aan te melden
           </PopupLoginLink>
           {unlockPrompt}
-          {denied && <p className="text-xs text-muted">Kon geen toegang krijgen — gebruik de knop hierboven.</p>}
+          {denied && <p className="text-xs text-muted">Kon geen toegang krijgen - gebruik de knop hierboven.</p>}
         </div>
         <div className="flex flex-col gap-3 border-t border-border pt-6">
           <p className="text-sm text-foreground">Meld je aan als bezoeker</p>
@@ -140,7 +140,7 @@ export function MemberOrVisitorRegistration({
         Log in om je aan te melden
       </PopupLoginLink>
       {unlockPrompt}
-      {denied && <p className="text-xs text-muted">Kon geen toegang krijgen — gebruik de knop hierboven.</p>}
+      {denied && <p className="text-xs text-muted">Kon geen toegang krijgen - gebruik de knop hierboven.</p>}
     </div>
   );
 }

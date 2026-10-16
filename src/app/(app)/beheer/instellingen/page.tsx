@@ -14,7 +14,7 @@ export default async function AppSettingsPage() {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="App-instellingen"
-        description="Naam, logo en verenigingsnaam van het ledenportaal — zichtbaar voor alle leden."
+        description="Naam, logo en verenigingsnaam van het ledenportaal - zichtbaar voor alle leden."
       />
 
       <AppSettingsForm settings={settings} />

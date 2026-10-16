@@ -417,7 +417,7 @@ export function ActivityForm({
         <div className="flex flex-col gap-2">
           <span className="text-sm font-medium text-foreground">Melding bij publiceren</span>
           <p className="text-xs text-muted">
-            Respecteert altijd de persoonlijke meldingsvoorkeuren van elk lid — dit bepaalt alleen of het kanaal
+            Respecteert altijd de persoonlijke meldingsvoorkeuren van elk lid - dit bepaalt alleen of het kanaal
             zelf openstaat.
           </p>
           <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3 py-2.5">

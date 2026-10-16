@@ -67,7 +67,7 @@ function MagicLinkLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSw
       <div className="flex flex-col gap-4">
         <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-500/10 dark:text-green-400">
           Als dit e-mailadres bij ons bekend is, ontvang je binnen enkele minuten een inloglink. Geen
-          wachtwoord nodig — klik de link in je mail en je bent binnen.
+          wachtwoord nodig - klik de link in je mail en je bent binnen.
         </div>
         <button
           type="button"
@@ -95,7 +95,7 @@ function MagicLinkLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSw
           required
           placeholder="naam@bedrijf.nl"
         />
-        <p className="text-xs text-muted">We sturen je een inloglink — geen wachtwoord nodig.</p>
+        <p className="text-xs text-muted">We sturen je een inloglink - geen wachtwoord nodig.</p>
       </div>
       <label className="flex items-center gap-2 text-sm text-foreground">
         <input type="checkbox" name="remember" className="rounded" defaultChecked />
