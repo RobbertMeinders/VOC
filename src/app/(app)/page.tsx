@@ -57,7 +57,9 @@ export default async function HomePage() {
   const showPhotoPrompt = !profile.onboarding_dismissed_at && missingProfileInfo;
 
   const [nextActivityImageUrl, myRegistration, newsImageUrls] = await Promise.all([
-    nextActivity ? getSignedStorageUrl("activity-images", nextActivity.image_url) : Promise.resolve(null),
+    nextActivity
+      ? getSignedStorageUrl("activity-images", nextActivity.image_thumb_url ?? nextActivity.image_url)
+      : Promise.resolve(null),
     nextActivity
       ? supabase
           .from("activity_registrations")

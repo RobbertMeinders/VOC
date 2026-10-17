@@ -13,8 +13,10 @@ const JPEG_QUALITY = 0.82;
 // nu toe altijd op volle (tot 1920px) grootte gedownload — dat was 75-90% van
 // de bytes per paginaweergave. 160px is ruim genoeg voor een 72px-weergave op
 // een 2x-scherm; de volledige foto blijft daarnaast bestaan voor het
-// bewerkformulier/detailweergave.
-const THUMBNAIL_DIMENSION = 160;
+// bewerkformulier/detailweergave. Activiteit-/feedfoto's staan in kaarten van
+// 112-366px (audit sectie H) — daarvoor 800px, ruim genoeg op 2x-schermen.
+export const AVATAR_LOGO_THUMBNAIL_DIMENSION = 160;
+export const CARD_THUMBNAIL_DIMENSION = 800;
 const THUMBNAIL_QUALITY = 0.8;
 
 type ResizeResult = { blob: Blob; outputType: string } | null;
@@ -66,19 +68,22 @@ export async function compressImageFile(file: File): Promise<File> {
 }
 
 /**
- * Maakt een klein (max 160px) tweede bestand voor gebruik in lijsten — zie
- * THUMBNAIL_DIMENSION hierboven. Geeft `null` terug voor SVG (al vectorklein,
- * niet te rasteren) of als het genereren om wat voor reden ook mislukt; de
- * aanroeper laat avatar_thumb_url/logo_thumb_url dan gewoon leeg en de lijst
- * valt terug op de volledige afbeelding.
+ * Maakt een klein tweede bestand voor gebruik in lijsten/kaarten — zie
+ * AVATAR_LOGO_THUMBNAIL_DIMENSION/CARD_THUMBNAIL_DIMENSION hierboven. Geeft
+ * `null` terug voor SVG (al vectorklein, niet te rasteren) of als het
+ * genereren om wat voor reden ook mislukt; de aanroeper laat de *_thumb_url-
+ * kolom dan gewoon leeg en de kaart valt terug op de volledige afbeelding.
  */
-export async function createThumbnailFile(file: File): Promise<File | null> {
+export async function createThumbnailFile(
+  file: File,
+  maxDimension: number = AVATAR_LOGO_THUMBNAIL_DIMENSION
+): Promise<File | null> {
   if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
     return null;
   }
 
   try {
-    const result = await resizeToCanvas(file, THUMBNAIL_DIMENSION, THUMBNAIL_QUALITY);
+    const result = await resizeToCanvas(file, maxDimension, THUMBNAIL_QUALITY);
     if (!result) return null;
 
     const extension = result.outputType === "image/png" ? "png" : "jpg";

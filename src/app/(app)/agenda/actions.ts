@@ -216,7 +216,16 @@ export async function createActivityAction(
     if (image instanceof File && image.size > 0) {
       const result = await uploadImage(supabase, "activity-images", activity.id, image);
       if (!("error" in result)) {
-        await supabase.from("activities").update({ image_url: result.path }).eq("id", activity.id);
+        let thumbPath: string | null = null;
+        const thumbFile = formData.get("image_thumb");
+        if (thumbFile instanceof File && thumbFile.size > 0) {
+          const thumbResult = await uploadImage(supabase, "activity-images", activity.id, thumbFile);
+          if (!("error" in thumbResult)) thumbPath = thumbResult.path;
+        }
+        await supabase
+          .from("activities")
+          .update({ image_url: result.path, image_thumb_url: thumbPath })
+          .eq("id", activity.id);
       }
     }
 
@@ -246,16 +255,28 @@ export async function updateActivityAction(
 
     const { data: existing } = await supabase
       .from("activities")
-      .select("image_url, starts_at, ends_at, location")
+      .select("image_url, image_thumb_url, starts_at, ends_at, location")
       .eq("id", activityId)
       .maybeSingle();
 
     let imagePath: string | undefined;
+    // undefined = geen nieuwe afbeelding, dus kolom ongemoeid laten; null =
+    // wel een nieuwe afbeelding maar geen (geslaagde) thumbnail ervoor — dan
+    // expliciet leegmaken, anders zou een oude thumbnail bij een nieuwe
+    // afbeelding blijven staan.
+    let imageThumbPath: string | null | undefined;
     const image = formData.get("image");
     if (image instanceof File && image.size > 0) {
       const result = await uploadImage(supabase, "activity-images", activityId, image);
       if ("error" in result) return { error: result.error };
       imagePath = result.path;
+
+      imageThumbPath = null;
+      const thumbFile = formData.get("image_thumb");
+      if (thumbFile instanceof File && thumbFile.size > 0) {
+        const thumbResult = await uploadImage(supabase, "activity-images", activityId, thumbFile);
+        if (!("error" in thumbResult)) imageThumbPath = thumbResult.path;
+      }
     }
 
     const { error } = await supabase
@@ -264,7 +285,7 @@ export async function updateActivityAction(
         title,
         starts_at: startsAt,
         ...rest,
-        ...(imagePath ? { image_url: imagePath } : {}),
+        ...(imagePath ? { image_url: imagePath, image_thumb_url: imageThumbPath } : {}),
       })
       .eq("id", activityId);
 
@@ -274,6 +295,7 @@ export async function updateActivityAction(
 
     if (imagePath) {
       await removePreviousImage(supabase, "activity-images", existing?.image_url ?? null);
+      await removePreviousImage(supabase, "activity-images", existing?.image_thumb_url ?? null);
     }
 
     await logAuditAction("activity_updated", "activity", activityId);

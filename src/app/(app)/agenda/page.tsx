@@ -45,10 +45,14 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
     if (registration.is_waitlisted) continue;
     registrationCounts.set(registration.activity_id, (registrationCounts.get(registration.activity_id) ?? 0) + 1);
   }
+  // Thumbnail-paden in dezelfde batch-aanroep (performance-audit #1): een
+  // activiteitkaart toont de foto op 112-366px, daar is de kleine versie
+  // (max 800px) ruim genoeg voor. Een activiteit zonder thumbnail (nog niet
+  // opnieuw ge-upload sinds deze kolom bestaat) valt terug op de volle foto.
   const imageUrls = await getSignedStorageUrls(
     supabase,
     "activity-images",
-    activities.map((a) => a.image_url)
+    activities.flatMap((a) => [a.image_url, a.image_thumb_url])
   );
 
   const { upcoming, past } = splitUpcomingAndPast(activities);
@@ -69,11 +73,12 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
 
   function renderCard(activity: ActivityRow, hero = false) {
     const myStatus = myRegistrationByActivity.get(activity.id);
+    const imagePath = activity.image_thumb_url ?? activity.image_url;
     return (
       <ActivityCard
         key={activity.id}
         activity={activity}
-        imageUrl={activity.image_url ? (imageUrls.get(activity.image_url) ?? null) : null}
+        imageUrl={imagePath ? (imageUrls.get(imagePath) ?? null) : null}
         registrationCount={registrationCounts.get(activity.id) ?? 0}
         isRegistered={myStatus !== undefined}
         isWaitlisted={myStatus === true}

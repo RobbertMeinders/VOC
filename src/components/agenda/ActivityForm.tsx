@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
@@ -10,7 +10,7 @@ import { Switch } from "@/components/ui/Switch";
 import { FieldError } from "@/components/ui/FieldError";
 import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
 import { FileSelectButton } from "@/components/ui/FileSelectButton";
-import { compressInputFile } from "@/lib/image/compress";
+import { compressInputFile, createThumbnailFile, CARD_THUMBNAIL_DIMENSION } from "@/lib/image/compress";
 import { useUnsavedChanges } from "@/lib/ui/UnsavedChangesContext";
 import { useToast } from "@/lib/ui/ToastContext";
 import { useFieldValidation } from "@/lib/validation/useFieldValidation";
@@ -151,6 +151,7 @@ export function ActivityForm({
   useEffect(() => () => setDirty(false), [setDirty]);
   const [preview, setPreview] = useState<string | null>(null);
   const shownImage = preview ?? imageUrl;
+  const imageThumbInputRef = useRef<HTMLInputElement>(null);
   const [source, setSource] = useState<"voc" | "lid">(
     initialSource ?? (activity?.source as "voc" | "lid") ?? (showTypePicker ? "voc" : "lid")
   );
@@ -392,9 +393,22 @@ export function ActivityForm({
                 onChange={async (e) => {
                   const input = e.target;
                   const compressed = await compressInputFile(input);
-                  if (compressed) setPreview(URL.createObjectURL(compressed));
+                  if (!compressed) return;
+                  setPreview(URL.createObjectURL(compressed));
+
+                  // Klein tweede bestand voor de agendakaart (performance-
+                  // audit #1) — meegestuurd via een los, verborgen
+                  // file-input i.p.v. een extra formulierveld.
+                  const thumbInput = imageThumbInputRef.current;
+                  if (thumbInput) {
+                    const thumb = await createThumbnailFile(compressed, CARD_THUMBNAIL_DIMENSION);
+                    const transfer = new DataTransfer();
+                    if (thumb) transfer.items.add(thumb);
+                    thumbInput.files = transfer.files;
+                  }
                 }}
               />
+              <input ref={imageThumbInputRef} type="file" name="image_thumb" className="hidden" tabIndex={-1} aria-hidden="true" />
             </div>
           )}
         </div>

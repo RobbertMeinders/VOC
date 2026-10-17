@@ -109,7 +109,7 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
       getSignedStorageUrls(supabase, "avatars", matchedProfiles.map((p) => p.avatar_url)),
       getSignedStorageUrls(supabase, "company-logos", matchedCompanies.map((c) => c.logo_url)),
       getSignedStorageUrls(supabase, "documents", matchedDocuments.map((d) => d.storage_path)),
-      getSignedStorageUrls(supabase, "activity-images", matchedActivities.map((a) => a.image_url)),
+      getSignedStorageUrls(supabase, "activity-images", matchedActivities.flatMap((a) => [a.image_url, a.image_thumb_url])),
       supabase.from("activity_registrations").select("activity_id, is_waitlisted"),
       supabase.from("activity_registrations").select("activity_id").eq("profile_id", profile.id),
     ]);
@@ -181,15 +181,18 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
             <div>
               <h2 className="mb-2 text-sm font-semibold text-muted">Activiteiten ({matchedActivities.length})</h2>
               <div className="flex flex-col gap-3">
-                {matchedActivities.map((activity) => (
-                  <ActivityCard
-                    key={activity.id}
-                    activity={activity}
-                    imageUrl={activity.image_url ? (activityImageUrls.get(activity.image_url) ?? null) : null}
-                    registrationCount={registrationCounts.get(activity.id) ?? 0}
-                    isRegistered={registeredIds.has(activity.id)}
-                  />
-                ))}
+                {matchedActivities.map((activity) => {
+                  const imagePath = activity.image_thumb_url ?? activity.image_url;
+                  return (
+                    <ActivityCard
+                      key={activity.id}
+                      activity={activity}
+                      imageUrl={imagePath ? (activityImageUrls.get(imagePath) ?? null) : null}
+                      registrationCount={registrationCounts.get(activity.id) ?? 0}
+                      isRegistered={registeredIds.has(activity.id)}
+                    />
+                  );
+                })}
               </div>
             </div>
           )}

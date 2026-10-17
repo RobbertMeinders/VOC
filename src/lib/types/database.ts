@@ -173,6 +173,7 @@ export interface Database {
           description: string | null;
           location: string | null;
           image_url: string | null;
+          image_thumb_url: string | null;
           starts_at: string;
           ends_at: string | null;
           registration_deadline: string | null;
