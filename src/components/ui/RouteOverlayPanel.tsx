@@ -19,6 +19,13 @@ const DISMISS_THRESHOLD = 100;
 // sidebar/bottom-nav — dit moet aanvoelen als "gewoon een pagina", alleen
 // zonder dat je de lijst erachter kwijtraakt.
 //
+// Mobiel dekt dit paneel de volledige hoogte t/m de bottom-nav (niet ook de
+// mobiele header laten "doorschemeren" via een gaatje bovenaan, zoals een
+// eerdere versie deed): de mobiele header is sticky, en als de onderliggende
+// pagina al naar beneden gescrold was op het moment dat dit paneel opent,
+// bleef dat gaatje dan ineens willekeurige pagina-inhoud tonen i.p.v. de
+// header — zag er bovenaan een pagina toevallig netjes uit, verderop niet.
+//
 // Zit in layout.tsx van elk @modal-segment (i.p.v. in elke losse page.tsx
 // en loading.tsx) zodat dit paneel gemonteerd blijft terwijl Suspense
 // alleen de inhoud (spinner -> data) erbinnen wisselt — anders monteren
@@ -107,7 +114,7 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
     // last van hebben, want dan verandert pathname niet.
     <div
       key={pathname}
-      className="animate-sheet-in fixed inset-x-0 bottom-14 top-14 z-30 overflow-y-auto rounded-t-2xl bg-background md:inset-y-0 md:bottom-0 md:left-72 md:top-0 md:rounded-none"
+      className="animate-sheet-in fixed inset-x-0 bottom-14 top-0 z-30 overflow-y-auto rounded-t-2xl bg-background pt-[env(safe-area-inset-top)] md:inset-y-0 md:bottom-0 md:left-72 md:top-0 md:rounded-none md:pt-0"
       style={{
         transform: `translateY(${dragY}px)`,
         transition: dragging ? "none" : "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
