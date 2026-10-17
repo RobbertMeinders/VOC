@@ -101,22 +101,53 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
         {filtered.length === 0 && <ComingSoon icon={Users} title="Geen leden gevonden" description="Pas je zoekopdracht of filter aan." />}
         {filtered.map((member) => {
           const expanded = expandedId === member.id;
+          // Eén keer gedefinieerd, twee keer gerenderd (hieronder): op mobiel
+          // naast de naam, op sm+ aan het einde van de regel — zelfde
+          // redenering als Beheer -> Bedrijven.
+          const actions = (
+            <>
+              <button
+                type="button"
+                onClick={() => setExpandedId(expanded ? null : member.id)}
+                aria-label={expanded ? "Snel bewerken sluiten" : "Snel bewerken"}
+                aria-expanded={expanded}
+                className={clsx(
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-foreground hover:border-voc-red hover:text-voc-red-text",
+                  expanded ? "border-voc-red bg-voc-red-light text-voc-red-text" : "border-border bg-surface"
+                )}
+              >
+                {expanded ? <ChevronDown size={14} /> : <Pencil size={13} />}
+              </button>
+              <MemberRowMenu
+                memberId={member.id}
+                memberName={`${member.first_name} ${member.last_name}`}
+                currentRole={member.role}
+                isActive={member.is_active}
+                canEditRole={canEditRole}
+                isSelf={member.id === viewerId}
+                isOrganizationAccount={member.is_organization_account}
+              />
+            </>
+          );
           return (
             <div key={member.id} className="rounded-2xl border border-border bg-surface p-3 shadow-sm">
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
-                <Link href={`/leden/${member.id}`} className="flex min-w-0 shrink-0 items-center gap-3 hover:opacity-80">
-                  <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={36} />
-                  <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-[16rem]">
-                    {member.first_name} {member.last_name}
-                    {member.companyName && <span className="font-normal text-muted"> · {member.companyName}</span>}
-                  </p>
-                </Link>
+              {/* Op mobiel twee gestapelde regels (naam+knoppen, dan de
+                  contactgegevens eronder) — zelfde reden als Beheer ->
+                  Bedrijven: anders perste de contactregel zich in de smalle
+                  restruimte náást de naam en werd alles onleesbaar afgekapt. */}
+              <div className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-1.5">
+                <div className="flex items-center gap-3">
+                  <Link href={`/leden/${member.id}`} className="flex min-w-0 items-center gap-3 hover:opacity-80">
+                    <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={36} />
+                    <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-[16rem]">
+                      {member.first_name} {member.last_name}
+                      {member.companyName && <span className="font-normal text-muted"> · {member.companyName}</span>}
+                    </p>
+                  </Link>
+                  <div className="ml-auto flex shrink-0 items-center gap-2 sm:hidden">{actions}</div>
+                </div>
 
-                {/* Eén vloeiende regel i.p.v. vaste kolombreedtes — zelfde
-                    reden als Beheer -> Bedrijven: elk veld krijgt alleen de
-                    ruimte die het nodig heeft, i.p.v. een groot leeg gat bij
-                    een kort veld. */}
-                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
+                <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted sm:flex-1">
                   <span className="shrink-0 whitespace-nowrap">
                     {ROLE_LABELS[member.role]}
                     {!member.is_active && " · Gedeactiveerd"}
@@ -131,29 +162,7 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                   </span>
                 </div>
 
-                <div className="ml-auto flex shrink-0 items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setExpandedId(expanded ? null : member.id)}
-                    aria-label={expanded ? "Snel bewerken sluiten" : "Snel bewerken"}
-                    aria-expanded={expanded}
-                    className={clsx(
-                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-foreground hover:border-voc-red hover:text-voc-red-text",
-                      expanded ? "border-voc-red bg-voc-red-light text-voc-red-text" : "border-border bg-surface"
-                    )}
-                  >
-                    {expanded ? <ChevronDown size={14} /> : <Pencil size={13} />}
-                  </button>
-                  <MemberRowMenu
-                    memberId={member.id}
-                    memberName={`${member.first_name} ${member.last_name}`}
-                    currentRole={member.role}
-                    isActive={member.is_active}
-                    canEditRole={canEditRole}
-                    isSelf={member.id === viewerId}
-                    isOrganizationAccount={member.is_organization_account}
-                  />
-                </div>
+                <div className="hidden shrink-0 items-center gap-2 sm:flex">{actions}</div>
               </div>
 
               {expanded && (
