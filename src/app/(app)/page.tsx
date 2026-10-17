@@ -20,18 +20,30 @@ export default async function HomePage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: activities }, { data: newsItems }, { count: companyMemberCount }] = await Promise.all([
-    supabase
-      .from("activities")
-      .select("*")
-      .eq("status", "approved")
-      .gte("starts_at", new Date().toISOString())
-      .order("starts_at", { ascending: true })
-      .limit(1)
-      .returns<ActivityRow[]>(),
-    supabase.from("news_items").select("*").order("position", { ascending: true }).limit(3).returns<NewsItemRow[]>(),
-    supabase.from("company_members").select("id", { count: "exact", head: true }).eq("profile_id", profile.id),
-  ]);
+  // Performance-audit #5: myRegistrationRows (verderop) had alleen
+  // profile.id nodig, niet het resultaat van deze eerste golf — meteen hier
+  // mee starten i.p.v. pas in de tweede Promise.all.
+  const [{ data: activities }, { data: newsItems }, { count: companyMemberCount }, { data: myRegistrationRows }] =
+    await Promise.all([
+      supabase
+        .from("activities")
+        .select("*")
+        .eq("status", "approved")
+        .gte("starts_at", new Date().toISOString())
+        .order("starts_at", { ascending: true })
+        .limit(1)
+        .returns<ActivityRow[]>(),
+      supabase.from("news_items").select("*").order("position", { ascending: true }).limit(3).returns<NewsItemRow[]>(),
+      supabase.from("company_members").select("id", { count: "exact", head: true }).eq("profile_id", profile.id),
+      // UX-review punt 7/8: "Snelle toegang" herhaalde gewoon het hoofdmenu;
+      // vervangen door iets persoonlijks — de eigen, nog komende
+      // aanmeldingen.
+      supabase
+        .from("activity_registrations")
+        .select("is_waitlisted, activity:activities(*)")
+        .eq("profile_id", profile.id)
+        .returns<{ is_waitlisted: boolean; activity: ActivityRow | null }[]>(),
+    ]);
 
   const nextActivity = activities?.[0] ?? null;
 
@@ -44,7 +56,7 @@ export default async function HomePage() {
   const missingProfileInfo = !profile.avatar_url || !profile.job_title || (companyMemberCount ?? 0) === 0;
   const showPhotoPrompt = !profile.onboarding_dismissed_at && missingProfileInfo;
 
-  const [nextActivityImageUrl, myRegistration, newsImageUrls, { data: myRegistrationRows }] = await Promise.all([
+  const [nextActivityImageUrl, myRegistration, newsImageUrls] = await Promise.all([
     nextActivity ? getSignedStorageUrl("activity-images", nextActivity.image_url) : Promise.resolve(null),
     nextActivity
       ? supabase
@@ -59,13 +71,6 @@ export default async function HomePage() {
       "news-images",
       (newsItems ?? []).map((item) => item.image_url)
     ),
-    // UX-review punt 7/8: "Snelle toegang" herhaalde gewoon het hoofdmenu;
-    // vervangen door iets persoonlijks — de eigen, nog komende aanmeldingen.
-    supabase
-      .from("activity_registrations")
-      .select("is_waitlisted, activity:activities(*)")
-      .eq("profile_id", profile.id)
-      .returns<{ is_waitlisted: boolean; activity: ActivityRow | null }[]>(),
   ]);
 
   const now = new Date();

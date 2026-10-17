@@ -7,7 +7,7 @@ import { requireBoard, requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { uploadDocument } from "@/lib/supabase/uploadDocument";
-import { invalidateQuery } from "@/lib/cache/queryCache";
+import { invalidateActivityStatsCache } from "@/lib/statistics/queries";
 import { logAuditAction } from "@/lib/audit/log";
 import { sendRawHtmlEmail, escapeHtml } from "@/lib/email/send";
 import { dispatchPendingPushNotifications } from "@/lib/notifications/dispatch-push";
@@ -92,7 +92,7 @@ export async function registerForActivityAction(activityId: string): Promise<Reg
 
   // Anders bleef Statistieken > Activiteiten tot 60s (de cache-TTL) een
   // aanmeldingenaantal van vóór deze aanmelding tonen.
-  invalidateQuery("statistieken-activiteiten");
+  invalidateActivityStatsCache();
   revalidatePath(`/agenda/${activityId}`);
   revalidatePath("/agenda");
   return { waitlisted: data.is_waitlisted };
@@ -112,7 +112,7 @@ export async function unregisterFromActivityAction(activityId: string): Promise<
     return { error: "Afmelden is niet gelukt. Probeer het opnieuw." };
   }
 
-  invalidateQuery("statistieken-activiteiten");
+  invalidateActivityStatsCache();
   revalidatePath(`/agenda/${activityId}`);
   revalidatePath("/agenda");
   // UX-review punt 2: de promote_next_waitlisted-trigger zette net een
@@ -339,7 +339,7 @@ export async function deleteActivityAction(activityId: string, redirectAfter = t
     }
 
     await supabase.from("activities").delete().eq("id", activityId);
-    invalidateQuery("statistieken-activiteiten");
+    invalidateActivityStatsCache();
     revalidatePath("/agenda");
     revalidatePath("/beheer/agenda");
     if (redirectAfter) redirect("/agenda");
@@ -380,15 +380,21 @@ export async function cancelActivityAction(activityId: string, message: string):
     p_body: body,
   });
 
-  for (const recipient of nonMembers ?? []) {
-    if (recipient.email) {
-      await sendRawHtmlEmail(recipient.email, "Activiteit afgelast", `<p>${escapeHtml(body)}</p>`);
+  // Performance-audit #3: deze lus stuurde de e-mails één voor één vóór het
+  // antwoord aan het bestuurslid terug kon — bij meerdere niet-leden (die
+  // via het externe aanmeldformulier staan ingeschreven) liep de wachttijd
+  // zo op. na() blokkeert het antwoord niet meer.
+  after(async () => {
+    for (const recipient of nonMembers ?? []) {
+      if (recipient.email) {
+        await sendRawHtmlEmail(recipient.email, "Activiteit afgelast", `<p>${escapeHtml(body)}</p>`);
+      }
     }
-  }
+  });
   after(() => dispatchPendingPushNotifications(50));
 
   await logAuditAction("activity_cancelled", "activity", activityId);
-  invalidateQuery("statistieken-activiteiten");
+  invalidateActivityStatsCache();
   revalidatePath(`/agenda/${activityId}`);
   revalidatePath("/agenda");
   revalidatePath("/beheer/agenda");
@@ -415,11 +421,13 @@ export async function notifyActivityChangeAction(activityId: string, message: st
     p_body: body,
   });
 
-  for (const recipient of nonMembers ?? []) {
-    if (recipient.email) {
-      await sendRawHtmlEmail(recipient.email, "Activiteit gewijzigd", `<p>${escapeHtml(body)}</p>`);
+  after(async () => {
+    for (const recipient of nonMembers ?? []) {
+      if (recipient.email) {
+        await sendRawHtmlEmail(recipient.email, "Activiteit gewijzigd", `<p>${escapeHtml(body)}</p>`);
+      }
     }
-  }
+  });
   after(() => dispatchPendingPushNotifications(50));
 
   await logAuditAction("activity_change_notified", "activity", activityId);
@@ -475,7 +483,7 @@ export async function setAttendanceAction(registrationId: string, activityId: st
 
   await supabase.from("activity_registrations").update({ attended }).eq("id", registrationId);
 
-  invalidateQuery("statistieken-activiteiten");
+  invalidateActivityStatsCache();
   revalidatePath(`/agenda/${activityId}`);
 }
 

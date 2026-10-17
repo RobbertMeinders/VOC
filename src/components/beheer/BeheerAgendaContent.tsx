@@ -94,28 +94,31 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
   // updateActivityAction. Eén query voor alle activiteiten i.p.v. per rij,
   // aflopend gesorteerd zodat de eerste match per activiteit+actie de
   // meest recente is.
-  const { data: logs } =
+  //
+  // Performance-audit #5: logs en registrationRows hangen allebei alleen af
+  // van activityIds (hierboven), niet van elkaar — samen in één Promise.all
+  // i.p.v. na elkaar.
+  const [{ data: logs }, { data: registrationRows }] =
     activityIds.length > 0
-      ? await supabase
-          .from("audit_logs")
-          .select("action, target_id, created_at, actor:profiles(first_name, last_name)")
-          .eq("target_type", "activity")
-          .in("target_id", activityIds)
-          .order("created_at", { ascending: false })
-          .returns<AuditLogRow[]>()
-      : { data: [] as AuditLogRow[] };
+      ? await Promise.all([
+          supabase
+            .from("audit_logs")
+            .select("action, target_id, created_at, actor:profiles(first_name, last_name)")
+            .eq("target_type", "activity")
+            .in("target_id", activityIds)
+            .order("created_at", { ascending: false })
+            .returns<AuditLogRow[]>(),
+          // UX-review punt 21: verwijderen cascadet aanmeldingen weg zonder
+          // melding — hier opgehaald zodat de rij "Afgelasten" i.p.v.
+          // "Verwijderen" kan aanbieden zodra er daadwerkelijk aanmeldingen
+          // zijn.
+          supabase.from("activity_registrations").select("activity_id").in("activity_id", activityIds),
+        ])
+      : [{ data: [] as AuditLogRow[] }, { data: [] as { activity_id: string }[] }];
 
   function latestLog(activityId: string, actions: string[]) {
     return (logs ?? []).find((l) => l.target_id === activityId && actions.includes(l.action)) ?? null;
   }
-
-  // UX-review punt 21: verwijderen cascadet aanmeldingen weg zonder melding
-  // — hier opgehaald zodat de rij "Afgelasten" i.p.v. "Verwijderen" kan
-  // aanbieden zodra er daadwerkelijk aanmeldingen zijn.
-  const { data: registrationRows } =
-    activityIds.length > 0
-      ? await supabase.from("activity_registrations").select("activity_id").in("activity_id", activityIds)
-      : { data: [] as { activity_id: string }[] };
   const registrationCounts = new Map<string, number>();
   for (const row of registrationRows ?? []) {
     registrationCounts.set(row.activity_id, (registrationCounts.get(row.activity_id) ?? 0) + 1);

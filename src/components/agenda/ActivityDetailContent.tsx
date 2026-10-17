@@ -1,6 +1,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import { after } from "next/server";
+import { cache } from "react";
 import { CalendarDays, Clock, Download, MapPin, Megaphone, Pencil, Users, XCircle } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -22,9 +24,17 @@ import type { Database } from "@/lib/types/database";
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
 type Attachment = Database["public"]["Tables"]["activity_attachments"]["Row"];
 
-export async function getActivityTitle(id: string): Promise<string> {
+// Performance-audit #5: generateMetadata (title) en ActivityDetailContent
+// deden allebei hun eigen activities-query voor dezelfde id — cache() dedupet
+// de tweede aanroep binnen hetzelfde verzoek.
+const getCachedActivity = cache(async (id: string): Promise<Activity | null> => {
   const supabase = await createClient();
-  const { data: activity } = await supabase.from("activities").select("title").eq("id", id).maybeSingle();
+  const { data } = await supabase.from("activities").select("*").eq("id", id).maybeSingle<Activity>();
+  return data;
+});
+
+export async function getActivityTitle(id: string): Promise<string> {
+  const activity = await getCachedActivity(id);
   return activity?.title ?? "Activiteit";
 }
 
@@ -35,12 +45,15 @@ export async function ActivityDetailContent({ id }: { id: string }) {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const { data: activity } = await supabase.from("activities").select("*").eq("id", id).maybeSingle<Activity>();
+  const activity = await getCachedActivity(id);
   if (!activity) {
     notFound();
   }
 
-  await logEvent("activity_viewed", "activity", activity.id);
+  // Performance-audit #3: dit blokkeerde eerder het renderen van de hele
+  // pagina (100-300ms) terwijl de gebruiker niets aan de statistiekregel
+  // zelf heeft — na() het antwoord loggen i.p.v. ervoor.
+  after(() => logEvent("activity_viewed", "activity", activity.id));
 
   type RegistrationRow = {
     id: string;

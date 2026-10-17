@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
@@ -18,9 +19,18 @@ type RequestRow = {
   profile: { id: string; first_name: string; last_name: string; avatar_url: string | null };
 };
 
-export async function getCompanyProfileTitle(id: string): Promise<string> {
+// Performance-audit #5: generateMetadata (title) en CompanyProfileContent
+// deden allebei hun eigen companies-query voor dezelfde id — cache() dedupet
+// de tweede aanroep binnen hetzelfde verzoek (zelfde patroon als
+// getCurrentProfile in lib/auth/session.ts).
+const getCachedCompany = cache(async (id: string): Promise<Company | null> => {
   const supabase = await createClient();
-  const { data: company } = await supabase.from("companies").select("name").eq("id", id).maybeSingle();
+  const { data } = await supabase.from("companies").select("*").eq("id", id).maybeSingle<Company>();
+  return data;
+});
+
+export async function getCompanyProfileTitle(id: string): Promise<string> {
+  const company = await getCachedCompany(id);
   return company?.name ?? "Bedrijf";
 }
 
@@ -31,13 +41,11 @@ export async function CompanyProfileContent({ id }: { id: string }) {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const { data: company } = await supabase.from("companies").select("*").eq("id", id).maybeSingle<Company>();
-
-  if (!company) {
-    notFound();
-  }
-
-  const [{ data: memberRows }, { data: requestRows }] = await Promise.all([
+  // Performance-audit #5: memberRows/requestRows hebben alleen `id` nodig,
+  // niet het resultaat van de companies-query — meteen samen met die query
+  // in één Promise.all i.p.v. pas erna te starten.
+  const [company, { data: memberRows }, { data: requestRows }] = await Promise.all([
+    getCachedCompany(id),
     supabase
       .from("company_members")
       .select("profile:profiles(id, first_name, last_name, job_title, avatar_url)")
@@ -50,6 +58,10 @@ export async function CompanyProfileContent({ id }: { id: string }) {
       .eq("status", "pending")
       .returns<RequestRow[]>(),
   ]);
+
+  if (!company) {
+    notFound();
+  }
 
   // Ook gebruikt voor de "Bewerken"-link in de header: bestuur/beheer of
   // een lid van dit bedrijf mag zowel aanvragen afhandelen als de

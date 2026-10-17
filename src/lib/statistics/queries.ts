@@ -1,7 +1,7 @@
 import "server-only";
 
 import { createClient } from "@/lib/supabase/server";
-import { cachedQuery } from "@/lib/cache/queryCache";
+import { cachedQuery, invalidateQuery } from "@/lib/cache/queryCache";
 
 // Zelfde 60s-TTL als de andere admin-lijstpagina's (bv. beheer-leden-page-data)
 // — de cijfers zijn voor elk bestuurslid identiek, dus delen tussen viewers
@@ -10,12 +10,27 @@ const TTL_MS = 60_000;
 
 export type StatsPeriod = "7d" | "30d" | "3m" | "12m" | "all";
 
+const STATS_PERIODS: StatsPeriod[] = ["7d", "30d", "3m", "12m", "all"];
+
 const PERIOD_DAYS: Record<Exclude<StatsPeriod, "all">, number> = {
   "7d": 7,
   "30d": 30,
   "3m": 90,
   "12m": 365,
 };
+
+// Performance-audit #11: agenda/actions.ts riep tot nu toe
+// invalidateQuery("statistieken-activiteiten") aan, een sleutel die nooit
+// bestond — getActivityStats() cachet per periode onder
+// "statistieken-activiteiten-${period}" (zie hieronder). Hierdoor liepen de
+// activiteitenstatistieken na elke wijziging tot 60s achter i.p.v. meteen
+// te verversen. Eén plek die alle periode-varianten invalideert, i.p.v. de
+// aanroeper de volledige periodelijst te laten kennen.
+export function invalidateActivityStatsCache(): void {
+  for (const period of STATS_PERIODS) {
+    invalidateQuery(`statistieken-activiteiten-${period}`);
+  }
+}
 
 export function periodStart(period: StatsPeriod): string | null {
   if (period === "all") return null;

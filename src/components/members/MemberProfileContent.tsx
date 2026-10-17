@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { Clock, Mail, Pencil, Phone } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -26,9 +27,23 @@ type Membership = {
 };
 type AttendedActivity = { id: string; title: string; starts_at: string };
 
-export async function getMemberProfileTitle(id: string): Promise<string> {
+// Performance-audit #5: generateMetadata (title) en MemberProfileContent
+// riepen allebei hun eigen profiel-query aan voor dezelfde id — met
+// React's cache() wordt de tweede aanroep binnen hetzelfde verzoek hergebruikt
+// i.p.v. een dubbele round-trip naar Supabase te doen (zelfde patroon als
+// getCurrentProfile in lib/auth/session.ts).
+const getCachedMemberProfile = cache(async (id: string): Promise<Profile | null> => {
   const supabase = await createClient();
-  const { data: member } = await supabase.from("profiles").select("first_name, last_name").eq("id", id).maybeSingle();
+  // get_member_profile (0061_masked_contact_fields.sql) i.p.v. rechtstreeks
+  // .from("profiles") — maskeert email/phone naar null tenzij het je eigen
+  // profiel is, de bekeken persoon dat zelf zichtbaar heeft gezet
+  // (show_email/show_phone), of jijzelf bestuur/beheer bent.
+  const { data } = await supabase.rpc("get_member_profile", { p_id: id }).returns<Profile[]>();
+  return data?.[0] ?? null;
+});
+
+export async function getMemberProfileTitle(id: string): Promise<string> {
+  const member = await getCachedMemberProfile(id);
   return member ? `${member.first_name} ${member.last_name}` : "Lid";
 }
 
@@ -41,19 +56,13 @@ export async function MemberProfileContent({ id }: { id: string }) {
   const isOwnProfile = viewer.id === id;
   const canSeePrivate = isOwnProfile || isBoard(viewer.role);
 
-  // get_member_profile (0061_masked_contact_fields.sql) i.p.v. rechtstreeks
-  // .from("profiles") — maskeert email/phone naar null tenzij het je eigen
-  // profiel is, de bekeken persoon dat zelf zichtbaar heeft gezet
-  // (show_email/show_phone), of jijzelf bestuur/beheer bent.
-  const { data } = await supabase.rpc("get_member_profile", { p_id: id }).returns<Profile[]>();
-  const member = data?.[0] ?? null;
-
-  if (!member) {
-    notFound();
-  }
-
-  const [avatarUrl, { data: membership }, { data: attendedRows }, posts] = await Promise.all([
-    getSignedStorageUrl("avatars", member.avatar_url),
+  // Performance-audit #5: membership/attendedRows/posts hebben alleen `id`
+  // nodig, niet het resultaat van de profiel-RPC — voorheen wachtten ze
+  // toch tot die RPC klaar was voordat ze zelfs maar begonnen. Nu allemaal
+  // in één Promise.all, zodat de netwerk-rondes gelijktijdig lopen i.p.v.
+  // na elkaar.
+  const [member, { data: membership }, { data: attendedRows }, posts] = await Promise.all([
+    getCachedMemberProfile(id),
     supabase
       .from("company_members")
       .select("company:companies(id, name, city, industry, logo_url)")
@@ -72,9 +81,17 @@ export async function MemberProfileContent({ id }: { id: string }) {
     fetchFeedPostsByAuthor(supabase, viewer.id, id, MEMBER_PROFILE_LIST_PREVIEW + 1),
   ]);
 
-  const logoUrl = membership?.company?.logo_url
-    ? await getSignedStorageUrl("company-logos", membership.company.logo_url)
-    : null;
+  if (!member) {
+    notFound();
+  }
+
+  // Deze twee hangen wél van elkaars resultaat (member.avatar_url) of van
+  // membership af, dus die blijven na de Promise.all hierboven — maar wel
+  // weer samen parallel i.p.v. na elkaar.
+  const [avatarUrl, logoUrl] = await Promise.all([
+    getSignedStorageUrl("avatars", member.avatar_url),
+    membership?.company?.logo_url ? getSignedStorageUrl("company-logos", membership.company.logo_url) : null,
+  ]);
 
   // Instelling (zie /instellingen): een lid kan deze sectie voor andere
   // leden verbergen — zichzelf en bestuur/beheer zien 'm altijd.
