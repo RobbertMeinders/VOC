@@ -60,55 +60,66 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
           const expanded = expandedId === company.id;
           return (
             <div key={company.id} className="rounded-2xl border border-border bg-surface p-3 shadow-sm">
-              <div className="flex items-center gap-3">
-                <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={40} />
-                <Link href={`/bedrijven/${company.id}`} className="min-w-0 flex-1 hover:opacity-80">
-                  <p className="truncate text-sm font-medium text-foreground">{company.name}</p>
-                </Link>
-                <button
-                  type="button"
-                  onClick={() => setExpandedId(expanded ? null : company.id)}
-                  aria-label={expanded ? "Snel bewerken sluiten" : "Snel bewerken"}
-                  aria-expanded={expanded}
-                  className={clsx(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-foreground hover:border-voc-red hover:text-voc-red-text",
-                    expanded ? "border-voc-red bg-voc-red-light text-voc-red-text" : "border-border bg-surface"
-                  )}
-                >
-                  {expanded ? <ChevronDown size={14} /> : <Pencil size={13} />}
-                </button>
-                {canDelete && (
-                  <DeleteButton
-                    onDelete={deleteCompanyAction.bind(null, company.id, false)}
-                    confirmMessage={`Weet je zeker dat je ${company.name} definitief wilt verwijderen?`}
-                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-voc-red"
-                    size={13}
-                  />
-                )}
-              </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                <div className="flex min-w-0 shrink-0 items-center gap-3">
+                  <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={36} />
+                  <Link href={`/bedrijven/${company.id}`} className="min-w-0 hover:opacity-80">
+                    <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-[16rem]">{company.name}</p>
+                  </Link>
+                </div>
 
-              {/* Vaste kolombreedtes (sm+) i.p.v. flex-wrap: anders schoof elk
-                  veld op basis van de lengte van het vorige veld, en liepen
-                  factuuradres/e-mail/btw-nummer niet onder elkaar uit tussen
-                  rijen. Elke kolom wordt altijd gerenderd (ook leeg), zodat de
-                  posities nooit verspringen. Op mobiel gewoon onder elkaar. */}
-              <div className="ml-[52px] mt-1.5 grid grid-cols-1 gap-x-4 gap-y-1 text-xs text-muted sm:grid-cols-[minmax(0,1fr)_minmax(0,9rem)_minmax(0,13rem)_minmax(0,9rem)] sm:items-center sm:gap-y-0">
-                <span className="flex min-w-0 items-center gap-1">
-                  <MapPin size={11} className="shrink-0" />
-                  <span className="truncate">{company.invoiceAddress ?? "Geen adres bekend"}</span>
-                </span>
-                <span className="flex min-w-0 items-center gap-1">
-                  {company.phone && <Phone size={11} className="shrink-0" />}
-                  <span className="truncate">{company.phone}</span>
-                </span>
-                <span className="flex min-w-0 items-center gap-1">
-                  <Mail size={11} className="shrink-0" />
-                  <span className="truncate">{company.effectiveEmail ?? "Geen e-mailadres"}</span>
-                </span>
-                <span className={clsx("flex min-w-0 items-center gap-1", !company.vatNumber && "text-amber-700 dark:text-amber-400")}>
-                  <Receipt size={11} className="shrink-0" />
-                  <span className="truncate">{company.vatNumber ?? "Geen btw-nummer"}</span>
-                </span>
+                {/* Eén vloeiende regel i.p.v. vaste kolombreedtes: anders bleef
+                    er een groot leeg gat staan zodra het adres korter was dan
+                    de gereserveerde kolombreedte. Elk veld krijgt nu alleen de
+                    ruimte die het echt nodig heeft (tot een max-breedte), en
+                    wrapt op smalle schermen gewoon mee i.p.v. apart onder de
+                    naam te staan. */}
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
+                  <span className="flex min-w-0 max-w-[20rem] items-center gap-1">
+                    <MapPin size={11} className="shrink-0" />
+                    <span className="truncate">{company.invoiceAddress ?? "Geen adres bekend"}</span>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-1 whitespace-nowrap">
+                    {company.phone && <Phone size={11} className="shrink-0" />}
+                    <span>{company.phone}</span>
+                  </span>
+                  <span className="flex min-w-0 max-w-[14rem] items-center gap-1">
+                    <Mail size={11} className="shrink-0" />
+                    <span className="truncate">{company.effectiveEmail ?? "Geen e-mailadres"}</span>
+                  </span>
+                  <span
+                    className={clsx(
+                      "flex shrink-0 items-center gap-1 whitespace-nowrap",
+                      !company.vatNumber && "text-amber-700 dark:text-amber-400"
+                    )}
+                  >
+                    <Receipt size={11} className="shrink-0" />
+                    <span>{company.vatNumber ?? "Geen btw-nummer"}</span>
+                  </span>
+                </div>
+
+                <div className="ml-auto flex shrink-0 items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(expanded ? null : company.id)}
+                    aria-label={expanded ? "Snel bewerken sluiten" : "Snel bewerken"}
+                    aria-expanded={expanded}
+                    className={clsx(
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-foreground hover:border-voc-red hover:text-voc-red-text",
+                      expanded ? "border-voc-red bg-voc-red-light text-voc-red-text" : "border-border bg-surface"
+                    )}
+                  >
+                    {expanded ? <ChevronDown size={14} /> : <Pencil size={13} />}
+                  </button>
+                  {canDelete && (
+                    <DeleteButton
+                      onDelete={deleteCompanyAction.bind(null, company.id, false)}
+                      confirmMessage={`Weet je zeker dat je ${company.name} definitief wilt verwijderen?`}
+                      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-voc-red"
+                      size={13}
+                    />
+                  )}
+                </div>
               </div>
 
               {expanded && (

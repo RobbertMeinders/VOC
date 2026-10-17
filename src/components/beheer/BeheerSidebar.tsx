@@ -56,39 +56,45 @@ export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
 
   return (
     <>
-      <div className="relative md:hidden">
-        <button
-          type="button"
-          onClick={() => setOpen((v) => !v)}
-          aria-expanded={open}
-          className="flex w-full items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5 text-sm font-medium text-foreground shadow-sm"
-        >
-          {activeItem && <activeItem.icon size={16} className="text-voc-red-text" />}
-          {activeItem?.label ?? "Beheer"}
-          <ChevronDown size={16} className={clsx("ml-auto transition-transform duration-200", open && "rotate-180")} />
-        </button>
-        {open && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-            <div className="animate-fade-in absolute z-50 mt-2 flex max-h-[70vh] w-full flex-col gap-3 overflow-y-auto rounded-xl border border-border bg-surface p-2 shadow-lg">
-              {sections.map((section) => (
-                <div key={section.title}>
-                  <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">{section.title}</p>
-                  <div className="flex flex-col gap-0.5">
-                    {section.items.map((item) => renderItem(item, () => setOpen(false)))}
+      {/* sticky zodat je tussen secties kunt wisselen zonder eerst terug naar
+          boven te scrollen in een lange lijst (-mx-4/px-4 laat de achtergrond
+          vol breed doorlopen, zelfde bleed-truc als elders). */}
+      <div className="sticky top-14 z-20 -mx-4 bg-background px-4 pb-2 pt-2 md:hidden">
+        <div className="relative">
+          <button
+            type="button"
+            onClick={() => setOpen((v) => !v)}
+            aria-expanded={open}
+            className="flex w-full items-center gap-2 rounded-xl border border-border bg-surface px-3 py-2.5 text-sm font-medium text-foreground shadow-sm"
+          >
+            {activeItem && <activeItem.icon size={16} className="text-voc-red-text" />}
+            {activeItem?.label ?? "Beheer"}
+            <ChevronDown size={16} className={clsx("ml-auto transition-transform duration-200", open && "rotate-180")} />
+          </button>
+          {open && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+              <div className="animate-fade-in absolute z-50 mt-2 flex max-h-[70vh] w-full flex-col gap-3 overflow-y-auto rounded-xl border border-border bg-surface p-2 shadow-lg">
+                {sections.map((section) => (
+                  <div key={section.title}>
+                    <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">{section.title}</p>
+                    <div className="flex flex-col gap-0.5">
+                      {section.items.map((item) => renderItem(item, () => setOpen(false)))}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {/* -ml-16 trekt deze kolom over de paginarand van Beheer-pagina's heen
           (md:px-16 in AppShell voor "brede" pagina's), zodat hij vlak tegen
           de hoofd-Sidebar aan ligt i.p.v. er met een zichtbaar gaatje los
-          van te staan. */}
-      <nav className="hidden md:-ml-16 md:flex md:w-60 md:shrink-0 md:flex-col md:gap-5 md:border-r md:border-border md:px-4 md:py-1">
+          van te staan. md:sticky: blijft in beeld bij scrollen door een lange
+          lijst, i.p.v. dat je terug naar boven moet om van sectie te wisselen. */}
+      <nav className="hidden md:sticky md:top-10 md:-ml-16 md:flex md:w-60 md:shrink-0 md:flex-col md:gap-5 md:self-start md:border-r md:border-border md:px-4 md:py-1">
         {sections.map((section) => (
           <div key={section.title} className="flex flex-col gap-1">
             <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">{section.title}</p>

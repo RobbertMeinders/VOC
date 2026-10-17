@@ -103,56 +103,57 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
           const expanded = expandedId === member.id;
           return (
             <div key={member.id} className="rounded-2xl border border-border bg-surface p-3 shadow-sm">
-              <div className="flex items-center gap-3">
-                <Link href={`/leden/${member.id}`} className="flex min-w-0 flex-1 items-center gap-3 hover:opacity-80">
-                  <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={40} />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium text-foreground">
-                      {member.first_name} {member.last_name}
-                      {member.companyName && <span className="font-normal text-muted"> · {member.companyName}</span>}
-                    </p>
-                  </div>
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
+                <Link href={`/leden/${member.id}`} className="flex min-w-0 shrink-0 items-center gap-3 hover:opacity-80">
+                  <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={36} />
+                  <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-[16rem]">
+                    {member.first_name} {member.last_name}
+                    {member.companyName && <span className="font-normal text-muted"> · {member.companyName}</span>}
+                  </p>
                 </Link>
-                <button
-                  type="button"
-                  onClick={() => setExpandedId(expanded ? null : member.id)}
-                  aria-label={expanded ? "Snel bewerken sluiten" : "Snel bewerken"}
-                  aria-expanded={expanded}
-                  className={clsx(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-foreground hover:border-voc-red hover:text-voc-red-text",
-                    expanded ? "border-voc-red bg-voc-red-light text-voc-red-text" : "border-border bg-surface"
-                  )}
-                >
-                  {expanded ? <ChevronDown size={14} /> : <Pencil size={13} />}
-                </button>
-                <MemberRowMenu
-                  memberId={member.id}
-                  memberName={`${member.first_name} ${member.last_name}`}
-                  currentRole={member.role}
-                  isActive={member.is_active}
-                  canEditRole={canEditRole}
-                  isSelf={member.id === viewerId}
-                  isOrganizationAccount={member.is_organization_account}
-                />
-              </div>
 
-              {/* Vaste kolombreedtes (sm+) i.p.v. flex-wrap — zelfde reden als
-                  Beheer -> Bedrijven: anders schuift elk veld op basis van de
-                  lengte van het vorige, en lopen e-mail/telefoon niet onder
-                  elkaar uit tussen rijen. Op mobiel gewoon onder elkaar. */}
-              <div className="ml-[52px] mt-1.5 grid grid-cols-1 gap-x-4 gap-y-1 text-xs text-muted sm:grid-cols-[minmax(0,1fr)_minmax(0,13rem)_minmax(0,9rem)] sm:items-center sm:gap-y-0">
-                <span className="min-w-0 truncate">
-                  {ROLE_LABELS[member.role]}
-                  {!member.is_active && " · Gedeactiveerd"}
-                </span>
-                <span className="flex min-w-0 items-center gap-1">
-                  <Mail size={11} className="shrink-0" />
-                  <span className="truncate">{member.email}</span>
-                </span>
-                <span className="flex min-w-0 items-center gap-1">
-                  {member.phone && <Phone size={11} className="shrink-0" />}
-                  <span className="truncate">{member.phone}</span>
-                </span>
+                {/* Eén vloeiende regel i.p.v. vaste kolombreedtes — zelfde
+                    reden als Beheer -> Bedrijven: elk veld krijgt alleen de
+                    ruimte die het nodig heeft, i.p.v. een groot leeg gat bij
+                    een kort veld. */}
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
+                  <span className="shrink-0 whitespace-nowrap">
+                    {ROLE_LABELS[member.role]}
+                    {!member.is_active && " · Gedeactiveerd"}
+                  </span>
+                  <span className="flex min-w-0 max-w-[14rem] items-center gap-1">
+                    <Mail size={11} className="shrink-0" />
+                    <span className="truncate">{member.email}</span>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-1 whitespace-nowrap">
+                    {member.phone && <Phone size={11} className="shrink-0" />}
+                    <span>{member.phone}</span>
+                  </span>
+                </div>
+
+                <div className="ml-auto flex shrink-0 items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setExpandedId(expanded ? null : member.id)}
+                    aria-label={expanded ? "Snel bewerken sluiten" : "Snel bewerken"}
+                    aria-expanded={expanded}
+                    className={clsx(
+                      "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-foreground hover:border-voc-red hover:text-voc-red-text",
+                      expanded ? "border-voc-red bg-voc-red-light text-voc-red-text" : "border-border bg-surface"
+                    )}
+                  >
+                    {expanded ? <ChevronDown size={14} /> : <Pencil size={13} />}
+                  </button>
+                  <MemberRowMenu
+                    memberId={member.id}
+                    memberName={`${member.first_name} ${member.last_name}`}
+                    currentRole={member.role}
+                    isActive={member.is_active}
+                    canEditRole={canEditRole}
+                    isSelf={member.id === viewerId}
+                    isOrganizationAccount={member.is_organization_account}
+                  />
+                </div>
               </div>
 
               {expanded && (
