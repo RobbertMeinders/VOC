@@ -34,7 +34,10 @@ export default async function BeheerBedrijvenPage({ searchParams }: { searchPara
         }
       />
 
-      <div className="mb-4 flex gap-1.5 overflow-x-auto">
+      {/* sticky: blijft in beeld bij scrollen door een lange lijst, i.p.v. dat je
+          terug naar boven moet om van tab te wisselen. top-14 op mobiel (onder de
+          mobiele header), top-0 op desktop (geen vaste header daar). */}
+      <div className="sticky top-14 z-10 -mx-4 mb-4 flex gap-1.5 overflow-x-auto bg-background px-4 py-2 md:top-0 md:-mx-16 md:px-16">
         {TABS.map((t) => (
           <Link
             key={t.key}

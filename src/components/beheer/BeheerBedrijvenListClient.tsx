@@ -81,32 +81,27 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
                 )}
               </div>
 
-              {/* Branche/plaats links, contactgegevens rechts op dezelfde regel
-                  — meer dan alleen naam/branche/plaats, anders voegt dit
-                  beheerscherm weinig toe t.o.v. de publieke bedrijvengids, en
-                  een vaste rechterkant houdt de rijen onderling uitgelijnd. */}
+              {/* Vaste kolombreedtes (sm+) i.p.v. flex-wrap: anders schoof elk
+                  veld op basis van de lengte van het vorige veld, en liepen
+                  e-mail/website niet onder elkaar uit tussen rijen. Elke kolom
+                  wordt altijd gerenderd (ook leeg), zodat de posities nooit
+                  verspringen. Op mobiel gewoon onder elkaar. */}
               {(company.industry || company.city || company.phone || company.email || company.website) && (
-                <div className="ml-[52px] mt-1.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted">
-                  <span className="truncate">
+                <div className="ml-[52px] mt-1.5 grid grid-cols-1 gap-x-4 gap-y-1 text-xs text-muted sm:grid-cols-[minmax(0,1fr)_minmax(0,9rem)_minmax(0,13rem)_minmax(0,9rem)] sm:items-center sm:gap-y-0">
+                  <span className="min-w-0 truncate">
                     {company.industry}
                     {company.industry && company.city && " · "}
                     {company.city}
                   </span>
-                  <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1">
-                    {company.phone && (
-                      <span className="flex items-center gap-1">
-                        <Phone size={11} />
-                        {company.phone}
-                      </span>
-                    )}
-                    {company.email && (
-                      <span className="flex items-center gap-1">
-                        <Mail size={11} />
-                        {company.email}
-                      </span>
-                    )}
-                    {company.website && <span>{company.website.replace(/^https?:\/\//, "")}</span>}
-                  </div>
+                  <span className="flex min-w-0 items-center gap-1">
+                    {company.phone && <Phone size={11} className="shrink-0" />}
+                    <span className="truncate">{company.phone}</span>
+                  </span>
+                  <span className="flex min-w-0 items-center gap-1">
+                    {company.email && <Mail size={11} className="shrink-0" />}
+                    <span className="truncate">{company.email}</span>
+                  </span>
+                  <span className="min-w-0 truncate">{company.website?.replace(/^https?:\/\//, "")}</span>
                 </div>
               )}
 

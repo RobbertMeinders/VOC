@@ -5,7 +5,12 @@ import { useRouter } from "next/navigation";
 import { ActionMenu, type ActionMenuItem } from "@/components/ui/ActionMenu";
 import { RoleEditor } from "@/components/members/RoleEditor";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
-import { updateMemberActiveAction, deleteMemberAction, generateLoginLinkAction } from "@/app/(app)/leden/[id]/actions";
+import {
+  updateMemberActiveAction,
+  deleteMemberAction,
+  generateLoginLinkAction,
+  updateMemberOrganizationAccountAction,
+} from "@/app/(app)/leden/[id]/actions";
 import type { UserRole } from "@/lib/types/database";
 
 // UX-review punt 11: 4 losse actieblokken (rol/actief/organisatieaccount/
@@ -21,6 +26,7 @@ export function MemberRowMenu({
   isActive,
   canEditRole,
   isSelf,
+  isOrganizationAccount,
 }: {
   memberId: string;
   memberName: string;
@@ -28,6 +34,7 @@ export function MemberRowMenu({
   isActive: boolean;
   canEditRole: boolean;
   isSelf: boolean;
+  isOrganizationAccount: boolean;
 }) {
   const [editingRole, setEditingRole] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -85,6 +92,23 @@ export function MemberRowMenu({
         }
         startTransition(async () => {
           const result = await updateMemberActiveAction(memberId, !isActive);
+          if (result.error) showFeedback(result.error);
+          else router.refresh();
+        });
+      },
+    });
+  }
+
+  if (!isSelf) {
+    // Haalt het account uit de ledenlijst/zoekresultaten (bv. voor het
+    // account van de organisatie zelf) — verandert niets aan rol/rechten.
+    // Was een altijd-zichtbare knop per rij; hier zit 'm netter weggestopt,
+    // want vrijwel niemand heeft dit ooit nodig.
+    items.push({
+      label: isOrganizationAccount ? "Tonen in ledenlijst" : "Verbergen uit ledenlijst",
+      onClick: () => {
+        startTransition(async () => {
+          const result = await updateMemberOrganizationAccountAction(memberId, !isOrganizationAccount);
           if (result.error) showFeedback(result.error);
           else router.refresh();
         });

@@ -312,12 +312,12 @@ export async function updateMemberProfileAction(
 export type QuickUpdateMemberState = { error?: string; success?: boolean };
 
 // Smalle tegenhanger van updateMemberProfileAction, voor het "snel bewerken"-
-// paneel in Beheer -> Leden: alleen naam/functie/telefoon, de velden die
-// daar al zichtbaar zijn. Bewust geen hergebruik van updateMemberProfileAction
-// met een gedeeltelijk formulier — die schrijft élk veld uit formData weg
-// (incl. een leeg veld als null), dus bio/linkedin/show_email/show_phone
-// zouden bij elke snelle wijziging stilletjes leeggemaakt worden. E-mail zit
-// hier bewust niet bij — dat loopt via een eigen, geverifieerde flow
+// paneel in Beheer -> Leden: alleen naam/telefoon. Bewust geen hergebruik van
+// updateMemberProfileAction met een gedeeltelijk formulier — die schrijft
+// élk veld uit formData weg (incl. een leeg veld als null), dus bio/
+// linkedin/functie/show_email/show_phone zouden bij elke snelle wijziging
+// stilletjes leeggemaakt worden. E-mail zit hier bewust niet bij — dat is
+// het inlog-adres en loopt via een eigen, geverifieerde flow
 // (changeEmailAction), niet via een los formulierveld.
 export async function quickUpdateMemberAction(
   memberId: string,
@@ -339,7 +339,6 @@ export async function quickUpdateMemberAction(
       {
         first_name: firstName,
         last_name: lastName,
-        job_title: String(formData.get("job_title") ?? "").trim() || null,
         phone: String(formData.get("phone") ?? "").trim() || null,
       },
       { count: "exact" }

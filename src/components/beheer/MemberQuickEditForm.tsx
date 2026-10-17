@@ -22,22 +22,23 @@ function SubmitButton() {
   );
 }
 
-// Inline formulier in Beheer -> Leden: alleen naam/functie/telefoon, de
-// velden die in de rij zelf al zichtbaar zijn — e-mail, bio, socials, rol en
-// activeren/deactiveren blijven op het volledige profiel (link onderaan dit
-// paneel) resp. het bestaande rijmenu.
+// Inline formulier in Beheer -> Leden: alleen naam/telefoon. Functie stond
+// er eerder ook bij, maar is in de praktijk zelden iets dat je hier snel
+// hoeft te wijzigen — e-mail staat er bewust niet bij: dat is het
+// inlog-adres en loopt via een eigen, geverifieerde wijzig-flow, niet via
+// een los formulierveld dat zomaar iemands account zou kunnen loskoppelen.
+// Bio, socials, functie, rol en activeren/deactiveren blijven op het
+// volledige profiel (link onderaan dit paneel) resp. het rijmenu.
 export function MemberQuickEditForm({
   memberId,
   firstName,
   lastName,
-  jobTitle,
   phone,
   onSaved,
 }: {
   memberId: string;
   firstName: string;
   lastName: string;
-  jobTitle: string | null;
   phone: string | null;
   onSaved: () => void;
 }) {
@@ -55,7 +56,7 @@ export function MemberQuickEditForm({
 
   return (
     <form action={formAction} className="mt-3 flex flex-col gap-3 border-t border-border pt-3">
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="flex flex-col gap-1.5">
           <label htmlFor={`qe-first-${memberId}`} className="text-xs font-medium text-foreground">
             Voornaam
@@ -67,12 +68,6 @@ export function MemberQuickEditForm({
             Achternaam
           </label>
           <Input id={`qe-last-${memberId}`} name="last_name" defaultValue={lastName} required className="h-9" />
-        </div>
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={`qe-job-${memberId}`} className="text-xs font-medium text-foreground">
-            Functie
-          </label>
-          <Input id={`qe-job-${memberId}`} name="job_title" defaultValue={jobTitle ?? ""} className="h-9" />
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor={`qe-phone-${memberId}`} className="text-xs font-medium text-foreground">

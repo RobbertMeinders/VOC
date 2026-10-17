@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
+import { clsx } from "clsx";
 import { Mail, MapPin, Phone, Pencil, Receipt } from "lucide-react";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { ListToolbar } from "@/components/ui/ListToolbar";
@@ -62,32 +63,27 @@ export function BeheerFactuurgegevensListClient({ rows }: { rows: BeheerBillingR
                     <p className="truncate text-xs text-muted">Factuurnaam: {row.invoiceName}</p>
                   )}
 
-                  {/* Eén regel i.p.v. onder elkaar gestapelde velden — alles wat je
-                      nodig hebt om een factuur te sturen in één oogopslag. */}
-                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
-                    <span className="flex items-center gap-1">
+                  {/* Vaste kolombreedtes (sm+) i.p.v. flex-wrap: anders schoof elk
+                      veld op basis van de lengte van het vorige veld, en liepen
+                      e-mail/btw-nummer niet onder elkaar uit tussen rijen. Elke
+                      kolom wordt altijd gerenderd (ook leeg), zodat de posities
+                      nooit verspringen. Op mobiel gewoon onder elkaar. */}
+                  <div className="mt-1.5 grid grid-cols-1 gap-x-4 gap-y-1 text-xs text-muted sm:grid-cols-[minmax(0,1fr)_minmax(0,9rem)_minmax(0,13rem)_minmax(0,9rem)] sm:items-center sm:gap-y-0">
+                    <span className="flex min-w-0 items-center gap-1">
                       <MapPin size={11} className="shrink-0" />
-                      {row.invoiceAddress ?? "Geen adres bekend"}
+                      <span className="truncate">{row.invoiceAddress ?? "Geen adres bekend"}</span>
                     </span>
-                    {row.phone && (
-                      <span className="flex items-center gap-1">
-                        <Phone size={11} className="shrink-0" />
-                        {row.phone}
-                      </span>
-                    )}
-                    <span className="flex items-center gap-1">
+                    <span className="flex min-w-0 items-center gap-1">
+                      {row.phone && <Phone size={11} className="shrink-0" />}
+                      <span className="truncate">{row.phone}</span>
+                    </span>
+                    <span className="flex min-w-0 items-center gap-1">
                       <Mail size={11} className="shrink-0" />
-                      {effectiveEmail ?? "Geen e-mailadres"}
+                      <span className="truncate">{effectiveEmail ?? "Geen e-mailadres"}</span>
                     </span>
-                    <span
-                      className={
-                        row.vatNumber
-                          ? "flex items-center gap-1"
-                          : "flex items-center gap-1 text-amber-700 dark:text-amber-400"
-                      }
-                    >
+                    <span className={clsx("flex min-w-0 items-center gap-1", !row.vatNumber && "text-amber-700 dark:text-amber-400")}>
                       <Receipt size={11} className="shrink-0" />
-                      {row.vatNumber ?? "Geen btw-nummer"}
+                      <span className="truncate">{row.vatNumber ?? "Geen btw-nummer"}</span>
                     </span>
                   </div>
                 </div>

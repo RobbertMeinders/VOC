@@ -6,7 +6,6 @@ import { ChevronDown, Mail, Pencil, Phone, Users } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
 import { MemberRowMenu } from "@/components/members/MemberRowMenu";
-import { OrganizationAccountToggle } from "@/components/members/OrganizationAccountToggle";
 import { MemberQuickEditForm } from "@/components/beheer/MemberQuickEditForm";
 import { ListToolbar, type ListToolbarFilter } from "@/components/ui/ListToolbar";
 import { ComingSoon } from "@/components/ui/ComingSoon";
@@ -21,7 +20,6 @@ export type BeheerMemberRow = {
   last_name: string;
   email: string;
   phone: string | null;
-  job_title: string | null;
   avatar_url: string | null;
   avatarUrl: string | null;
   role: UserRole;
@@ -134,33 +132,27 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                   isActive={member.is_active}
                   canEditRole={canEditRole}
                   isSelf={member.id === viewerId}
+                  isOrganizationAccount={member.is_organization_account}
                 />
               </div>
 
-              {/* Rol/status links, contactgegevens rechts op dezelfde regel —
-                  zelfde opzet als Beheer -> Bedrijven, voor een vaste
-                  rechterkant die de rijen onderling uitgelijnd houdt. */}
-              <div className="ml-[52px] mt-1.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted">
-                <span className="truncate">
+              {/* Vaste kolombreedtes (sm+) i.p.v. flex-wrap — zelfde reden als
+                  Beheer -> Bedrijven: anders schuift elk veld op basis van de
+                  lengte van het vorige, en lopen e-mail/telefoon niet onder
+                  elkaar uit tussen rijen. Op mobiel gewoon onder elkaar. */}
+              <div className="ml-[52px] mt-1.5 grid grid-cols-1 gap-x-4 gap-y-1 text-xs text-muted sm:grid-cols-[minmax(0,1fr)_minmax(0,13rem)_minmax(0,9rem)] sm:items-center sm:gap-y-0">
+                <span className="min-w-0 truncate">
                   {ROLE_LABELS[member.role]}
                   {!member.is_active && " · Gedeactiveerd"}
                 </span>
-                <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1">
-                  <span className="flex items-center gap-1">
-                    <Mail size={11} />
-                    {member.email}
-                  </span>
-                  {member.phone && (
-                    <span className="flex items-center gap-1">
-                      <Phone size={11} />
-                      {member.phone}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="ml-[52px] mt-1.5">
-                <OrganizationAccountToggle memberId={member.id} initialValue={member.is_organization_account} compact />
+                <span className="flex min-w-0 items-center gap-1">
+                  <Mail size={11} className="shrink-0" />
+                  <span className="truncate">{member.email}</span>
+                </span>
+                <span className="flex min-w-0 items-center gap-1">
+                  {member.phone && <Phone size={11} className="shrink-0" />}
+                  <span className="truncate">{member.phone}</span>
+                </span>
               </div>
 
               {expanded && (
@@ -168,7 +160,6 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                   memberId={member.id}
                   firstName={member.first_name}
                   lastName={member.last_name}
-                  jobTitle={member.job_title}
                   phone={member.phone}
                   onSaved={() => setExpandedId(null)}
                 />
