@@ -26,9 +26,14 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
   const { type } = await searchParams;
   const supabase = await createClient();
 
-  const [{ data: allActivities }, { data: allRegistrations }, { data: myRegistrations }] = await Promise.all([
+  // Performance-audit #8: aantal aanmeldingen per activiteit komt nu uit een
+  // GROUP BY in de database (get_activity_registration_counts) i.p.v. de hele
+  // activity_registrations-tabel op te halen om in JavaScript te tellen — dat
+  // laatste raakte fout zodra de tabel boven Supabase's standaardlimiet van
+  // 1000 rijen kwam (de telling werd dan stil afgekapt).
+  const [{ data: allActivities }, { data: registrationCountRows }, { data: myRegistrations }] = await Promise.all([
     supabase.from("activities").select("*").order("starts_at", { ascending: true }).returns<ActivityRow[]>(),
-    supabase.from("activity_registrations").select("activity_id, is_waitlisted"),
+    supabase.rpc("get_activity_registration_counts"),
     supabase.from("activity_registrations").select("activity_id, is_waitlisted").eq("profile_id", profile.id),
   ]);
 
@@ -40,11 +45,9 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
     if (type === "mijn-aanmeldingen") return myRegistrationByActivity.has(a.id);
     return true;
   });
-  const registrationCounts = new Map<string, number>();
-  for (const registration of allRegistrations ?? []) {
-    if (registration.is_waitlisted) continue;
-    registrationCounts.set(registration.activity_id, (registrationCounts.get(registration.activity_id) ?? 0) + 1);
-  }
+  const registrationCounts = new Map<string, number>(
+    (registrationCountRows ?? []).map((row) => [row.activity_id, Number(row.registered_count)])
+  );
   // Thumbnail-paden in dezelfde batch-aanroep (performance-audit #1): een
   // activiteitkaart toont de foto op 112-366px, daar is de kleine versie
   // (max 800px) ruim genoeg voor. Een activiteit zonder thumbnail (nog niet

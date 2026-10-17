@@ -104,22 +104,22 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
   const matchedActivities = activityRows ?? [];
   const matchedPosts = postRows ?? [];
 
-  const [avatarUrls, logoUrls, documentUrls, activityImageUrls, { data: allRegistrations }, { data: myRegistrations }] =
+  // Performance-audit #8: zelfde GROUP BY-RPC als /agenda i.p.v. de hele
+  // activity_registrations-tabel op te halen om in JavaScript te tellen.
+  const [avatarUrls, logoUrls, documentUrls, activityImageUrls, { data: registrationCountRows }, { data: myRegistrations }] =
     await Promise.all([
       getSignedStorageUrls(supabase, "avatars", matchedProfiles.map((p) => p.avatar_url)),
       getSignedStorageUrls(supabase, "company-logos", matchedCompanies.map((c) => c.logo_url)),
       getSignedStorageUrls(supabase, "documents", matchedDocuments.map((d) => d.storage_path)),
       getSignedStorageUrls(supabase, "activity-images", matchedActivities.flatMap((a) => [a.image_url, a.image_thumb_url])),
-      supabase.from("activity_registrations").select("activity_id, is_waitlisted"),
+      supabase.rpc("get_activity_registration_counts"),
       supabase.from("activity_registrations").select("activity_id").eq("profile_id", profile.id),
     ]);
 
   const registeredIds = new Set((myRegistrations ?? []).map((r) => r.activity_id));
-  const registrationCounts = new Map<string, number>();
-  for (const registration of allRegistrations ?? []) {
-    if (registration.is_waitlisted) continue;
-    registrationCounts.set(registration.activity_id, (registrationCounts.get(registration.activity_id) ?? 0) + 1);
-  }
+  const registrationCounts = new Map<string, number>(
+    (registrationCountRows ?? []).map((row) => [row.activity_id, Number(row.registered_count)])
+  );
 
   const members: MemberListItem[] = matchedProfiles.map((p) => {
     const membership = p.company_members.find((m) => m.is_primary) ?? p.company_members[0];

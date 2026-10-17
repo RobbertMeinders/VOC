@@ -636,6 +636,10 @@ export interface Database {
         Args: { p_company_id: string; p_visible: boolean };
         Returns: void;
       };
+      get_activity_registration_counts: {
+        Args: Record<string, never>;
+        Returns: { activity_id: string; registered_count: number }[];
+      };
       get_public_companies: {
         Args: Record<string, never>;
         Returns: {
