@@ -189,6 +189,7 @@ export function FeedList({
               onUpdated={updatePost}
               onCommentDeleted={removeComment}
               onCommentUpdated={updateComment}
+              onCommentCreated={upsertComment}
               forceCommentsOpen={highlightId ? post.comments.some((c) => c.id === highlightId) : false}
             />
           ))}

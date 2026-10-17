@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import { Send } from "lucide-react";
 import { createCommentAction, type CreateCommentState } from "@/app/(app)/actions";
 import { MentionEditor } from "./MentionEditor";
+import type { FeedComment } from "@/lib/feed/types";
 
 const initialState: CreateCommentState = {};
 
@@ -28,18 +29,27 @@ function SubmitButton() {
  * field manages its own DOM state, not React state that could just be
  * cleared with setState.
  */
-export function CommentForm({ postId }: { postId: string }) {
+export function CommentForm({ postId, onCreated }: { postId: string; onCreated: (comment: FeedComment) => void }) {
   const [formKey, setFormKey] = useState(0);
-  return <CommentFormInner key={formKey} postId={postId} onPosted={() => setFormKey((k) => k + 1)} />;
+  return (
+    <CommentFormInner
+      key={formKey}
+      postId={postId}
+      onPosted={(comment) => {
+        onCreated(comment);
+        setFormKey((k) => k + 1);
+      }}
+    />
+  );
 }
 
-function CommentFormInner({ postId, onPosted }: { postId: string; onPosted: () => void }) {
+function CommentFormInner({ postId, onPosted }: { postId: string; onPosted: (comment: FeedComment) => void }) {
   const createWithPostId = createCommentAction.bind(null, postId);
   const [state, formAction] = useActionState(createWithPostId, initialState);
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
-    if (state.success) onPosted();
+    if (state.success && state.comment) onPosted(state.comment);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 

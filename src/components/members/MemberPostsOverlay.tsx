@@ -76,6 +76,21 @@ export function MemberPostsOverlay({
         : prev
     );
   }
+  // Performance-audit E6: de nieuwe reactie meteen tonen i.p.v. te wachten op
+  // een paginaherlading — er is hier geen realtime-subscriptie zoals in de
+  // Community-feed, dus zonder dit bleef een net geplaatste reactie
+  // onzichtbaar tot deze lijst opnieuw laadt.
+  function addComment(comment: FeedComment) {
+    setPosts((prev) =>
+      prev
+        ? prev.map((post) => {
+            if (post.id !== comment.postId) return post;
+            if (post.comments.some((c) => c.id === comment.id)) return post;
+            return { ...post, comments: [...post.comments, comment] };
+          })
+        : prev
+    );
+  }
 
   return (
     <FloatingPortal>
@@ -118,6 +133,7 @@ export function MemberPostsOverlay({
               onUpdated={updatePost}
               onCommentDeleted={removeComment}
               onCommentUpdated={updateComment}
+              onCommentCreated={addComment}
             />
           ))}
           {hasMore && posts !== null && (

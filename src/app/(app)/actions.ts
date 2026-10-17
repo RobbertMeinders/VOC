@@ -154,7 +154,7 @@ export async function toggleLikeAction(postId: string): Promise<{ liked: boolean
   return { liked: true };
 }
 
-export type CreateCommentState = { error?: string; success?: boolean };
+export type CreateCommentState = { error?: string; success?: boolean; comment?: FeedComment };
 
 export async function createCommentAction(
   postId: string,
@@ -169,9 +169,13 @@ export async function createCommentAction(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.from("feed_comments").insert({ post_id: postId, author_id: profile.id, content });
+  const { data, error } = await supabase
+    .from("feed_comments")
+    .insert({ post_id: postId, author_id: profile.id, content })
+    .select("id")
+    .single();
 
-  if (error) {
+  if (error || !data) {
     return { error: "Reageren is niet gelukt. Probeer het opnieuw." };
   }
 
@@ -180,7 +184,12 @@ export async function createCommentAction(
   // leden) — direct dispatchen i.p.v. tot de volgende cron-run wachten.
   after(() => dispatchPendingPushNotifications(10));
 
-  return { success: true };
+  // Performance-audit E6: de reactie meteen teruggeven i.p.v. te wachten tot
+  // de eigen realtime-subscriptie 'm terugkrijgt — dat voelde voor de
+  // plaatser zelf traag ("omweg via realtime"), en kost zonder dit altijd
+  // een extra round-trip (getCommentAction) bovenop de insert hierboven.
+  const comment = await fetchCommentById(supabase, data.id, profile.id);
+  return { success: true, comment: comment ?? undefined };
 }
 
 export async function deleteCommentAction(commentId: string): Promise<{ error?: string }> {

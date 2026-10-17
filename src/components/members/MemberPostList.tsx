@@ -52,6 +52,20 @@ export function MemberPostList({
     );
   }
 
+  // Performance-audit E6: de nieuwe reactie meteen tonen i.p.v. te wachten op
+  // een paginaherlading — er is hier geen realtime-subscriptie zoals in de
+  // Community-feed, dus zonder dit bleef een net geplaatste reactie
+  // onzichtbaar tot de volgende keer dat deze lijst opnieuw laadt.
+  function addComment(comment: FeedComment) {
+    setPosts((prev) =>
+      prev.map((post) => {
+        if (post.id !== comment.postId) return post;
+        if (post.comments.some((c) => c.id === comment.id)) return post;
+        return { ...post, comments: [...post.comments, comment] };
+      })
+    );
+  }
+
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -66,6 +80,7 @@ export function MemberPostList({
             onUpdated={updatePost}
             onCommentDeleted={removeComment}
             onCommentUpdated={updateComment}
+            onCommentCreated={addComment}
           />
         ))}
         {hasMore && (

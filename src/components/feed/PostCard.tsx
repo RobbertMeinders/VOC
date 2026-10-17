@@ -322,6 +322,7 @@ export function PostCard({
   onUpdated,
   onCommentDeleted,
   onCommentUpdated,
+  onCommentCreated,
   forceCommentsOpen = false,
 }: {
   post: FeedPost;
@@ -332,6 +333,7 @@ export function PostCard({
   onUpdated: (post: FeedPost) => void;
   onCommentDeleted: (commentId: string) => void;
   onCommentUpdated: (comment: FeedComment) => void;
+  onCommentCreated: (comment: FeedComment) => void;
   forceCommentsOpen?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
@@ -481,7 +483,7 @@ export function PostCard({
             </button>
           )}
           <div className="mt-1">
-            <CommentForm postId={post.id} />
+            <CommentForm postId={post.id} onCreated={onCommentCreated} />
           </div>
         </div>
       )}
