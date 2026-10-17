@@ -111,8 +111,10 @@ function AppShellBody({
   return (
     // UX-review punt 6: vangnet tegen een gemiste overflow-bug elders die de
     // hele pagina breder dan het scherm maakt — dat liet op mobiel eerder de
-    // (fixed) bottom-nav mee opschuiven/gedeeltelijk uit beeld vallen.
-    <div className="min-h-dvh overflow-x-hidden bg-background">
+    // (fixed) bottom-nav mee opschuiven/gedeeltelijk uit beeld vallen. De
+    // overflow-x-hidden zelf staat nu op body (globals.css) i.p.v. hier —
+    // zie die toelichting voor waarom dat de sticky Beheer-submenu brak.
+    <div className="min-h-dvh bg-background">
       {/* UX-review Q5: geen "naar inhoud"-link, dus een toetsenbordgebruiker
           moest eerst door de volledige sidebar/navigatie tabben voor elke
           paginawissel. sr-only tot 'ie focus krijgt (eerste tab-stop in de

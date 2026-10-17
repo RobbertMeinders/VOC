@@ -141,6 +141,18 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), system-ui, sans-serif;
+  /* Stond eerder als overflow-x-hidden op AppShell's buitenste div
+     (vangnet tegen een gemiste overflow-bug elders die de pagina breder
+     dan het scherm maakt). Verplaatst naar body: een niet-"visible"
+     overflow-x dwingt overflow-y (ongeacht de eigen waarde) naar "auto" —
+     die div werd daardoor zelf een scrollcontainer, exact zo hoog als zijn
+     eigen inhoud, waarbinnen position: sticky (het Beheer-zijmenu) nooit
+     kon "loskomen" van de rest van de pagina. Op body zelf is dat
+     onschadelijk: de pagina scrollt toch al op body-niveau, dus er komt
+     geen nieuwe tussenliggende scrollcontainer bij. position: fixed
+     (de hoofdnavigatie) had dit probleem niet — fixed reageert alleen op
+     een transform/filter/contain-voorouder, niet op overflow. */
+  overflow-x: hidden;
   /* Chrome/Edge passen "scroll anchoring" toe: zodra content BOVEN de
      zichtbare viewport van hoogte verandert (bv. een feed-foto die pas na
      laden zijn echte formaat krijgt, zie AttachmentCarousel), corrigeert de
