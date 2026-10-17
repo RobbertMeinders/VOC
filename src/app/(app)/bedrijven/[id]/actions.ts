@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAdmin, requireProfile } from "@/lib/auth/session";
+import { requireAdmin, requireBoard, requireProfile } from "@/lib/auth/session";
 import { isBoard } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
@@ -154,6 +154,58 @@ export async function updateCompanyAction(
   return { success: true };
 }
 
+export type QuickUpdateCompanyState = { error?: string; success?: boolean };
+
+// Smalle tegenhanger van updateCompanyAction, voor het "snel bewerken"-
+// paneel in Beheer -> Bedrijven (Overzicht): alleen de velden die daar
+// zichtbaar zijn. Bewust GEEN hergebruik van updateCompanyAction met een
+// gedeeltelijk formulier — die schrijft élk veld uit formData weg (incl.
+// een leeg veld als null), dus een formulier zonder bv. tagline/
+// omschrijving/adres/socials zou die bij elke snelle wijziging stilletjes
+// leegmaken. Deze actie raakt uitsluitend de hieronder genoemde kolommen;
+// voor adres/logo/omschrijving/socials/zichtbaarheid blijft het volledige
+// bewerkformulier (/bedrijven/[id]/bewerken) de plek.
+export async function quickUpdateCompanyAction(
+  companyId: string,
+  _prevState: QuickUpdateCompanyState,
+  formData: FormData
+): Promise<QuickUpdateCompanyState> {
+  await requireBoard();
+  const supabase = await createClient();
+
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) {
+    return { error: "Bedrijfsnaam is verplicht." };
+  }
+
+  const { error, count } = await supabase
+    .from("companies")
+    .update(
+      {
+        name,
+        industry: String(formData.get("industry") ?? "").trim() || null,
+        city: String(formData.get("city") ?? "").trim() || null,
+        phone: String(formData.get("phone") ?? "").trim() || null,
+        email: String(formData.get("email") ?? "").trim() || null,
+        website: String(formData.get("website") ?? "").trim() || null,
+      },
+      { count: "exact" }
+    )
+    .eq("id", companyId);
+
+  if (error || !count) {
+    return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+  }
+
+  await logAuditAction("company_updated", "company", companyId);
+
+  invalidateQuery("bedrijven-page-data");
+  invalidateQuery("leden-page-data");
+  invalidateQuery("beheer-bedrijven-page-data");
+  revalidatePath(`/bedrijven/${companyId}`);
+  return { success: true };
+}
+
 // Standalone tegenhanger van het schuifje in CompanyForm — dezelfde kolom,
 // maar los aan te zetten vanaf de instellingenpagina, dus permissie is
 // ruimer dan updateCompanyAction (dat volledige bedrijfsbeheer is,
@@ -270,6 +322,10 @@ export async function updateCompanyBillingAction(
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
 
+  // Zonder deze regel bleef Beheer -> Bedrijven -> Factuurgegevens tot wel 5
+  // minuten de oude (gecachte) btw-gegevens tonen na het opslaan hier.
+  invalidateQuery("beheer-bedrijven-page-billing");
   revalidatePath(`/bedrijven/${companyId}/bewerken`);
+  revalidatePath("/beheer/bedrijven");
   return { success: true };
 }

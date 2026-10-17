@@ -2,9 +2,11 @@
 
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { Building2, Pencil } from "lucide-react";
+import { Building2, ChevronDown, Mail, Phone, Pencil } from "lucide-react";
+import { clsx } from "clsx";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { DeleteButton } from "@/components/feed/DeleteButton";
+import { CompanyQuickEditForm } from "@/components/beheer/CompanyQuickEditForm";
 import { ListToolbar } from "@/components/ui/ListToolbar";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { matchesSearch } from "@/lib/search/normalize";
@@ -17,12 +19,15 @@ export type BeheerCompanyRow = {
   industry: string | null;
   city: string | null;
   logoUrl: string | null;
-  vatNumber: string | null;
+  phone: string | null;
+  email: string | null;
+  website: string | null;
 };
 
 function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerCompanyRow[]; canDelete: boolean }) {
   const { getInitial, setParam } = useUrlFilterState();
   const [query, setQuery] = useState(() => getInitial("q"));
+  const [expandedId, setExpandedId] = useState<string | null>(null);
 
   function handleQueryChange(value: string) {
     setQuery(value);
@@ -30,7 +35,7 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
   }
 
   const filtered = useMemo(
-    () => companies.filter((c) => matchesSearch([c.name, c.industry, c.city], query)),
+    () => companies.filter((c) => matchesSearch([c.name, c.industry, c.city, c.email, c.phone, c.website], query)),
     [companies, query]
   );
 
@@ -39,45 +44,83 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
       <ListToolbar
         searchValue={query}
         onSearchChange={handleQueryChange}
-        searchPlaceholder="Zoek op bedrijfsnaam, branche of plaats…"
+        searchPlaceholder="Zoek op bedrijfsnaam, branche, plaats, e-mail…"
         resultCount={filtered.length}
         totalCount={companies.length}
       />
 
       <div className="flex flex-col gap-2">
-        {filtered.map((company) => (
-          <div key={company.id} className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-3 shadow-sm">
-            <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={40} />
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-foreground">{company.name}</p>
-              <p className="truncate text-xs text-muted">
-                {company.industry}
-                {company.industry && company.city && " · "}
-                {company.city}
-              </p>
+        {filtered.map((company) => {
+          const expanded = expandedId === company.id;
+          return (
+            <div key={company.id} className="rounded-2xl border border-border bg-surface p-3 shadow-sm">
+              <div className="flex items-center gap-3">
+                <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={40} />
+                <Link href={`/bedrijven/${company.id}`} className="min-w-0 flex-1 hover:opacity-80">
+                  <p className="truncate text-sm font-medium text-foreground">{company.name}</p>
+                  <p className="truncate text-xs text-muted">
+                    {company.industry}
+                    {company.industry && company.city && " · "}
+                    {company.city}
+                  </p>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(expanded ? null : company.id)}
+                  aria-label={expanded ? "Snel bewerken sluiten" : "Snel bewerken"}
+                  aria-expanded={expanded}
+                  className={clsx(
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-foreground hover:border-voc-red hover:text-voc-red-text",
+                    expanded ? "border-voc-red bg-voc-red-light text-voc-red-text" : "border-border bg-surface"
+                  )}
+                >
+                  {expanded ? <ChevronDown size={14} /> : <Pencil size={13} />}
+                </button>
+                {canDelete && (
+                  <DeleteButton
+                    onDelete={deleteCompanyAction.bind(null, company.id, false)}
+                    confirmMessage={`Weet je zeker dat je ${company.name} definitief wilt verwijderen?`}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-voc-red"
+                    size={13}
+                  />
+                )}
+              </div>
+
+              {/* Meer dan alleen naam/branche/plaats — anders voegt dit
+                  beheerscherm weinig toe t.o.v. de publieke bedrijvengids. */}
+              {(company.phone || company.email || company.website) && (
+                <div className="ml-[52px] mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
+                  {company.phone && (
+                    <span className="flex items-center gap-1">
+                      <Phone size={11} />
+                      {company.phone}
+                    </span>
+                  )}
+                  {company.email && (
+                    <span className="flex items-center gap-1">
+                      <Mail size={11} />
+                      {company.email}
+                    </span>
+                  )}
+                  {company.website && <span>{company.website.replace(/^https?:\/\//, "")}</span>}
+                </div>
+              )}
+
+              {expanded && (
+                <CompanyQuickEditForm
+                  companyId={company.id}
+                  name={company.name}
+                  industry={company.industry}
+                  city={company.city}
+                  phone={company.phone}
+                  email={company.email}
+                  website={company.website}
+                  onSaved={() => setExpandedId(null)}
+                />
+              )}
             </div>
-            {!company.vatNumber && (
-              <span className="hidden shrink-0 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 sm:inline-block">
-                Geen btw-nummer
-              </span>
-            )}
-            <Link
-              href={`/bedrijven/${company.id}/bewerken`}
-              aria-label="Bewerken"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red-text"
-            >
-              <Pencil size={13} />
-            </Link>
-            {canDelete && (
-              <DeleteButton
-                onDelete={deleteCompanyAction.bind(null, company.id, false)}
-                confirmMessage={`Weet je zeker dat je ${company.name} definitief wilt verwijderen?`}
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-voc-red"
-                size={13}
-              />
-            )}
-          </div>
-        ))}
+          );
+        })}
         {filtered.length === 0 && (
           <ComingSoon icon={Building2} title="Geen bedrijven gevonden" description="Pas je zoekopdracht aan." />
         )}
