@@ -17,6 +17,7 @@ export type BeheerCompanyRow = {
   industry: string | null;
   city: string | null;
   logoUrl: string | null;
+  vatNumber: string | null;
 };
 
 function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerCompanyRow[]; canDelete: boolean }) {
@@ -55,6 +56,11 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
                 {company.city}
               </p>
             </div>
+            {!company.vatNumber && (
+              <span className="hidden shrink-0 rounded-full bg-amber-50 px-2.5 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400 sm:inline-block">
+                Geen btw-nummer
+              </span>
+            )}
             <Link
               href={`/bedrijven/${company.id}/bewerken`}
               aria-label="Bewerken"
