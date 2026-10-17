@@ -50,6 +50,7 @@ type ReportQueryRow = {
 
 const EXPIRING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
 const NEW_MEMBER_WINDOW_MS = 30 * 24 * 60 * 60 * 1000;
+const WAITING_WORK_PREVIEW = 5;
 
 function profileName(p: { first_name: string; last_name: string } | null): string {
   return p ? `${p.first_name} ${p.last_name}` : "Onbekend";
@@ -285,7 +286,7 @@ export default async function BeheerPage() {
               Uitnodigingen die binnenkort verlopen ({expiringInvitations!.length})
             </p>
             <div className="flex flex-col gap-2">
-              {expiringInvitations!.map((invitation) => (
+              {expiringInvitations!.slice(0, WAITING_WORK_PREVIEW).map((invitation) => (
                 <div key={invitation.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border p-3">
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-foreground">{invitation.email ?? "Geen e-mailadres"}</p>
@@ -305,6 +306,15 @@ export default async function BeheerPage() {
                 </div>
               ))}
             </div>
+            {expiringInvitations!.length > WAITING_WORK_PREVIEW && (
+              <Link
+                href="/beheer/instroom?tab=uitnodigingen"
+                className="mt-2 flex items-center gap-1 text-xs font-medium text-voc-red-text hover:underline"
+              >
+                Bekijk alles ({expiringInvitations!.length})
+                <ArrowRight size={12} />
+              </Link>
+            )}
           </div>
         )}
       </div>
