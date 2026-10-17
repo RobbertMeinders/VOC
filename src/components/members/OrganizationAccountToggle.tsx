@@ -37,10 +37,18 @@ export function OrganizationAccountToggle({
   return (
     <div className={compact ? "flex flex-col gap-1" : "flex flex-col gap-1.5 rounded-lg border border-border bg-background p-3"}>
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm text-foreground">
-          {value ? "Bedrijfsaccount - niet in ledenlijst" : "Gewoon lid in de ledenlijst"}
-        </span>
-        <Button type="button" variant="secondary" size="sm" onClick={handleToggle} disabled={pending}>
+        {/* Alleen de uitzondering benoemen (bedrijfsaccount) — de normale
+            toestand ("gewoon lid") spreekt voor zich en hoeft niet elke rij
+            te herhalen. */}
+        {value ? <span className="text-sm text-foreground">Bedrijfsaccount - niet in ledenlijst</span> : <span />}
+        <Button
+          type="button"
+          variant={compact ? "ghost" : "secondary"}
+          size="sm"
+          onClick={handleToggle}
+          disabled={pending}
+          className={compact ? "h-auto px-2 py-0.5 text-xs text-muted" : undefined}
+        >
           {pending ? "Bezig…" : value ? "Toon in ledenlijst" : "Verberg uit ledenlijst"}
         </Button>
       </div>

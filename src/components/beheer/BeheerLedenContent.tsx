@@ -56,6 +56,8 @@ export async function BeheerLedenContent() {
     first_name: p.first_name,
     last_name: p.last_name,
     email: p.email,
+    phone: p.phone,
+    job_title: p.job_title,
     avatar_url: p.avatar_url,
     avatarUrl: p.avatar_url ? (avatarUrls.get(p.avatar_url) ?? null) : null,
     role: p.role,

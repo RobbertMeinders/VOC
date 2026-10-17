@@ -58,11 +58,6 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
                 <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={40} />
                 <Link href={`/bedrijven/${company.id}`} className="min-w-0 flex-1 hover:opacity-80">
                   <p className="truncate text-sm font-medium text-foreground">{company.name}</p>
-                  <p className="truncate text-xs text-muted">
-                    {company.industry}
-                    {company.industry && company.city && " · "}
-                    {company.city}
-                  </p>
                 </Link>
                 <button
                   type="button"
@@ -86,23 +81,32 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
                 )}
               </div>
 
-              {/* Meer dan alleen naam/branche/plaats — anders voegt dit
-                  beheerscherm weinig toe t.o.v. de publieke bedrijvengids. */}
-              {(company.phone || company.email || company.website) && (
-                <div className="ml-[52px] mt-1.5 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted">
-                  {company.phone && (
-                    <span className="flex items-center gap-1">
-                      <Phone size={11} />
-                      {company.phone}
-                    </span>
-                  )}
-                  {company.email && (
-                    <span className="flex items-center gap-1">
-                      <Mail size={11} />
-                      {company.email}
-                    </span>
-                  )}
-                  {company.website && <span>{company.website.replace(/^https?:\/\//, "")}</span>}
+              {/* Branche/plaats links, contactgegevens rechts op dezelfde regel
+                  — meer dan alleen naam/branche/plaats, anders voegt dit
+                  beheerscherm weinig toe t.o.v. de publieke bedrijvengids, en
+                  een vaste rechterkant houdt de rijen onderling uitgelijnd. */}
+              {(company.industry || company.city || company.phone || company.email || company.website) && (
+                <div className="ml-[52px] mt-1.5 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 text-xs text-muted">
+                  <span className="truncate">
+                    {company.industry}
+                    {company.industry && company.city && " · "}
+                    {company.city}
+                  </span>
+                  <div className="flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1">
+                    {company.phone && (
+                      <span className="flex items-center gap-1">
+                        <Phone size={11} />
+                        {company.phone}
+                      </span>
+                    )}
+                    {company.email && (
+                      <span className="flex items-center gap-1">
+                        <Mail size={11} />
+                        {company.email}
+                      </span>
+                    )}
+                    {company.website && <span>{company.website.replace(/^https?:\/\//, "")}</span>}
+                  </div>
                 </div>
               )}
 

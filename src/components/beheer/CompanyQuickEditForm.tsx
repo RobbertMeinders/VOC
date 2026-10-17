@@ -114,9 +114,9 @@ export function CompanyQuickEditForm({
         </p>
       )}
 
-      <div className="flex items-center justify-between gap-2">
+      <div className="flex items-center justify-end gap-3">
         <Link href={`/bedrijven/${companyId}/bewerken`} className="text-xs font-medium text-voc-red-text hover:underline">
-          Meer bewerken (adres, logo, omschrijving, factuurgegevens, …)
+          Meer bewerken
         </Link>
         <SubmitButton />
       </div>
