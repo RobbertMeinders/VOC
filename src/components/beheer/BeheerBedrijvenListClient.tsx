@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { Building2, ChevronDown, Mail, Phone, Pencil } from "lucide-react";
+import { Building2, ChevronDown, Mail, MapPin, Pencil, Phone, Receipt } from "lucide-react";
 import { clsx } from "clsx";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { DeleteButton } from "@/components/feed/DeleteButton";
@@ -22,6 +22,9 @@ export type BeheerCompanyRow = {
   phone: string | null;
   email: string | null;
   website: string | null;
+  invoiceAddress: string | null;
+  effectiveEmail: string | null;
+  vatNumber: string | null;
 };
 
 function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerCompanyRow[]; canDelete: boolean }) {
@@ -35,7 +38,10 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
   }
 
   const filtered = useMemo(
-    () => companies.filter((c) => matchesSearch([c.name, c.industry, c.city, c.email, c.phone, c.website], query)),
+    () =>
+      companies.filter((c) =>
+        matchesSearch([c.name, c.industry, c.city, c.email, c.phone, c.website, c.vatNumber], query)
+      ),
     [companies, query]
   );
 
@@ -44,7 +50,7 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
       <ListToolbar
         searchValue={query}
         onSearchChange={handleQueryChange}
-        searchPlaceholder="Zoek op bedrijfsnaam, branche, plaats, e-mail…"
+        searchPlaceholder="Zoek op bedrijfsnaam, branche, plaats, e-mail, btw-nummer…"
         resultCount={filtered.length}
         totalCount={companies.length}
       />
@@ -83,27 +89,27 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
 
               {/* Vaste kolombreedtes (sm+) i.p.v. flex-wrap: anders schoof elk
                   veld op basis van de lengte van het vorige veld, en liepen
-                  e-mail/website niet onder elkaar uit tussen rijen. Elke kolom
-                  wordt altijd gerenderd (ook leeg), zodat de posities nooit
-                  verspringen. Op mobiel gewoon onder elkaar. */}
-              {(company.industry || company.city || company.phone || company.email || company.website) && (
-                <div className="ml-[52px] mt-1.5 grid grid-cols-1 gap-x-4 gap-y-1 text-xs text-muted sm:grid-cols-[minmax(0,1fr)_minmax(0,9rem)_minmax(0,13rem)_minmax(0,9rem)] sm:items-center sm:gap-y-0">
-                  <span className="min-w-0 truncate">
-                    {company.industry}
-                    {company.industry && company.city && " · "}
-                    {company.city}
-                  </span>
-                  <span className="flex min-w-0 items-center gap-1">
-                    {company.phone && <Phone size={11} className="shrink-0" />}
-                    <span className="truncate">{company.phone}</span>
-                  </span>
-                  <span className="flex min-w-0 items-center gap-1">
-                    {company.email && <Mail size={11} className="shrink-0" />}
-                    <span className="truncate">{company.email}</span>
-                  </span>
-                  <span className="min-w-0 truncate">{company.website?.replace(/^https?:\/\//, "")}</span>
-                </div>
-              )}
+                  factuuradres/e-mail/btw-nummer niet onder elkaar uit tussen
+                  rijen. Elke kolom wordt altijd gerenderd (ook leeg), zodat de
+                  posities nooit verspringen. Op mobiel gewoon onder elkaar. */}
+              <div className="ml-[52px] mt-1.5 grid grid-cols-1 gap-x-4 gap-y-1 text-xs text-muted sm:grid-cols-[minmax(0,1fr)_minmax(0,9rem)_minmax(0,13rem)_minmax(0,9rem)] sm:items-center sm:gap-y-0">
+                <span className="flex min-w-0 items-center gap-1">
+                  <MapPin size={11} className="shrink-0" />
+                  <span className="truncate">{company.invoiceAddress ?? "Geen adres bekend"}</span>
+                </span>
+                <span className="flex min-w-0 items-center gap-1">
+                  {company.phone && <Phone size={11} className="shrink-0" />}
+                  <span className="truncate">{company.phone}</span>
+                </span>
+                <span className="flex min-w-0 items-center gap-1">
+                  <Mail size={11} className="shrink-0" />
+                  <span className="truncate">{company.effectiveEmail ?? "Geen e-mailadres"}</span>
+                </span>
+                <span className={clsx("flex min-w-0 items-center gap-1", !company.vatNumber && "text-amber-700 dark:text-amber-400")}>
+                  <Receipt size={11} className="shrink-0" />
+                  <span className="truncate">{company.vatNumber ?? "Geen btw-nummer"}</span>
+                </span>
+              </div>
 
               {expanded && (
                 <CompanyQuickEditForm
