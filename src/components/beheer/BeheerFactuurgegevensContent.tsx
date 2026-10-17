@@ -12,6 +12,7 @@ type CompanyRow = {
   postal_code: string | null;
   city: string | null;
   email: string | null;
+  phone: string | null;
 };
 type BillingRow = {
   company_id: string;
@@ -42,7 +43,7 @@ export async function BeheerFactuurgegevensContent() {
     cachedQuery("beheer-bedrijven-page-data", 300_000, () =>
       supabase
         .from("companies")
-        .select("id, name, logo_url, address, postal_code, city, email")
+        .select("id, name, logo_url, address, postal_code, city, email, phone")
         .order("name")
         .returns<CompanyRow[]>()
     ),
@@ -87,6 +88,7 @@ export async function BeheerFactuurgegevensContent() {
       vatNumber: billing?.vat_number ?? null,
       invoiceEmail: billing?.invoice_email ?? null,
       generalEmail: c.email,
+      phone: c.phone,
     };
   });
 

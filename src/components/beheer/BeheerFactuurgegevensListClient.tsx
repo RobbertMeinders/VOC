@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { Pencil, Receipt } from "lucide-react";
+import { Mail, MapPin, Phone, Pencil, Receipt } from "lucide-react";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { ListToolbar } from "@/components/ui/ListToolbar";
 import { ComingSoon } from "@/components/ui/ComingSoon";
@@ -18,6 +18,7 @@ export type BeheerBillingRow = {
   vatNumber: string | null;
   invoiceEmail: string | null;
   generalEmail: string | null;
+  phone: string | null;
 };
 
 // Los van BeheerBedrijvenListClient: dit is een leesoverzicht voor de
@@ -60,6 +61,35 @@ export function BeheerFactuurgegevensListClient({ rows }: { rows: BeheerBillingR
                   {row.invoiceName && row.invoiceName !== row.name && (
                     <p className="truncate text-xs text-muted">Factuurnaam: {row.invoiceName}</p>
                   )}
+
+                  {/* Eén regel i.p.v. onder elkaar gestapelde velden — alles wat je
+                      nodig hebt om een factuur te sturen in één oogopslag. */}
+                  <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted">
+                    <span className="flex items-center gap-1">
+                      <MapPin size={11} className="shrink-0" />
+                      {row.invoiceAddress ?? "Geen adres bekend"}
+                    </span>
+                    {row.phone && (
+                      <span className="flex items-center gap-1">
+                        <Phone size={11} className="shrink-0" />
+                        {row.phone}
+                      </span>
+                    )}
+                    <span className="flex items-center gap-1">
+                      <Mail size={11} className="shrink-0" />
+                      {effectiveEmail ?? "Geen e-mailadres"}
+                    </span>
+                    <span
+                      className={
+                        row.vatNumber
+                          ? "flex items-center gap-1"
+                          : "flex items-center gap-1 text-amber-700 dark:text-amber-400"
+                      }
+                    >
+                      <Receipt size={11} className="shrink-0" />
+                      {row.vatNumber ?? "Geen btw-nummer"}
+                    </span>
+                  </div>
                 </div>
                 <Link
                   href={`/bedrijven/${row.id}/bewerken`}
@@ -68,16 +98,6 @@ export function BeheerFactuurgegevensListClient({ rows }: { rows: BeheerBillingR
                 >
                   <Pencil size={13} />
                 </Link>
-              </div>
-
-              <div className="ml-[48px] mt-2 grid grid-cols-1 gap-x-4 gap-y-1 text-xs text-muted sm:grid-cols-3">
-                <p className="truncate">{row.invoiceAddress ?? "Geen adres bekend"}</p>
-                {row.vatNumber ? (
-                  <p className="truncate">Btw: {row.vatNumber}</p>
-                ) : (
-                  <p className="truncate text-amber-700 dark:text-amber-400">Geen btw-nummer</p>
-                )}
-                <p className="truncate">{effectiveEmail ?? "Geen e-mailadres"}</p>
               </div>
             </div>
           );
