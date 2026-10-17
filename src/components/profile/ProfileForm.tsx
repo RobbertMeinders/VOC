@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -11,7 +11,7 @@ import { FieldError } from "@/components/ui/FieldError";
 import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
 import { FormSection, FormSections, FormToggleRow } from "@/components/ui/FormSection";
 import { updateProfileAction, type UpdateProfileState } from "@/app/(app)/profiel/actions";
-import { compressInputFile } from "@/lib/image/compress";
+import { compressInputFile, createThumbnailFile } from "@/lib/image/compress";
 import { useToast } from "@/lib/ui/ToastContext";
 import { useFieldValidation } from "@/lib/validation/useFieldValidation";
 import { validateUrl } from "@/lib/validation/fields";
@@ -39,6 +39,7 @@ export function ProfileForm({
 }) {
   const [state, formAction] = useActionState(action, initialState);
   const [preview, setPreview] = useState<string | null>(null);
+  const avatarThumbInputRef = useRef<HTMLInputElement>(null);
   const [showPhone, setShowPhone] = useState(profile.show_phone);
   const [showEmail, setShowEmail] = useState(profile.show_email);
   const toast = useToast();
@@ -86,9 +87,23 @@ export function ProfileForm({
             onChange={async (e) => {
               const input = e.target;
               const compressed = await compressInputFile(input);
-              if (compressed) setPreview(URL.createObjectURL(compressed));
+              if (!compressed) return;
+              setPreview(URL.createObjectURL(compressed));
+
+              // Klein tweede bestand voor de ledenlijst e.d. (performance-
+              // audit #1) — meegestuurd via een los, verborgen file-input
+              // i.p.v. een extra formulierveld dat iemand zelf zou moeten
+              // invullen.
+              const thumbInput = avatarThumbInputRef.current;
+              if (thumbInput) {
+                const thumb = await createThumbnailFile(compressed);
+                const transfer = new DataTransfer();
+                if (thumb) transfer.items.add(thumb);
+                thumbInput.files = transfer.files;
+              }
             }}
           />
+          <input ref={avatarThumbInputRef} type="file" name="avatar_thumb" className="hidden" tabIndex={-1} aria-hidden="true" />
         </div>
         <p className="text-xs text-muted">Klik op het camera-icoon om een profielfoto te uploaden.</p>
       </div>

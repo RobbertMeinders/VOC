@@ -58,11 +58,23 @@ export async function updateCompanyAction(
   }
 
   let logoPath: string | undefined;
+  // undefined = geen nieuw logo, dus kolom ongemoeid laten; null = wel een
+  // nieuw logo maar geen (geslaagde) thumbnail ervoor (bv. SVG) — dan
+  // expliciet leegmaken, anders zou een oude thumbnail bij een nieuw logo
+  // blijven staan.
+  let logoThumbPath: string | null | undefined;
   const logoFile = formData.get("logo");
   if (logoFile instanceof File && logoFile.size > 0) {
     const result = await uploadImage(supabase, "company-logos", companyId, logoFile);
     if ("error" in result) return { error: result.error };
     logoPath = result.path;
+
+    logoThumbPath = null;
+    const logoThumbFile = formData.get("logo_thumb");
+    if (logoThumbFile instanceof File && logoThumbFile.size > 0) {
+      const thumbResult = await uploadImage(supabase, "company-logos", companyId, logoThumbFile);
+      if (!("error" in thumbResult)) logoThumbPath = thumbResult.path;
+    }
   }
 
   // Opnieuw geocoderen (Nominatim-aanroep) als het adres wijzigde, of als
@@ -73,7 +85,7 @@ export async function updateCompanyAction(
   // slaan we de aanroep over.
   const { data: existing } = await supabase
     .from("companies")
-    .select("address, postal_code, city, latitude, longitude, logo_url")
+    .select("address, postal_code, city, latitude, longitude, logo_url, logo_thumb_url")
     .eq("id", companyId)
     .maybeSingle();
 
@@ -123,7 +135,7 @@ export async function updateCompanyAction(
         linkedin_url: linkedinUrl || null,
         instagram_url: instagramUrl || null,
         facebook_url: facebookUrl || null,
-        ...(logoPath ? { logo_url: logoPath } : {}),
+        ...(logoPath ? { logo_url: logoPath, logo_thumb_url: logoThumbPath } : {}),
         ...coordinateUpdate,
       },
       { count: "exact" }
@@ -141,6 +153,7 @@ export async function updateCompanyAction(
 
   if (logoPath) {
     await removePreviousImage(supabase, "company-logos", existing?.logo_url);
+    await removePreviousImage(supabase, "company-logos", existing?.logo_thumb_url);
   }
 
   await logAuditAction("company_updated", "company", companyId);

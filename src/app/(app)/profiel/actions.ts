@@ -34,11 +34,23 @@ export async function updateProfileAction(
   const supabase = await createClient();
 
   let avatarPath: string | undefined;
+  // undefined = geen nieuwe avatar, dus kolom ongemoeid laten; null = wel een
+  // nieuwe avatar maar geen (geslaagde) thumbnail ervoor (bv. SVG) — dan
+  // expliciet leegmaken, anders zou een oude thumbnail bij een nieuwe
+  // avatar blijven staan.
+  let avatarThumbPath: string | null | undefined;
   const avatarFile = formData.get("avatar");
   if (avatarFile instanceof File && avatarFile.size > 0) {
     const result = await uploadImage(supabase, "avatars", profile.id, avatarFile);
     if ("error" in result) return { error: result.error };
     avatarPath = result.path;
+
+    avatarThumbPath = null;
+    const avatarThumbFile = formData.get("avatar_thumb");
+    if (avatarThumbFile instanceof File && avatarThumbFile.size > 0) {
+      const thumbResult = await uploadImage(supabase, "avatars", profile.id, avatarThumbFile);
+      if (!("error" in thumbResult)) avatarThumbPath = thumbResult.path;
+    }
   }
 
   const { error } = await supabase
@@ -52,7 +64,7 @@ export async function updateProfileAction(
       show_email: showEmail,
       show_phone: showPhone,
       linkedin_url: linkedinUrl || null,
-      ...(avatarPath ? { avatar_url: avatarPath } : {}),
+      ...(avatarPath ? { avatar_url: avatarPath, avatar_thumb_url: avatarThumbPath } : {}),
     })
     .eq("id", profile.id);
 
@@ -66,6 +78,7 @@ export async function updateProfileAction(
   // altijd een nieuwe, willekeurige bestandsnaam, nooit upsert).
   if (avatarPath) {
     await removePreviousImage(supabase, "avatars", profile.avatar_url);
+    await removePreviousImage(supabase, "avatars", profile.avatar_thumb_url);
   }
 
   // Naam/functie/avatar staan ook in de ledenlijst.

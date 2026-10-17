@@ -13,6 +13,7 @@ type ProfileRow = {
   first_name: string;
   last_name: string;
   avatar_url: string | null;
+  avatar_thumb_url: string | null;
   job_title: string | null;
   company_members: { is_primary: boolean; company: { id: string; name: string; industry: string | null } | null }[];
 };
@@ -32,7 +33,7 @@ export default async function LedenPage() {
         supabase
           .from("profiles")
           .select(
-            "id, first_name, last_name, avatar_url, job_title, company_members(is_primary, company:companies(id, name, industry))"
+            "id, first_name, last_name, avatar_url, avatar_thumb_url, job_title, company_members(is_primary, company:companies(id, name, industry))"
           )
           .eq("is_organization_account", false)
           .order("last_name")
@@ -63,13 +64,19 @@ export default async function LedenPage() {
     };
   });
 
+  // Thumbnail-paden gewoon in dezelfde batch-aanroep meenemen (performance-
+  // audit #1): de lijst toont een avatar van 40px, daar is de kleine versie
+  // (max 160px) ruim genoeg voor i.p.v. de volledige foto. Een lid zonder
+  // thumbnail (nog niet opnieuw ge-upload sinds deze functie bestaat) valt
+  // terug op de volledige avatar_url.
   const avatarUrls = await getSignedStorageUrls(
     supabase,
     "avatars",
-    (profileRows ?? []).map((row) => row.avatar_url)
+    (profileRows ?? []).flatMap((row) => [row.avatar_url, row.avatar_thumb_url])
   );
   const withAvatars = members.map((member, index) => {
-    const path = profileRows?.[index]?.avatar_url;
+    const row = profileRows?.[index];
+    const path = row?.avatar_thumb_url ?? row?.avatar_url;
     return { ...member, avatarUrl: path ? (avatarUrls.get(path) ?? null) : null };
   });
 

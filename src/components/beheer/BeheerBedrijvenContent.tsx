@@ -14,6 +14,7 @@ type CompanyRow = {
   address: string | null;
   postal_code: string | null;
   logo_url: string | null;
+  logo_thumb_url: string | null;
   phone: string | null;
   email: string | null;
   website: string | null;
@@ -50,7 +51,7 @@ export async function BeheerBedrijvenContent() {
     cachedQuery("beheer-bedrijven-page-data", 300_000, () =>
       supabase
         .from("companies")
-        .select("id, name, industry, city, address, postal_code, logo_url, phone, email, website")
+        .select("id, name, industry, city, address, postal_code, logo_url, logo_thumb_url, phone, email, website")
         .order("name")
         .returns<CompanyRow[]>()
     ),
@@ -64,10 +65,13 @@ export async function BeheerBedrijvenContent() {
     ),
   ]);
 
+  // Thumbnail-paden in dezelfde batch-aanroep (performance-audit #1): de
+  // lijst toont een logo van 36px, daar is de kleine versie (max 160px) ruim
+  // genoeg voor. Een bedrijf zonder thumbnail valt terug op het volle logo.
   const logoUrls = await getSignedStorageUrls(
     supabase,
     "company-logos",
-    (allCompanies ?? []).map((c) => c.logo_url)
+    (allCompanies ?? []).flatMap((c) => [c.logo_url, c.logo_thumb_url])
   );
 
   const billingByCompany = new Map((billingRows ?? []).map((b) => [b.company_id, b]));
@@ -84,12 +88,13 @@ export async function BeheerBedrijvenContent() {
           billing?.invoice_country ?? null,
         ]);
 
+    const logoPath = c.logo_thumb_url ?? c.logo_url;
     return {
       id: c.id,
       name: c.name,
       industry: c.industry,
       city: c.city,
-      logoUrl: c.logo_url ? (logoUrls.get(c.logo_url) ?? null) : null,
+      logoUrl: logoPath ? (logoUrls.get(logoPath) ?? null) : null,
       phone: c.phone,
       email: c.email,
       website: c.website,

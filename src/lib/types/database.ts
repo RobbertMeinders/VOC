@@ -23,6 +23,7 @@ export interface Database {
           phone: string | null;
           job_title: string | null;
           avatar_url: string | null;
+          avatar_thumb_url: string | null;
           role: UserRole;
           is_active: boolean;
           show_email: boolean;
@@ -63,6 +64,7 @@ export interface Database {
           name: string;
           slug: string;
           logo_url: string | null;
+          logo_thumb_url: string | null;
           description: string | null;
           tagline: string | null;
           industry: string | null;

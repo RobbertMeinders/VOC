@@ -45,25 +45,31 @@ export async function BeheerLedenContent() {
     }
   }
 
+  // Thumbnail-paden in dezelfde batch-aanroep (performance-audit #1): de
+  // lijst toont een avatar van 36px, daar is de kleine versie (max 160px)
+  // ruim genoeg voor. Een lid zonder thumbnail valt terug op de volle avatar.
   const avatarUrls = await getSignedStorageUrls(
     supabase,
     "avatars",
-    (allProfiles ?? []).map((p) => p.avatar_url)
+    (allProfiles ?? []).flatMap((p) => [p.avatar_url, p.avatar_thumb_url])
   );
 
-  const members: BeheerMemberRow[] = (allProfiles ?? []).map((p) => ({
-    id: p.id,
-    first_name: p.first_name,
-    last_name: p.last_name,
-    email: p.email,
-    phone: p.phone,
-    avatar_url: p.avatar_url,
-    avatarUrl: p.avatar_url ? (avatarUrls.get(p.avatar_url) ?? null) : null,
-    role: p.role,
-    is_active: p.is_active,
-    is_organization_account: p.is_organization_account,
-    companyName: companyByProfile.get(p.id) ?? null,
-  }));
+  const members: BeheerMemberRow[] = (allProfiles ?? []).map((p) => {
+    const path = p.avatar_thumb_url ?? p.avatar_url;
+    return {
+      id: p.id,
+      first_name: p.first_name,
+      last_name: p.last_name,
+      email: p.email,
+      phone: p.phone,
+      avatar_url: p.avatar_url,
+      avatarUrl: path ? (avatarUrls.get(path) ?? null) : null,
+      role: p.role,
+      is_active: p.is_active,
+      is_organization_account: p.is_organization_account,
+      companyName: companyByProfile.get(p.id) ?? null,
+    };
+  });
 
   return (
     <div>
