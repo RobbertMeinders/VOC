@@ -2,9 +2,11 @@
 
 import { useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, Clock, XCircle, type LucideIcon } from "lucide-react";
-import { DeleteButton } from "@/components/feed/DeleteButton";
-import { deleteCommunicationAction } from "@/app/(app)/beheer/communicatie/actions";
+import { ActionMenu, type ActionMenuItem } from "@/components/ui/ActionMenu";
+import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
+import { deleteCommunicationAction, duplicateCommunicationAction } from "@/app/(app)/beheer/communicatie/actions";
 import { renderNewsletterHtml } from "@/lib/newsletter/render";
 import type { NewsletterBlock } from "@/lib/newsletter/types";
 import type { Database } from "@/lib/types/database";
@@ -125,7 +127,36 @@ export function CommunicationRow({
   orgName: string;
   logoUrl: string | null;
 }) {
+  const router = useRouter();
+  const confirm = useConfirm();
   const canDelete = communication.status !== "verzonden";
+
+  const items: ActionMenuItem[] = [
+    {
+      label: "Dupliceren",
+      onClick: async () => {
+        const result = await duplicateCommunicationAction(communication.id);
+        if (result.id) router.push(`/beheer/communicatie/${result.id}`);
+      },
+    },
+  ];
+  if (canDelete) {
+    items.push({
+      label: "Verwijderen",
+      danger: true,
+      onClick: async () => {
+        const confirmed = await confirm({
+          title: "Verwijderen?",
+          description: `Weet je zeker dat je "${communication.subject}" wilt verwijderen?`,
+          confirmLabel: "Verwijderen",
+          danger: true,
+        });
+        if (!confirmed) return;
+        await deleteCommunicationAction(communication.id);
+        router.refresh();
+      },
+    });
+  }
 
   return (
     <div className="flex items-start gap-3 rounded-xl border border-border bg-surface p-3 shadow-sm">
@@ -155,12 +186,7 @@ export function CommunicationRow({
           )}
         </div>
       </div>
-      {canDelete && (
-        <DeleteButton
-          confirmMessage={`Weet je zeker dat je "${communication.subject}" wilt verwijderen?`}
-          onDelete={deleteCommunicationAction.bind(null, communication.id)}
-        />
-      )}
+      <ActionMenu items={items} />
     </div>
   );
 }

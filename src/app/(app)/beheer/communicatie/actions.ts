@@ -197,6 +197,54 @@ export async function createCommunicationFromActivityAction(activityId: string):
   }
 }
 
+export type DuplicateCommunicationState = { error?: string; id?: string };
+
+// Kopieert alleen de bewerkbare inhoud (onderwerp/pre-header/afzender/
+// content/kop-voettekst-schakelaars) — nooit de verzendstatus, ontvangers-
+// aantal of doelgroepselectie van het origineel, want een duplicaat is
+// altijd een nieuw, nog nooit verstuurd concept. Geeft het nieuwe id terug
+// i.p.v. zelf te redirecten: dit wordt direct vanuit het "..."-menu op de
+// lijstpagina aangeroepen (geen <form>, zie CommunicationRow), en een
+// redirect() in een server action vereist een form-submissie om de
+// navigatie op de client correct te laten landen.
+export async function duplicateCommunicationAction(communicationId: string): Promise<DuplicateCommunicationState> {
+  const profile = await requireBoard();
+  const supabase = await createClient();
+
+  const { data: source } = await supabase
+    .from("communications")
+    .select("subject, preheader, sender_name, content, show_header, show_footer, linked_activity_id")
+    .eq("id", communicationId)
+    .maybeSingle();
+  if (!source) {
+    return { error: "Origineel niet gevonden." };
+  }
+
+  const { data: duplicate, error } = await supabase
+    .from("communications")
+    .insert({
+      subject: `Kopie van ${source.subject}`,
+      preheader: source.preheader,
+      sender_name: source.sender_name,
+      content: source.content,
+      show_header: source.show_header,
+      show_footer: source.show_footer,
+      linked_activity_id: source.linked_activity_id,
+      created_by: profile.id,
+    })
+    .select("id")
+    .single();
+
+  if (error || !duplicate) {
+    return { error: "Dupliceren is niet gelukt. Probeer het opnieuw." };
+  }
+
+  await logAuditAction("communication_duplicated", "communication", duplicate.id, { sourceId: communicationId });
+
+  revalidatePath("/beheer/communicatie");
+  return { id: duplicate.id };
+}
+
 export type TestSendState = { error?: string; success?: boolean };
 
 // Testmail: rendert de huidige (mogelijk nog niet opgeslagen) staat van de
