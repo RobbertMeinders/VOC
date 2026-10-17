@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Megaphone, Plus } from "lucide-react";
+import Link from "next/link";
+import { Megaphone, Plus, Users } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
@@ -33,15 +34,24 @@ export default async function BeheerCommunicatiePage() {
         title="Nieuwsbrieven"
         description="Centrale plek voor nieuwsbrieven en algemene e-mailcommunicatie naar leden."
         action={
-          <form action={createCommunicationAction}>
-            <button
-              type="submit"
-              className="flex w-full items-center justify-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark sm:w-auto"
+          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
+            <Link
+              href="/beheer/communicatie/doelgroepen"
+              className="flex items-center justify-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
             >
-              <Plus size={16} />
-              Nieuwe nieuwsbrief
-            </button>
-          </form>
+              <Users size={16} />
+              Doelgroepen
+            </Link>
+            <form action={createCommunicationAction} className="flex-1 sm:flex-none">
+              <button
+                type="submit"
+                className="flex w-full items-center justify-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark sm:w-auto"
+              >
+                <Plus size={16} />
+                Nieuwe nieuwsbrief
+              </button>
+            </form>
+          </div>
         }
       />
 

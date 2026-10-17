@@ -43,6 +43,7 @@ import {
   type UploadImageState,
 } from "@/app/(app)/beheer/communicatie/actions";
 import { renderNewsletterHtml } from "@/lib/newsletter/render";
+import { AudiencePicker } from "@/components/beheer/AudiencePicker";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 import { useToast } from "@/lib/ui/ToastContext";
 import { formatActivityDate } from "@/lib/format/date";
@@ -51,6 +52,9 @@ import type { Database } from "@/lib/types/database";
 
 type Communication = Database["public"]["Tables"]["communications"]["Row"];
 type ActivityOption = { id: string; title: string; starts_at: string };
+type Profile = { id: string; first_name: string; last_name: string; email: string };
+type Contact = { id: string; name: string; email: string };
+type ContactListOption = { id: string; name: string };
 
 const initialState: CommunicationFormState = {};
 const uploadInitialState: UploadImageState = {};
@@ -578,6 +582,12 @@ export function NewsletterEditor({
   sentCount,
   orgName,
   logoUrl,
+  lists,
+  contacts,
+  activeProfiles,
+  selectedListIds,
+  extraProfileIds,
+  extraContactIds,
 }: {
   communication: Communication;
   activities: ActivityOption[];
@@ -585,6 +595,12 @@ export function NewsletterEditor({
   sentCount: number;
   orgName: string;
   logoUrl: string | null;
+  lists: ContactListOption[];
+  contacts: Contact[];
+  activeProfiles: Profile[];
+  selectedListIds: string[];
+  extraProfileIds: string[];
+  extraContactIds: string[];
 }) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -622,13 +638,16 @@ export function NewsletterEditor({
 
   async function handleSend() {
     const isRetry = communication.status === "verzenden_mislukt";
-    const confirmMessage = isRetry
-      ? `Opnieuw proberen te versturen aan de ${activeMemberCount - sentCount} leden die 'm nog niet ontvingen.`
-      : `Dit verstuurt "${communication.subject}" naar ${activeMemberCount} actieve leden.`;
+    const isExtra = communication.status === "verzonden";
+    const confirmMessage = isExtra
+      ? "Dit verstuurt alleen naar wie in de huidige doelgroep nog geen e-mail ontving (bv. een nieuw toegevoegde ontvanger)."
+      : isRetry
+        ? `Opnieuw proberen te versturen aan de ${(communication.total_recipients ?? activeMemberCount) - sentCount} ontvangers die 'm nog niet ontvingen.`
+        : `Dit verstuurt "${communication.subject}" naar de huidige doelgroep.`;
     const confirmed = await confirm({
-      title: isRetry ? "Opnieuw proberen te versturen?" : "Nieuwsbrief versturen?",
+      title: isExtra ? "Extra versturen?" : isRetry ? "Opnieuw proberen te versturen?" : "Nieuwsbrief versturen?",
       description: `${confirmMessage} Dit kan niet ongedaan worden gemaakt.`,
-      confirmLabel: isRetry ? "Opnieuw proberen" : "Versturen",
+      confirmLabel: isExtra ? "Extra versturen" : isRetry ? "Opnieuw proberen" : "Versturen",
       danger: true,
     });
     if (!confirmed) return;
@@ -887,11 +906,22 @@ export function NewsletterEditor({
           )}
         </form>
 
+        <AudiencePicker
+          communicationId={communication.id}
+          recipientFilter={communication.recipient_filter}
+          lists={lists}
+          selectedListIds={selectedListIds}
+          activeProfiles={activeProfiles}
+          contacts={contacts}
+          extraProfileIds={extraProfileIds}
+          extraContactIds={extraContactIds}
+        />
+
         {communication.status === "ingepland" && (
           <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
             <p className="text-sm font-medium text-foreground">Ingepland</p>
             <p className="mt-1 text-sm text-muted">
-              Wordt verstuurd aan alle {activeMemberCount} actieve leden op{" "}
+              Wordt verstuurd aan de gekozen doelgroep op{" "}
               {communication.scheduled_at ? new Date(communication.scheduled_at).toLocaleString("nl-NL") : "-"}.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
@@ -904,18 +934,28 @@ export function NewsletterEditor({
           </div>
         )}
 
-        {(communication.status === "concept" || communication.status === "verzenden_mislukt") && (
+        {(communication.status === "concept" || communication.status === "verzenden_mislukt" || communication.status === "verzonden") && (
           <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-            <p className="text-sm font-medium text-foreground">Versturen</p>
+            <p className="text-sm font-medium text-foreground">
+              {communication.status === "verzonden" ? "Extra versturen" : "Versturen"}
+            </p>
             <p className="mt-1 text-sm text-muted">
-              {communication.status === "verzenden_mislukt"
-                ? `${sentCount} van ${activeMemberCount} actieve leden ontvingen 'm al - de rest nog niet.`
-                : `Gaat naar alle ${activeMemberCount} actieve leden.`}
+              {communication.status === "verzonden"
+                ? "Stuur alsnog naar wie je hierboven als extra ontvanger toevoegt (bv. een nieuw lid, of jezelf om te testen)."
+                : communication.status === "verzenden_mislukt"
+                  ? `${sentCount} van ${communication.total_recipients ?? activeMemberCount} ontvangers ontvingen 'm al - de rest nog niet.`
+                  : "Gaat naar de hierboven gekozen doelgroep."}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <Button type="button" onClick={handleSend} disabled={sendPending}>
                 <Send size={16} />
-                {sendPending ? "Versturen…" : communication.status === "verzenden_mislukt" ? "Opnieuw proberen" : "Versturen"}
+                {sendPending
+                  ? "Versturen…"
+                  : communication.status === "verzonden"
+                    ? "Extra versturen"
+                    : communication.status === "verzenden_mislukt"
+                      ? "Opnieuw proberen"
+                      : "Versturen"}
               </Button>
               {sendResult?.error && <p className="text-sm text-voc-red-text">{sendResult.error}</p>}
               {sendResult && sendResult.total !== undefined && sendResult.sent !== undefined && (

@@ -197,6 +197,60 @@ export async function createCommunicationFromActivityAction(activityId: string):
   }
 }
 
+export type AudienceState = { error?: string; success?: boolean };
+
+// Vervang-alles-semantiek i.p.v. een diff berekenen: eenvoudiger, en de
+// doelgroep van één campagne is klein genoeg (lijsten + losse extra's) dat
+// dat geen probleem is. Blijft bewust altijd aanroepbaar, ook als de
+// campagne al (deels) verstuurd is — zie 0089_newsletter_audience_targeting
+// en de "extra versturen"-sectie in NewsletterEditor: wie al een
+// notifications-/communication_contact_sends-rij heeft, krijgt 'm bij de
+// eerstvolgende "Versturen"-klik hoe dan ook niet dubbel (unique constraint
+// + claim-RPC's slaan al-geclaimde ontvangers over).
+export async function updateCommunicationAudienceAction(
+  communicationId: string,
+  recipientFilter: "alle_actieve_leden" | "lijsten",
+  listIds: string[],
+  extraProfileIds: string[],
+  extraContactIds: string[]
+): Promise<AudienceState> {
+  await requireBoard();
+  const supabase = await createClient();
+
+  const { error: updateError } = await supabase
+    .from("communications")
+    .update({ recipient_filter: recipientFilter })
+    .eq("id", communicationId);
+  if (updateError) {
+    return { error: "Doelgroep opslaan is niet gelukt." };
+  }
+
+  await Promise.all([
+    supabase.from("communication_recipient_lists").delete().eq("communication_id", communicationId),
+    supabase.from("communication_recipient_profiles").delete().eq("communication_id", communicationId),
+    supabase.from("communication_recipient_contacts").delete().eq("communication_id", communicationId),
+  ]);
+
+  await Promise.all([
+    listIds.length > 0
+      ? supabase.from("communication_recipient_lists").insert(listIds.map((listId) => ({ communication_id: communicationId, list_id: listId })))
+      : Promise.resolve(),
+    extraProfileIds.length > 0
+      ? supabase
+          .from("communication_recipient_profiles")
+          .insert(extraProfileIds.map((profileId) => ({ communication_id: communicationId, profile_id: profileId })))
+      : Promise.resolve(),
+    extraContactIds.length > 0
+      ? supabase
+          .from("communication_recipient_contacts")
+          .insert(extraContactIds.map((contactId) => ({ communication_id: communicationId, contact_id: contactId })))
+      : Promise.resolve(),
+  ]);
+
+  revalidatePath(`/beheer/communicatie/${communicationId}`);
+  return { success: true };
+}
+
 export type DuplicateCommunicationState = { error?: string; id?: string };
 
 // Kopieert alleen de bewerkbare inhoud (onderwerp/pre-header/afzender/

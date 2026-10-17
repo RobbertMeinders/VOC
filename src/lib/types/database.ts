@@ -432,6 +432,84 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["communications"]["Row"]>;
         Relationships: [];
       };
+      contacts: {
+        Row: {
+          id: string;
+          name: string;
+          email: string;
+          company: string | null;
+          notes: string | null;
+          opted_out: boolean;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["contacts"]["Row"]> & {
+          name: string;
+          email: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["contacts"]["Row"]>;
+        Relationships: [];
+      };
+      contact_lists: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["contact_lists"]["Row"]> & {
+          name: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["contact_lists"]["Row"]>;
+        Relationships: [];
+      };
+      contact_list_profiles: {
+        Row: { list_id: string; profile_id: string };
+        Insert: { list_id: string; profile_id: string };
+        Update: Partial<Database["public"]["Tables"]["contact_list_profiles"]["Row"]>;
+        Relationships: [];
+      };
+      contact_list_contacts: {
+        Row: { list_id: string; contact_id: string };
+        Insert: { list_id: string; contact_id: string };
+        Update: Partial<Database["public"]["Tables"]["contact_list_contacts"]["Row"]>;
+        Relationships: [];
+      };
+      communication_recipient_lists: {
+        Row: { communication_id: string; list_id: string };
+        Insert: { communication_id: string; list_id: string };
+        Update: Partial<Database["public"]["Tables"]["communication_recipient_lists"]["Row"]>;
+        Relationships: [];
+      };
+      communication_recipient_profiles: {
+        Row: { communication_id: string; profile_id: string };
+        Insert: { communication_id: string; profile_id: string };
+        Update: Partial<Database["public"]["Tables"]["communication_recipient_profiles"]["Row"]>;
+        Relationships: [];
+      };
+      communication_recipient_contacts: {
+        Row: { communication_id: string; contact_id: string };
+        Insert: { communication_id: string; contact_id: string };
+        Update: Partial<Database["public"]["Tables"]["communication_recipient_contacts"]["Row"]>;
+        Relationships: [];
+      };
+      communication_contact_sends: {
+        Row: {
+          id: string;
+          communication_id: string;
+          contact_id: string;
+          emailed_at: string | null;
+          email_provider_id: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["communication_contact_sends"]["Row"]> & {
+          communication_id: string;
+          contact_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["communication_contact_sends"]["Row"]>;
+        Relationships: [];
+      };
       notifications: {
         Row: {
           id: string;
@@ -802,6 +880,14 @@ export interface Database {
       finalize_newsletter_send: {
         Args: { p_communication_id: string };
         Returns: { total: number; sent: number }[];
+      };
+      claim_newsletter_contact_recipients: {
+        Args: { p_communication_id: string };
+        Returns: { send_id: string; contact_id: string; email: string }[];
+      };
+      mark_newsletter_contact_sent: {
+        Args: { p_send_id: string; p_provider_id?: string | null };
+        Returns: undefined;
       };
     };
     Enums: {

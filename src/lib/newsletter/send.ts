@@ -14,18 +14,22 @@ export type NewsletterSendResult = { total: number; sent: number };
 // Gedeeld tussen sendNewsletterAction (de "Versturen"-knop, bestuurslid met
 // sessie) en de cron die ingeplande campagnes oppakt (geen sessie, draait
 // via de service-role-client) — zelfde claim/render/verzend/finalize-lus
-// voor allebei, zie 0067/0069_newsletter_*.sql voor waarom die RPC's beide
-// aanroeppaden toestaan.
+// voor allebei, zie 0067/0069/0089_newsletter_*.sql voor waarom die RPC's
+// beide aanroeppaden toestaan. Leden (notifications-rijen) en externe
+// contacten (communication_contact_sends-rijen, zie 0089) hebben elk hun
+// eigen claim/mark-RPC-paar maar delen hier dezelfde render/verzend-lus en
+// dezelfde finalize-aanroep, die beide tellingen samenvoegt.
 export async function performNewsletterSend(
   supabase: SupabaseClient<Database>,
   communication: Communication
 ): Promise<NewsletterSendResult> {
   const content = Array.isArray(communication.content) ? (communication.content as unknown as NewsletterBlock[]) : [];
 
-  const { data: recipients, error: claimError } = await supabase.rpc("claim_newsletter_recipients", {
-    p_communication_id: communication.id,
-  });
-  if (claimError) {
+  const [{ data: recipients, error: claimError }, { data: contactRecipients, error: contactClaimError }] = await Promise.all([
+    supabase.rpc("claim_newsletter_recipients", { p_communication_id: communication.id }),
+    supabase.rpc("claim_newsletter_contact_recipients", { p_communication_id: communication.id }),
+  ]);
+  if (claimError || contactClaimError) {
     throw new Error("Ontvangerslijst ophalen is niet gelukt.");
   }
 
@@ -48,6 +52,16 @@ export async function performNewsletterSend(
       // de volledige uitleg van dit patroon).
       await supabase.rpc("mark_newsletter_notification_sent", {
         p_notification_id: recipient.notification_id,
+        p_provider_id: result.providerId ?? null,
+      });
+    }
+  }
+
+  for (const recipient of contactRecipients ?? []) {
+    const result = await sendRawHtmlEmail(recipient.email, communication.subject, html, communication.sender_name);
+    if (!result.error) {
+      await supabase.rpc("mark_newsletter_contact_sent", {
+        p_send_id: recipient.send_id,
         p_provider_id: result.providerId ?? null,
       });
     }

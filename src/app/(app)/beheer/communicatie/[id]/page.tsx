@@ -28,26 +28,43 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
   // meest recent verlopen. Eén "order by starts_at desc"-query zou juist de
   // verst-in-de-toekomst liggende activiteit bovenaan zetten, dus twee
   // losse, tegengesteld gesorteerde queries i.p.v. één.
-  const [{ data: communication }, { data: upcomingActivities }, { data: pastActivities }, { count: activeMemberCount }, settings] =
-    await Promise.all([
-      supabase.from("communications").select("*").eq("id", id).maybeSingle(),
-      supabase
-        .from("activities")
-        .select("id, title, starts_at")
-        .eq("status", "approved")
-        .gte("starts_at", nowIso)
-        .order("starts_at", { ascending: true })
-        .limit(50),
-      supabase
-        .from("activities")
-        .select("id, title, starts_at")
-        .eq("status", "approved")
-        .lt("starts_at", nowIso)
-        .order("starts_at", { ascending: false })
-        .limit(50),
-      supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
-      getAppSettings(),
-    ]);
+  const [
+    { data: communication },
+    { data: upcomingActivities },
+    { data: pastActivities },
+    { count: activeMemberCount },
+    settings,
+    { data: lists },
+    { data: contacts },
+    { data: activeProfiles },
+    { data: selectedLists },
+    { data: selectedProfiles },
+    { data: selectedContacts },
+  ] = await Promise.all([
+    supabase.from("communications").select("*").eq("id", id).maybeSingle(),
+    supabase
+      .from("activities")
+      .select("id, title, starts_at")
+      .eq("status", "approved")
+      .gte("starts_at", nowIso)
+      .order("starts_at", { ascending: true })
+      .limit(50),
+    supabase
+      .from("activities")
+      .select("id, title, starts_at")
+      .eq("status", "approved")
+      .lt("starts_at", nowIso)
+      .order("starts_at", { ascending: false })
+      .limit(50),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
+    getAppSettings(),
+    supabase.from("contact_lists").select("id, name").order("name"),
+    supabase.from("contacts").select("id, name, email").order("name"),
+    supabase.from("profiles").select("id, first_name, last_name, email").eq("is_active", true).order("first_name"),
+    supabase.from("communication_recipient_lists").select("list_id").eq("communication_id", id),
+    supabase.from("communication_recipient_profiles").select("profile_id").eq("communication_id", id),
+    supabase.from("communication_recipient_contacts").select("contact_id").eq("communication_id", id),
+  ]);
   const activities = [...(upcomingActivities ?? []), ...(pastActivities ?? [])];
 
   if (!communication) {
@@ -56,15 +73,23 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
 
   // Alleen relevant na een (eventueel gedeeltelijk mislukte) verzendpoging
   // — bij een concept of een nog niet opgepakte planning is er nog niets
-  // geclaimd, dus geen zinvolle telling.
+  // geclaimd, dus geen zinvolle telling. Telt leden (notifications) en
+  // contacten (communication_contact_sends, zie 0089) samen.
   let sentCount = 0;
   if (communication.status === "verzonden" || communication.status === "verzenden_mislukt") {
-    const { count } = await supabase
-      .from("notifications")
-      .select("id", { count: "exact", head: true })
-      .eq("communication_id", communication.id)
-      .not("emailed_at", "is", null);
-    sentCount = count ?? 0;
+    const [{ count: sentProfiles }, { count: sentContacts }] = await Promise.all([
+      supabase
+        .from("notifications")
+        .select("id", { count: "exact", head: true })
+        .eq("communication_id", communication.id)
+        .not("emailed_at", "is", null),
+      supabase
+        .from("communication_contact_sends")
+        .select("id", { count: "exact", head: true })
+        .eq("communication_id", communication.id)
+        .not("emailed_at", "is", null),
+    ]);
+    sentCount = (sentProfiles ?? 0) + (sentContacts ?? 0);
   }
 
   const statusLabel =
@@ -99,6 +124,12 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
         sentCount={sentCount}
         orgName={settings.org_name}
         logoUrl={settings.logo_url}
+        lists={lists ?? []}
+        contacts={contacts ?? []}
+        activeProfiles={activeProfiles ?? []}
+        selectedListIds={(selectedLists ?? []).map((l) => l.list_id)}
+        extraProfileIds={(selectedProfiles ?? []).map((p) => p.profile_id)}
+        extraContactIds={(selectedContacts ?? []).map((c) => c.contact_id)}
       />
     </div>
   );
