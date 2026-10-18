@@ -10,7 +10,7 @@ import {
   markAllNotificationsReadAction,
   markNotificationReadAction,
 } from "@/app/(app)/notificaties/actions";
-import { useMarkNotificationRead } from "@/lib/notifications/useUnreadCount";
+import { useMarkAllNotificationsRead, useMarkNotificationRead } from "@/lib/notifications/useUnreadCount";
 import type { Database } from "@/lib/types/database";
 
 type Notification = Database["public"]["Tables"]["notifications"]["Row"];
@@ -28,6 +28,7 @@ export function NotificationList({ notifications: initialNotifications }: { noti
   // in AppShell, dus die moet los meteen op de hoogte gebracht worden i.p.v.
   // te wachten op de Realtime-round-trip.
   const markReadGlobally = useMarkNotificationRead();
+  const markAllReadGlobally = useMarkAllNotificationsRead();
 
   function handleOpen(notification: Notification) {
     if (notification.is_read) return;
@@ -43,9 +44,10 @@ export function NotificationList({ notifications: initialNotifications }: { noti
   }
 
   function handleMarkAllRead() {
-    for (const n of notifications) {
-      if (!n.is_read) markReadGlobally(n.id);
-    }
+    // markAllReadGlobally leegt de hele ongelezen-lijst i.p.v. alleen de hier
+    // geladen (mogelijk beperkte) `notifications` — markAllNotificationsReadAction
+    // markeert op de server immers ook alles, niet alleen wat hier zichtbaar is.
+    markAllReadGlobally();
     setNotifications((current) => current.map((n) => ({ ...n, is_read: true })));
     void markAllNotificationsReadAction();
   }

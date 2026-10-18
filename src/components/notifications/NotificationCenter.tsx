@@ -12,10 +12,11 @@ import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useFixedAnchor } from "@/lib/dom/useFixedAnchor";
-import { useMarkNotificationRead } from "@/lib/notifications/useUnreadCount";
+import { useMarkAllNotificationsRead, useMarkNotificationRead } from "@/lib/notifications/useUnreadCount";
 import { useOverlay } from "@/lib/ui/OverlayContext";
 import {
   getRecentNotificationsAction,
+  markAllNotificationsReadAction,
   markNotificationReadAction,
   type RecentNotification,
 } from "@/app/(app)/notificaties/actions";
@@ -37,6 +38,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
   const router = useRouter();
   const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(variant === "sidebar" && open);
   const markRead = useMarkNotificationRead();
+  const markAllReadGlobally = useMarkAllNotificationsRead();
 
   useEscapeKey(open, close);
   // Alleen relevant op mobiel: daar is dit een volledig-scherm sheet (net als
@@ -62,6 +64,15 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
     }
   }
 
+  // De desktop-popover had, anders dan de mobiele sheet en /notificaties
+  // zelf (allebei via NotificationList), geen bulk-optie — je moest hier elke
+  // melding apart aanklikken om het totaal te laten verdwijnen.
+  function handleMarkAllRead() {
+    markAllReadGlobally();
+    setNotifications((current) => current?.map((n) => ({ ...n, is_read: true })) ?? current);
+    void markAllNotificationsReadAction();
+  }
+
   function handleSelect(notification: RecentNotification) {
     if (!notification.is_read) {
       setNotifications((current) =>
@@ -79,16 +90,27 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
 
   const panelContent = (
     <>
-      <div className="flex items-center justify-between border-b border-border px-4 py-3">
+      <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
         <p className="text-sm font-semibold text-foreground">Meldingen</p>
-        <button
-          type="button"
-          onClick={close}
-          aria-label="Sluiten"
-          className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
-        >
-          <X size={16} />
-        </button>
+        <div className="flex items-center gap-2">
+          {notifications?.some((n) => !n.is_read) && (
+            <button
+              type="button"
+              onClick={handleMarkAllRead}
+              className="text-xs font-medium text-voc-red-text hover:underline"
+            >
+              Alles gelezen
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Sluiten"
+            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
+          >
+            <X size={16} />
+          </button>
+        </div>
       </div>
       <div className={variant === "mobile" ? "flex-1 overflow-y-auto" : "max-h-80 overflow-y-auto"}>
         {loading &&

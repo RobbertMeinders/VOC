@@ -147,19 +147,21 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                   <div className="ml-auto flex shrink-0 items-center gap-2 sm:hidden">{actions}</div>
                 </div>
 
-                <div className="flex min-w-0 flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted sm:flex-1">
-                  <span className="shrink-0 whitespace-nowrap">
+                <div className="flex min-w-0 flex-col gap-1 text-xs text-muted sm:flex-1">
+                  <span>
                     {ROLE_LABELS[member.role]}
                     {!member.is_active && " · Gedeactiveerd"}
                   </span>
-                  <span className="flex min-w-0 max-w-[14rem] items-center gap-1">
+                  <span className="flex min-w-0 items-center gap-1">
                     <Mail size={11} className="shrink-0" />
                     <span className="truncate">{member.email}</span>
                   </span>
-                  <span className="flex shrink-0 items-center gap-1 whitespace-nowrap">
-                    {member.phone && <Phone size={11} className="shrink-0" />}
-                    <span>{member.phone}</span>
-                  </span>
+                  {member.phone && (
+                    <span className="flex min-w-0 items-center gap-1">
+                      <Phone size={11} className="shrink-0" />
+                      <span className="truncate">{member.phone}</span>
+                    </span>
+                  )}
                 </div>
 
                 <div className="hidden shrink-0 items-center gap-2 sm:flex">{actions}</div>

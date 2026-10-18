@@ -8,6 +8,7 @@ import { formatMonthLabel, splitUpcomingAndPast } from "@/lib/format/date";
 import { isBoard } from "@/lib/auth/roles";
 import { ActivityCard } from "@/components/agenda/ActivityCard";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { MarkSectionReadOnView } from "@/components/notifications/MarkSectionReadOnView";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Agenda" };
@@ -92,6 +93,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="mx-auto w-full md:max-w-3xl">
+      <MarkSectionReadOnView section="agenda" />
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-xl font-semibold text-foreground">Agenda</h1>
         <Link

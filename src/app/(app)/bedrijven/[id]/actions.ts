@@ -290,6 +290,10 @@ export async function decideCompanyMembershipRequestAction(
     invalidateQuery("leden-page-data");
   }
   revalidatePath(`/bedrijven/${companyId}`);
+  // Deze actie wordt ook vanaf het beheerdashboard ("Wacht op jou")
+  // aangeroepen — zonder deze revalidate bleef een net afgehandeld verzoek
+  // daar nog even (tot de volgende navigatie) in de lijst staan.
+  revalidatePath("/beheer");
   return {};
 }
 

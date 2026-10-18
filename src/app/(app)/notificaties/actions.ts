@@ -35,6 +35,17 @@ export async function markNotificationReadAction(notificationId: string) {
   revalidatePath("/notificaties");
 }
 
+// Voor het bulk markeren van een hele sectie (bv. alles wat naar /agenda
+// linkt) in één keer, zonder per melding een los verzoek te doen — zie
+// markSectionRead in useUnreadCount.ts.
+export async function markNotificationsReadByIdsAction(ids: string[]) {
+  if (ids.length === 0) return;
+  const profile = await requireProfile();
+  const supabase = await createClient();
+  await supabase.from("notifications").update({ is_read: true }).eq("profile_id", profile.id).in("id", ids);
+  revalidatePath("/notificaties");
+}
+
 export async function markAllNotificationsReadAction() {
   const profile = await requireProfile();
   const supabase = await createClient();

@@ -14,10 +14,12 @@ export function ProfilePhotoPrompt({
   missingPhoto,
   missingJobTitle,
   missingCompany,
+  companyRequestPending,
 }: {
   missingPhoto: boolean;
   missingJobTitle: boolean;
   missingCompany: boolean;
+  companyRequestPending: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
 
@@ -27,16 +29,24 @@ export function ProfilePhotoPrompt({
     });
   }
 
+  // Een al ingediende aanvraag telt niet mee als "nog toe te voegen" — anders
+  // bleef deze prompt je net zo goed naar /profiel sturen als had je nog
+  // niets gedaan, zonder dat zichtbaar was dat er al een aanvraag liep.
+  const companyPendingOnly = missingCompany && companyRequestPending;
   const missing = [
     missingPhoto && "een profielfoto",
     missingJobTitle && "je functie",
-    missingCompany && "je bedrijf",
+    missingCompany && !companyRequestPending && "je bedrijf",
   ].filter((v): v is string => Boolean(v));
 
-  const text =
-    missing.length === 0
-      ? "Vul je profiel aan"
-      : `Voeg ${missing.length > 1 ? `${missing.slice(0, -1).join(", ")} en ${missing[missing.length - 1]}` : missing[0]} toe aan je profiel`;
+  let text: string;
+  if (missing.length === 0) {
+    text = companyPendingOnly ? "Bedrijf toevoegen is in behandeling" : "Vul je profiel aan";
+  } else {
+    const joined =
+      missing.length > 1 ? `${missing.slice(0, -1).join(", ")} en ${missing[missing.length - 1]}` : missing[0];
+    text = `Voeg ${joined} toe aan je profiel${companyPendingOnly ? " · bedrijf in behandeling" : ""}`;
+  }
 
   return (
     <div className="animate-rise-in flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm shadow-sm">

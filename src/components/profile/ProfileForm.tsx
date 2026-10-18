@@ -154,15 +154,16 @@ export function ProfileForm({
             </label>
             <Input id="phone" name="phone" type="tel" defaultValue={profile.phone ?? ""} />
           </div>
-          <FormToggleRow label="Telefoonnummer zichtbaar voor andere leden">
-            <input type="hidden" name="show_phone" value={showPhone ? "on" : ""} />
-            <Switch checked={showPhone} onChange={() => setShowPhone((v) => !v)} label="Telefoonnummer zichtbaar voor andere leden" />
-          </FormToggleRow>
 
           <div className="flex flex-col gap-1.5">
             <span className="text-sm font-medium text-foreground">E-mailadres</span>
             <p className="text-sm text-muted">{profile.email}</p>
           </div>
+
+          <FormToggleRow label="Telefoonnummer zichtbaar voor andere leden">
+            <input type="hidden" name="show_phone" value={showPhone ? "on" : ""} />
+            <Switch checked={showPhone} onChange={() => setShowPhone((v) => !v)} label="Telefoonnummer zichtbaar voor andere leden" />
+          </FormToggleRow>
           <FormToggleRow label="E-mailadres zichtbaar voor andere leden">
             <input type="hidden" name="show_email" value={showEmail ? "on" : ""} />
             <Switch checked={showEmail} onChange={() => setShowEmail((v) => !v)} label="E-mailadres zichtbaar voor andere leden" />

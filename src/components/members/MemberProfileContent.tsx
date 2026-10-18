@@ -78,7 +78,9 @@ export async function MemberProfileContent({ id }: { id: string }) {
       .order("created_at", { ascending: false })
       .range(0, MEMBER_PROFILE_LIST_PREVIEW)
       .returns<{ activity: AttendedActivity | null }[]>(),
-    fetchFeedPostsByAuthor(supabase, viewer.id, id, MEMBER_PROFILE_LIST_PREVIEW + 1),
+    // Berichten alleen op het eigen profiel tonen (niet bij andermans) — geen
+    // zin om ze dan ook op te halen.
+    isOwnProfile ? fetchFeedPostsByAuthor(supabase, viewer.id, id, MEMBER_PROFILE_LIST_PREVIEW + 1) : Promise.resolve([]),
   ]);
 
   if (!member) {
@@ -216,7 +218,7 @@ export async function MemberProfileContent({ id }: { id: string }) {
         </div>
       )}
 
-      {posts.length > 0 && (
+      {isOwnProfile && posts.length > 0 && (
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Berichten</h2>
           <MemberPostList

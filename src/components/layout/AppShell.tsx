@@ -5,7 +5,9 @@ import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import type { Profile } from "@/lib/auth/session";
 import {
+  MarkAllNotificationsReadProvider,
   MarkNotificationReadProvider,
+  MarkSectionReadProvider,
   useUnreadNotificationCount,
   type UnreadNotification,
   type UnreadNotificationSections,
@@ -46,30 +48,37 @@ export function AppShell({
   // sidebar- en mobiele-header-bel: allebei staan ze altijd in de DOM (alleen
   // via CSS verborgen), dus elk zijn eigen subscription zou een tweede
   // .on()-aanroep doen op hetzelfde, al ge-subscribede Supabase-kanaal.
-  const { sections: unread, markRead } = useUnreadNotificationCount(profile.id, unreadNotifications);
+  const { sections: unread, markRead, markAllRead, markSectionRead } = useUnreadNotificationCount(
+    profile.id,
+    unreadNotifications
+  );
 
   return (
     <OverlayProvider>
       <OverlayOriginProvider>
         <MarkNotificationReadProvider value={markRead}>
-          <UnsavedChangesProvider>
-            <ConfirmDialogProvider>
-              <ToastProvider>
-                <AppShellBody
-                  profile={profile}
-                  unread={unread}
-                  avatarUrl={avatarUrl}
-                  companyId={companyId}
-                  companyName={companyName}
-                  logoUrl={logoUrl}
-                  siteName={siteName}
-                  modal={modal}
-                >
-                  {children}
-                </AppShellBody>
-              </ToastProvider>
-            </ConfirmDialogProvider>
-          </UnsavedChangesProvider>
+          <MarkAllNotificationsReadProvider value={markAllRead}>
+            <MarkSectionReadProvider value={markSectionRead}>
+              <UnsavedChangesProvider>
+                <ConfirmDialogProvider>
+                  <ToastProvider>
+                    <AppShellBody
+                      profile={profile}
+                      unread={unread}
+                      avatarUrl={avatarUrl}
+                      companyId={companyId}
+                      companyName={companyName}
+                      logoUrl={logoUrl}
+                      siteName={siteName}
+                      modal={modal}
+                    >
+                      {children}
+                    </AppShellBody>
+                  </ToastProvider>
+                </ConfirmDialogProvider>
+              </UnsavedChangesProvider>
+            </MarkSectionReadProvider>
+          </MarkAllNotificationsReadProvider>
         </MarkNotificationReadProvider>
       </OverlayOriginProvider>
     </OverlayProvider>

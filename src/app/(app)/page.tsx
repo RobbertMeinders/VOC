@@ -23,27 +23,43 @@ export default async function HomePage() {
   // Performance-audit #5: myRegistrationRows (verderop) had alleen
   // profile.id nodig, niet het resultaat van deze eerste golf — meteen hier
   // mee starten i.p.v. pas in de tweede Promise.all.
-  const [{ data: activities }, { data: newsItems }, { count: companyMemberCount }, { data: myRegistrationRows }] =
-    await Promise.all([
-      supabase
-        .from("activities")
-        .select("*")
-        .eq("status", "approved")
-        .gte("starts_at", new Date().toISOString())
-        .order("starts_at", { ascending: true })
-        .limit(1)
-        .returns<ActivityRow[]>(),
-      supabase.from("news_items").select("*").order("position", { ascending: true }).limit(3).returns<NewsItemRow[]>(),
-      supabase.from("company_members").select("id", { count: "exact", head: true }).eq("profile_id", profile.id),
-      // UX-review punt 7/8: "Snelle toegang" herhaalde gewoon het hoofdmenu;
-      // vervangen door iets persoonlijks — de eigen, nog komende
-      // aanmeldingen.
-      supabase
-        .from("activity_registrations")
-        .select("is_waitlisted, activity:activities(*)")
-        .eq("profile_id", profile.id)
-        .returns<{ is_waitlisted: boolean; activity: ActivityRow | null }[]>(),
-    ]);
+  const [
+    { data: activities },
+    { data: newsItems },
+    { count: companyMemberCount },
+    { data: myRegistrationRows },
+    { data: pendingCompanyRequest },
+  ] = await Promise.all([
+    supabase
+      .from("activities")
+      .select("*")
+      .eq("status", "approved")
+      .gte("starts_at", new Date().toISOString())
+      .order("starts_at", { ascending: true })
+      .limit(1)
+      .returns<ActivityRow[]>(),
+    supabase.from("news_items").select("*").order("position", { ascending: true }).limit(3).returns<NewsItemRow[]>(),
+    supabase.from("company_members").select("id", { count: "exact", head: true }).eq("profile_id", profile.id),
+    // UX-review punt 7/8: "Snelle toegang" herhaalde gewoon het hoofdmenu;
+    // vervangen door iets persoonlijks — de eigen, nog komende
+    // aanmeldingen.
+    supabase
+      .from("activity_registrations")
+      .select("is_waitlisted, activity:activities(*)")
+      .eq("profile_id", profile.id)
+      .returns<{ is_waitlisted: boolean; activity: ActivityRow | null }[]>(),
+    // Voorkomt dat de onboarding-prompt hieronder "voeg je bedrijf toe"
+    // blijft tonen terwijl er al een aanvraag in behandeling is (zie
+    // dezelfde query op /profiel) — zonder dit wist je niet of nogmaals
+    // klikken zin had.
+    supabase
+      .from("company_membership_requests")
+      .select("id")
+      .eq("profile_id", profile.id)
+      .eq("status", "pending")
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   const nextActivity = activities?.[0] ?? null;
 
@@ -100,6 +116,7 @@ export default async function HomePage() {
           missingPhoto={!profile.avatar_url}
           missingJobTitle={!profile.job_title}
           missingCompany={(companyMemberCount ?? 0) === 0}
+          companyRequestPending={pendingCompanyRequest !== null}
         />
       )}
 

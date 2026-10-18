@@ -12,8 +12,8 @@ export type FeedAttachment = {
   url: string | null;
   // Alleen voor de mozaïek-preview in de feed (AttachmentCarousel) — de
   // lightbox en elke andere plek die het volledige bestand nodig heeft
-  // gebruikt altijd `url`. Null zolang de backfill (/beheer/thumbnails) deze
-  // rij nog niet heeft gehad, of voor PDF's (die hebben nooit een thumbnail).
+  // gebruikt altijd `url`. Null voor bijlagen van vóór thumbnails bestonden,
+  // of voor PDF's (die hebben nooit een thumbnail).
   thumbUrl: string | null;
 };
 

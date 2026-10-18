@@ -2,7 +2,9 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
+  Building2,
   CalendarDays,
+  Check,
   CheckCircle2,
   Clock,
   Flag,
@@ -11,6 +13,7 @@ import {
   TrendingUp,
   UserPlus,
   Users,
+  X,
 } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -21,6 +24,7 @@ import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
 import { ReportRow, type ReportRowData } from "@/components/moderation/ReportRow";
 import { CommunicationRow } from "@/components/beheer/CommunicationRow";
 import { decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
+import { decideCompanyMembershipRequestAction } from "@/app/(app)/bedrijven/[id]/actions";
 import { extendInvitationAction } from "@/app/(app)/beheer/uitnodigingen/actions";
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { formatActivityDate, formatRelativeTime } from "@/lib/format/date";
@@ -46,6 +50,11 @@ type ReportQueryRow = {
   created_at: string;
   reporter: { first_name: string; last_name: string } | null;
   post: { id: string; content: string | null; author: { first_name: string; last_name: string } | null } | null;
+};
+type MembershipRequestRow = {
+  id: string;
+  company: { id: string; name: string } | null;
+  profile: { id: string; first_name: string; last_name: string } | null;
 };
 
 const EXPIRING_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
@@ -82,6 +91,7 @@ export default async function BeheerPage() {
     { data: accessRequests },
     { data: pendingActivities },
     { data: openReportsRaw },
+    { data: pendingMembershipRequestsRaw },
     { data: expiringInvitations },
     { data: upcomingActivities },
     { data: newMembers },
@@ -108,6 +118,12 @@ export default async function BeheerPage() {
       .eq("status", "open")
       .order("created_at", { ascending: false })
       .returns<ReportQueryRow[]>(),
+    supabase
+      .from("company_membership_requests")
+      .select("id, company:companies(id, name), profile:profiles(id, first_name, last_name)")
+      .eq("status", "pending")
+      .order("created_at", { ascending: false })
+      .returns<MembershipRequestRow[]>(),
     supabase
       .from("invitations")
       .select("*")
@@ -169,12 +185,20 @@ export default async function BeheerPage() {
   const linkedProfileIds = new Set((linkedMembers ?? []).map((l) => l.profile_id));
 
   const openReports = (openReportsRaw ?? []).map(toReportRowData);
+  // company/profile kunnen in theorie al verwijderd zijn tussen het indienen
+  // van de aanvraag en het laden van deze pagina — zo'n wees-rij overslaan
+  // i.p.v. met ontbrekende naam tonen.
+  const pendingMembershipRequests = (pendingMembershipRequestsRaw ?? []).filter(
+    (r): r is MembershipRequestRow & { company: { id: string; name: string }; profile: { id: string; first_name: string; last_name: string } } =>
+      r.company !== null && r.profile !== null
+  );
   const activationRate = totalProfileCount ? Math.round(((activeMemberCount ?? 0) / totalProfileCount) * 100) : 0;
 
   const hasWaitingWork =
     (accessRequests?.length ?? 0) > 0 ||
     (pendingActivities?.length ?? 0) > 0 ||
     openReports.length > 0 ||
+    pendingMembershipRequests.length > 0 ||
     (expiringInvitations?.length ?? 0) > 0;
 
   const kerncijfers = [
@@ -274,6 +298,63 @@ export default async function BeheerPage() {
             <div className="rounded-xl border border-border px-3">
               {openReports.map((report) => (
                 <ReportRow key={report.id} report={report} />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {pendingMembershipRequests.length > 0 && (
+          <div className="mb-4">
+            <p className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted">
+              <Building2 size={13} />
+              Bedrijfskoppelingen ter goedkeuring ({pendingMembershipRequests.length})
+            </p>
+            <div className="rounded-xl border border-border px-3">
+              {pendingMembershipRequests.map((request) => (
+                <div
+                  key={request.id}
+                  className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-3 last:border-0"
+                >
+                  <p className="min-w-0 text-sm text-foreground">
+                    <span className="font-medium">
+                      {request.profile.first_name} {request.profile.last_name}
+                    </span>{" "}
+                    wil gekoppeld worden aan{" "}
+                    <Link href={`/bedrijven/${request.company.id}`} className="font-medium hover:text-voc-red-text hover:underline">
+                      {request.company.name}
+                    </Link>
+                  </p>
+                  <div className="flex shrink-0 items-center gap-2">
+                    <form
+                      action={async () => {
+                        "use server";
+                        await decideCompanyMembershipRequestAction(request.id, request.company.id, "approved");
+                      }}
+                    >
+                      <button
+                        type="submit"
+                        aria-label="Goedkeuren"
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-voc-red-light text-voc-red-text hover:bg-voc-red hover:text-white"
+                      >
+                        <Check size={16} />
+                      </button>
+                    </form>
+                    <form
+                      action={async () => {
+                        "use server";
+                        await decideCompanyMembershipRequestAction(request.id, request.company.id, "rejected");
+                      }}
+                    >
+                      <button
+                        type="submit"
+                        aria-label="Afwijzen"
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-black/[.04] text-muted hover:bg-black/[.08] dark:bg-white/[.06] dark:hover:bg-white/[.1]"
+                      >
+                        <X size={16} />
+                      </button>
+                    </form>
+                  </div>
+                </div>
               ))}
             </div>
           </div>

@@ -18,7 +18,7 @@ export function NetworkTabs() {
   const pathname = usePathname();
 
   return (
-    <div className="mb-4 flex rounded-xl border border-border bg-surface p-1">
+    <div className="mb-4 flex rounded-xl border border-border bg-surface p-1 sm:inline-flex">
       {TABS.map((tab) => {
         const active = pathname.startsWith(tab.href);
         const Icon = tab.icon;
@@ -27,7 +27,7 @@ export function NetworkTabs() {
             key={tab.href}
             href={tab.href}
             className={clsx(
-              "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold",
+              "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold sm:flex-none",
               active
                 ? "bg-voc-red text-white shadow-sm"
                 : "text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.06]"

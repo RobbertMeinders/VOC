@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { authenticateRealtime } from "@/lib/realtime/authenticate";
+import { markNotificationsReadByIdsAction } from "@/app/(app)/notificaties/actions";
 
 export type UnreadNotification = { id: string; link: string | null };
 
@@ -31,6 +32,8 @@ function toSections(items: UnreadNotification[]): UnreadNotificationSections {
 }
 
 export type MarkNotificationRead = (id: string) => void;
+export type MarkAllNotificationsRead = () => void;
+export type MarkSectionRead = (section: keyof Omit<UnreadNotificationSections, "total">) => void;
 
 // Alleen de knop/kaart waarop je klikt weet meteen dat een notificatie
 // gelezen is — het badge-aantal in de sidebar/mobiele header zit in AppShell,
@@ -49,14 +52,56 @@ export function useMarkNotificationRead(): MarkNotificationRead {
   return markRead ?? (() => {});
 }
 
+// "Alles markeren als gelezen" werkt op de server ALLE ongelezen rijen van
+// het profiel bij, niet alleen de (beperkte) lijst die de aanroeper net
+// toevallig had ingeladen — zonder deze eigen context zou het lokale
+// badge-aantal na zo'n actie nooit verder dalen dan "min het aantal rijen
+// dat de aanroeper zelf kende", terwijl de database al 0 ongelezen had.
+const MarkAllNotificationsReadContext = createContext<MarkAllNotificationsRead | null>(null);
+export const MarkAllNotificationsReadProvider = MarkAllNotificationsReadContext.Provider;
+
+export function useMarkAllNotificationsRead(): MarkAllNotificationsRead {
+  const markAllRead = useContext(MarkAllNotificationsReadContext);
+  return markAllRead ?? (() => {});
+}
+
+// Zodra je een sectie als Agenda daadwerkelijk opent, zijn de meldingen die
+// daarnaar linken gelezen — zonder dit moest je elke melding apart via de bel
+// aanklikken voordat het bijbehorende badge-aantal verdween.
+const MarkSectionReadContext = createContext<MarkSectionRead | null>(null);
+export const MarkSectionReadProvider = MarkSectionReadContext.Provider;
+
+export function useMarkSectionRead(): MarkSectionRead {
+  const markSectionRead = useContext(MarkSectionReadContext);
+  return markSectionRead ?? (() => {});
+}
+
 export function useUnreadNotificationCount(
   profileId: string,
   initialUnread: UnreadNotification[]
-): { sections: UnreadNotificationSections; markRead: MarkNotificationRead } {
+): {
+  sections: UnreadNotificationSections;
+  markRead: MarkNotificationRead;
+  markAllRead: MarkAllNotificationsRead;
+  markSectionRead: MarkSectionRead;
+} {
   const [items, setItems] = useState(initialUnread);
 
   const markRead = useCallback((id: string) => {
     setItems((current) => current.filter((item) => item.id !== id));
+  }, []);
+
+  const markAllRead = useCallback(() => {
+    setItems([]);
+  }, []);
+
+  const markSectionRead = useCallback((section: keyof Omit<UnreadNotificationSections, "total">) => {
+    setItems((current) => {
+      const toMark = current.filter((item) => sectionFor(item.link) === section);
+      if (toMark.length === 0) return current;
+      void markNotificationsReadByIdsAction(toMark.map((item) => item.id));
+      return current.filter((item) => sectionFor(item.link) !== section);
+    });
   }, []);
 
   useEffect(() => {
@@ -68,7 +113,12 @@ export function useUnreadNotificationCount(
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "notifications", filter: `profile_id=eq.${profileId}` },
         (payload) => {
-          const row = payload.new as { id: string; link: string | null };
+          const row = payload.new as { id: string; link: string | null; type: string; channel_inapp_allowed: boolean };
+          // Zelfde uitsluiting als de initiële SSR-fetch in layout.tsx: anders
+          // telt een live binnenkomende newsletter-rij of een rij waarvan het
+          // in-app-kanaal uitstaat wél mee totdat de pagina ververst, terwijl
+          // hij na verversen alsnog (terecht) niet meetelt.
+          if (!row.channel_inapp_allowed || row.type === "newsletter") return;
           setItems((current) => [...current, { id: row.id, link: row.link }]);
         }
       )
@@ -100,5 +150,5 @@ export function useUnreadNotificationCount(
     };
   }, [profileId]);
 
-  return { sections: toSections(items), markRead };
+  return { sections: toSections(items), markRead, markAllRead, markSectionRead };
 }
