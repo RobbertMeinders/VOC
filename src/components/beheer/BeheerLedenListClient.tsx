@@ -131,15 +131,18 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
           );
           return (
             <div key={member.id} className="rounded-2xl border border-border bg-surface p-3 shadow-sm">
-              {/* Op mobiel twee gestapelde regels (naam+knoppen, dan de
-                  contactgegevens eronder) — zelfde reden als Beheer ->
-                  Bedrijven: anders perste de contactregel zich in de smalle
-                  restruimte náást de naam en werd alles onleesbaar afgekapt. */}
-              <div className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-4 sm:gap-y-1.5">
-                <div className="flex items-center gap-3">
+              {/* Op mobiel gestapelde regels (naam+knoppen, dan de
+                  contactgegevens eronder). Vanaf sm (brede beheer-pagina) is
+                  dit i.p.v. flex-wrap nu een echt grid met vaste
+                  kolombreedtes, zodat dezelfde soort gegevens bij elk lid op
+                  exact dezelfde horizontale positie staan — een ontbrekend
+                  veld (telefoon) laat zijn kolom leeg (invisible, niet
+                  weggelaten) i.p.v. de kolommen erna te laten opschuiven. */}
+              <div className="flex min-w-0 flex-col gap-1.5 sm:grid sm:grid-cols-[minmax(0,1.6fr)_160px_minmax(0,1.6fr)_130px_auto] sm:items-center sm:gap-x-4 sm:gap-y-0">
+                <div className="flex min-w-0 items-center gap-3">
                   <Link href={`/leden/${member.id}`} className="flex min-w-0 items-center gap-3 hover:opacity-80">
                     <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={36} />
-                    <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-[16rem]">
+                    <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-none">
                       {member.first_name} {member.last_name}
                       {member.companyName && <span className="font-normal text-muted"> · {member.companyName}</span>}
                     </p>
@@ -147,22 +150,29 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                   <div className="ml-auto flex shrink-0 items-center gap-2 sm:hidden">{actions}</div>
                 </div>
 
-                <div className="flex min-w-0 flex-col gap-1 text-xs text-muted sm:flex-1">
-                  <span>
-                    {ROLE_LABELS[member.role]}
-                    {!member.is_active && " · Gedeactiveerd"}
+                <span className="min-w-0 truncate text-xs text-muted" title={`${ROLE_LABELS[member.role]}${!member.is_active ? " · Gedeactiveerd" : ""}`}>
+                  {ROLE_LABELS[member.role]}
+                  {!member.is_active && " · Gedeactiveerd"}
+                </span>
+
+                <span className="flex min-w-0 items-center gap-1 text-xs text-muted">
+                  <Mail size={11} className="shrink-0" />
+                  <span className="truncate" title={member.email}>
+                    {member.email}
                   </span>
-                  <span className="flex min-w-0 items-center gap-1">
-                    <Mail size={11} className="shrink-0" />
-                    <span className="truncate">{member.email}</span>
-                  </span>
-                  {member.phone && (
-                    <span className="flex min-w-0 items-center gap-1">
-                      <Phone size={11} className="shrink-0" />
-                      <span className="truncate">{member.phone}</span>
-                    </span>
+                </span>
+
+                <span
+                  className={clsx(
+                    "flex min-w-0 items-center gap-1 text-xs text-muted",
+                    !member.phone && "hidden sm:flex sm:invisible"
                   )}
-                </div>
+                >
+                  <Phone size={11} className="shrink-0" />
+                  <span className="truncate" title={member.phone ?? undefined}>
+                    {member.phone}
+                  </span>
+                </span>
 
                 <div className="hidden shrink-0 items-center gap-2 sm:flex">{actions}</div>
               </div>
