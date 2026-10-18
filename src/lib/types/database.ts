@@ -750,6 +750,7 @@ export interface Database {
           intro_text: string | null;
           mission_text: string | null;
           vision_text: string | null;
+          header_image_path: string | null;
           updated_at: string;
           updated_by: string | null;
         };

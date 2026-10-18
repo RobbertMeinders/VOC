@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { clsx } from "clsx";
-import { Info, IdCard, UsersRound } from "lucide-react";
+import { Briefcase, Info, UsersRound } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { getSignedStorageUrls } from "@/lib/supabase/storage";
+import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { getOrgProfile } from "@/lib/settings/org-profile";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { OrgProfileForm } from "@/components/beheer/OrgProfileForm";
@@ -20,20 +20,21 @@ export const metadata: Metadata = { title: "Vereniging" };
 // hierheen.
 const TABS = [
   { key: "over-ons", label: "Over de vereniging", icon: Info },
-  { key: "bestuur", label: "Bestuur", icon: IdCard },
+  { key: "bestuur", label: "Bestuur", icon: Briefcase },
   { key: "commissies", label: "Commissies", icon: UsersRound },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 
 async function OverOnsTab() {
   const orgProfile = await getOrgProfile();
+  const headerImageUrl = orgProfile.header_image_path ? await getSignedStorageUrl("news-images", orgProfile.header_image_path) : null;
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted">
         Inhoud voor de pagina Over de vereniging die leden via Vereniging in de hoofdnavigatie bereiken. Leeg laten betekent: dit onderdeel
         staat nog niet op de pagina.
       </p>
-      <OrgProfileForm orgProfile={orgProfile} />
+      <OrgProfileForm orgProfile={orgProfile} headerImageUrl={headerImageUrl} />
     </div>
   );
 }

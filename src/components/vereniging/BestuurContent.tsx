@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { IdCard } from "lucide-react";
+import { Briefcase } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { Avatar } from "@/components/ui/Avatar";
@@ -19,6 +19,16 @@ type BoardPositionRow = {
 
 type MembershipRow = { profile_id: string; is_primary: boolean; company: { name: string } | null };
 
+// Vaste volgorde voor de drie kernfuncties — ongeacht wanneer iemand is
+// aangesteld, hoort de voorzitter vooraan te staan, dan secretaris, dan
+// penningmeester (gangbare verenigingsvolgorde). Overige functies (algemeen
+// bestuurslid e.d.) blijven erachter, in hun oorspronkelijke started_at-volgorde.
+const TITLE_ORDER = ["voorzitter", "secretaris", "penningmeester"];
+function titleRank(title: string): number {
+  const index = TITLE_ORDER.findIndex((t) => title.toLowerCase().includes(t));
+  return index === -1 ? TITLE_ORDER.length : index;
+}
+
 // Wordt letterlijk hetzelfde gebouwd en getoond op zowel /beheer/vereniging/
 // bestuur (beheer) als /vereniging/bestuur (leden) — alleen de pagina
 // eromheen (kop, eventuele beheerlink) verschilt. Toont uitsluitend
@@ -34,12 +44,12 @@ export async function BestuurContent() {
     .order("started_at", { ascending: true })
     .returns<BoardPositionRow[]>();
 
-  const activePositions = (positions ?? []).filter((p) => p.profile);
+  const activePositions = (positions ?? []).filter((p) => p.profile).sort((a, b) => titleRank(a.title) - titleRank(b.title));
 
   if (activePositions.length === 0) {
     return (
       <ComingSoon
-        icon={IdCard}
+        icon={Briefcase}
         title="Nog geen bestuur toegewezen"
         description="Zodra het bestuur bestuursfuncties toewijst via Beheer -> Leden, verschijnen die hier."
       />
@@ -66,7 +76,12 @@ export async function BestuurContent() {
   );
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+    // flex-wrap + justify-center i.p.v. een vast grid: bij een niet-rond
+    // aantal bestuursleden (bv. 5) laat een grid de laatste rij links
+    // "verweesd" achter — hiermee centreert die laatste rij juist, en met
+    // grotere kaarten/foto's voelt de pagina als een echte kennismaking met
+    // het bestuur i.p.v. een dichte rooster-lijst.
+    <div className="flex flex-wrap justify-center gap-4">
       {activePositions.map(({ id, title, profile }) => {
         if (!profile) return null;
         const path = profile.avatar_thumb_url ?? profile.avatar_url;
@@ -76,9 +91,9 @@ export async function BestuurContent() {
           <Link
             key={id}
             href={`/leden/${profile.id}`}
-            className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-6 text-center shadow-sm hover:border-voc-red/40"
+            className="flex w-40 flex-col items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-8 text-center shadow-sm transition-colors hover:border-voc-red/40 sm:w-48"
           >
-            <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={88} />
+            <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={112} />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-foreground">
                 {profile.first_name} {profile.last_name}

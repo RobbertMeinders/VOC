@@ -3,17 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { FileText, IdCard, Info, Menu, UsersRound, X, type LucideIcon } from "lucide-react";
+import { ChevronDown, FileText, Briefcase, Info, Menu, UsersRound, X, type LucideIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
-import { useFixedAnchor } from "@/lib/dom/useFixedAnchor";
 import { useOverlay } from "@/lib/ui/OverlayContext";
 
 const LINKS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/vereniging/over-ons", label: "Over de vereniging", icon: Info },
-  { href: "/vereniging/bestuur", label: "Bestuur", icon: IdCard },
+  { href: "/vereniging/bestuur", label: "Bestuur", icon: Briefcase },
   { href: "/vereniging/commissies", label: "Commissies", icon: UsersRound },
   { href: "/documenten", label: "Documenten", icon: FileText },
 ];
@@ -27,7 +26,6 @@ const LINKS: { href: string; label: string; icon: LucideIcon }[] = [
 export function VerenigingMenu({ variant }: { variant: "sidebar" | "mobile" }) {
   const { open, toggle, close } = useOverlay("vereniging");
   const pathname = usePathname();
-  const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(variant === "sidebar" && open);
 
   // Alleen voor de mobiele variant: sluiten speelt eerst de omgekeerde
   // schuifanimatie af (animate-slide-out-right) en unmount daarna pas —
@@ -117,13 +115,17 @@ export function VerenigingMenu({ variant }: { variant: "sidebar" | "mobile" }) {
   }
 
   return (
-    <>
+    // Echte inline accordion i.p.v. een FloatingPortal-dropdown: de
+    // submenu-links staan gewoon in de normale documentstroom van de
+    // sidebar en duwen de accountrij eronder omlaag bij het openen — geen
+    // overlay/kaart die los boven de rest zweeft.
+    <div>
       <button
-        ref={anchorRef}
         type="button"
         onClick={toggle}
+        aria-expanded={open}
         className={clsx(
-          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
+          "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
           active || open
             ? "bg-voc-red-light text-voc-red-text"
             : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
@@ -131,18 +133,31 @@ export function VerenigingMenu({ variant }: { variant: "sidebar" | "mobile" }) {
       >
         <Info size={20} strokeWidth={active ? 2.5 : 2} />
         Vereniging
+        <ChevronDown size={16} className={clsx("ml-auto transition-transform duration-150", open && "rotate-180")} />
       </button>
-      {open && rect && (
-        <FloatingPortal>
-          <div className="fixed inset-0 z-40 cursor-pointer" onClick={close} />
-          <div
-            className="animate-scale-in origin-top fixed z-50 w-64 overflow-hidden rounded-xl border border-border bg-surface py-1 shadow-lg"
-            style={{ left: rect.left, top: rect.bottom + 4 }}
-          >
-            {links}
-          </div>
-        </FloatingPortal>
+      {open && (
+        <div className="flex flex-col gap-1 pt-1">
+          {LINKS.map(({ href, label, icon: Icon }) => {
+            const linkActive = pathname.startsWith(href);
+            return (
+              <Link
+                key={href}
+                href={href}
+                onClick={close}
+                className={clsx(
+                  "flex items-center gap-3 rounded-lg px-3 py-2.5 pl-10 text-sm font-medium transition-all duration-150",
+                  linkActive
+                    ? "bg-voc-red-light text-voc-red-text"
+                    : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                )}
+              >
+                <Icon size={16} strokeWidth={linkActive ? 2.5 : 2} />
+                {label}
+              </Link>
+            );
+          })}
+        </div>
       )}
-    </>
+    </div>
   );
 }
