@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Crown, FileText, Info, Landmark, UsersRound, X, type LucideIcon } from "lucide-react";
+import { FileText, IdCard, Info, Landmark, Menu, UsersRound, X, type LucideIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
@@ -12,7 +12,7 @@ import { useOverlay } from "@/lib/ui/OverlayContext";
 
 const LINKS: { href: string; label: string; icon: LucideIcon }[] = [
   { href: "/vereniging/over-ons", label: "Over de vereniging", icon: Info },
-  { href: "/vereniging/bestuur", label: "Bestuur", icon: Crown },
+  { href: "/vereniging/bestuur", label: "Bestuur", icon: IdCard },
   { href: "/vereniging/commissies", label: "Commissies", icon: UsersRound },
   { href: "/documenten", label: "Documenten", icon: FileText },
 ];
@@ -67,7 +67,7 @@ export function VerenigingMenu({ variant }: { variant: "sidebar" | "mobile" }) {
             (active || open) && "bg-voc-red-light text-voc-red-text"
           )}
         >
-          <Landmark size={20} />
+          <Menu size={20} />
         </button>
         {/* Zelfde FloatingPortal-redenering als NotificationCenter's mobiele
             paneel: MobileHeader heeft backdrop-blur, dat vangt een
