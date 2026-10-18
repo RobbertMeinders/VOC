@@ -12,11 +12,13 @@ export function BottomNav({
   profile,
   avatarUrl,
   companyId,
+  companyName,
   unread,
 }: {
   profile: Profile;
   avatarUrl: string | null;
   companyId: string | null;
+  companyName: string | null;
   unread: UnreadNotificationSections;
 }) {
   const pathname = usePathname();
@@ -55,7 +57,13 @@ export function BottomNav({
           );
         })}
         <li className="flex-1">
-          <MobileProfileMenu profile={profile} avatarUrl={avatarUrl} companyId={companyId} beheerBadge={unread.beheer} />
+          <MobileProfileMenu
+            profile={profile}
+            avatarUrl={avatarUrl}
+            companyId={companyId}
+            companyName={companyName}
+            beheerBadge={unread.beheer}
+          />
         </li>
       </ul>
     </nav>

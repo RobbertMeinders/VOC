@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, LayoutDashboard, LogOut, Settings, ShieldCheck, User as UserIcon } from "lucide-react";
+import { Building2, LayoutDashboard, LogOut, Settings, ShieldCheck, User as UserIcon, X } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
 import { NavBadge } from "./NavBadge";
@@ -10,12 +10,10 @@ import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { signOutAction } from "@/lib/auth/actions";
 import { isBoard } from "@/lib/auth/roles";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
-import { useFixedAnchor, type AnchorRect } from "@/lib/dom/useFixedAnchor";
+import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
+import { useFixedAnchor } from "@/lib/dom/useFixedAnchor";
 import { useOverlay } from "@/lib/ui/OverlayContext";
 import type { Profile } from "@/lib/auth/session";
-
-const PANEL_WIDTH = 224; // w-56
-const EDGE_MARGIN = 16;
 
 type ProfileMenuProps = {
   profile: Profile;
@@ -38,17 +36,22 @@ function menuItems(profile: Profile, companyId: string | null) {
 }
 
 function MenuPanel({
+  profile,
+  avatarUrl,
+  companyName,
   items,
   beheerBadge,
   onClose,
-  rect,
 }: {
+  profile: Profile;
+  avatarUrl: string | null;
+  companyName?: string | null;
   items: ReturnType<typeof menuItems>;
   beheerBadge?: number;
   onClose: () => void;
-  rect: AnchorRect;
 }) {
   useEscapeKey(true, onClose);
+  useBodyScrollLock(true);
 
   // FloatingPortal: dit paneel opent alleen vanuit BottomNav (mobiel), dat
   // backdrop-blur heeft — zonder portal "vangt" dat de position:fixed
@@ -56,39 +59,57 @@ function MenuPanel({
   // menu achter een open overlay kon uitkomen i.p.v. er overheen (zie
   // NotificationCenter voor dezelfde bug). md:hidden staat hier expliciet
   // op, want portalen haalt dit paneel los van BottomNav's eigen md:hidden.
-  // Positie komt van useFixedAnchor (de profielknop), i.p.v. los ergens op
-  // het scherm.
+  // Een echte bottom sheet (vaste positie onderaan het scherm, animate-sheet-in
+  // — zelfde animatie als RouteOverlayPanel) i.p.v. een klein paneeltje
+  // geankerd aan de profielknop: op mobiel is dit het volledige accountmenu,
+  // dat verdient meer gewicht dan een los dropdown-paneeltje.
   return (
     <FloatingPortal>
-      <div className="fixed inset-0 z-40 cursor-pointer md:hidden" onClick={onClose} />
-      <div
-        className="animate-scale-in origin-bottom fixed z-50 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg md:hidden"
-        style={{
-          right: Math.max(window.innerWidth - rect.right, EDGE_MARGIN),
-          left: "auto",
-          maxWidth: `calc(100vw - ${EDGE_MARGIN * 2}px)`,
-          width: PANEL_WIDTH,
-          bottom: window.innerHeight - rect.top + 8,
-        }}
-      >
-        {items.map(({ href, label, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
+      <div className="animate-fade-in fixed inset-0 z-40 cursor-pointer bg-black/60 md:hidden" onClick={onClose} />
+      <div className="animate-sheet-in fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg md:hidden">
+        <div className="flex justify-center pt-2.5">
+          <div className="h-1.5 w-10 rounded-full bg-black/[.12] dark:bg-white/[.16]" />
+        </div>
+
+        <div className="flex items-center gap-3 border-b border-border px-5 py-4">
+          <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={48} />
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-base font-semibold text-foreground">
+              {profile.first_name} {profile.last_name}
+            </p>
+            {companyName && <p className="truncate text-sm text-muted">{companyName}</p>}
+          </div>
+          <button
+            type="button"
             onClick={onClose}
-            className="flex items-center gap-3 px-4 py-3.5 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            aria-label="Sluiten"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
           >
-            <Icon size={20} />
-            <span className="flex-1">{label}</span>
-            {label === "Beheer" && beheerBadge ? <NavBadge count={beheerBadge} /> : null}
-          </Link>
-        ))}
-        <form action={signOutAction} className="border-t border-border">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div className="flex flex-col py-1.5">
+          {items.map(({ href, label, icon: Icon }) => (
+            <Link
+              key={href}
+              href={href}
+              onClick={onClose}
+              className="flex items-center gap-3 px-5 py-3.5 text-sm font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            >
+              <Icon size={19} className="text-muted" />
+              <span className="flex-1">{label}</span>
+              {label === "Beheer" && beheerBadge ? <NavBadge count={beheerBadge} /> : null}
+            </Link>
+          ))}
+        </div>
+
+        <form action={signOutAction} className="border-t border-border py-1.5">
           <button
             type="submit"
-            className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            className="flex w-full items-center gap-3 px-5 py-3.5 text-left text-sm font-medium text-voc-red-text hover:bg-black/[.04] dark:hover:bg-white/[.06]"
           >
-            <LogOut size={20} />
+            <LogOut size={19} />
             Uitloggen
           </button>
         </form>
@@ -161,11 +182,10 @@ export function SidebarProfileMenu({
 // zelf) dat het volledige accountmenu opent — op mobiel is er geen ruimte
 // voor permanent zichtbare account-links zoals op desktop. Het paneel opent
 // omhoog i.p.v. omlaag, want de knop staat nu onderaan het scherm.
-export function MobileProfileMenu({ profile, avatarUrl, companyId, beheerBadge }: ProfileMenuProps) {
+export function MobileProfileMenu({ profile, avatarUrl, companyId, companyName, beheerBadge }: ProfileMenuProps) {
   const { open, toggle, close } = useOverlay("profile");
   const items = menuItems(profile, companyId);
   const pathname = usePathname();
-  const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(open);
   const active =
     pathname.startsWith(`/leden/${profile.id}`) ||
     pathname.startsWith("/profiel") ||
@@ -176,7 +196,6 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, beheerBadge }
   return (
     <div className="relative flex-1">
       <button
-        ref={anchorRef}
         type="button"
         onClick={toggle}
         className={clsx(
@@ -194,7 +213,16 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, beheerBadge }
         Profiel
       </button>
 
-      {open && rect && <MenuPanel items={items} beheerBadge={beheerBadge} onClose={close} rect={rect} />}
+      {open && (
+        <MenuPanel
+          profile={profile}
+          avatarUrl={avatarUrl}
+          companyName={companyName}
+          items={items}
+          beheerBadge={beheerBadge}
+          onClose={close}
+        />
+      )}
     </div>
   );
 }

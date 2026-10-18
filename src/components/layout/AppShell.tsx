@@ -160,7 +160,7 @@ function AppShellBody({
           {children}
         </div>
       </main>
-      <BottomNav profile={profile} avatarUrl={avatarUrl} companyId={companyId} unread={unread} />
+      <BottomNav profile={profile} avatarUrl={avatarUrl} companyId={companyId} companyName={companyName} unread={unread} />
       {modal}
     </div>
   );
