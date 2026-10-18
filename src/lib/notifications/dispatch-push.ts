@@ -14,6 +14,8 @@ const NOTIFICATION_PUSH_TEMPLATE_KEYS: Record<string, string> = {
   new_member: "nieuw_lid",
   feed_comment: "feed_reactie",
   feed_mention: "feed_vermelding",
+  activity_reminder: "activity_reminder",
+  waitlist_promoted: "waitlist_promoted",
 };
 
 // UX-review punt 2: deze functie bevatte eerder alleen de cron-route zelf

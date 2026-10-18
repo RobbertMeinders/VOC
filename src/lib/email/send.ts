@@ -72,6 +72,8 @@ const NOTIFICATION_EMAIL_TEMPLATE_KEYS: Record<string, string> = {
   new_member: "nieuw_lid",
   feed_comment: "feed_reactie",
   feed_mention: "feed_vermelding",
+  activity_reminder: "activity_reminder",
+  waitlist_promoted: "waitlist_promoted",
 };
 
 // Zelfde bewoording/stijl als de campagne-voettekst (render.ts) — een
@@ -83,7 +85,7 @@ const NOTIFICATION_EMAIL_TEMPLATE_KEYS: Record<string, string> = {
 // passen", dat zou alleen verwarren.
 function notificationPreferencesFooter(): string {
   const siteUrl = (process.env.SITE_URL ?? "").replace(/\/$/, "");
-  return `<p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je ontvangt dit als lid van VOC. <a href="${escapeHtml(`${siteUrl}/instellingen`)}" style="color:#6b6b72;">Voorkeuren aanpassen</a></p>`;
+  return `<p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je ontvangt dit als lid van de Veendammer Ondernemers Compagnie. <a href="${escapeHtml(`${siteUrl}/instellingen`)}" style="color:#6b6b72;">Voorkeuren aanpassen</a></p>`;
 }
 
 /**

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -22,6 +22,25 @@ const uploadInitialState: UploadEmailImageState = {};
 // Voorbeeldwaarde voor de preview — de échte mail vult {{link}} met de
 // werkelijke uitnodigings-/reset-link.
 const PREVIEW_VARIABLES: Record<string, string> = { link: "https://voorbeeld.nl/link" };
+
+// Logo/handtekening-afbeelding (0102, communicatieplan fase 1c): zonder
+// expliciete width/height-attributen — enkel CSS max-width — toonden veel
+// e-mailclients (met name Outlook desktop, dat Word's renderer gebruikt en
+// style="max-width" negeert) een groot bronbestand gewoon op volledig
+// formaat. Een vaste pixel-width/height dwingt dat overal af; de
+// beeldverhouding blijft behouden doordat die uit het echte, door de
+// browser uitgelezen bronformaat wordt berekend i.p.v. een vaste waarde.
+const MAX_LOGO_WIDTH = 200;
+const MAX_LOGO_HEIGHT = 80;
+const FALLBACK_LOGO_DIMENSIONS = { width: 160, height: 60 };
+
+function scaleToFit(naturalWidth: number, naturalHeight: number): { width: number; height: number } {
+  if (!naturalWidth || !naturalHeight) return FALLBACK_LOGO_DIMENSIONS;
+  // Math.min(1, ...): nooit opschalen — een klein logo blijft klein i.p.v.
+  // vergroot (en dus wazig) te worden tot de maximale afmetingen.
+  const scale = Math.min(1, MAX_LOGO_WIDTH / naturalWidth, MAX_LOGO_HEIGHT / naturalHeight);
+  return { width: Math.round(naturalWidth * scale), height: Math.round(naturalHeight * scale) };
+}
 
 function renderPreview(subject: string, bodyHtml: string) {
   const rendered = Object.entries(PREVIEW_VARIABLES).reduce(
@@ -67,18 +86,39 @@ function UploadSubmitButton() {
 // handtekening-afbeelding — plaatst na upload zelf een <img>-tag onderaan
 // de HTML-inhoud, zodat je niet zelf ergens een link naartoe hoeft te
 // zoeken/hosten.
-function ImageUploadButton({ onInserted }: { onInserted: (url: string) => void }) {
+function ImageUploadButton({
+  onInserted,
+}: {
+  onInserted: (url: string, dimensions: { width: number; height: number }) => void;
+}) {
   const [state, formAction] = useActionState(uploadEmailTemplateImageAction, uploadInitialState);
   const formRef = useRef<HTMLFormElement>(null);
   const insertedUrlRef = useRef<string | undefined>(undefined);
+  // Gevuld zodra het gekozen bestand client-side is ingelezen (zie
+  // handleFileChange) — ruim vóór de upload zelf klaar, dus geen wachten
+  // nodig op de server om de afmetingen te kennen.
+  const dimensionsRef = useRef(FALLBACK_LOGO_DIMENSIONS);
 
   useEffect(() => {
     if (state.url && state.url !== insertedUrlRef.current) {
       insertedUrlRef.current = state.url;
-      onInserted(state.url);
+      onInserted(state.url, dimensionsRef.current);
       formRef.current?.reset();
     }
   }, [state.url, onInserted]);
+
+  function handleFileChange(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const objectUrl = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      dimensionsRef.current = scaleToFit(img.naturalWidth, img.naturalHeight);
+      URL.revokeObjectURL(objectUrl);
+    };
+    img.onerror = () => URL.revokeObjectURL(objectUrl);
+    img.src = objectUrl;
+  }
 
   return (
     <form ref={formRef} action={formAction} className="flex flex-wrap items-center gap-2">
@@ -87,6 +127,7 @@ function ImageUploadButton({ onInserted }: { onInserted: (url: string) => void }
         accept="image/png,image/jpeg,image/webp"
         required
         label="Afbeelding kiezen"
+        onChange={handleFileChange}
         className="bg-black/[.06] text-xs text-foreground hover:bg-black/[.1] dark:bg-white/[.08]"
       />
       <UploadSubmitButton />
@@ -112,8 +153,11 @@ export function EmailTemplateForm({ template }: { template: EmailTemplate }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
-  function insertImage(url: string) {
-    setBodyHtml((prev) => `${prev}${prev && !prev.endsWith("\n") ? "\n" : ""}<img src="${url}" alt="Logo" style="max-width:200px;" />\n`);
+  function insertImage(url: string, { width, height }: { width: number; height: number }) {
+    setBodyHtml(
+      (prev) =>
+        `${prev}${prev && !prev.endsWith("\n") ? "\n" : ""}<img src="${url}" alt="Logo" width="${width}" height="${height}" style="width:${width}px;height:${height}px;max-width:${MAX_LOGO_WIDTH}px;max-height:${MAX_LOGO_HEIGHT}px;" />\n`
+    );
   }
 
   return (
