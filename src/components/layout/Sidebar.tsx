@@ -8,6 +8,7 @@ import { DESKTOP_NAV_ITEMS, isNavItemActive, type NavItem } from "./nav-items";
 import { NavBadge } from "./NavBadge";
 import { Logo } from "@/components/ui/Logo";
 import { SidebarProfileMenu } from "./ProfileMenu";
+import { VerenigingMenu } from "./VerenigingMenu";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { SearchOverlay } from "@/components/search/SearchOverlay";
 import { VocSocialLinks } from "@/components/ui/VocSocialLinks";
@@ -113,7 +114,10 @@ export function Sidebar({
         </div>
       </div>
 
-      <nav className="flex flex-1 flex-col gap-1">{DESKTOP_NAV_ITEMS.map((item) => renderItem(item))}</nav>
+      <nav className="flex flex-1 flex-col gap-1">
+        {DESKTOP_NAV_ITEMS.map((item) => renderItem(item))}
+        <VerenigingMenu variant="sidebar" />
+      </nav>
 
       <nav className="mt-2 flex flex-col gap-1 border-t border-border pt-2">{accountItems.map(renderAccountItem)}</nav>
 

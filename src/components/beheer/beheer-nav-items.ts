@@ -8,7 +8,6 @@ import {
   Crown,
   Flag,
   Info,
-  Landmark,
   LayoutDashboard,
   Mail,
   Megaphone,
@@ -94,8 +93,3 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     items: [{ href: "/beheer/embed-codes", label: "Code voor de website", icon: Code, adminOnly: true }],
   },
 ];
-
-// Reusable elders dan het zijmenu (bv. de Vereniging-dropdown/paneel in de
-// hoofdnavigatie — zie VerenigingMenu.tsx) i.p.v. een los, tweede icoon
-// hardcoded op "Landmark" zonder gedeelde bron.
-export const VERENIGING_ICON: LucideIcon = Landmark;

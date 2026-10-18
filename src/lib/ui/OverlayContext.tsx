@@ -4,15 +4,15 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState, type R
 import { usePathname } from "next/navigation";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 
-// De vier menu-overlays (zoeken, notificaties, netwerk, account) leven allemaal
-// zowel in de sidebar als in de mobiele header/bottom-nav tegelijk in de DOM
-// (alleen via CSS per breakpoint verborgen — zie AppShell). Zonder gedeelde
-// state kon je twee overlays tegelijk open hebben staan: de backdrop-klik die
-// een overlay moet sluiten wordt onderschept door een ándere, later geopende
-// overlay die er bovenop staat, dus de eerste sluit nooit. Eén gedeelde
-// "welke overlay staat open" state lost dat op: het openen van een nieuwe
-// overlay sluit automatisch de vorige.
-type OverlayKey = "search" | "notifications" | "netwerk" | "profile";
+// De overlays (zoeken, notificaties, netwerk, account, vereniging) leven
+// allemaal zowel in de sidebar als in de mobiele header/bottom-nav tegelijk
+// in de DOM (alleen via CSS per breakpoint verborgen — zie AppShell). Zonder
+// gedeelde state kon je twee overlays tegelijk open hebben staan: de
+// backdrop-klik die een overlay moet sluiten wordt onderschept door een
+// ándere, later geopende overlay die er bovenop staat, dus de eerste sluit
+// nooit. Eén gedeelde "welke overlay staat open" state lost dat op: het
+// openen van een nieuwe overlay sluit automatisch de vorige.
+type OverlayKey = "search" | "notifications" | "netwerk" | "profile" | "vereniging";
 
 type OverlayContextValue = {
   openOverlay: OverlayKey | null;

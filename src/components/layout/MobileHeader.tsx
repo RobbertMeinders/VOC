@@ -3,11 +3,13 @@
 import { Logo } from "@/components/ui/Logo";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { SearchOverlay } from "@/components/search/SearchOverlay";
+import { VerenigingMenu } from "./VerenigingMenu";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
 // Het profielicoon staat niet meer hier maar als vijfde item in de
-// bottom-nav (BottomNav.tsx) — dus alleen zoeken en notificaties resten
-// rechtsboven.
+// bottom-nav (BottomNav.tsx) — dus zoeken, notificaties en de
+// Vereniging-hamburgerknop (VOC Hub — Beheeromgeving-opdracht, punt 8)
+// resten rechtsboven.
 export function MobileHeader({
   unread,
   logoUrl,
@@ -24,6 +26,7 @@ export function MobileHeader({
         <div className="flex items-center gap-1">
           <SearchOverlay variant="mobile" />
           <NotificationCenter count={unread.total} variant="mobile" />
+          <VerenigingMenu variant="mobile" />
         </div>
       </div>
     </header>
