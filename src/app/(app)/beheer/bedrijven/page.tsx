@@ -7,10 +7,7 @@ export const metadata: Metadata = { title: "Bedrijven beheren" };
 export default async function BeheerBedrijvenPage() {
   return (
     <div>
-      <PageHeader
-        title="Bedrijven beheren"
-        description="Bedrijfsprofiel snel aanpassen en factuuradres/btw-nummer inzien, direct vanuit dit overzicht."
-      />
+      <PageHeader title="Bedrijven beheren" />
 
       <BeheerBedrijvenContent />
     </div>

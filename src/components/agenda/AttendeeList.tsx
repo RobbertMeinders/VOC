@@ -96,7 +96,7 @@ export function AttendeeList({
     <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
       <h2 className="mb-3 text-sm font-semibold text-foreground">Wie gaat er ook</h2>
       {canManage && (
-        <p className="mb-3 text-xs text-muted">Vink af wie er daadwerkelijk was - dat verschijnt dan op hun profiel.</p>
+        <p className="mb-3 text-xs text-muted">Vink aan wie er aanwezig was.</p>
       )}
       {attendees.length > 0 ? (
         <div className="flex flex-col gap-2">

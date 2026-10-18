@@ -51,7 +51,7 @@ export function InvitationRow({
   const items: ActionMenuItem[] = [];
   if (invitation.email) {
     items.push({
-      label: "Verstuur e-mail",
+      label: "E-mail versturen",
       onClick: async () => {
         const { error } = await sendInvitationEmailAction(invitation.id);
         showFeedback(error ?? "E-mail verstuurd.");
@@ -59,7 +59,7 @@ export function InvitationRow({
     });
   }
   items.push({
-    label: "Kopieer link",
+    label: "Link kopiëren",
     onClick: async () => {
       // F2: zonder verzonden e-mail bleef expires_at NULL, dus een
       // gekopieerde link ("verloopt pas na versturen") was in de praktijk

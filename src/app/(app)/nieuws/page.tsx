@@ -35,8 +35,7 @@ export default async function NieuwsPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-1 text-xl font-semibold text-foreground">Nieuws</h1>
-      <p className="mb-6 text-sm text-muted">Mededelingen en updates vanuit het bestuur.</p>
+      <h1 className="mb-6 text-xl font-semibold text-foreground">Nieuws</h1>
 
       {newsItems && newsItems.length > 0 ? (
         <div className="flex flex-col gap-4">
@@ -66,8 +65,7 @@ export default async function NieuwsPage() {
       ) : (
         <ComingSoon
           icon={Newspaper}
-          title="Nog geen nieuwsberichten"
-          description="Zodra het bestuur iets deelt, verschijnt het hier."
+          title="Er zijn momenteel geen nieuwsberichten."
         />
       )}
     </div>

@@ -33,7 +33,7 @@ export default async function BeheerNieuwsPage() {
     <div className="flex flex-col gap-4">
       <PageHeader
         title="Nieuws"
-        description="Officiële mededelingen vanuit bestuur - staan los van de community-feed, bovenaan het dashboard en op de nieuwspagina voor alle leden."
+        description="Verschijnt op Home en bij Nieuws."
       />
 
       <NewsItemForm />

@@ -135,7 +135,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
         <ComingSoon
           icon={CalendarDays}
           title="Geen activiteiten gepland"
-          description="Kom later terug voor nieuwe VOC-activiteiten."
+          description="Er zijn momenteel geen activiteiten."
         />
       )}
 

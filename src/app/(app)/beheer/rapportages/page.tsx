@@ -99,7 +99,7 @@ export default async function RapportagesPage() {
 
   return (
     <div>
-      <PageHeader title="Moderatie" description="Door leden gerapporteerde berichten uit de community-feed." />
+      <PageHeader title="Moderatie" />
 
       <div className="mb-6 rounded-2xl border border-border bg-surface p-4 shadow-sm">
         <h2 className="mb-2 text-sm font-semibold text-foreground">Openstaand</h2>

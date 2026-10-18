@@ -59,14 +59,14 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
       <BackLink href={`/bedrijven/${id}`} label={`Terug naar ${company.name}`} />
       <div>
         <h1 className="text-xl font-semibold text-foreground">Bedrijfsgegevens bewerken</h1>
-        <p className="mt-0.5 text-sm text-muted">Zichtbaar voor leden van dit bedrijf en voor bestuur/beheer.</p>
       </div>
       <CompanyEditFormsGuard>
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
           <CompanyForm company={company} logoUrl={logoUrl} />
         </div>
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-          <h2 className="mb-4 text-sm font-semibold text-foreground">Factuurgegevens</h2>
+          <h2 className="mb-1 text-sm font-semibold text-foreground">Factuurgegevens</h2>
+          <p className="mb-4 text-xs text-muted">Alleen zichtbaar voor jouw bedrijf en het bestuur.</p>
           <CompanyBillingForm company={company} billing={billing ?? null} />
         </div>
       </CompanyEditFormsGuard>

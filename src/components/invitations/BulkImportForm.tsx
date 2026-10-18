@@ -14,7 +14,7 @@ const FIELD_LABELS: { key: keyof ImportRow; label: string }[] = [
   { key: "email", label: "E-mail" },
   { key: "phone", label: "Telefoon" },
   { key: "companyName", label: "Bedrijf" },
-  { key: "companyAddress", label: "Bezoekersadres" },
+  { key: "companyAddress", label: "Bezoekadres" },
   { key: "companyPostalCode", label: "Postcode" },
   { key: "companyCity", label: "Vestigingsplaats" },
 ];

@@ -76,7 +76,7 @@ export function CancelActivityButton({
                 </button>
               </div>
               <p className="mb-3 text-xs text-muted">
-                Alle aangemelden (leden en niet-leden) krijgen hieronder meteen een melding. De activiteit blijft
+                Alle deelnemers (leden en niet-leden) krijgen hieronder meteen een melding. De activiteit blijft
                 zichtbaar als &ldquo;Afgelast&rdquo; en kan niet meer geboekt worden.
               </p>
               <textarea

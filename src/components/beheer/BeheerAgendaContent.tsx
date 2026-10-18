@@ -128,7 +128,6 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
     <div>
       <PageHeader
         title="Agenda beheren"
-        description="Alle activiteiten met status, goedkeuren/afwijzen/bewerken/verwijderen."
         action={
           <Link
             href="/agenda/nieuw"

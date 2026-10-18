@@ -77,12 +77,12 @@ function NotifyChangePanel({ activityId, suggestedMessage }: { activityId: strin
   const [isPending, startTransition] = useTransition();
 
   if (dismissed || sent) {
-    return sent ? <p className="text-sm text-muted">Aangemelden zijn geïnformeerd.</p> : null;
+    return sent ? <p className="text-sm text-muted">Deelnemers zijn geïnformeerd.</p> : null;
   }
 
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-border bg-background p-3">
-      <p className="text-sm font-medium text-foreground">Aangemelden informeren over deze wijziging?</p>
+      <p className="text-sm font-medium text-foreground">Deelnemers informeren over deze wijziging?</p>
       <textarea
         value={message}
         onChange={(e) => setMessage(e.target.value)}
@@ -222,7 +222,7 @@ export function ActivityForm({
             </button>
           </div>
           {source === "lid" && (
-            <p className="text-xs text-muted">Externe activiteiten volgen de gewone goedkeuringslogica, net als bij een lid.</p>
+            <p className="text-xs text-muted">Moet eerst worden goedgekeurd.</p>
           )}
         </div>
       )}
@@ -268,7 +268,6 @@ export function ActivityForm({
             required
           />
           <input type="hidden" name="starts_at" value={startsAtIso} />
-          <p className="text-xs text-muted">Bv. 24-12-2026 20:00.</p>
         </div>
         <div className="flex flex-col gap-1.5">
           <label htmlFor="ends_at_time" className="text-sm font-medium text-foreground">
@@ -310,7 +309,6 @@ export function ActivityForm({
                 max="2099-12-31T23:59"
               />
               <input type="hidden" name="registration_deadline" value={deadlineIso} />
-              <p className="text-xs text-muted">Bv. 20-12-2026 23:59.</p>
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="max_participants" className="text-sm font-medium text-foreground">

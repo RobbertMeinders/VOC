@@ -23,7 +23,7 @@ export default async function RegisterPage({ params }: { params: Promise<{ token
           <div className="rounded-2xl border border-border bg-surface p-6 text-center shadow-sm">
             <h1 className="mb-2 text-xl font-semibold text-foreground">Kan uitnodiging niet controleren</h1>
             <p className="text-sm text-muted">
-              Er ging iets mis bij het verbinden met de database. Probeer het later opnieuw.
+              Er ging iets mis. Probeer het later opnieuw.
             </p>
           </div>
         ) : !invitation?.valid ? (

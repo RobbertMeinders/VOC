@@ -3,7 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { cache } from "react";
-import { CalendarDays, Clock, Download, MapPin, Pencil, Users, XCircle } from "lucide-react";
+import { CalendarDays, Clock, Download, ExternalLink, MapPin, Pencil, Users, XCircle } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
@@ -247,8 +247,10 @@ export async function ActivityDetailContent({ id }: { id: string }) {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red-dark"
+                title="Aanmelden op de website van de organisator (opent in een nieuw tabblad)"
               >
-                Aanmelden via externe website
+                Aanmelden
+                <ExternalLink size={14} />
               </a>
             ) : (
               <RegisterButton
@@ -285,11 +287,9 @@ export async function ActivityDetailContent({ id }: { id: string }) {
       {publicRegistrations && publicRegistrations.length > 0 && (
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
           <h2 className="mb-1 text-sm font-semibold text-foreground">
-            Niet-leden aangemeld ({publicRegistrations.length})
+            Aangemeld via de website ({publicRegistrations.length})
           </h2>
-          <p className="mb-3 text-xs text-muted">
-            Via de openbare agenda-embed, buiten het ledenbestand om. Zie ook Beheer &gt; Potentiële leden.
-          </p>
+          <p className="mb-3 text-xs text-muted">Staan ook bij Instroom &gt; Potentiële leden.</p>
           <div className="flex flex-col">
             {publicRegistrations.map((registration) => (
               <div key={registration.id} className="flex flex-col gap-0.5 border-b border-border py-2 last:border-0">

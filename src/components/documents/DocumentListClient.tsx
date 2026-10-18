@@ -79,8 +79,8 @@ function DocumentListInner({
       ) : (
         <ComingSoon
           icon={FileText}
-          title={query ? "Niets gevonden" : "Nog geen documenten"}
-          description={query ? `Geen documenten voor "${query}".` : "Zodra het bestuur documenten deelt, verschijnen ze hier."}
+          title={query ? "Niets gevonden" : "Er zijn momenteel geen documenten beschikbaar."}
+          description={query ? `Geen documenten voor "${query}".` : undefined}
         />
       )}
     </>

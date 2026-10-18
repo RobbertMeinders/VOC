@@ -98,8 +98,8 @@ function StatusBadge({ status }: { status: string }) {
   };
   const labels: Record<string, string> = {
     concept: "Concept",
-    verzonden: "Verzonden",
-    verzenden_mislukt: "Verzending onderbroken",
+    verzonden: "Verstuurd",
+    verzenden_mislukt: "Deels verstuurd",
     ingepland: "Ingepland",
     versturen: "Wordt verstuurd…",
   };

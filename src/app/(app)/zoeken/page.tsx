@@ -52,7 +52,6 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
       <div>
         <h1 className="mb-4 text-xl font-semibold text-foreground">Zoeken</h1>
         <SearchForm />
-        <p className="mt-6 text-sm text-muted">Zoek in één keer in leden, bedrijven, activiteiten, berichten en documenten.</p>
       </div>
     );
   }

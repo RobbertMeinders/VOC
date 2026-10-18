@@ -58,8 +58,7 @@ export default async function BeheerCommunicatiePage() {
       {(communications ?? []).length === 0 ? (
         <ComingSoon
           icon={Megaphone}
-          title="Nog geen communicatie"
-          description="Plaats hier je eerste nieuwsbrief, of ga naar een activiteit en kies “Communiceer over deze activiteit”."
+          title="Nog geen nieuwsbrieven"
         />
       ) : (
         <>

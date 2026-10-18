@@ -16,7 +16,7 @@ export function NewActivityFlow({ board }: { board: boolean }) {
     return (
       <div>
         <h1 className="mb-1 text-xl font-semibold text-foreground">Nieuwe activiteit</h1>
-        <p className="mb-4 text-sm text-muted">Is dit een officiële VOC-activiteit of een externe activiteit?</p>
+        <p className="mb-4 text-sm text-muted">Wat voor activiteit?</p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
@@ -28,7 +28,7 @@ export function NewActivityFlow({ board }: { board: boolean }) {
             </span>
             <span>
               <span className="block text-sm font-semibold text-foreground">VOC-activiteit</span>
-              <span className="block text-xs text-muted">Direct gepubliceerd, geen goedkeuring nodig.</span>
+              <span className="block text-xs text-muted">Een activiteit van de VOC.</span>
             </span>
           </button>
           <button
@@ -41,7 +41,7 @@ export function NewActivityFlow({ board }: { board: boolean }) {
             </span>
             <span>
               <span className="block text-sm font-semibold text-foreground">Externe activiteit</span>
-              <span className="block text-xs text-muted">Volgt de gewone goedkeuringslogica, net als bij een lid.</span>
+              <span className="block text-xs text-muted">Een activiteit van een andere organisatie, met een eigen aanmeldlink.</span>
             </span>
           </button>
         </div>

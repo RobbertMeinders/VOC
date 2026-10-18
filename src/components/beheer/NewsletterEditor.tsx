@@ -781,14 +781,13 @@ export function NewsletterEditor({
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="preheader-input" className="text-sm font-medium text-foreground">
-                Pre-header <span className="font-normal text-muted">(optioneel)</span>
+                Voorbeeldtekst in inbox <span className="font-normal text-muted">(optioneel)</span>
               </label>
               <Input
                 id="preheader-input"
                 value={preheader}
                 onChange={(e) => setPreheader(e.target.value)}
                 disabled={readOnly}
-                placeholder="Korte aanvullende tekst, zichtbaar naast het onderwerp in de inbox"
                 className="h-11 text-base"
               />
             </div>
@@ -813,8 +812,8 @@ export function NewsletterEditor({
                 <Switch checked={showHeader} onChange={() => setShowHeader((v) => !v)} disabled={readOnly} label="VOC-logo bovenaan tonen" />
               </div>
               <div className="flex items-center justify-between gap-3">
-                <span className="text-sm font-medium text-foreground">Voettekst met social-links</span>
-                <Switch checked={showFooter} onChange={() => setShowFooter((v) => !v)} disabled={readOnly} label="Voettekst met social-links tonen" />
+                <span className="text-sm font-medium text-foreground">Voettekst met sociale media</span>
+                <Switch checked={showFooter} onChange={() => setShowFooter((v) => !v)} disabled={readOnly} label="Voettekst met sociale media tonen" />
               </div>
             </div>
           </div>

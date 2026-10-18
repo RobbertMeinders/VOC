@@ -94,9 +94,9 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
 
   const statusLabel =
     communication.status === "verzonden"
-      ? "Verzonden - alleen-lezen"
+      ? "Verstuurd"
       : communication.status === "verzenden_mislukt"
-        ? "Verzenden gedeeltelijk mislukt"
+        ? "Deels verstuurd"
         : communication.status === "ingepland"
           ? "Ingepland"
           : "Concept";

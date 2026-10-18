@@ -73,7 +73,7 @@ export async function BeheerLedenContent() {
 
   return (
     <div>
-      <PageHeader title="Leden beheren" description="Rol wijzigen en activeren/deactiveren, direct vanuit dit overzicht." />
+      <PageHeader title="Leden beheren" />
 
       <BeheerLedenListClient members={members} viewerId={viewer.id} canEditRole={isAdmin(viewer.role)} />
     </div>

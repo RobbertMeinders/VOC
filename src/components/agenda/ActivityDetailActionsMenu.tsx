@@ -81,7 +81,7 @@ export function ActivityDetailActionsMenu({
   }
 
   const items: ActionMenuItem[] = [
-    { label: "Communiceer over deze activiteit", onClick: handleCommunicate },
+    { label: "Nieuwsbrief maken", onClick: handleCommunicate },
     { label: "Aanmeldingen downloaden", onClick: handleDownload },
     canCancel
       ? { label: "Afgelasten", danger: true, onClick: () => setCancelOpen(true) }

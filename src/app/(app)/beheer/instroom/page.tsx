@@ -86,7 +86,7 @@ async function UitnodigingenTab({ canInviteBoard }: { canInviteBoard: boolean })
                 className="flex shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
               >
                 <Clock size={14} />
-                Verleng alle met 14 dagen
+                Alles verlengen
               </button>
             </form>
           )}
@@ -107,13 +107,7 @@ async function ProspectsTab() {
 
   return (
     <div className="flex flex-col gap-4">
-      <p className="text-sm text-muted">
-        Gebruik het e-mailadres om zelf contact op te nemen (bijv. na de activiteit, of om te vragen of diegene lid
-        wil worden), en zet daarna de status: <span className="text-foreground">Wil lid worden</span> als iemand
-        toegevoegd moet worden (via de tab Uitnodigingen hiernaast), <span className="text-foreground">Wil niet lid worden</span>{" "}
-        of <span className="text-foreground">Geen antwoord</span> om af te sluiten. Met het prullenbakje kun je een
-        rij ook direct verwijderen, bijvoorbeeld bij een verkeerd ingevuld e-mailadres.
-      </p>
+      <p className="text-sm text-muted">Neem contact op en werk daarna de status bij.</p>
       <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
         {prospects && prospects.length > 0 ? (
           prospects.map((prospect) => <ProspectRow key={prospect.id} prospect={prospect} />)
@@ -121,7 +115,7 @@ async function ProspectsTab() {
           <ComingSoon
             icon={UserSearch}
             title="Nog geen potentiële leden"
-            description="Zodra een niet-lid zich via de openbare agenda-embed aanmeldt voor een activiteit, verschijnt die hier."
+            description="Niet-leden die zich via de website aanmelden voor een activiteit, verschijnen hier."
           />
         )}
       </div>
@@ -133,11 +127,7 @@ function ImportTab() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted">
-        Upload een CSV-bestand met bestaande ledengegevens (voornaam, achternaam, e-mail, telefoon, bedrijf,
-        bezoekersadres, postcode, vestigingsplaats). Er wordt per rij een uitnodiging aangemaakt - zonder dat daar
-        meteen een e-mail bij verstuurd wordt; een bedrijf dat nog niet bestaat wordt automatisch aangemaakt met het
-        opgegeven adres. Bekijk en pas de gegevens hieronder aan voordat je importeert; de e-mail versturen doe je
-        later, per lid, vanaf de tab Uitnodigingen.
+        Per rij wordt een uitnodiging gemaakt, nog zonder e-mail. Die verstuur je later bij Uitnodigingen.
       </p>
       <BulkImportForm />
     </div>
@@ -151,10 +141,7 @@ export default async function InstroomPage({ searchParams }: { searchParams: Pro
 
   return (
     <div>
-      <PageHeader
-        title="Instroom"
-        description="Van toegangsaanvraag of activiteit-aanmelding tot lid - op één plek i.p.v. verspreid over vier schermen."
-      />
+      <PageHeader title="Instroom" />
 
       {/* sticky: blijft in beeld bij scrollen door een lange lijst (zelfde als
           /beheer/bedrijven). top-14 op mobiel (onder de mobiele header), top-0

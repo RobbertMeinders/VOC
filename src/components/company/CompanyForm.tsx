@@ -158,7 +158,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
 
           <div className="flex flex-col gap-1.5">
             <label htmlFor="description" className="text-sm font-medium text-foreground">
-              Biografie
+              Over het bedrijf
             </label>
             <textarea
               id="description"
@@ -213,7 +213,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           </div>
         </FormSection>
 
-        <FormSection label="Social media">
+        <FormSection label="Sociale media">
           <div className="flex flex-col gap-1.5">
             <label htmlFor="linkedin_url" className="text-xs font-medium text-muted">
               LinkedIn
@@ -264,7 +264,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           </div>
         </FormSection>
 
-        <FormSection label="Bezoekersadres">
+        <FormSection label="Bezoekadres">
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="address" className="text-sm font-medium text-foreground">
@@ -279,7 +279,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
               <Input id="postal_code" name="postal_code" defaultValue={company.postal_code ?? ""} placeholder="9640 AB" />
             </div>
           </div>
-          <FormToggleRow label="Bezoekersadres tonen">
+          <FormToggleRow label="Bezoekadres tonen">
             <input type="hidden" name="show_address" value={showAddress ? "on" : ""} />
             <Switch
               checked={showAddress}
@@ -287,7 +287,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
                 setShowAddress((v) => !v);
                 formsGuard.markDirty("company", true);
               }}
-              label="Bezoekersadres tonen"
+              label="Bezoekadres tonen"
             />
           </FormToggleRow>
         </FormSection>

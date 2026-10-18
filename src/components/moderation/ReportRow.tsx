@@ -100,7 +100,7 @@ export function ReportRow({ report }: { report: ReportRowData }) {
             onClick={() => resolve("dismissed")}
             className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
           >
-            Melding afwijzen
+            Bericht behouden
           </button>
         </div>
       )}

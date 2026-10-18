@@ -361,7 +361,7 @@ export async function deleteActivityAction(activityId: string, redirectAfter = t
     const totalCount = (memberCount ?? 0) + (publicCount ?? 0);
     if (totalCount > 0) {
       throw new Error(
-        `Deze activiteit heeft ${totalCount} aanmelding(en) en kan daarom niet verwijderd worden. Gebruik "Afgelasten" om aangemelden te informeren.`
+        `Deze activiteit heeft ${totalCount} aanmelding${totalCount === 1 ? "" : "en"} en kan daarom niet verwijderd worden. Gebruik "Afgelasten" om deelnemers te informeren.`
       );
     }
 

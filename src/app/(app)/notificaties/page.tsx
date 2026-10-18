@@ -35,8 +35,7 @@ export default async function NotificatiesPage() {
       ) : (
         <ComingSoon
           icon={Bell}
-          title="Geen meldingen"
-          description="Hier verschijnen meldingen zodra er iets voor je gebeurt."
+          title="Je hebt geen nieuwe meldingen."
         />
       )}
     </div>

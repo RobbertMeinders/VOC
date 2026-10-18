@@ -154,7 +154,7 @@ export function CompanyBillingForm({ company, billing }: { company: Company; bil
             </div>
             <div className="flex flex-col gap-1.5">
               <label htmlFor="invoice_email" className="text-sm font-medium text-foreground">
-                Factuur-e-mailadres
+                E-mailadres voor facturen
               </label>
               <Input
                 id="invoice_email"

@@ -53,17 +53,14 @@ export default async function InstellingenPage() {
       {/* UX-review punt 10: e-mailadres wijzigen stond los op /profiel, los
           van wachtwoord hier — twee plekken voor "accountgegevens
           wijzigen". Beide nu samen onder Account. */}
-      <SettingGroup
-        label="Account"
-        description="Inloggen kan ook zonder wachtwoord via een inloglink per e-mail. Wil je toch een wachtwoord instellen, of je e-mailadres wijzigen, dan kan dat hier."
-      >
+      <SettingGroup label="Account" description="Een wachtwoord is optioneel: je kunt ook inloggen met een link per e-mail.">
         <SettingSubRow label="Wachtwoord">
           <Link
             href="/wachtwoord-instellen"
             className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red-text"
           >
             <KeyRound size={14} />
-            Instellen
+            Wijzigen
           </Link>
         </SettingSubRow>
         <SettingSubRow label="E-mailadres">
@@ -71,10 +68,8 @@ export default async function InstellingenPage() {
         </SettingSubRow>
       </SettingGroup>
 
-      <SettingGroup
-        label="Meldingen"
-        description="Kies per soort melding: pushmelding, e-mail, beide, of geen. Voor dingen die rechtstreeks over jou gaan - zoals de uitkomst van een aanvraag - krijg je altijd bericht, dat staat vast."
-      >
+      <SettingGroup label="Meldingen" description="Berichten over je eigen aanvragen krijg je altijd.">
+
         <SettingSubRow label="Dit apparaat">
           <PushToggle />
         </SettingSubRow>
@@ -115,7 +110,7 @@ export default async function InstellingenPage() {
         </SettingSubRow>
 
         {company?.address && (
-          <SettingSubRow label="Bezoekersadres bedrijf tonen">
+          <SettingSubRow label="Bezoekadres bedrijf tonen">
             <ShowAddressToggle companyId={company.id} initialVisible={company.show_address} />
           </SettingSubRow>
         )}
@@ -125,17 +120,17 @@ export default async function InstellingenPage() {
             <PubliclyVisibleToggle initialVisible={data?.publicly_visible ?? false} />
           </SettingSubRow>
         )}
-      </SettingGroup>
 
-      <SettingRow label="Privacy & veiligheid" description="Hoe het portaal met je gegevens en toegang omgaat.">
-        <Link
-          href="/privacy"
-          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red-text"
-        >
-          <ShieldCheck size={14} />
-          Bekijken
-        </Link>
-      </SettingRow>
+        <SettingSubRow label="Privacyverklaring">
+          <Link
+            href="/privacy"
+            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red-text"
+          >
+            <ShieldCheck size={14} />
+            Bekijken
+          </Link>
+        </SettingSubRow>
+      </SettingGroup>
 
       <SettingRow
         label="Mijn gegevens downloaden"

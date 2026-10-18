@@ -16,7 +16,7 @@ function toChoice(push: boolean, email: boolean): Choice {
 
 const OPTIONS: { value: Choice; label: string }[] = [
   { value: "push", label: "Push" },
-  { value: "email", label: "Mail" },
+  { value: "email", label: "E-mail" },
   { value: "both", label: "Beide" },
   { value: "none", label: "Geen" },
 ];

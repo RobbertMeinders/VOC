@@ -212,7 +212,7 @@ export default async function BeheerPage() {
         <h2 className="mb-3 text-sm font-semibold text-foreground">Wacht op jou</h2>
 
         {!hasWaitingWork && (
-          <ComingSoon icon={CheckCircle2} title="Niets dat op je wacht" description="Nieuwe aanvragen, inzendingen en meldingen verschijnen hier." />
+          <ComingSoon icon={CheckCircle2} title="Niets te doen." />
         )}
 
         {(accessRequests?.length ?? 0) > 0 && (
