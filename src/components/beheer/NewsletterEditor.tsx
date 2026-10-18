@@ -52,7 +52,7 @@ import type { Database } from "@/lib/types/database";
 
 type Communication = Database["public"]["Tables"]["communications"]["Row"];
 type ActivityOption = { id: string; title: string; starts_at: string };
-type Profile = { id: string; first_name: string; last_name: string; email: string };
+type Profile = { id: string; first_name: string; last_name: string };
 type Contact = { id: string; name: string; email: string };
 type ContactListOption = { id: string; name: string };
 

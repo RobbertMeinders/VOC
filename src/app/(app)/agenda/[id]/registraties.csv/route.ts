@@ -18,14 +18,12 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
 
   const supabase = await createClient();
+  // get_activity_registration_export (0091) i.p.v. rechtstreeks
+  // activity_registrations.select('...profile:profiles(..., email)') —
+  // profiles.email is sinds die migratie alleen nog via een RPC leesbaar.
   const [{ data: activity }, { data: registrations }, { data: publicRegistrations }] = await Promise.all([
     supabase.from("activities").select("title").eq("id", id).maybeSingle(),
-    supabase
-      .from("activity_registrations")
-      .select("is_waitlisted, attended, profile:profiles(first_name, last_name, email)")
-      .eq("activity_id", id)
-      .order("created_at", { ascending: true })
-      .returns<{ is_waitlisted: boolean; attended: boolean; profile: { first_name: string; last_name: string; email: string } | null }[]>(),
+    supabase.rpc("get_activity_registration_export", { p_activity_id: id }),
     supabase
       .from("public_activity_registrations")
       .select("name, email, company_name, created_at")
@@ -39,10 +37,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 
   const rows: string[][] = [["Naam", "E-mailadres", "Bedrijf", "Status", "Lid"]];
   for (const registration of registrations ?? []) {
-    if (!registration.profile) continue;
     rows.push([
-      `${registration.profile.first_name} ${registration.profile.last_name}`,
-      registration.profile.email,
+      `${registration.first_name} ${registration.last_name}`,
+      registration.email,
       "",
       registration.is_waitlisted ? "Wachtlijst" : registration.attended ? "Aangemeld (geweest)" : "Aangemeld",
       "Ja",

@@ -8,7 +8,7 @@ import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
 import type { UpdateProfileState } from "@/app/(app)/profiel/actions";
-import type { UserRole } from "@/lib/types/database";
+import type { Database, UserRole } from "@/lib/types/database";
 
 export type UpdateMemberRoleState = { error?: string; success?: boolean };
 
@@ -179,17 +179,22 @@ export async function generateLoginLinkAction(memberId: string): Promise<Generat
   const viewer = await requireBoard();
 
   const supabase = await createClient();
-  const { data: target } = await supabase
-    .from("profiles")
-    .select("email, role, is_active")
-    .eq("id", memberId)
-    .maybeSingle();
+  // get_member_profile (0061_masked_contact_fields.sql) i.p.v. rechtstreeks
+  // .from("profiles").select("email") — de kolom is sinds 0091 alleen nog
+  // via deze RPC leesbaar; die geeft bestuur/beheer de echte waarde terug.
+  const { data: targetRows } = await supabase
+    .rpc("get_member_profile", { p_id: memberId })
+    .returns<Database["public"]["Functions"]["get_member_profile"]["Returns"]>();
+  const target = targetRows?.[0];
 
   if (!target) {
     return { error: "Lid niet gevonden." };
   }
   if (!target.is_active) {
     return { error: "Dit account is gedeactiveerd." };
+  }
+  if (!target.email) {
+    return { error: "Geen e-mailadres bekend voor dit lid." };
   }
   // Een gewoon bestuurslid mag geen inloglink genereren voor een ander
   // bestuurslid of beheerder — alleen de beheerder mag dat.

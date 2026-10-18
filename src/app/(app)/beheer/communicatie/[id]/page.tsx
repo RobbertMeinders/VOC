@@ -60,7 +60,7 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
     getAppSettings(),
     supabase.from("contact_lists").select("id, name").order("name"),
     supabase.from("contacts").select("id, name, email").order("name"),
-    supabase.from("profiles").select("id, first_name, last_name, email").eq("is_active", true).order("first_name"),
+    supabase.from("profiles").select("id, first_name, last_name").eq("is_active", true).order("first_name"),
     supabase.from("communication_recipient_lists").select("list_id").eq("communication_id", id),
     supabase.from("communication_recipient_profiles").select("profile_id").eq("communication_id", id),
     supabase.from("communication_recipient_contacts").select("contact_id").eq("communication_id", id),

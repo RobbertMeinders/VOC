@@ -694,18 +694,25 @@ export interface Database {
         // email/phone zijn hier nullable (i.t.t. profiles.Row): 0061_masked_
         // contact_fields.sql maskeert ze naar null tenzij het je eigen rij is,
         // de bekeken persoon show_email/show_phone aan heeft, of jij bestuur/
-        // beheer bent — zie get_member_profile in die migratie.
-        Returns: Omit<Database["public"]["Tables"]["profiles"]["Row"], "email" | "phone"> & {
+        // beheer bent — zie get_member_profile in die migratie. De buitenste
+        // haakjes zijn nodig: `A & B[]` parseert als `A & (B[])`, niet als
+        // `(A & B)[]` — zonder die haakjes resolvet indexeren (`[0]`) naar
+        // alleen `B` (hier dus alleen de email/phone-velden).
+        Returns: (Omit<Database["public"]["Tables"]["profiles"]["Row"], "email" | "phone"> & {
           email: string | null;
           phone: string | null;
-        }[];
+        })[];
       };
       get_members_directory: {
         Args: Record<string, never>;
-        Returns: Omit<Database["public"]["Tables"]["profiles"]["Row"], "email" | "phone"> & {
+        Returns: (Omit<Database["public"]["Tables"]["profiles"]["Row"], "email" | "phone"> & {
           email: string | null;
           phone: string | null;
-        }[];
+        })[];
+      };
+      get_activity_registration_export: {
+        Args: { p_activity_id: string };
+        Returns: { first_name: string; last_name: string; email: string; is_waitlisted: boolean; attended: boolean }[];
       };
       set_company_show_address: {
         Args: { p_company_id: string; p_visible: boolean };

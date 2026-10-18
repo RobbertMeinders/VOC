@@ -24,7 +24,7 @@ import type { Database } from "@/lib/types/database";
 
 type Contact = Database["public"]["Tables"]["contacts"]["Row"];
 type ContactList = Database["public"]["Tables"]["contact_lists"]["Row"];
-type Profile = { id: string; first_name: string; last_name: string; email: string };
+type Profile = { id: string; first_name: string; last_name: string };
 
 function profileName(p: Profile): string {
   return `${p.first_name} ${p.last_name}`.trim();

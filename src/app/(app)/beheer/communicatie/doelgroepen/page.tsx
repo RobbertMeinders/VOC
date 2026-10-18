@@ -22,7 +22,7 @@ export default async function DoelgroepenPage() {
       supabase.from("contact_lists").select("*").order("name"),
       supabase.from("contact_list_profiles").select("list_id, profile_id"),
       supabase.from("contact_list_contacts").select("list_id, contact_id"),
-      supabase.from("profiles").select("id, first_name, last_name, email").eq("is_active", true).order("first_name"),
+      supabase.from("profiles").select("id, first_name, last_name").eq("is_active", true).order("first_name"),
     ]);
 
   return (

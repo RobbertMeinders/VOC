@@ -11,7 +11,7 @@ import { useToast } from "@/lib/ui/ToastContext";
 import { updateCommunicationAudienceAction } from "@/app/(app)/beheer/communicatie/actions";
 import { createContactAction } from "@/app/(app)/beheer/communicatie/doelgroepen/actions";
 
-type Profile = { id: string; first_name: string; last_name: string; email: string };
+type Profile = { id: string; first_name: string; last_name: string };
 type Contact = { id: string; name: string; email: string };
 type ContactListOption = { id: string; name: string };
 
