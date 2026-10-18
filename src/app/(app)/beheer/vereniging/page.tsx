@@ -13,13 +13,13 @@ import { CommissiesAdminContent, type CommissionAdminRow, type MemberOption } fr
 
 export const metadata: Metadata = { title: "Vereniging" };
 
-// VOC Hub — Beheeromgeving: Over VOC, Bestuur en Commissies stonden als drie
+// VOC Hub — Beheeromgeving: Over de vereniging, Bestuur en Commissies stonden als drie
 // losse beheerpagina's naast elkaar voor wat inhoudelijk één onderwerp is
 // (de vereniging zelf) — nu tabs op één pagina, zelfde patroon als
 // /beheer/instroom. Oude routes (over-ons/bestuur/commissies) redirecten
 // hierheen.
 const TABS = [
-  { key: "over-ons", label: "Over VOC", icon: Info },
+  { key: "over-ons", label: "Over de vereniging", icon: Info },
   { key: "bestuur", label: "Bestuur", icon: IdCard },
   { key: "commissies", label: "Commissies", icon: UsersRound },
 ] as const;
@@ -30,8 +30,8 @@ async function OverOnsTab() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted">
-        Inhoud voor de pagina Over VOC die leden via Vereniging in de hoofdnavigatie bereiken. Leeg laten betekent: dit onderdeel staat nog
-        niet op de pagina.
+        Inhoud voor de pagina Over de vereniging die leden via Vereniging in de hoofdnavigatie bereiken. Leeg laten betekent: dit onderdeel
+        staat nog niet op de pagina.
       </p>
       <OrgProfileForm orgProfile={orgProfile} />
     </div>

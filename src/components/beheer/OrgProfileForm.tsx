@@ -34,7 +34,7 @@ export function OrgProfileForm({ orgProfile }: { orgProfile: OrgProfile }) {
   return (
     <form action={formAction} className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
       <FormSections>
-        <FormSection label="Introductie" description="Een korte, uitnodigende opening bovenaan de pagina Over VOC.">
+        <FormSection label="Introductie" description="Een korte, uitnodigende opening bovenaan de pagina Over de vereniging.">
           <textarea
             name="intro_text"
             rows={4}

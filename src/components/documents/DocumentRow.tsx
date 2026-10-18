@@ -136,7 +136,10 @@ export function DocumentRow({
                 // eslint-disable-next-line @next/next/no-img-element -- signed URL, no benefit from next/image optimization for a short-lived preview
                 <img src={url} alt={document.title} className="mx-auto max-w-full" />
               ) : (
-                <iframe src={url} title={document.title} className="h-full w-full" />
+                // Same-origin proxy i.p.v. de signed Storage-URL: Supabase
+                // Storage staat framing vanaf een ander origin niet toe (zie
+                // route voor details), <img> hierboven heeft dat probleem niet.
+                <iframe src={`/api/documenten/${document.id}`} title={document.title} className="h-full w-full" />
               )}
             </div>
           </div>

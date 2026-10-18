@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useFormStatus } from "react-dom";
 import { useRouter } from "next/navigation";
-import { Archive, ArchiveRestore, ChevronDown, Pencil, UserPlus, Users, X } from "lucide-react";
+import { Archive, ArchiveRestore, ChevronDown, Pencil, Plus, UserPlus, Users, X } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
@@ -46,7 +46,7 @@ function SubmitButton({ label, pendingLabel }: { label: string; pendingLabel: st
 
 const newCommissionInitialState: CreateCommissionState = {};
 
-function NewCommissionForm() {
+function NewCommissionForm({ onCreated }: { onCreated: () => void }) {
   const [state, formAction] = useActionState(createCommissionAction, newCommissionInitialState);
   const formRef = useRef<HTMLFormElement>(null);
   const toast = useToast();
@@ -55,6 +55,7 @@ function NewCommissionForm() {
     if (state.success) {
       toast("Commissie aangemaakt.");
       formRef.current?.reset();
+      onCreated();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
@@ -89,7 +90,10 @@ function NewCommissionForm() {
 const addMemberInitialState: AddCommissionMemberState = {};
 
 function CommissionCard({ commission, memberOptions }: { commission: CommissionAdminRow; memberOptions: MemberOption[] }) {
-  const [expanded, setExpanded] = useState(false);
+  // Standaard uitgeklapt zodra er aanmeldingen in behandeling zijn — anders
+  // was een aanmelding wel zichtbaar als badge, maar makkelijk te missen
+  // tussen de andere commissies door, zonder zelf op het pijltje te klikken.
+  const [expanded, setExpanded] = useState(commission.applications.length > 0);
   const [editing, setEditing] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -312,9 +316,24 @@ function CommissionCard({ commission, memberOptions }: { commission: CommissionA
 }
 
 export function CommissiesAdminContent({ commissions, memberOptions }: { commissions: CommissionAdminRow[]; memberOptions: MemberOption[] }) {
+  // Achter een knop i.p.v. altijd zichtbaar: een commissie aanmaken gebeurt
+  // zelden, dus hoeft dit formulier niet standaard in beeld te staan.
+  const [showNewForm, setShowNewForm] = useState(false);
+
   return (
     <div className="flex flex-col gap-4">
-      <NewCommissionForm />
+      {showNewForm ? (
+        <NewCommissionForm onCreated={() => setShowNewForm(false)} />
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShowNewForm(true)}
+          className="flex items-center justify-center gap-1.5 self-start rounded-full border border-border bg-surface px-3.5 py-2 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red-text"
+        >
+          <Plus size={15} />
+          Nieuwe commissie
+        </button>
+      )}
 
       {commissions.length === 0 ? (
         <ComingSoon icon={Users} title="Nog geen commissies" description="Maak hierboven de eerste commissie aan." />

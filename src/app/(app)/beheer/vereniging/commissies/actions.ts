@@ -156,10 +156,14 @@ export async function decideCommissionApplicationAction(applicationId: string, a
 
   if (!application || application.status !== "in_behandeling") return;
 
-  await supabase
+  const { error: decideError } = await supabase
     .from("commission_applications")
     .update({ status: approve ? "goedgekeurd" : "afgewezen", decided_by: viewer.id, decided_at: new Date().toISOString() })
     .eq("id", applicationId);
+  // Stil stoppen bij een mislukte update i.p.v. als goedgekeurd/afgewezen te
+  // loggen en een lidmaatschap aan te maken terwijl de aanvraag zelf feitelijk
+  // nog "in_behandeling" staat — dezelfde reden als setBoardPosition elders.
+  if (decideError) return;
 
   if (approve) {
     const { error } = await supabase.from("commission_memberships").insert({

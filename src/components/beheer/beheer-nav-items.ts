@@ -30,14 +30,12 @@ export type BeheerNavSection = { title: string; items: BeheerNavItem[] };
 // sectie weer helemaal terug moest om iets anders te kiezen. Nu een
 // permanent zij-menu, net als de hoofdnavigatie zelf.
 //
-// Zes secties, elk met een duidelijk eigen onderwerp (VOC Hub —
-// Beheeromgeving, vereniging, bestuur en commissies, punt 1): "Vereniging"
-// is nieuw en bundelt alles wat over de vereniging zelf gaat (identiteit,
-// Over VOC-inhoud, bestuur, commissies) — inhoudelijk bestuurswerk, dus
-// standaard geen adminOnly behalve de technische portaalinstellingen zelf.
-// "Leden & bedrijven" begint met de twee overzichten (Leden, Bedrijven)
-// gevolgd door de acties daaromheen. "Systeem & integraties" is wat
-// overblijft aan systeembreed/technisch werk voor de beheerder.
+// Vijf secties. "Vereniging" (identiteit, "Over de vereniging"-inhoud,
+// bestuur, commissies) staat niet meer als eigen sectie, maar als item onder
+// "Systeem & integraties", samen met Portaalinstellingen — allebei
+// verenigings-/portaalbrede instellingen i.p.v. dagelijks contentwerk, dus
+// horen ze inhoudelijk bij elkaar. "Leden & bedrijven" staat direct na
+// Overzicht (de twee overzichten, gevolgd door de acties daaromheen).
 export const BEHEER_SECTIONS: BeheerNavSection[] = [
   {
     title: "Overzicht",
@@ -47,10 +45,11 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     ],
   },
   {
-    title: "Vereniging",
+    title: "Leden & bedrijven",
     items: [
-      { href: "/beheer/instellingen", label: "Portaalinstellingen", icon: Settings, adminOnly: true },
-      { href: "/beheer/vereniging", label: "Vereniging", icon: Info },
+      { href: "/beheer/leden", label: "Leden", icon: Users },
+      { href: "/beheer/bedrijven", label: "Bedrijven", icon: Building2 },
+      { href: "/beheer/instroom", label: "Instroom", icon: UserPlus },
     ],
   },
   {
@@ -77,15 +76,11 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     ],
   },
   {
-    title: "Leden & bedrijven",
-    items: [
-      { href: "/beheer/leden", label: "Leden", icon: Users },
-      { href: "/beheer/bedrijven", label: "Bedrijven", icon: Building2 },
-      { href: "/beheer/instroom", label: "Instroom", icon: UserPlus },
-    ],
-  },
-  {
     title: "Systeem & integraties",
-    items: [{ href: "/beheer/embed-codes", label: "Code voor de website", icon: Code, adminOnly: true }],
+    items: [
+      { href: "/beheer/vereniging", label: "Vereniging", icon: Info },
+      { href: "/beheer/instellingen", label: "Portaalinstellingen", icon: Settings, adminOnly: true },
+      { href: "/beheer/embed-codes", label: "Code voor de website", icon: Code, adminOnly: true },
+    ],
   },
 ];

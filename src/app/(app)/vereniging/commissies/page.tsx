@@ -69,7 +69,7 @@ export default async function CommissiesPage() {
                     ) : isPending ? (
                       <span className="text-xs font-medium text-muted">Aanvraag in behandeling</span>
                     ) : (
-                      <CommissionApplyButton commissionId={commission.id} />
+                      <CommissionApplyButton commissionId={commission.id} commissionName={commission.name} />
                     )}
                   </div>
                 </div>

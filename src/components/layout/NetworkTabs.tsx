@@ -27,7 +27,7 @@ export function NetworkTabs() {
             key={tab.href}
             href={tab.href}
             className={clsx(
-              "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold sm:flex-none",
+              "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold sm:flex-none sm:px-4 sm:py-2.5 sm:text-[0.9375rem]",
               active
                 ? "bg-voc-red text-white shadow-sm"
                 : "text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.06]"

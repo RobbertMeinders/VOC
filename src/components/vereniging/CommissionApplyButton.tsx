@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { applyToCommissionAction } from "@/app/(app)/vereniging/commissies/actions";
 import { useToast } from "@/lib/ui/ToastContext";
 
-export function CommissionApplyButton({ commissionId }: { commissionId: string }) {
+export function CommissionApplyButton({ commissionId, commissionName }: { commissionId: string; commissionName: string }) {
   const [isPending, startTransition] = useTransition();
   const [applied, setApplied] = useState(false);
   const toast = useToast();
@@ -18,6 +18,10 @@ export function CommissionApplyButton({ commissionId }: { commissionId: string }
       type="button"
       disabled={isPending}
       onClick={() => {
+        // Niet meteen versturen op één klik — dit is een aanvraag die het
+        // bestuur beoordeelt en die je zelf niet meer kunt intrekken, dus
+        // verdient een expliciete bevestiging in plaats van direct effect.
+        if (!window.confirm(`Aanmelden voor ${commissionName}? Je aanvraag wordt ter beoordeling voorgelegd aan het bestuur.`)) return;
         startTransition(async () => {
           const result = await applyToCommissionAction(commissionId);
           if (result.error) {

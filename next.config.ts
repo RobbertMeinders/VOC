@@ -7,14 +7,17 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       {
-        // Alles BEHALVE /embed en /api/embed — die moeten juist wél in een
-        // iframe op de publieke WordPress-site kunnen laden (zie
-        // README "WordPress-embed"). De rest van de app (ingelogde
+        // Alles BEHALVE /embed, /api/embed en /api/documenten/[id] — de
+        // eerste twee moeten juist wél in een iframe op de publieke
+        // WordPress-site kunnen laden (zie README "WordPress-embed"), de
+        // laatste wordt juist door het portaal zelf geframed voor een
+        // PDF-voorbeeld (zie die route) en zet daar zelf al een eigen,
+        // striktere SAMEORIGIN-header. De rest van de app (ingelogde
         // portaalpagina's, login) hoort nooit in andermans iframe: zonder
         // deze header kon een kwaadwillende site het portaal onzichtbaar
         // over eigen knoppen leggen (clickjacking) om een ingelogd lid
         // bv. per ongeluk op "Account verwijderen" te laten klikken.
-        source: "/((?!embed(?:/|$)|api/embed(?:/|$)).*)",
+        source: "/((?!embed(?:/|$)|api/embed(?:/|$)|api/documenten(?:/|$)).*)",
         headers: [
           { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
