@@ -18,18 +18,18 @@ export const POST_TYPE_CHOICES: { type: FeedPostType; label: string; description
 export function PostTypeChooser({ onChoose }: { onChoose: (type: FeedPostType | null) => void }) {
   return (
     <div className="flex flex-col gap-2.5">
-      <p className="text-sm font-medium text-foreground">Wat wil je plaatsen?</p>
-
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-2.5">
         {POST_TYPE_CHOICES.map(({ type, label, description, icon: Icon }) => (
           <button
             key={type}
             type="button"
             onClick={() => onChoose(type)}
-            className="flex flex-col items-start gap-1.5 rounded-xl border border-border p-3 text-left hover:border-voc-red hover:bg-voc-red-light"
+            className="flex flex-col items-center gap-2 rounded-2xl border border-border p-4 text-center hover:border-voc-red"
           >
-            <Icon size={19} className="shrink-0 text-voc-red-text" />
-            <span className="text-sm font-semibold text-foreground">{label}</span>
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-voc-red-light text-voc-red-text">
+              <Icon size={22} />
+            </span>
+            <span className="text-base font-semibold text-foreground">{label}</span>
             <span className="text-xs leading-snug text-muted">{description}</span>
           </button>
         ))}
@@ -38,10 +38,10 @@ export function PostTypeChooser({ onChoose }: { onChoose: (type: FeedPostType | 
       <button
         type="button"
         onClick={() => onChoose(null)}
-        className="flex items-center gap-2 rounded-xl border border-border px-3.5 py-2 text-left text-sm text-muted hover:border-voc-red hover:text-voc-red-text"
+        className="flex items-center justify-center gap-2 rounded-xl border border-border px-3.5 py-2 text-sm text-muted hover:border-voc-red hover:text-voc-red-text"
       >
-        <MoreHorizontal size={16} className="shrink-0" />
-        Overig — plaats zonder specifieke categorie
+        <MoreHorizontal size={15} className="shrink-0" />
+        Overig
       </button>
     </div>
   );
