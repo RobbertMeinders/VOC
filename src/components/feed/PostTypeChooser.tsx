@@ -7,19 +7,21 @@ import type { FeedPostType } from "@/lib/feed/types";
 // is — de keuze zet automatisch de bijbehorende categorietag (zie
 // createPostAction). "Overig" is een bewuste keuze voor GEEN tag (type
 // null), geen "nog niet gekozen"-staat — zie PostComposer voor hoe dat
-// onderscheid gemaakt wordt.
-export const POST_TYPE_CHOICES: { type: FeedPostType; label: string; description: string; icon: typeof HelpCircle }[] = [
-  { type: "vraag", label: "Vraag", description: "Stel een vraag aan andere leden.", icon: HelpCircle },
-  { type: "aanbod", label: "Aanbod", description: "Deel een aanbod of mogelijkheid.", icon: Megaphone },
-  { type: "nieuws", label: "Delen", description: "Deel nieuws of ervaringen.", icon: Sparkles },
-  { type: "voorstellen", label: "Even voorstellen", description: "Stel jezelf en je bedrijf voor.", icon: UserPlus },
+// onderscheid gemaakt wordt. Labels komen 1-op-1 overeen met
+// POST_TYPE_LABELS (postType.ts), zodat de keuze hier en de tag die
+// daarna op het bericht staat altijd hetzelfde woord gebruiken.
+export const POST_TYPE_CHOICES: { type: FeedPostType; label: string; icon: typeof HelpCircle }[] = [
+  { type: "vraag", label: "Vraag", icon: HelpCircle },
+  { type: "aanbod", label: "Aanbod", icon: Megaphone },
+  { type: "nieuws", label: "Nieuws & ervaringen", icon: Sparkles },
+  { type: "voorstellen", label: "Even voorstellen", icon: UserPlus },
 ];
 
 export function PostTypeChooser({ onChoose }: { onChoose: (type: FeedPostType | null) => void }) {
   return (
     <div className="flex flex-col gap-2.5">
       <div className="grid grid-cols-2 gap-2.5">
-        {POST_TYPE_CHOICES.map(({ type, label, description, icon: Icon }) => (
+        {POST_TYPE_CHOICES.map(({ type, label, icon: Icon }) => (
           <button
             key={type}
             type="button"
@@ -29,8 +31,7 @@ export function PostTypeChooser({ onChoose }: { onChoose: (type: FeedPostType | 
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-voc-red-light text-voc-red-text">
               <Icon size={22} />
             </span>
-            <span className="text-base font-semibold text-foreground">{label}</span>
-            <span className="text-xs leading-snug text-muted">{description}</span>
+            <span className="text-sm font-semibold text-foreground">{label}</span>
           </button>
         ))}
       </div>
