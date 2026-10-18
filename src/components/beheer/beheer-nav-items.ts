@@ -5,7 +5,10 @@ import {
   Building2,
   CalendarDays,
   Code,
+  Crown,
   Flag,
+  Info,
+  Landmark,
   LayoutDashboard,
   Mail,
   Megaphone,
@@ -14,6 +17,7 @@ import {
   Settings,
   UserPlus,
   Users,
+  UsersRound,
 } from "lucide-react";
 
 // adminOnly ontbreekt (= false) voor inhoudelijk-beheer-items (bestuurslid +
@@ -29,15 +33,14 @@ export type BeheerNavSection = { title: string; items: BeheerNavItem[] };
 // sectie weer helemaal terug moest om iets anders te kiezen. Nu een
 // permanent zij-menu, net als de hoofdnavigatie zelf.
 //
-// Zes secties met in totaal drie secties van maar één item (Overzicht,
-// Statistieken, Openbare website) voegden alleen koppen toe zonder iets te
-// groeperen — samengevoegd tot vier secties, elk met een duidelijk eigen
-// onderwerp. "Leden & bedrijven" begint nu met de twee overzichten (Leden,
-// Bedrijven) gevolgd door de acties daaromheen, i.p.v. een willekeurige
-// volgorde. "Systeem" is nieuw: alles wat systeembreed/technisch is
-// (templates, een pushbroadcast die direct en ongefilterd iedereen bereikt,
-// website-integraties, algemene app-instellingen) hoort bij de beheerder,
-// niet bij inhoudelijk bestuurswerk.
+// Zes secties, elk met een duidelijk eigen onderwerp (VOC Hub —
+// Beheeromgeving, vereniging, bestuur en commissies, punt 1): "Vereniging"
+// is nieuw en bundelt alles wat over de vereniging zelf gaat (identiteit,
+// Over VOC-inhoud, bestuur, commissies) — inhoudelijk bestuurswerk, dus
+// standaard geen adminOnly behalve de technische portaalinstellingen zelf.
+// "Leden & bedrijven" begint met de twee overzichten (Leden, Bedrijven)
+// gevolgd door de acties daaromheen. "Systeem & integraties" is wat
+// overblijft aan systeembreed/technisch werk voor de beheerder.
 export const BEHEER_SECTIONS: BeheerNavSection[] = [
   {
     title: "Overzicht",
@@ -47,10 +50,21 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     ],
   },
   {
+    title: "Vereniging",
+    items: [
+      { href: "/beheer/instellingen", label: "Verenigingsgegevens en portaalinstellingen", icon: Settings, adminOnly: true },
+      { href: "/beheer/vereniging/over-ons", label: "Over VOC", icon: Info },
+      { href: "/beheer/vereniging/bestuur", label: "Bestuur", icon: Crown },
+      { href: "/beheer/vereniging/commissies", label: "Commissies", icon: UsersRound },
+    ],
+  },
+  {
     title: "Communicatie",
     items: [
       { href: "/beheer/communicatie", label: "Nieuwsbrieven", icon: Megaphone },
+      { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail, adminOnly: true },
       { href: "/beheer/notificaties", label: "Verzonden meldingen", icon: Bell },
+      { href: "/beheer/pushbericht", label: "Handmatig pushbericht", icon: Send, adminOnly: true },
     ],
   },
   {
@@ -60,7 +74,7 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     // downloadstatistiek of bulkacties die een apart beheerscherm zouden
     // rechtvaardigen. Eén item bewerk je in context; dat is hier /documenten
     // zelf.
-    title: "Content",
+    title: "Content & activiteiten",
     items: [
       { href: "/beheer/nieuws", label: "Nieuws", icon: Newspaper },
       { href: "/beheer/agenda", label: "Activiteiten", icon: CalendarDays },
@@ -76,12 +90,12 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     ],
   },
   {
-    title: "Systeem",
-    items: [
-      { href: "/beheer/instellingen", label: "App-instellingen", icon: Settings, adminOnly: true },
-      { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail, adminOnly: true },
-      { href: "/beheer/pushbericht", label: "Handmatig pushbericht", icon: Send, adminOnly: true },
-      { href: "/beheer/embed-codes", label: "Code voor de website", icon: Code, adminOnly: true },
-    ],
+    title: "Systeem & integraties",
+    items: [{ href: "/beheer/embed-codes", label: "Code voor de website", icon: Code, adminOnly: true }],
   },
 ];
+
+// Reusable elders dan het zijmenu (bv. de Vereniging-dropdown/paneel in de
+// hoofdnavigatie — zie VerenigingMenu.tsx) i.p.v. een los, tweede icoon
+// hardcoded op "Landmark" zonder gedeelde bron.
+export const VERENIGING_ICON: LucideIcon = Landmark;

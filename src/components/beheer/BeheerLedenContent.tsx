@@ -9,6 +9,7 @@ import type { Database } from "@/lib/types/database";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
 type MembershipRow = { profile_id: string; is_primary: boolean; company: { name: string } | null };
+type BoardPositionRow = { profile_id: string; title: string };
 
 // Snel overzicht voor beheer: rol wijzigen en activeren/deactiveren direct
 // in de lijst, i.p.v. eerst naar elk profiel apart te moeten navigeren.
@@ -29,12 +30,18 @@ export async function BeheerLedenContent() {
   // toch alle e-mailadressen/telefoonnummers terug (is_board()-uitzondering
   // in de maskering), maar dit voorkomt dat de query zelf afwijkt van de
   // enige toegestane manier om andermans contactgegevens op te vragen.
-  const [{ data: allProfiles }, { data: memberships }] = await cachedQuery("beheer-leden-page-data", 300_000, () =>
-    Promise.all([
-      supabase.rpc("get_members_directory").returns<ProfileRow[]>(),
-      // UX-review Z4: ook op bedrijfsnaam kunnen zoeken, niet alleen naam/e-mail.
-      supabase.from("company_members").select("profile_id, is_primary, company:companies(name)").returns<MembershipRow[]>(),
-    ])
+  const [{ data: allProfiles }, { data: memberships }, { data: boardPositions }] = await cachedQuery(
+    "beheer-leden-page-data",
+    300_000,
+    () =>
+      Promise.all([
+        supabase.rpc("get_members_directory").returns<ProfileRow[]>(),
+        // UX-review Z4: ook op bedrijfsnaam kunnen zoeken, niet alleen naam/e-mail.
+        supabase.from("company_members").select("profile_id, is_primary, company:companies(name)").returns<MembershipRow[]>(),
+        // Alleen actuele aanstellingen (ended_at is null) — zie
+        // 0107_vereniging_bestuur_commissies.sql.
+        supabase.from("board_positions").select("profile_id, title").is("ended_at", null).returns<BoardPositionRow[]>(),
+      ])
   );
 
   const companyByProfile = new Map<string, string>();
@@ -43,6 +50,11 @@ export async function BeheerLedenContent() {
     if (membership.is_primary || !companyByProfile.has(membership.profile_id)) {
       companyByProfile.set(membership.profile_id, membership.company.name);
     }
+  }
+
+  const boardTitleByProfile = new Map<string, string>();
+  for (const position of boardPositions ?? []) {
+    boardTitleByProfile.set(position.profile_id, position.title);
   }
 
   // Thumbnail-paden in dezelfde batch-aanroep (performance-audit #1): de
@@ -68,6 +80,7 @@ export async function BeheerLedenContent() {
       is_active: p.is_active,
       is_organization_account: p.is_organization_account,
       companyName: companyByProfile.get(p.id) ?? null,
+      boardTitle: boardTitleByProfile.get(p.id) ?? null,
     };
   });
 

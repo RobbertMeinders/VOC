@@ -4,7 +4,7 @@ import { getAppSettings } from "@/lib/settings/app-settings";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { AppSettingsForm } from "@/components/beheer/AppSettingsForm";
 
-export const metadata: Metadata = { title: "App-instellingen" };
+export const metadata: Metadata = { title: "Verenigingsgegevens en portaalinstellingen" };
 
 export default async function AppSettingsPage() {
   await requireAdmin();
@@ -13,7 +13,7 @@ export default async function AppSettingsPage() {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        title="App-instellingen"
+        title="Verenigingsgegevens en portaalinstellingen"
         description="Naam, logo en verenigingsnaam van het ledenportaal - zichtbaar voor alle leden."
       />
 

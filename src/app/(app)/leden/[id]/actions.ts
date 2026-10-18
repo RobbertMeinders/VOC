@@ -335,7 +335,7 @@ export async function quickUpdateMemberAction(
   _prevState: QuickUpdateMemberState,
   formData: FormData
 ): Promise<QuickUpdateMemberState> {
-  await requireBoard();
+  const viewer = await requireBoard();
   const supabase = await createClient();
 
   const firstName = String(formData.get("first_name") ?? "").trim();
@@ -358,6 +358,29 @@ export async function quickUpdateMemberAction(
 
   if (error || !count) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+  }
+
+  // Bestuursfunctie: losse board_positions-geschiedenis i.p.v. een kolom op
+  // profiles — zie 0107_vereniging_bestuur_commissies.sql. Alleen
+  // aanraken als het veld daadwerkelijk wijzigt (geen onnodige
+  // beëindigen+opnieuw-aanmaken-cyclus bij elke snelle-bewerken-opslag).
+  const boardTitle = String(formData.get("board_title") ?? "").trim();
+  const { data: activePosition } = await supabase
+    .from("board_positions")
+    .select("id, title")
+    .eq("profile_id", memberId)
+    .is("ended_at", null)
+    .maybeSingle();
+
+  if (boardTitle !== (activePosition?.title ?? "")) {
+    if (activePosition) {
+      await supabase.from("board_positions").update({ ended_at: new Date().toISOString() }).eq("id", activePosition.id);
+    }
+    if (boardTitle) {
+      await supabase.from("board_positions").insert({ profile_id: memberId, title: boardTitle, created_by: viewer.id });
+    }
+    revalidatePath("/beheer/vereniging/bestuur");
+    revalidatePath("/vereniging/bestuur");
   }
 
   await logAuditAction("member_profile_updated", "profile", memberId);

@@ -34,12 +34,14 @@ export function MemberQuickEditForm({
   firstName,
   lastName,
   phone,
+  boardTitle,
   onSaved,
 }: {
   memberId: string;
   firstName: string;
   lastName: string;
   phone: string | null;
+  boardTitle: string | null;
   onSaved: () => void;
 }) {
   const updateWithId = quickUpdateMemberAction.bind(null, memberId);
@@ -75,6 +77,20 @@ export function MemberQuickEditForm({
           </label>
           <Input id={`qe-phone-${memberId}`} name="phone" type="tel" defaultValue={phone ?? ""} className="h-9" />
         </div>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor={`qe-board-${memberId}`} className="text-xs font-medium text-foreground">
+          Bestuursfunctie
+        </label>
+        <Input
+          id={`qe-board-${memberId}`}
+          name="board_title"
+          defaultValue={boardTitle ?? ""}
+          placeholder="Bijv. Voorzitter, Penningmeester — laat leeg voor geen bestuursfunctie"
+          className="h-9"
+        />
+        <p className="text-xs text-muted">Verschijnt op de Bestuur-pagina. Verandert niets aan de systeemrol van dit lid.</p>
       </div>
 
       {state.error && (

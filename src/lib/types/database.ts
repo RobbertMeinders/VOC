@@ -10,6 +10,7 @@ export type ActivityStatus = "pending" | "approved" | "rejected" | "cancelled";
 export type FeedPostType = "vraag" | "aanbod" | "nieuws" | "overig" | "voorstellen";
 export type FeedReportReason = "ongepast" | "spam" | "misleidend" | "anders";
 export type FeedReportStatus = "open" | "afgehandeld";
+export type CommissionApplicationStatus = "in_behandeling" | "goedgekeurd" | "afgewezen";
 
 export interface Database {
   public: {
@@ -675,6 +676,84 @@ export interface Database {
         };
         Insert: Partial<Database["public"]["Tables"]["app_settings"]["Row"]>;
         Update: Partial<Database["public"]["Tables"]["app_settings"]["Row"]>;
+        Relationships: [];
+      };
+      board_positions: {
+        Row: {
+          id: string;
+          profile_id: string;
+          title: string;
+          started_at: string;
+          ended_at: string | null;
+          created_by: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["board_positions"]["Row"]> & {
+          profile_id: string;
+          title: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["board_positions"]["Row"]>;
+        Relationships: [];
+      };
+      commissions: {
+        Row: {
+          id: string;
+          name: string;
+          description: string | null;
+          archived_at: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["commissions"]["Row"]> & {
+          name: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["commissions"]["Row"]>;
+        Relationships: [];
+      };
+      commission_memberships: {
+        Row: {
+          id: string;
+          commission_id: string;
+          profile_id: string;
+          joined_at: string;
+          created_by: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["commission_memberships"]["Row"]> & {
+          commission_id: string;
+          profile_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["commission_memberships"]["Row"]>;
+        Relationships: [];
+      };
+      commission_applications: {
+        Row: {
+          id: string;
+          commission_id: string;
+          profile_id: string;
+          status: CommissionApplicationStatus;
+          decided_by: string | null;
+          decided_at: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["commission_applications"]["Row"]> & {
+          commission_id: string;
+          profile_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["commission_applications"]["Row"]>;
+        Relationships: [];
+      };
+      org_profile: {
+        Row: {
+          id: boolean;
+          intro_text: string | null;
+          mission_text: string | null;
+          vision_text: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["org_profile"]["Row"]>;
+        Update: Partial<Database["public"]["Tables"]["org_profile"]["Row"]>;
         Relationships: [];
       };
     };

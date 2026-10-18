@@ -26,6 +26,7 @@ export type BeheerMemberRow = {
   is_active: boolean;
   is_organization_account: boolean;
   companyName: string | null;
+  boardTitle: string | null;
 };
 
 function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: BeheerMemberRow[]; viewerId: string; canEditRole: boolean }) {
@@ -183,6 +184,7 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                   firstName={member.first_name}
                   lastName={member.last_name}
                   phone={member.phone}
+                  boardTitle={member.boardTitle}
                   onSaved={() => setExpandedId(null)}
                 />
               )}
