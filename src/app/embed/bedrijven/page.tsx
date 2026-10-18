@@ -65,11 +65,12 @@ export default async function BedrijvenEmbedPage({
     >
       {/* De iframe zelf volgt gewoon de breedte van de WordPress-pagina (geen
           eigen CSS-breedte-truc meer, zie /beheer/embed-codes — dat brak op
-          deze site). Deze max-w-wrapper zorgt dat de inhoud zelf een
-          prettige leesbreedte houdt met zichtbare marges aan weerszijden
-          i.p.v. van rand tot rand te lopen, ook als die pagina zelf breder
-          is. */}
-      <div className="mx-auto max-w-5xl p-4">
+          deze site). Deze max-w-wrapper zorgt dat de inhoud zelf nooit van
+          rand tot rand loopt op een erg brede pagina. Breder dan de
+          detailpagina (max-w-5xl daar): dit is een tegels-grid, geen
+          leestekst, en moest op 3 kolommen (zie BedrijvenView) elke tegel
+          nog zijn eigen, prettige breedte kunnen geven. */}
+      <div className="mx-auto max-w-7xl p-4">
         <EmbedAutoHeight />
         <BedrijvenEmbedList items={items} branches={branches} />
       </div>

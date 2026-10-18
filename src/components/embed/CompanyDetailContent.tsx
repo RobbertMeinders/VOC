@@ -38,8 +38,14 @@ export function CompanyDetailContent({ company }: { company: CompanyDetailData }
           <div className="min-w-0">
             <h1 className="text-xl font-semibold text-foreground">{company.name}</h1>
             {company.tagline && <p className="mt-0.5 text-sm text-muted">{company.tagline}</p>}
-            {(company.industry || company.city) && (
-              <p className="mt-0.5 text-sm text-muted">{[company.industry, company.city].filter(Boolean).join(" · ")}</p>
+            {/* Plaatsnaam alleen hier tonen als er geen adresregel is om 'm
+                anders in te laten staan (die toont 'm al, zie hieronder) —
+                anders stond de plaatsnaam dubbel: zowel achter de branche
+                als bij het adres. */}
+            {(company.industry || (!company.address && company.city)) && (
+              <p className="mt-0.5 text-sm text-muted">
+                {[company.industry, !company.address ? company.city : null].filter(Boolean).join(" · ")}
+              </p>
             )}
             {company.address && (
               <p className="mt-0.5 flex items-center gap-1 text-sm text-muted">
