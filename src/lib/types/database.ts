@@ -289,6 +289,7 @@ export interface Database {
           post_id: string;
           type: FeedAttachmentType;
           storage_path: string;
+          thumb_path: string | null;
           file_name: string;
           created_at: string;
         };

@@ -50,7 +50,7 @@ export function RecentPostPreview({ post }: { post: FeedPost }) {
       </div>
       {image?.url && (
         <Image
-          src={image.url}
+          src={image.thumbUrl ?? image.url}
           alt={image.fileName}
           width={64}
           height={64}

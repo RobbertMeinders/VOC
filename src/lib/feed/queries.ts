@@ -8,7 +8,7 @@ import type { FeedAttachment, FeedAuthor, FeedComment, FeedPost, FeedPostType } 
 const POST_SELECT = `
   id, author_id, content, type, created_at, updated_at,
   author:profiles!feed_posts_author_id_fkey(id, first_name, last_name, avatar_url),
-  attachments:feed_attachments(id, type, storage_path, file_name),
+  attachments:feed_attachments(id, type, storage_path, thumb_path, file_name),
   comments:feed_comments(
     id, post_id, content, created_at,
     author:profiles!feed_comments_author_id_fkey(id, first_name, last_name, avatar_url),
@@ -18,7 +18,7 @@ const POST_SELECT = `
 `;
 
 type RawAuthor = { id: string; first_name: string; last_name: string; avatar_url: string | null };
-type RawAttachment = { id: string; type: "image" | "pdf"; storage_path: string; file_name: string };
+type RawAttachment = { id: string; type: "image" | "pdf"; storage_path: string; thumb_path: string | null; file_name: string };
 type RawLike = { profile_id: string; profile: { first_name: string; last_name: string } };
 type RawComment = {
   id: string;
@@ -56,6 +56,10 @@ function collectPaths(posts: RawPost[]) {
     }
     for (const attachment of post.attachments) {
       attachmentPaths.add(attachment.storage_path);
+      // Zelfde bucket, dus één gecombineerde batch i.p.v. een tweede
+      // getSignedStorageUrls-aanroep — thumb_path en storage_path komen hier
+      // gewoon samen in dezelfde Map terug (zie hydrateAll hieronder).
+      if (attachment.thumb_path) attachmentPaths.add(attachment.thumb_path);
     }
   }
 
@@ -77,6 +81,7 @@ function buildAttachment(attachment: RawAttachment, mediaUrls: Map<string, strin
     type: attachment.type,
     fileName: attachment.file_name,
     url: mediaUrls.get(attachment.storage_path) ?? null,
+    thumbUrl: attachment.thumb_path ? (mediaUrls.get(attachment.thumb_path) ?? null) : null,
   };
 }
 

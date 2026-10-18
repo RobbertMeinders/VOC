@@ -56,7 +56,7 @@ function Cell({
           zodra 'm klaar is met laden — zie SingleCell hieronder voor dezelfde
           reden bij de eerste/enige foto. */}
       <Image
-        src={image.url}
+        src={image.thumbUrl ?? image.url}
         alt={image.fileName}
         fill
         sizes="(min-width: 640px) 600px, 100vw"
@@ -101,7 +101,7 @@ function SingleCell({ image, onClick, label }: { image: FeedAttachment; onClick:
       className="relative w-full overflow-hidden bg-black/[.03] dark:bg-white/[.03]"
     >
       <Image
-        src={image.url}
+        src={image.thumbUrl ?? image.url}
         alt={image.fileName}
         fill
         sizes="(min-width: 640px) 600px, 100vw"

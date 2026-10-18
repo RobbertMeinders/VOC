@@ -57,6 +57,10 @@ export async function createPostAction(_prevState: CreatePostState, formData: Fo
       return { error: "Elke bijlage mag maximaal 15 MB zijn." };
     }
   }
+  // 1-op-1 op positie gekoppeld aan `files` hierboven (zie PostComposer's
+  // buildThumbFileList) — een lege (0 bytes) placeholder op de positie van
+  // een PDF of een mislukte thumbnail, nooit een kortere lijst.
+  const thumbFiles = formData.getAll("attachment_thumbs").filter((f): f is File => f instanceof File);
 
   const supabase = await createClient();
 
@@ -80,9 +84,23 @@ export async function createPostAction(_prevState: CreatePostState, formData: Fo
       const { error: uploadError } = await supabase.storage.from("feed-media").upload(path, file, {
         contentType: file.type,
       });
-      return uploadError
-        ? null
-        : { post_id: newPost.id, type: attachmentType, storage_path: path, file_name: file.name };
+      if (uploadError) return null;
+
+      // De placeholder op deze positie is 0 bytes (PDF, of een client-side
+      // mislukte thumbnail) — dan gewoon geen thumb_path, de feed valt dan
+      // terug op het volledige bestand (zie AttachmentCarousel).
+      let thumbPath: string | null = null;
+      const thumbFile = thumbFiles[index];
+      if (thumbFile && thumbFile.size > 0) {
+        const thumbExtension = thumbFile.type === "image/png" ? "png" : "jpg";
+        const candidatePath = `${profile.id}/${newPost.id}-${index}-thumb.${thumbExtension}`;
+        const { error: thumbError } = await supabase.storage.from("feed-media").upload(candidatePath, thumbFile, {
+          contentType: thumbFile.type,
+        });
+        if (!thumbError) thumbPath = candidatePath;
+      }
+
+      return { post_id: newPost.id, type: attachmentType, storage_path: path, thumb_path: thumbPath, file_name: file.name };
     })
   );
   const attachmentRows = uploads.filter((row): row is NonNullable<typeof row> => row !== null);

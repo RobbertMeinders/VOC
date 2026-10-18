@@ -10,7 +10,7 @@ import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { createPostAction, type CreatePostState } from "@/app/(app)/actions";
-import { compressImageFile } from "@/lib/image/compress";
+import { CARD_THUMBNAIL_DIMENSION, compressImageFile, createThumbnailFile } from "@/lib/image/compress";
 import { MentionEditor } from "./MentionEditor";
 import { PostTypePicker } from "./PostTypePicker";
 import type { FeedAuthor, FeedPost, FeedPostType } from "@/lib/feed/types";
@@ -60,6 +60,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
   const [postType, setPostType] = useState<FeedPostType | null>(null);
   const [showTagHint, setShowTagHint] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const thumbInputRef = useRef<HTMLInputElement>(null);
   const previewUrlsRef = useRef<string[]>([]);
 
   useEscapeKey(open, () => setOpen(false));
@@ -92,6 +93,24 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
     setPreviews(next);
   }
 
+  // Eén lege placeholder-File per niet-afbeelding (PDF, of een thumbnail die
+  // onverhoopt mislukte) i.p.v. die positie gewoon over te slaan — zonder dit
+  // zou attachment_thumbs korter worden dan attachments zodra er een PDF
+  // tussen de foto's in zit, en raakt de index-koppeling (createPostAction
+  // matcht ze 1-op-1 op positie) stuk.
+  async function buildThumbFileList(files: File[]): Promise<FileList> {
+    const thumbs = await Promise.all(
+      files.map(async (file) => {
+        if (!file.type.startsWith("image/")) return new File([], "leeg");
+        const thumb = await createThumbnailFile(file, CARD_THUMBNAIL_DIMENSION);
+        return thumb ?? new File([], "leeg");
+      })
+    );
+    const transfer = new DataTransfer();
+    thumbs.forEach((f) => transfer.items.add(f));
+    return transfer.files;
+  }
+
   async function addFiles(newFiles: File[]) {
     const input = fileInputRef.current;
     if (!input) return;
@@ -106,6 +125,10 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
     compressed.forEach((f) => transfer.items.add(f));
     input.files = transfer.files;
     rebuildPreviews(compressed);
+
+    if (thumbInputRef.current) {
+      thumbInputRef.current.files = await buildThumbFileList(compressed);
+    }
   }
 
   function removeFile(index: number) {
@@ -116,6 +139,13 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
     remaining.forEach((f) => transfer.items.add(f));
     input.files = transfer.files;
     rebuildPreviews(remaining);
+
+    const thumbInput = thumbInputRef.current;
+    if (thumbInput) {
+      void buildThumbFileList(remaining).then((files) => {
+        thumbInput.files = files;
+      });
+    }
   }
 
   function handleDragOver(e: DragEvent<HTMLFormElement>) {
@@ -221,6 +251,11 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
                   }}
                 />
               </label>
+              {/* Meegestuurde, al client-side verkleinde (CARD_THUMBNAIL_DIMENSION)
+                  versie per afbeelding, 1-op-1 op positie gekoppeld aan
+                  `attachments` — zie buildThumbFileList hierboven en
+                  createPostAction (actions.ts) voor hoe de index-matching werkt. */}
+              <input ref={thumbInputRef} type="file" name="attachment_thumbs" multiple className="hidden" aria-hidden tabIndex={-1} />
 
               {previews.length > 0 && (
                 <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-5">

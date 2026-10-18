@@ -6,6 +6,7 @@ import {
   CalendarDays,
   Code,
   Flag,
+  ImageDown,
   LayoutDashboard,
   Mail,
   Megaphone,
@@ -82,6 +83,7 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
       { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail, adminOnly: true },
       { href: "/beheer/pushbericht", label: "Handmatig pushbericht", icon: Send, adminOnly: true },
       { href: "/beheer/embed-codes", label: "Code voor de website", icon: Code, adminOnly: true },
+      { href: "/beheer/thumbnails", label: "Kleine versies", icon: ImageDown, adminOnly: true },
     ],
   },
 ];

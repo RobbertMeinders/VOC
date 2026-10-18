@@ -10,6 +10,11 @@ export type FeedAttachment = {
   type: "image" | "pdf";
   fileName: string;
   url: string | null;
+  // Alleen voor de mozaïek-preview in de feed (AttachmentCarousel) — de
+  // lightbox en elke andere plek die het volledige bestand nodig heeft
+  // gebruikt altijd `url`. Null zolang de backfill (/beheer/thumbnails) deze
+  // rij nog niet heeft gehad, of voor PDF's (die hebben nooit een thumbnail).
+  thumbUrl: string | null;
 };
 
 export type FeedComment = {
