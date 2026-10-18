@@ -297,11 +297,77 @@ body {
 .animate-scale-in {
   animation: voc-scale-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
+/* Omgekeerde van voc-sheet-in — voor het mobiele profielmenu (MobileProfileMenu),
+   dat bij sluiten eerst deze animatie afspeelt en daarna pas unmount
+   (i.p.v. meteen te verdwijnen zoals andere sheets/overlays hier), zodat
+   het sluiten net zo vloeiend aanvoelt als het openen. */
+@keyframes voc-sheet-out {
+  to {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+.animate-sheet-out {
+  animation: voc-sheet-out 0.22s cubic-bezier(0.4, 0, 1, 1) both;
+}
+/* Hero-achtige overgang voor de profielfoto in het mobiele profielmenu: groeit
+   vanaf de kleine profielknop-maat op terwijl de bottom-sheet gelijktijdig
+   omhoog schuift (zelfde duur/easing als .animate-sheet-in), en krimpt bij
+   sluiten weer terug — geen pixel-exacte FLIP-measurement naar de knop zelf
+   (te fragiel in combinatie met de sheet's eigen schuifanimatie), maar wel
+   dezelfde "van klein naar groot en terug"-beweging die er hoort te zijn. */
+@keyframes voc-avatar-grow-in {
+  from {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+}
+@keyframes voc-avatar-grow-out {
+  to {
+    opacity: 0;
+    transform: scale(0.55);
+  }
+}
+.animate-avatar-grow-in {
+  animation: voc-avatar-grow-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-avatar-grow-out {
+  animation: voc-avatar-grow-out 0.22s cubic-bezier(0.4, 0, 1, 1) both;
+}
+/* Paginavullend mobiel paneel (VerenigingMenu) dat vanuit het hamburgermenu
+   opent — een zijwaartse schuif + fade leest als "een nieuw scherm openen"
+   (vergelijkbaar met drill-down-navigatie), passender voor een
+   volledig-scherm paneel dan de kale fade die kleinere menu's gebruiken.
+   Sluiten (animate-slide-out-right) is het omgekeerde, net als
+   voc-sheet-out voor de bottom sheet hierboven. */
+@keyframes voc-slide-in-right {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+@keyframes voc-slide-out-right {
+  to {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+.animate-slide-in-right {
+  animation: voc-slide-in-right 0.22s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.animate-slide-out-right {
+  animation: voc-slide-out-right 0.18s cubic-bezier(0.4, 0, 1, 1) both;
+}
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in,
   .animate-scale-in,
   .animate-rise-in,
-  .animate-sheet-in {
+  .animate-sheet-in,
+  .animate-sheet-out,
+  .animate-avatar-grow-in,
+  .animate-avatar-grow-out,
+  .animate-slide-in-right,
+  .animate-slide-out-right {
     animation: none;
   }
 }

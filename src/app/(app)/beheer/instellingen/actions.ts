@@ -15,15 +15,19 @@ export async function updateAppSettingsAction(
 
   const siteName = String(formData.get("site_name") ?? "").trim();
   const orgName = String(formData.get("org_name") ?? "").trim();
+  const privacyContent = String(formData.get("privacy_content") ?? "").trim();
 
   if (!siteName || !orgName) {
     return { error: "Naam van het ledenportaal en van de vereniging zijn verplicht." };
+  }
+  if (!privacyContent) {
+    return { error: "De inhoud van Privacy & veiligheid mag niet leeg zijn." };
   }
 
   const supabase = await createClient();
   const { error } = await supabase
     .from("app_settings")
-    .update({ site_name: siteName, org_name: orgName, updated_by: profile.id })
+    .update({ site_name: siteName, org_name: orgName, privacy_content: privacyContent, updated_by: profile.id })
     .eq("id", true);
 
   if (error) {
@@ -31,6 +35,7 @@ export async function updateAppSettingsAction(
   }
 
   revalidatePath("/", "layout");
+  revalidatePath("/privacy");
   return { success: true };
 }
 

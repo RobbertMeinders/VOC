@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Building2, LayoutDashboard, LogOut, Settings, ShieldCheck, User as UserIcon, X } from "lucide-react";
+import { useRef, useState, type TouchEvent } from "react";
+import { Building2, LayoutDashboard, LogOut, Settings, User as UserIcon, X } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
 import { NavBadge } from "./NavBadge";
@@ -14,6 +15,8 @@ import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { useFixedAnchor } from "@/lib/dom/useFixedAnchor";
 import { useOverlay } from "@/lib/ui/OverlayContext";
 import type { Profile } from "@/lib/auth/session";
+
+const DISMISS_THRESHOLD = 60;
 
 type ProfileMenuProps = {
   profile: Profile;
@@ -29,8 +32,9 @@ function menuItems(profile: Profile, companyId: string | null) {
     // staat een "Profiel aanpassen"-knop naar /profiel voor wie wil wijzigen.
     { href: `/leden/${profile.id}`, label: "Mijn profiel", icon: UserIcon },
     ...(companyId ? [{ href: `/bedrijven/${companyId}`, label: "Mijn bedrijfsprofiel", icon: Building2 }] : []),
+    // Privacy & veiligheid staat niet hier — die link staat al op
+    // Instellingen zelf, twee ingangen naar dezelfde pagina is overbodig.
     { href: "/instellingen", label: "Instellingen", icon: Settings },
-    { href: "/privacy", label: "Privacy & veiligheid", icon: ShieldCheck },
     ...(isBoard(profile.role) ? [{ href: "/beheer", label: "Beheer", icon: LayoutDashboard }] : []),
   ];
 }
@@ -41,17 +45,42 @@ function MenuPanel({
   companyName,
   items,
   beheerBadge,
+  closing,
   onClose,
+  onExitComplete,
 }: {
   profile: Profile;
   avatarUrl: string | null;
   companyName?: string | null;
   items: ReturnType<typeof menuItems>;
   beheerBadge?: number;
+  closing: boolean;
   onClose: () => void;
+  onExitComplete: () => void;
 }) {
-  useEscapeKey(true, onClose);
+  useEscapeKey(!closing, onClose);
   useBodyScrollLock(true);
+
+  // Naar-beneden-vegen om te sluiten, zelfde gevoeligheid/opzet als
+  // RouteOverlayPanel: alleen vanaf het kopgebied (grijpstrookje + header
+  // met foto/naam), niet vanaf de los scrollbare menu-items eronder.
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const touchStartY = useRef(0);
+
+  function handleHeaderTouchStart(e: TouchEvent) {
+    touchStartY.current = e.touches[0].clientY;
+    setDragging(true);
+  }
+  function handleHeaderTouchMove(e: TouchEvent) {
+    const delta = e.touches[0].clientY - touchStartY.current;
+    if (delta > 0) setDragY(delta);
+  }
+  function handleHeaderTouchEnd() {
+    setDragging(false);
+    if (dragY > DISMISS_THRESHOLD) onClose();
+    else setDragY(0);
+  }
 
   // FloatingPortal: dit paneel opent alleen vanuit BottomNav (mobiel), dat
   // backdrop-blur heeft — zonder portal "vangt" dat de position:fixed
@@ -65,28 +94,60 @@ function MenuPanel({
   // dat verdient meer gewicht dan een los dropdown-paneeltje.
   return (
     <FloatingPortal>
-      <div className="animate-fade-in fixed inset-0 z-40 cursor-pointer bg-black/60 md:hidden" onClick={onClose} />
-      <div className="animate-sheet-in fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg md:hidden">
-        <div className="flex justify-center pt-2.5">
-          <div className="h-1.5 w-10 rounded-full bg-black/[.12] dark:bg-white/[.16]" />
-        </div>
-
-        <div className="flex items-center gap-3 border-b border-border px-5 py-4">
-          <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={48} />
-          <div className="min-w-0 flex-1">
-            <p className="truncate text-base font-semibold text-foreground">
-              {profile.first_name} {profile.last_name}
-            </p>
-            {companyName && <p className="truncate text-sm text-muted">{companyName}</p>}
+      <div
+        className={clsx(
+          "fixed inset-0 z-40 cursor-pointer bg-black/60 transition-opacity duration-200 md:hidden",
+          closing ? "opacity-0" : "animate-fade-in"
+        )}
+        onClick={onClose}
+      />
+      <div
+        className={clsx(
+          "fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg md:hidden",
+          closing ? "animate-sheet-out" : "animate-sheet-in"
+        )}
+        style={closing ? undefined : { transform: `translateY(${dragY}px)`, transition: dragging ? "none" : "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)" }}
+        onAnimationEnd={(e) => {
+          // currentTarget-check: de profielfoto hieronder heeft zijn eigen
+          // animate-avatar-grow-out, en dat animationend-event bubbelt ook
+          // hierheen — zonder deze check zou onExitComplete() twee keer
+          // worden aangeroepen.
+          if (closing && e.target === e.currentTarget) onExitComplete();
+        }}
+      >
+        <div
+          className="touch-none"
+          onTouchStart={handleHeaderTouchStart}
+          onTouchMove={handleHeaderTouchMove}
+          onTouchEnd={handleHeaderTouchEnd}
+        >
+          <div className="flex justify-center pt-2.5">
+            <div className="h-1.5 w-10 rounded-full bg-black/[.12] dark:bg-white/[.16]" />
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Sluiten"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
-          >
-            <X size={18} />
-          </button>
+
+          <div className="flex items-center gap-3 border-b border-border px-5 py-4">
+            {/* Hero-achtige overgang: groeit/krimpt gelijktijdig met de
+                sheet zelf (zie globals.css) — leest als "de profielfoto
+                beweegt van de kleine knop naar hier", ook zonder pixel-
+                exacte FLIP-measurement naar de knop. */}
+            <div className={closing ? "animate-avatar-grow-out" : "animate-avatar-grow-in"}>
+              <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={48} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-base font-semibold text-foreground">
+                {profile.first_name} {profile.last_name}
+              </p>
+              {companyName && <p className="truncate text-sm text-muted">{companyName}</p>}
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Sluiten"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         <div className="flex flex-col py-1.5">
@@ -184,6 +245,7 @@ export function SidebarProfileMenu({
 // omhoog i.p.v. omlaag, want de knop staat nu onderaan het scherm.
 export function MobileProfileMenu({ profile, avatarUrl, companyId, companyName, beheerBadge }: ProfileMenuProps) {
   const { open, toggle, close } = useOverlay("profile");
+  const [closing, setClosing] = useState(false);
   const items = menuItems(profile, companyId);
   const pathname = usePathname();
   const active =
@@ -192,6 +254,20 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, companyName, 
     pathname.startsWith("/instellingen") ||
     pathname.startsWith("/beheer") ||
     (companyId ? pathname.startsWith(`/bedrijven/${companyId}`) : false);
+
+  // Sluiten speelt eerst de omgekeerde animatie af (animate-sheet-out +
+  // animate-avatar-grow-out) en unmount de sheet daarna pas — vandaar deze
+  // lokale "closing"-fase naast de gedeelde open/dicht-state uit
+  // OverlayContext. Wordt deze sheet dicht gezet omdat een ándere overlay
+  // (bv. Vereniging) opent, dan verdwijnt hij wel meteen zonder animatie —
+  // een zelden voorkomend randgeval.
+  function requestClose() {
+    setClosing(true);
+  }
+  function handleExitComplete() {
+    setClosing(false);
+    close();
+  }
 
   return (
     <div className="relative flex-1">
@@ -213,14 +289,16 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, companyName, 
         Profiel
       </button>
 
-      {open && (
+      {(open || closing) && (
         <MenuPanel
           profile={profile}
           avatarUrl={avatarUrl}
           companyName={companyName}
           items={items}
           beheerBadge={beheerBadge}
-          onClose={close}
+          closing={closing}
+          onClose={requestClose}
+          onExitComplete={handleExitComplete}
         />
       )}
     </div>

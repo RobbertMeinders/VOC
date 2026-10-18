@@ -10,7 +10,7 @@ import { useOverlayOrigin } from "@/lib/ui/OverlayOriginContext";
 import { useUnsavedChanges } from "@/lib/ui/UnsavedChangesContext";
 import type { ReactNode } from "react";
 
-const DISMISS_THRESHOLD = 100;
+const DISMISS_THRESHOLD = 60;
 
 // Overlay voor een route die via een Next.js intercepting route (@modal,
 // "(.)segment") bovenop de huidige pagina verschijnt in plaats van er
@@ -39,11 +39,14 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
   const { confirmDiscard, setDirty } = useUnsavedChanges();
   const [dismissed, setDismissed] = useState(false);
   const [lastPathname, setLastPathname] = useState(pathname);
-  // Naar-beneden-vegen om te sluiten — alleen vanaf het grijpstrookje, niet
-  // vanaf ergens in {children}: dat kan lange, scrollbare inhoud zijn (een
-  // heel profiel, een formulier), dus overal laten slepen zou vechten met
-  // gewoon scrollen. Het kruisje blijft daarnaast gewoon staan (niet
-  // iedereen verwacht/begrijpt het sleepgebaar).
+  // Naar-beneden-vegen om te sluiten — vanaf het hele kopgebied (grijpstrookje
+  // + kruisje-rij), niet vanaf ergens in {children}: dat kan lange,
+  // scrollbare inhoud zijn (een heel profiel, een formulier), dus overal
+  // laten slepen zou vechten met gewoon scrollen. Dat kopgebied is bewust
+  // ruimer dan alleen het grijpstrookje zelf (ook gevoeliger: een lagere
+  // drempel) zodat vegen al vanaf hoog op het scherm werkt, niet alleen
+  // vanaf een smal streepje precies boven de inhoud. Het kruisje blijft
+  // daarnaast gewoon staan (niet iedereen verwacht/begrijpt het sleepgebaar).
   const [dragY, setDragY] = useState(0);
   const [dragging, setDragging] = useState(false);
   const touchStartY = useRef(0);
@@ -133,14 +136,24 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
         <div className="mx-auto h-1.5 w-10 rounded-full bg-black/[.12] dark:bg-white/[.16]" />
       </div>
       <div className="mx-auto w-full max-w-3xl px-4 py-6 md:max-w-3xl md:px-8 md:py-10">
-        <button
-          type="button"
-          onClick={close}
-          aria-label="Sluiten"
-          className="mb-3 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red-text"
+        {/* touch-none hier ook: breidt het veeggebied uit tot en met deze
+            kruisje-rij (desktop vuurt hier toch geen touch-events af, dus
+            geen md:hidden nodig op de handlers zelf). */}
+        <div
+          className="touch-none"
+          onTouchStart={handleHandleBarTouchStart}
+          onTouchMove={handleHandleBarTouchMove}
+          onTouchEnd={handleHandleBarTouchEnd}
         >
-          <X size={18} />
-        </button>
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Sluiten"
+            className="mb-3 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red-text"
+          >
+            <X size={18} />
+          </button>
+        </div>
         {children}
       </div>
     </div>

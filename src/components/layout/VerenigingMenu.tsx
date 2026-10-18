@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
 import { FileText, IdCard, Info, Menu, UsersRound, X, type LucideIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
@@ -28,8 +29,21 @@ export function VerenigingMenu({ variant }: { variant: "sidebar" | "mobile" }) {
   const pathname = usePathname();
   const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(variant === "sidebar" && open);
 
-  useEscapeKey(open, close);
-  useBodyScrollLock(variant === "mobile" && open);
+  // Alleen voor de mobiele variant: sluiten speelt eerst de omgekeerde
+  // schuifanimatie af (animate-slide-out-right) en unmount daarna pas —
+  // zelfde "closing"-opzet als MobileProfileMenu, zodat teruggaan vanuit dit
+  // paginavullende paneel net zo vloeiend aanvoelt als het openen.
+  const [closing, setClosing] = useState(false);
+  function requestClose() {
+    setClosing(true);
+  }
+  function handleExitComplete() {
+    setClosing(false);
+    close();
+  }
+
+  useEscapeKey(open && !closing, variant === "mobile" ? requestClose : close);
+  useBodyScrollLock(variant === "mobile" && (open || closing));
 
   const active = pathname.startsWith("/vereniging") || pathname.startsWith("/documenten");
 
@@ -72,14 +86,22 @@ export function VerenigingMenu({ variant }: { variant: "sidebar" | "mobile" }) {
         {/* Zelfde FloatingPortal-redenering als NotificationCenter's mobiele
             paneel: MobileHeader heeft backdrop-blur, dat vangt een
             position:fixed kind anders in zijn eigen, lagere stacking context. */}
-        {open && (
+        {(open || closing) && (
           <FloatingPortal>
-            <div className="animate-fade-in fixed inset-x-0 bottom-0 top-14 z-50 flex flex-col overflow-y-auto bg-surface pb-[env(safe-area-inset-bottom)] md:hidden">
+            <div
+              className={clsx(
+                "fixed inset-x-0 bottom-0 top-14 z-50 flex flex-col overflow-y-auto bg-surface pb-[env(safe-area-inset-bottom)] md:hidden",
+                closing ? "animate-slide-out-right" : "animate-slide-in-right"
+              )}
+              onAnimationEnd={() => {
+                if (closing) handleExitComplete();
+              }}
+            >
               <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <p className="text-sm font-semibold text-foreground">Vereniging</p>
                 <button
                   type="button"
-                  onClick={close}
+                  onClick={requestClose}
                   aria-label="Sluiten"
                   className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
                 >

@@ -671,6 +671,7 @@ export interface Database {
           site_name: string;
           org_name: string;
           logo_url: string | null;
+          privacy_content: string;
           updated_at: string;
           updated_by: string | null;
         };

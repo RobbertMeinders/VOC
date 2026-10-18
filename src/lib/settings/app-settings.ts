@@ -9,6 +9,7 @@ export type AppSettings = {
   site_name: string;
   org_name: string;
   logo_url: string | null;
+  privacy_content: string;
 };
 
 // Zelfde waarden als de kolom-defaults in 0072_app_settings.sql — terugval
@@ -19,6 +20,7 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   site_name: "VOC Ledenportaal",
   org_name: "Veendammer Ondernemers Compagnie",
   logo_url: null,
+  privacy_content: "",
 };
 
 // Neemt een expliciete client i.p.v. zelf createClient() aan te roepen, zodat
@@ -26,7 +28,11 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
 // gebonden client als — voor ingeplande campagnes — de service-role-client
 // draait, zie src/lib/newsletter/send.ts).
 export async function fetchAppSettings(supabase: SupabaseClient<Database>): Promise<AppSettings> {
-  const { data } = await supabase.from("app_settings").select("site_name, org_name, logo_url").eq("id", true).maybeSingle();
+  const { data } = await supabase
+    .from("app_settings")
+    .select("site_name, org_name, logo_url, privacy_content")
+    .eq("id", true)
+    .maybeSingle();
   return data ?? APP_SETTINGS_DEFAULTS;
 }
 

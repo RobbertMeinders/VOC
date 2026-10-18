@@ -126,6 +126,24 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
           </div>
         </div>
 
+        <div className="mt-6 flex flex-col gap-1.5 border-t border-border pt-5">
+          <label htmlFor="privacy_content" className="text-sm font-medium text-foreground">
+            Privacy & veiligheid
+          </label>
+          <p className="text-xs text-muted">
+            Tekst van de pagina Privacy &amp; veiligheid. Een regel die begint met <code>##</code> wordt een tussenkop, een losse regel met{" "}
+            <code>---</code> een scheidingslijn, en <code>[tekst](/pad)</code> wordt een link.
+          </p>
+          <textarea
+            id="privacy_content"
+            name="privacy_content"
+            rows={16}
+            defaultValue={settings.privacy_content}
+            required
+            className="rounded-lg border border-input-border bg-surface px-3 py-2 font-mono text-xs text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+          />
+        </div>
+
         {state.error && (
           <p role="alert" className="mt-4 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
             {state.error}
