@@ -44,7 +44,7 @@ export function BedrijvenEmbedList({ items, branches }: { items: EmbedCompanyLis
     <div>
       <CompanyFilters branches={branches} />
       {items.length > 0 ? (
-        <BedrijvenView items={itemsWithClick} />
+        <BedrijvenView items={itemsWithClick} threeColumns />
       ) : (
         <ComingSoon icon={Building2} title="Geen bedrijven gevonden" description="Pas je zoekopdracht of filter aan." />
       )}

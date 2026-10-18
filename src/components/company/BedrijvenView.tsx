@@ -22,9 +22,14 @@ export type MapCapableCompany = CompanyListItem & { latitude: number | null; lon
 export function BedrijvenView({
   items,
   filter,
+  // Het portaal (/bedrijven) staat naast de sidebar en houdt het bij 2
+  // kolommen; alleen de website-embed (geen sidebar, meer ruimte) krijgt er
+  // een 3e bij.
+  threeColumns = false,
 }: {
   items: MapCapableCompany[];
   filter?: ListToolbarFilter;
+  threeColumns?: boolean;
 }) {
   const [view, setView] = useState<"lijst" | "kaart">("lijst");
 
@@ -67,7 +72,7 @@ export function BedrijvenView({
       </div>
 
       {view === "lijst" ? (
-        <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+        <div className={clsx("grid gap-3 sm:grid-cols-2", threeColumns && "md:grid-cols-3")}>
           {items.map((company) => (
             <CompanyCard key={company.id} company={company} />
           ))}

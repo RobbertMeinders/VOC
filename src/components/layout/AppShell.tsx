@@ -105,12 +105,8 @@ function AppShellBody({
   // (i.p.v. via een losse context + useEffect die pas ná de eerste render
   // "breed" zet) zodat er geen zichtbare sprong van gecentreerd naar links
   // optreedt bij het laden van de pagina.
-  // /bedrijven (exact, dus niet het smalle bedrijfsprofiel/-bewerkformulier
-  // op /bedrijven/[id]) is om dezelfde reden "breed": de kaarten-grid (nu 3
-  // kolommen, zie BedrijvenView) werd anders te smal om op elke kolombreedte
-  // nog een prettige tegelbreedte te houden.
   const pathname = usePathname();
-  const wide = pathname.startsWith("/beheer") || pathname === "/bedrijven";
+  const wide = pathname.startsWith("/beheer");
 
   return (
     // UX-review punt 6: vangnet tegen een gemiste overflow-bug elders die de
