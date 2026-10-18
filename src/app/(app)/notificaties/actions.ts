@@ -17,6 +17,7 @@ export async function getRecentNotificationsAction(limit = 8): Promise<RecentNot
     .from("notifications")
     .select("*")
     .eq("profile_id", profile.id)
+    .eq("channel_inapp_allowed", true)
     .order("created_at", { ascending: false })
     .limit(limit)
     .returns<RecentNotification[]>();

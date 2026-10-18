@@ -1,23 +1,31 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Megaphone, Plus, Users } from "lucide-react";
+import { clsx } from "clsx";
+import { Megaphone, Plus, Users, Bell } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { CommunicationRow } from "@/components/beheer/CommunicationRow";
+import { NotificationRuleRow } from "@/components/beheer/NotificationRuleRow";
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { createCommunicationAction } from "./actions";
+import { CONFIGURABLE_NOTIFICATION_TYPES, ROLE_BASED_NOTIFICATION_TYPES, type ConfigurableNotificationType } from "@/lib/notifications/type-labels";
 import type { Database } from "@/lib/types/database";
 
-export const metadata: Metadata = { title: "Nieuwsbrieven" };
+export const metadata: Metadata = { title: "Communicatie" };
 
 type Communication = Database["public"]["Tables"]["communications"]["Row"] & {
   activity: { title: string } | null;
 };
 
-export default async function BeheerCommunicatiePage() {
-  await requireBoard();
+const TABS = [
+  { key: "nieuwsbrieven", label: "Nieuwsbrieven", icon: Megaphone },
+  { key: "notificatieregels", label: "Notificatieregels", icon: Bell },
+] as const;
+type TabKey = (typeof TABS)[number]["key"];
+
+async function NieuwsbrievenTab() {
   const supabase = await createClient();
 
   const [{ data: communications }, settings] = await Promise.all([
@@ -30,30 +38,24 @@ export default async function BeheerCommunicatiePage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader
-        title="Nieuwsbrieven"
-        description="Centrale plek voor nieuwsbrieven en algemene e-mailcommunicatie naar leden."
-        action={
-          <div className="flex w-full flex-wrap items-center gap-2 sm:w-auto">
-            <Link
-              href="/beheer/communicatie/doelgroepen"
-              className="flex items-center justify-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
-            >
-              <Users size={16} />
-              Doelgroepen
-            </Link>
-            <form action={createCommunicationAction} className="flex-1 sm:flex-none">
-              <button
-                type="submit"
-                className="flex w-full items-center justify-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark sm:w-auto"
-              >
-                <Plus size={16} />
-                Nieuwe nieuwsbrief
-              </button>
-            </form>
-          </div>
-        }
-      />
+      <div className="flex w-full flex-wrap items-center justify-end gap-2">
+        <Link
+          href="/beheer/communicatie/doelgroepen"
+          className="flex items-center justify-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+        >
+          <Users size={16} />
+          Doelgroepen
+        </Link>
+        <form action={createCommunicationAction} className="flex-1 sm:flex-none">
+          <button
+            type="submit"
+            className="flex w-full items-center justify-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark sm:w-auto"
+          >
+            <Plus size={16} />
+            Nieuwe nieuwsbrief
+          </button>
+        </form>
+      </div>
 
       {(communications ?? []).length === 0 ? (
         <ComingSoon
@@ -89,6 +91,77 @@ export default async function BeheerCommunicatiePage() {
           </div>
         </>
       )}
+    </div>
+  );
+}
+
+async function NotificatieregelsTab() {
+  const supabase = await createClient();
+  const { data: rows } = await supabase
+    .from("notification_type_settings")
+    .select("*")
+    .returns<Database["public"]["Tables"]["notification_type_settings"]["Row"][]>();
+
+  const byType = new Map((rows ?? []).map((row) => [row.type, row]));
+
+  return (
+    <div className="flex flex-col gap-4">
+      <p className="text-sm text-muted">
+        Per type melding: welke rollen &apos;m krijgen (voor de types die naar bestuur/beheer gaan), via welke kanalen, en of de regel aan staat.
+        Persoonlijke voorkeuren van leden zelf (zie Instellingen) blijven hier bovenop gelden.
+      </p>
+      <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
+        <table className="w-full text-left text-sm">
+          <thead>
+            <tr className="border-b border-border text-xs text-muted">
+              <th className="px-4 py-2 font-medium">Gebeurtenis</th>
+              <th className="px-4 py-2 font-medium">Ontvangers</th>
+              <th className="px-4 py-2 font-medium">Kanalen</th>
+              <th className="px-4 py-2 font-medium">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {CONFIGURABLE_NOTIFICATION_TYPES.map((type: ConfigurableNotificationType) => {
+              const row = byType.get(type);
+              if (!row) return null;
+              return (
+                <NotificationRuleRow key={type} type={type} initial={row} isRoleBased={ROLE_BASED_NOTIFICATION_TYPES.includes(type)} />
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+export default async function BeheerCommunicatiePage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+  await requireBoard();
+  const { tab } = await searchParams;
+  const activeTab: TabKey = TABS.some((t) => t.key === tab) ? (tab as TabKey) : "nieuwsbrieven";
+
+  return (
+    <div className="flex flex-col gap-4">
+      <PageHeader title="Communicatie" description="Nieuwsbrieven en notificatieregels op één plek." />
+
+      <div className="flex gap-1.5 overflow-x-auto">
+        {TABS.map((t) => (
+          <Link
+            key={t.key}
+            href={t.key === "nieuwsbrieven" ? "/beheer/communicatie" : `/beheer/communicatie?tab=${t.key}`}
+            className={clsx(
+              "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium",
+              activeTab === t.key ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
+            )}
+          >
+            <t.icon size={14} />
+            {t.label}
+          </Link>
+        ))}
+      </div>
+
+      {activeTab === "nieuwsbrieven" && <NieuwsbrievenTab />}
+      {activeTab === "notificatieregels" && <NotificatieregelsTab />}
     </div>
   );
 }

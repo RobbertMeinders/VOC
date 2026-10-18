@@ -524,6 +524,7 @@ export interface Database {
           emailed_at: string | null;
           channel_push_allowed: boolean;
           channel_email_allowed: boolean;
+          channel_inapp_allowed: boolean;
           email_provider_id: string | null;
           communication_id: string | null;
           created_at: string;
@@ -534,6 +535,23 @@ export interface Database {
           title: string;
         };
         Update: Partial<Database["public"]["Tables"]["notifications"]["Row"]>;
+        Relationships: [];
+      };
+      notification_type_settings: {
+        Row: {
+          type: string;
+          enabled: boolean;
+          roles: UserRole[] | null;
+          channel_inapp: boolean;
+          channel_push: boolean;
+          channel_email: boolean;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["notification_type_settings"]["Row"]> & {
+          type: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["notification_type_settings"]["Row"]>;
         Relationships: [];
       };
       push_subscriptions: {

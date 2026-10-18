@@ -18,6 +18,7 @@ export default async function AppLayout({ children, modal }: { children: ReactNo
       .select("id, link")
       .eq("profile_id", profile.id)
       .eq("is_read", false)
+      .eq("channel_inapp_allowed", true)
       .neq("type", "newsletter"),
     getSignedStorageUrl("avatars", profile.avatar_url),
     supabase

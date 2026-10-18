@@ -21,6 +21,7 @@ export default async function NotificatiesPage() {
     .from("notifications")
     .select("*")
     .eq("profile_id", profile.id)
+    .eq("channel_inapp_allowed", true)
     .neq("type", "newsletter")
     .order("created_at", { ascending: false })
     .limit(50)
