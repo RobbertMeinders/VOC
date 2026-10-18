@@ -38,6 +38,7 @@ export async function searchPreviewAction(rawQuery: string): Promise<SearchPrevi
       .from("profiles")
       .select("id, first_name, last_name, avatar_url, job_title")
       .eq("is_organization_account", false)
+      .eq("is_active", true)
       .or(`first_name.ilike.${nameLike},last_name.ilike.${nameLike}`)
       .limit(PREVIEW_LIMIT),
     supabase.from("companies").select("id, name, city, logo_url").ilike("name", like).limit(PREVIEW_LIMIT),

@@ -84,19 +84,22 @@ export async function updateMemberActiveAction(memberId: string, isActive: boole
     }
   }
 
-  const { error } = await supabase
+  const { error, count } = await supabase
     .from("profiles")
-    .update({
-      is_active: isActive,
-      // Start (of stopt, bij heractiveren binnen de 90 dagen) de
-      // bewaartermijn-aftelling voor anonymize_expired_profiles()
-      // (0037_retention_and_push_preferences.sql, dagelijks via
-      // /api/cron/anonymize-members).
-      deactivated_at: isActive ? null : new Date().toISOString(),
-    })
+    .update(
+      {
+        is_active: isActive,
+        // Start (of stopt, bij heractiveren binnen de 90 dagen) de
+        // bewaartermijn-aftelling voor anonymize_expired_profiles()
+        // (0037_retention_and_push_preferences.sql, dagelijks via
+        // /api/cron/anonymize-members).
+        deactivated_at: isActive ? null : new Date().toISOString(),
+      },
+      { count: "exact" }
+    )
     .eq("id", memberId);
 
-  if (error) {
+  if (error || !count) {
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
 
@@ -233,12 +236,12 @@ export async function updateMemberOrganizationAccountAction(
   await requireBoard();
 
   const supabase = await createClient();
-  const { error } = await supabase
+  const { error, count } = await supabase
     .from("profiles")
-    .update({ is_organization_account: isOrganizationAccount })
+    .update({ is_organization_account: isOrganizationAccount }, { count: "exact" })
     .eq("id", memberId);
 
-  if (error) {
+  if (error || !count) {
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
 
@@ -282,22 +285,25 @@ export async function updateMemberProfileAction(
     avatarPath = result.path;
   }
 
-  const { error } = await supabase
+  const { error, count } = await supabase
     .from("profiles")
-    .update({
-      first_name: firstName,
-      last_name: lastName,
-      job_title: jobTitle || null,
-      bio: bio || null,
-      phone: phone || null,
-      show_email: showEmail,
-      show_phone: showPhone,
-      linkedin_url: linkedinUrl || null,
-      ...(avatarPath ? { avatar_url: avatarPath } : {}),
-    })
+    .update(
+      {
+        first_name: firstName,
+        last_name: lastName,
+        job_title: jobTitle || null,
+        bio: bio || null,
+        phone: phone || null,
+        show_email: showEmail,
+        show_phone: showPhone,
+        linkedin_url: linkedinUrl || null,
+        ...(avatarPath ? { avatar_url: avatarPath } : {}),
+      },
+      { count: "exact" }
+    )
     .eq("id", memberId);
 
-  if (error) {
+  if (error || !count) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
 

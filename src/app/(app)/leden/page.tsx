@@ -36,6 +36,7 @@ export default async function LedenPage() {
             "id, first_name, last_name, avatar_url, avatar_thumb_url, job_title, company_members(is_primary, company:companies(id, name, industry))"
           )
           .eq("is_organization_account", false)
+          .eq("is_active", true)
           .order("last_name")
           .returns<ProfileRow[]>(),
         supabase.from("companies").select("industry"),
