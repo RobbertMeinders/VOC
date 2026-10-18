@@ -45,6 +45,12 @@ export function CompanyLogo({
   // afbeelding zelf een fout meldt, voor alle gebruiksplekken tegelijk i.p.v.
   // dat losse embed-pagina's dit ieder apart moeten regelen.
   const [failed, setFailed] = useState(false);
+  // C7: de initialen stonden altijd in de DOM (zichtbaar tot de afbeelding
+  // "erover" getekend is) — bij een PNG/SVG-logo met transparante delen
+  // schildert de afbeelding daar nooit overheen, dus bleven de initialen
+  // permanent door het logo heen schijnen i.p.v. alleen tijdens het laden.
+  // onLoad haalt ze daarom na een geslaagde load echt uit de DOM.
+  const [loaded, setLoaded] = useState(false);
   const width = Math.round(size * 1.35);
   const showImage = logoUrl && !failed;
   return (
@@ -54,18 +60,21 @@ export function CompanyLogo({
     >
       {showImage ? (
         <>
-          <span
-            aria-hidden
-            className="absolute text-xs font-semibold text-muted"
-            style={{ fontSize: Math.max(10, Math.round(size * 0.22)) }}
-          >
-            {initials(name)}
-          </span>
+          {!loaded && (
+            <span
+              aria-hidden
+              className="absolute text-xs font-semibold text-muted"
+              style={{ fontSize: Math.max(10, Math.round(size * 0.22)) }}
+            >
+              {initials(name)}
+            </span>
+          )}
           <Image
             src={logoUrl}
             alt={name}
             width={width}
             height={size}
+            onLoad={() => setLoaded(true)}
             onError={() => setFailed(true)}
             className="relative h-full w-full object-contain"
           />
