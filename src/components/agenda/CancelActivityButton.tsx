@@ -18,12 +18,23 @@ export function CancelActivityButton({
   activityId,
   activityTitle,
   className,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   activityId: string;
   activityTitle: string;
   className?: string;
+  // Gecontroleerde modus (C8/E3): een "..."-menu heeft geen eigen zichtbare
+  // knop nodig om dit te openen — alleen de modal. Zonder deze props blijft
+  // het gedrag exact zoals voorheen (eigen knop + eigen open-state), voor de
+  // bestaande aanroepen (ActivityDetailContent zonder menu, BeheerAgendaContent).
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const hasOwnTrigger = controlledOpen === undefined;
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen ?? internalOpen;
+  const setOpen = onOpenChange ?? setInternalOpen;
   const [message, setMessage] = useState(`"${activityTitle}" is afgelast.`);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -33,18 +44,20 @@ export function CancelActivityButton({
 
   return (
     <>
-      <button
-        type="button"
-        title="Afgelasten"
-        aria-label="Afgelasten"
-        onClick={() => setOpen(true)}
-        className={
-          className ?? "flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red-text hover:border-voc-red"
-        }
-      >
-        <Ban size={14} />
-        {!className && "Afgelasten"}
-      </button>
+      {hasOwnTrigger && (
+        <button
+          type="button"
+          title="Afgelasten"
+          aria-label="Afgelasten"
+          onClick={() => setOpen(true)}
+          className={
+            className ?? "flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red-text hover:border-voc-red"
+          }
+        >
+          <Ban size={14} />
+          {!className && "Afgelasten"}
+        </button>
+      )}
 
       {open && (
         <FloatingPortal>

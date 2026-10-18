@@ -41,12 +41,11 @@ export async function uploadDocument(
     });
 
     if (error) {
-      return { error: `Uploaden is niet gelukt: ${error.message}` };
+      return { error: "Uploaden is niet gelukt. Probeer het opnieuw." };
     }
 
     return { path };
-  } catch (cause) {
-    const message = cause instanceof Error ? cause.message : "onbekende fout";
-    return { error: `Uploaden is niet gelukt: ${message}` };
+  } catch {
+    return { error: "Uploaden is niet gelukt. Probeer het opnieuw." };
   }
 }

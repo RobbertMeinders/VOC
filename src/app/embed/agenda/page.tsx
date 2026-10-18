@@ -67,7 +67,7 @@ function ActivityCard({
         )}
         <p className="mt-1 flex items-center gap-1 text-xs text-muted">
           <Users size={12} />
-          {count} aanmeldingen
+          {count} aanmelding{count === 1 ? "" : "en"}
         </p>
       </div>
     </Link>
@@ -153,7 +153,7 @@ export default async function AgendaEmbedPage({
         <div>
           <h2 className="text-xl font-semibold text-foreground">De activiteiten</h2>
           <p className="mt-2 text-sm text-muted">
-            De Veendammer OndernemersCompagnie organiseert het hele jaar door activiteiten voor en door ondernemers
+            De Veendammer Ondernemers Compagnie organiseert het hele jaar door activiteiten voor en door ondernemers
             in Veendam en omgeving. Van informele borrels en kennissessies tot bedrijfsbezoeken en een groot
             eindejaarsfeest, er is voor ieder wat wils.
           </p>

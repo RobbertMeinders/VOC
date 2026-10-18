@@ -669,7 +669,7 @@ export function NewsletterEditor({
     const iso = new Date(scheduledAtInput).toISOString();
     const confirmed = await confirm({
       title: "Nieuwsbrief inplannen?",
-      description: `Wordt verstuurd op ${new Date(iso).toLocaleString("nl-NL")}. Dit kan niet ongedaan worden gemaakt.`,
+      description: `Wordt verstuurd op ${new Date(iso).toLocaleString("nl-NL")}. Je kunt de planning daarna nog annuleren.`,
       confirmLabel: "Inplannen",
       danger: true,
     });
@@ -803,7 +803,7 @@ export function NewsletterEditor({
                 value={senderName}
                 onChange={(e) => setSenderName(e.target.value)}
                 disabled={readOnly}
-                placeholder="Veendammer Ondernemer Compagnie"
+                placeholder="Veendammer Ondernemers Compagnie"
                 className="h-11 text-base"
               />
             </div>

@@ -1,6 +1,6 @@
 # VOC Ledenportaal
 
-Besloten community- en ledenportaal voor de Veendammer OndernemersCompagnie (VOC), gebouwd als
+Besloten community- en ledenportaal voor de Veendammer Ondernemers Compagnie (VOC), gebouwd als
 Progressive Web App met Next.js (App Router) en Supabase.
 
 > **Status:** Fase 7 — Beheeromgeving. Bovenop de fundering (fase 1), profielen/bedrijven/ledenlijst

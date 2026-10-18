@@ -39,13 +39,18 @@ export const BEDRIJVEN_NAV_ITEM: NavItem = { href: "/bedrijven", label: "Bedrijv
 // navigeert direct naar /leden (review-bevinding U3: drie verschillende
 // mechanismen voor dezelfde keuze was verwarrend), de tab-switch op de
 // leden- en bedrijvenpagina's zelf (NetworkTabs) doet de rest.
+//
+// UX-review C3: had ook een badgeKey ("netwerk"), maar die telling zakt
+// alleen als je de onderliggende melding zelf als gelezen markeert (via de
+// bel/notificatielijst) — gewoon naar /leden navigeren liet het rode getal
+// onveranderd staan, terwijl de bel zelf al hetzelfde (en wél klikkende)
+// totaal toonde. Twee tellers voor dezelfde meldingen, waarvan één nooit
+// leeg leek te raken — weggehaald i.p.v. apart bij te houden "al bezocht".
 export const NETWERK_NAV_ITEM: NavItem = {
   href: "/leden",
   label: "Netwerk",
   icon: Users,
   activeMatch: (pathname) => pathname.startsWith("/leden") || pathname.startsWith("/bedrijven"),
-  badgeKey: "netwerk",
-  badgeLabel: "ongelezen melding(en) over het netwerk",
 };
 
 export const DOCUMENTEN_NAV_ITEM: NavItem = { href: "/documenten", label: "Documenten", icon: FileText };

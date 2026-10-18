@@ -129,7 +129,7 @@ export default async function AgendaEmbedDetailPage({
           )}
           <p className="mt-1 flex items-center gap-1 text-sm text-muted">
             <Users size={14} />
-            {interestCount ?? 0} aanmeldingen
+            {interestCount ?? 0} aanmelding{(interestCount ?? 0) === 1 ? "" : "en"}
           </p>
         </div>
 

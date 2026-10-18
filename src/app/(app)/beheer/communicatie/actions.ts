@@ -34,7 +34,7 @@ export async function createCommunicationAction(): Promise<void> {
       .from("communications")
       .insert({
         subject: "Nieuwe nieuwsbrief",
-        sender_name: "Veendammer Ondernemer Compagnie",
+        sender_name: "Veendammer Ondernemers Compagnie",
         created_by: profile.id,
       })
       .select("id")
@@ -172,7 +172,7 @@ export async function createCommunicationFromActivityAction(activityId: string):
       .from("communications")
       .insert({
         subject: activity.title,
-        sender_name: "Veendammer Ondernemer Compagnie",
+        sender_name: "Veendammer Ondernemers Compagnie",
         content: [eventBlock],
         linked_activity_id: activity.id,
         created_by: profile.id,

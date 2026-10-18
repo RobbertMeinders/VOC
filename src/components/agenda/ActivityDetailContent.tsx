@@ -3,7 +3,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { after } from "next/server";
 import { cache } from "react";
-import { CalendarDays, Clock, Download, MapPin, Megaphone, Pencil, Users, XCircle } from "lucide-react";
+import { CalendarDays, Clock, Download, MapPin, Pencil, Users, XCircle } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
@@ -12,12 +12,11 @@ import { formatActivityDate, formatActivityTimeOnly, formatLastActive } from "@/
 import { RegisterButton } from "@/components/agenda/RegisterButton";
 import { AttendeeList } from "@/components/agenda/AttendeeList";
 import { DeleteButton } from "@/components/feed/DeleteButton";
-import { CancelActivityButton } from "@/components/agenda/CancelActivityButton";
+import { ActivityDetailActionsMenu } from "@/components/agenda/ActivityDetailActionsMenu";
 import { ActivityAttachmentRow } from "@/components/agenda/ActivityAttachmentRow";
 import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
 import { ApproveActivityForm } from "@/components/agenda/ApproveActivityForm";
 import { deleteActivityAction, decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
-import { createCommunicationFromActivityAction } from "@/app/(app)/beheer/communicatie/actions";
 import { logEvent } from "@/lib/events/log";
 import type { Database } from "@/lib/types/database";
 
@@ -349,32 +348,15 @@ export async function ActivityDetailContent({ id }: { id: string }) {
             <Pencil size={14} />
             Bewerken
           </Link>
-          <form action={createCommunicationFromActivityAction.bind(null, activity.id)}>
-            <button
-              type="submit"
-              title="Bewuste extra stap - leden krijgen al automatisch een melding zodra deze activiteit gepubliceerd wordt. Gebruik dit voor extra aandacht (bijv. weinig aanmeldingen), niet als standaardactie."
-              className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red"
-            >
-              <Megaphone size={14} />
-              Communiceer over deze activiteit
-            </button>
-          </form>
-          <a
-            href={`/agenda/${activity.id}/registraties.csv`}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red"
-          >
-            <Download size={14} />
-            Aanmeldingen downloaden
-          </a>
-          {activity.status !== "cancelled" && confirmedCount + waitlistedRegistrations.length > 0 ? (
-            <CancelActivityButton activityId={activity.id} activityTitle={activity.title} />
-          ) : (
-            <DeleteButton
-              onDelete={deleteActivityAction.bind(null, activity.id)}
-              confirmMessage="Weet je zeker dat je deze activiteit wilt verwijderen?"
-              className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red-text hover:border-voc-red"
-            />
-          )}
+          {/* C8/E3: Communiceren, downloaden en afgelasten/verwijderen zaten
+              voorheen als vier losse knoppen (plus een losse prullenbak)
+              naast elkaar — nu gebundeld in één "..."-menu, zoals elders in
+              Beheer al de norm is. */}
+          <ActivityDetailActionsMenu
+            activityId={activity.id}
+            activityTitle={activity.title}
+            canCancel={activity.status !== "cancelled" && confirmedCount + waitlistedRegistrations.length > 0}
+          />
         </div>
       )}
 

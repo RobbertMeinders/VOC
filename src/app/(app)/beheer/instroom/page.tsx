@@ -77,13 +77,13 @@ async function UitnodigingenTab({ canInviteBoard }: { canInviteBoard: boolean })
       </div>
 
       <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
-        <div className="mb-2 flex items-center justify-between gap-3">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-foreground">Openstaande uitnodigingen</h2>
           {(allInvitations?.length ?? 0) > 0 && (
             <form action={extendAllInvitationsAction}>
               <button
                 type="submit"
-                className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                className="flex shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
               >
                 <Clock size={14} />
                 Verleng alle met 14 dagen

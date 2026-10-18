@@ -271,7 +271,7 @@ export async function changeEmailAction(_prevState: ChangeEmailState, formData: 
   const { error } = await supabase.auth.updateUser({ email });
 
   if (error) {
-    return { error: `Wijzigen is niet gelukt: ${error.message}` };
+    return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
 
   return { success: true };

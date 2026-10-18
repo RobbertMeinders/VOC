@@ -64,7 +64,7 @@ export function InviteForm({ canInviteBoard }: { canInviteBoard: boolean }) {
             <label htmlFor="role" className="mb-1.5 block text-sm font-medium text-foreground">
               Rol
             </label>
-            <Select id="role" name="role" defaultValue="lid" className="h-10 pl-3">
+            <Select id="role" name="role" defaultValue="lid" className="h-10 w-40 pl-3">
               <option value="lid">Lid</option>
               <option value="bestuurslid">Bestuurslid</option>
               <option value="beheerder">Beheerder</option>

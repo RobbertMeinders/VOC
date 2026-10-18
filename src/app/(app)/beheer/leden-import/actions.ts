@@ -190,7 +190,7 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
 
   const { error } = await supabase.from("invitations").insert(toInsert);
   if (error) {
-    return { imported: 0, skipped: [...skipped, { row: 0, email: "", reason: "Importeren is niet gelukt: " + error.message }] };
+    return { imported: 0, skipped: [...skipped, { row: 0, email: "", reason: "Importeren is niet gelukt. Probeer het opnieuw." }] };
   }
 
   revalidatePath("/beheer/instroom");

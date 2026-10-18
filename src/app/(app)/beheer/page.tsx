@@ -180,7 +180,7 @@ export default async function BeheerPage() {
   const kerncijfers = [
     { label: "Actieve leden", value: activeMemberCount ?? 0, icon: Users, href: "/beheer/leden" },
     { label: "Activatiegraad", value: `${activationRate}%`, icon: TrendingUp, href: "/beheer/leden" },
-    { label: "Nieuwe aanmeldingen deze maand", value: signupsThisMonth ?? 0, icon: UserPlus, href: "/beheer/leden" },
+    { label: "Nieuwe leden deze maand", value: signupsThisMonth ?? 0, icon: UserPlus, href: "/beheer/leden" },
     { label: "Actief laatste 30 dagen", value: activeLast30Count ?? 0, icon: Clock, href: "/beheer/leden" },
   ];
 
@@ -344,7 +344,7 @@ export default async function BeheerPage() {
                   </div>
                   <span className="shrink-0 text-xs text-muted">
                     {confirmedCount}
-                    {activity.max_participants ? ` / ${activity.max_participants}` : ""} aanmeldingen
+                    {activity.max_participants ? ` / ${activity.max_participants}` : ""} aanmelding{confirmedCount === 1 ? "" : "en"}
                   </span>
                 </Link>
               );

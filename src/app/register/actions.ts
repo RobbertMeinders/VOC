@@ -39,7 +39,7 @@ export async function bootstrapRegisterAction(
     if (error.message.toLowerCase().includes("already registered")) {
       return { error: "Er bestaat al een account met dit e-mailadres." };
     }
-    return { error: `Registreren is niet gelukt: ${error.message}` };
+    return { error: "Registreren is niet gelukt. Probeer het opnieuw." };
   }
 
   return { success: true, needsEmailConfirmation: !data.session };
