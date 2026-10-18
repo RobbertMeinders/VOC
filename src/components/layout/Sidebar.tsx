@@ -36,7 +36,7 @@ export function Sidebar({
 
   function renderItem(item: NavItem, indented = false) {
     const { href, label, icon: Icon, badgeKey, badgeLabel } = item;
-    const active = isNavItemActive(item, pathname);
+    const active = isNavItemActive(item, pathname, { ownProfileId: profile.id, ownCompanyId: companyId });
     return (
       <Link
         key={href}

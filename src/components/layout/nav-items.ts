@@ -2,6 +2,17 @@ import type { LucideIcon } from "lucide-react";
 import { Building2, CalendarDays, FileText, Home, LayoutDashboard, MessageCircle, Search, Users } from "lucide-react";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
+// Eigen profiel/bedrijf (via "Mijn profiel"/"Mijn bedrijfsprofiel" in het
+// accountmenu) hergebruiken dezelfde /leden/[id]- en /bedrijven/[id]-routes
+// als Netwerk → Leden/Bedrijven — zonder deze context zou "Netwerk" dus
+// altijd meelichten op je eigen profiel/bedrijfspagina, ook al kwam je daar
+// via het accountmenu. Alleen activeMatch-functies die dit onderscheid nodig
+// hebben (zoals NETWERK_NAV_ITEM) lezen deze context uit.
+export type NavActiveContext = {
+  ownProfileId?: string;
+  ownCompanyId?: string | null;
+};
+
 export type NavItem = {
   href: string;
   label: string;
@@ -9,7 +20,7 @@ export type NavItem = {
   // Voor items die meerdere routes bestrijken (zoals "Netwerk", dat zowel
   // /leden als /bedrijven dekt) — zonder deze is het gewoon een
   // prefix-match op href.
-  activeMatch?: (pathname: string) => boolean;
+  activeMatch?: (pathname: string, ctx: NavActiveContext) => boolean;
   // Koppelt dit item aan een sectie van ongelezen-notificatie-aantallen
   // (zie useUnreadNotificationCount), voor het badge-getal op het item zelf.
   badgeKey?: keyof UnreadNotificationSections;
@@ -18,8 +29,8 @@ export type NavItem = {
   badgeLabel?: string;
 };
 
-export function isNavItemActive(item: NavItem, pathname: string): boolean {
-  if (item.activeMatch) return item.activeMatch(pathname);
+export function isNavItemActive(item: NavItem, pathname: string, ctx: NavActiveContext = {}): boolean {
+  if (item.activeMatch) return item.activeMatch(pathname, ctx);
   return item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
 }
 
@@ -50,7 +61,14 @@ export const NETWERK_NAV_ITEM: NavItem = {
   href: "/leden",
   label: "Netwerk",
   icon: Users,
-  activeMatch: (pathname) => pathname.startsWith("/leden") || pathname.startsWith("/bedrijven"),
+  activeMatch: (pathname, ctx) => {
+    // Eigen profiel/bedrijf telt niet als "via Netwerk bereikt" — zie
+    // NavActiveContext hierboven — anders licht dit altijd mee op
+    // /leden/[eigen-id] en /bedrijven/[eigen-bedrijf-id].
+    if (ctx.ownProfileId && pathname.startsWith(`/leden/${ctx.ownProfileId}`)) return false;
+    if (ctx.ownCompanyId && pathname.startsWith(`/bedrijven/${ctx.ownCompanyId}`)) return false;
+    return pathname.startsWith("/leden") || pathname.startsWith("/bedrijven");
+  },
 };
 
 export const DOCUMENTEN_NAV_ITEM: NavItem = { href: "/documenten", label: "Documenten", icon: FileText };
