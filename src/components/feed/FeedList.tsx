@@ -12,7 +12,7 @@ import { useInfiniteScroll } from "@/lib/dom/useInfiniteScroll";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { PostComposer } from "./PostComposer";
 import { PostCard } from "./PostCard";
-import { POST_TYPES, POST_TYPE_LABELS } from "@/lib/feed/postType";
+import { FEED_FILTER_TYPES, POST_TYPE_LABELS } from "@/lib/feed/postType";
 import type { FeedAuthor, FeedComment, FeedPost, FeedPostType } from "@/lib/feed/types";
 
 type Filter = "alle" | FeedPostType;
@@ -161,7 +161,7 @@ export function FeedList({
         >
           Alles
         </button>
-        {POST_TYPES.map((type) => (
+        {FEED_FILTER_TYPES.map((type) => (
           <button
             key={type}
             type="button"

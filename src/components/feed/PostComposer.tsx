@@ -1,9 +1,9 @@
 "use client";
 
-import { useActionState, useEffect, useRef, useState, type DragEvent, type FormEvent } from "react";
+import { useActionState, useEffect, useRef, useState, type DragEvent } from "react";
 import { useFormStatus } from "react-dom";
 import { clsx } from "clsx";
-import { FileText, Upload, X } from "lucide-react";
+import { FileText, Pencil, Upload, X } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
@@ -12,12 +12,29 @@ import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { createPostAction, type CreatePostState } from "@/app/(app)/actions";
 import { CARD_THUMBNAIL_DIMENSION, compressImageFile, createThumbnailFile } from "@/lib/image/compress";
 import { MentionEditor } from "./MentionEditor";
-import { PostTypePicker } from "./PostTypePicker";
+import { PostTypeChooser } from "./PostTypeChooser";
+import { POST_TYPE_LABELS } from "@/lib/feed/postType";
 import type { FeedAuthor, FeedPost, FeedPostType } from "@/lib/feed/types";
 
 const initialState: CreatePostState = {};
 
 const TEXTAREA_MAX_HEIGHT = 220;
+
+// "geen" is een bewuste keuze voor GEEN categorie ("Iets anders" in
+// PostTypeChooser) — anders dan `undefined`, wat betekent dat er nog
+// helemaal geen keuze gemaakt is (zie `chosen` hieronder). createPostAction
+// herkent deze letterlijke waarde en slaat dan null op.
+export const NO_POST_TYPE_VALUE = "geen";
+type PostTypeChoice = FeedPostType | typeof NO_POST_TYPE_VALUE;
+
+const COMPOSER_PLACEHOLDER: Record<PostTypeChoice, string> = {
+  vraag: "Wat wil je weten?",
+  aanbod: "Wat heb je aan te bieden?",
+  nieuws: "Wat wil je delen?",
+  voorstellen: "Vertel wie je bent en wat je doet…",
+  overig: "Wat wil je delen met het netwerk?",
+  geen: "Wat wil je delen met het netwerk?",
+};
 const ACCEPTED_TYPES = ["image/png", "image/jpeg", "image/webp", "application/pdf"];
 const MAX_ATTACHMENTS = 10;
 
@@ -57,8 +74,9 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
   const [state, formAction] = useActionState(createPostAction, initialState);
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [dragActive, setDragActive] = useState(false);
-  const [postType, setPostType] = useState<FeedPostType | null>(null);
-  const [showTagHint, setShowTagHint] = useState(false);
+  // undefined = nog geen keuze gemaakt (stap 1 wordt getoond) — zie
+  // PostTypeChooser en NO_POST_TYPE_VALUE hierboven.
+  const [chosen, setChosen] = useState<PostTypeChoice | undefined>(undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbInputRef = useRef<HTMLInputElement>(null);
   const previewUrlsRef = useRef<string[]>([]);
@@ -166,16 +184,6 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
     void addFiles(Array.from(e.dataTransfer.files));
   }
 
-  // Knop blijft klikbaar zonder label (i.p.v. stil disabled) — anders is
-  // onduidelijk waarom plaatsen niet lukt. Zonder label wordt de action niet
-  // aangeroepen; in plaats daarvan verschijnt een duidelijke melding.
-  function handleSubmit(e: FormEvent<HTMLFormElement>) {
-    if (!postType) {
-      e.preventDefault();
-      setShowTagHint(true);
-    }
-  }
-
   // Compact veld i.p.v. het volledige formulier — pas bij klikken opent het
   // grotere, gedimde overlay eronder. Voorkomt dat de feed standaard met een
   // groot invoerformulier begint.
@@ -213,104 +221,106 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
             </button>
           </div>
 
-          <form
-            action={formAction}
-            onSubmit={handleSubmit}
-            onDragOver={handleDragOver}
-            onDragLeave={handleDragLeave}
-            onDrop={handleDrop}
-            className={clsx("p-4", dragActive && "bg-voc-red-light")}
-          >
-            {dragActive && (
-              <p className="mb-2 text-center text-xs font-medium text-voc-red-text">Zet bestanden hier neer om toe te voegen</p>
-            )}
-            <div className="flex items-start gap-3">
-              <Avatar firstName={author.first_name} lastName={author.last_name} avatarUrl={author.avatarUrl} size={40} />
-              <MentionEditor
-                name="content"
-                placeholder="Wat wil je delen met het netwerk?"
-                minHeightClassName="min-h-24"
-                maxHeight={TEXTAREA_MAX_HEIGHT}
-                autoFocus
-              />
+          {chosen === undefined ? (
+            <div className="p-4">
+              <PostTypeChooser onChoose={(type) => setChosen(type ?? NO_POST_TYPE_VALUE)} />
             </div>
-
-            <div className="mt-3 sm:ml-[52px]">
-              <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-4 text-sm font-medium text-muted hover:border-voc-red hover:text-voc-red-text">
-                <Upload size={22} />
-                Foto&apos;s of PDF toevoegen
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  name="attachments"
-                  multiple
-                  accept={ACCEPTED_TYPES.join(",")}
-                  className="sr-only"
-                  onChange={(e) => {
-                    void addFiles(Array.from(e.target.files ?? []));
-                  }}
-                />
-              </label>
-              {/* Meegestuurde, al client-side verkleinde (CARD_THUMBNAIL_DIMENSION)
-                  versie per afbeelding, 1-op-1 op positie gekoppeld aan
-                  `attachments` — zie buildThumbFileList hierboven en
-                  createPostAction (actions.ts) voor hoe de index-matching werkt. */}
-              <input ref={thumbInputRef} type="file" name="attachment_thumbs" multiple className="hidden" aria-hidden tabIndex={-1} />
-
-              {previews.length > 0 && (
-                <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-5">
-                  {previews.map((preview, index) => (
-                    <div key={preview.url} className="relative aspect-square overflow-hidden rounded-lg border border-border bg-background">
-                      {preview.isImage ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={preview.url} alt={preview.name} className="h-full w-full object-cover" />
-                      ) : (
-                        <div className="flex h-full w-full flex-col items-center justify-center gap-1 px-1 text-center">
-                          <FileText size={18} className="text-voc-red-text" />
-                          <span className="line-clamp-2 text-[10px] text-muted">{preview.name}</span>
-                        </div>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => removeFile(index)}
-                        aria-label="Verwijderen"
-                        className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
-                      >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  ))}
-                </div>
+          ) : (
+            <form
+              action={formAction}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              className={clsx("p-4", dragActive && "bg-voc-red-light")}
+            >
+              <input type="hidden" name="type" value={chosen} />
+              {dragActive && (
+                <p className="mb-2 text-center text-xs font-medium text-voc-red-text">Zet bestanden hier neer om toe te voegen</p>
               )}
-            </div>
 
-            <div className="mt-3 sm:ml-[52px]">
-              <PostTypePicker
-                required
-                value={postType}
-                onChange={(type) => {
-                  setPostType(type);
-                  if (type) setShowTagHint(false);
-                }}
-              />
-            </div>
+              <div className="mb-2 flex items-center gap-1.5 text-xs text-muted sm:ml-[52px]">
+                {chosen === NO_POST_TYPE_VALUE ? "Geen categorie" : POST_TYPE_LABELS[chosen]}
+                <button
+                  type="button"
+                  onClick={() => setChosen(undefined)}
+                  className="flex items-center gap-1 font-medium text-voc-red-text hover:underline"
+                >
+                  <Pencil size={11} />
+                  Wijzigen
+                </button>
+              </div>
 
-            {showTagHint && !postType && (
-              <p role="alert" className="mt-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text sm:ml-[52px]">
-                Kies eerst een label (vraag, aanbod, nieuws of overig) voordat je kunt plaatsen.
-              </p>
-            )}
+              <div className="flex items-start gap-3">
+                <Avatar firstName={author.first_name} lastName={author.last_name} avatarUrl={author.avatarUrl} size={40} />
+                <MentionEditor
+                  name="content"
+                  placeholder={COMPOSER_PLACEHOLDER[chosen]}
+                  minHeightClassName="min-h-24"
+                  maxHeight={TEXTAREA_MAX_HEIGHT}
+                  autoFocus
+                />
+              </div>
 
-            {state.error && (
-              <p role="alert" className="mt-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text sm:ml-[52px]">
-                {state.error}
-              </p>
-            )}
+              <div className="mt-3 sm:ml-[52px]">
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-4 text-sm font-medium text-muted hover:border-voc-red hover:text-voc-red-text">
+                  <Upload size={22} />
+                  Foto&apos;s of PDF toevoegen
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    name="attachments"
+                    multiple
+                    accept={ACCEPTED_TYPES.join(",")}
+                    className="sr-only"
+                    onChange={(e) => {
+                      void addFiles(Array.from(e.target.files ?? []));
+                    }}
+                  />
+                </label>
+                {/* Meegestuurde, al client-side verkleinde (CARD_THUMBNAIL_DIMENSION)
+                    versie per afbeelding, 1-op-1 op positie gekoppeld aan
+                    `attachments` — zie buildThumbFileList hierboven en
+                    createPostAction (actions.ts) voor hoe de index-matching werkt. */}
+                <input ref={thumbInputRef} type="file" name="attachment_thumbs" multiple className="hidden" aria-hidden tabIndex={-1} />
 
-            <div className="mt-3 flex items-center justify-end sm:ml-[52px]">
-              <SubmitButton />
-            </div>
-          </form>
+                {previews.length > 0 && (
+                  <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-5">
+                    {previews.map((preview, index) => (
+                      <div key={preview.url} className="relative aspect-square overflow-hidden rounded-lg border border-border bg-background">
+                        {preview.isImage ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={preview.url} alt={preview.name} className="h-full w-full object-cover" />
+                        ) : (
+                          <div className="flex h-full w-full flex-col items-center justify-center gap-1 px-1 text-center">
+                            <FileText size={18} className="text-voc-red-text" />
+                            <span className="line-clamp-2 text-[10px] text-muted">{preview.name}</span>
+                          </div>
+                        )}
+                        <button
+                          type="button"
+                          onClick={() => removeFile(index)}
+                          aria-label="Verwijderen"
+                          className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {state.error && (
+                <p role="alert" className="mt-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text sm:ml-[52px]">
+                  {state.error}
+                </p>
+              )}
+
+              <div className="mt-3 flex items-center justify-end sm:ml-[52px]">
+                <SubmitButton />
+              </div>
+            </form>
+          )}
         </div>
       </div>
     </FloatingPortal>

@@ -7,7 +7,7 @@ export type InvitationStatus = "pending" | "accepted" | "revoked" | "expired";
 export type FeedAttachmentType = "image" | "pdf";
 export type ActivitySource = "voc" | "lid";
 export type ActivityStatus = "pending" | "approved" | "rejected" | "cancelled";
-export type FeedPostType = "vraag" | "aanbod" | "nieuws" | "overig";
+export type FeedPostType = "vraag" | "aanbod" | "nieuws" | "overig" | "voorstellen";
 export type FeedReportReason = "ongepast" | "spam" | "misleidend" | "anders";
 export type FeedReportStatus = "open" | "afgehandeld";
 

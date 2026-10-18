@@ -27,7 +27,7 @@ export type FeedComment = {
   likedByMe: boolean;
 };
 
-export type FeedPostType = "vraag" | "aanbod" | "nieuws" | "overig";
+export type FeedPostType = "vraag" | "aanbod" | "nieuws" | "overig" | "voorstellen";
 
 // Naam van de meest recente liker + totaalaantal, voor "Robbert Meinders en
 // 5 anderen" onder een bericht — het volledige overzicht komt pas on-demand

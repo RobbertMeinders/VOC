@@ -14,11 +14,32 @@ import type { FeedReportReason } from "@/lib/types/database";
 
 const VALID_REPORT_REASONS: FeedReportReason[] = ["ongepast", "spam", "misleidend", "anders"];
 
-const VALID_POST_TYPES: FeedPostType[] = ["vraag", "aanbod", "nieuws", "overig"];
+// 'overig' is hier bewust nog toegestaan: niet langer zelf-kiesbaar in de
+// composer (zie COMPOSER_POST_TYPES in lib/feed/postType.ts), maar bestaand
+// zo-gelabelde berichten moeten geldig blijven als ze zonder wijziging aan
+// het label opnieuw opgeslagen worden (bewerken).
+const VALID_POST_TYPES: FeedPostType[] = ["vraag", "aanbod", "nieuws", "overig", "voorstellen"];
+// Zelfde letterlijke waarde als NO_POST_TYPE_VALUE in PostComposer.tsx —
+// de composer stuurt dit mee als bewuste keuze voor "geen categorie"
+// ("Iets anders"), te onderscheiden van nog helemaal niets gekozen hebben.
+const NO_POST_TYPE_VALUE = "geen";
 
+// Voor bewerken (optioneel): elke niet-herkende waarde (incl. leeg) is
+// gewoon "geen label".
 function parsePostType(formData: FormData): FeedPostType | null {
   const value = String(formData.get("type") ?? "");
   return (VALID_POST_TYPES as string[]).includes(value) ? (value as FeedPostType) : null;
+}
+
+// Voor een nieuw bericht (verplicht): PostTypeChooser dwingt een keuze af
+// vóór de tekst-stap, inclusief "Iets anders" (NO_POST_TYPE_VALUE). Alleen
+// als het veld geen van beide is, is er niets gekozen (bv. een handmatige
+// request zonder de composer) — dat blijft een harde fout.
+function parseRequiredPostTypeChoice(formData: FormData): { made: boolean; type: FeedPostType | null } {
+  const value = String(formData.get("type") ?? "");
+  if (value === NO_POST_TYPE_VALUE) return { made: true, type: null };
+  if ((VALID_POST_TYPES as string[]).includes(value)) return { made: true, type: value as FeedPostType };
+  return { made: false, type: null };
 }
 
 const ALLOWED_ATTACHMENT_TYPES: Record<string, "image" | "pdf"> = {
@@ -40,10 +61,11 @@ export async function createPostAction(_prevState: CreatePostState, formData: Fo
     return { error: "Schrijf een bericht voordat je het plaatst." };
   }
 
-  const postType = parsePostType(formData);
-  if (!postType) {
-    return { error: "Kies een label (vraag, aanbod, nieuws of overig) voordat je het bericht plaatst." };
+  const postTypeChoice = parseRequiredPostTypeChoice(formData);
+  if (!postTypeChoice.made) {
+    return { error: "Kies eerst wat voor bericht dit is voordat je het plaatst." };
   }
+  const postType = postTypeChoice.type;
 
   const files = formData.getAll("attachments").filter((f): f is File => f instanceof File && f.size > 0);
   if (files.length > MAX_ATTACHMENTS) {
