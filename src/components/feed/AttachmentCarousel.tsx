@@ -27,6 +27,13 @@ const MAX_VISIBLE = 4;
 // `w-full` erbij (een echte, niet-"auto" breedte) voorkomt dat.
 const MAX_HEIGHT = 420;
 
+// Op het eigen ledenprofiel ("Berichten") mag een foto nooit zo veel
+// aandacht trekken als in de feed zelf — compact gebruikt dezelfde mozaïek
+// maar flink lager/meer gecropt, zodat je ziet dát er een foto bij zit
+// zonder dat 'm de rest van de pagina overschaduwt. Tikken opent nog
+// gewoon de volledige foto in de lightbox.
+const COMPACT_MAX_HEIGHT = 160;
+
 function Cell({
   image,
   remainingCount,
@@ -80,7 +87,17 @@ function Cell({
 // zorgt daarnaast dat een (bijna-)vierkante foto op een brede desktop-
 // postkolom niet alsnog torenhoog wordt — de breedte blijft vol, alleen de
 // hoogte wordt begrensd (dus weer "breder, niet hoger" i.p.v. cropping).
-function SingleCell({ image, onClick, label }: { image: FeedAttachment; onClick: () => void; label: string }) {
+function SingleCell({
+  image,
+  onClick,
+  label,
+  maxHeight,
+}: {
+  image: FeedAttachment;
+  onClick: () => void;
+  label: string;
+  maxHeight: number;
+}) {
   const [ratio, setRatio] = useState(1);
   const [loaded, setLoaded] = useState(false);
 
@@ -97,7 +114,7 @@ function SingleCell({ image, onClick, label }: { image: FeedAttachment; onClick:
       // die pas laat in beeld scrolt (bv. via scrollIntoView vanuit een
       // notificatie-highlight), waar dat als een soort "herlaad"-glitch
       // oogde. Nu een zachte overgang i.p.v. een abrupte sprong.
-      style={{ aspectRatio: ratio, maxHeight: MAX_HEIGHT, transition: "aspect-ratio 0.3s ease-out" }}
+      style={{ aspectRatio: ratio, maxHeight, transition: "aspect-ratio 0.3s ease-out" }}
       className="relative w-full overflow-hidden bg-black/[.03] dark:bg-white/[.03]"
     >
       <Image
@@ -124,33 +141,39 @@ function SingleCell({ image, onClick, label }: { image: FeedAttachment; onClick:
 // de lightbox, waar swipen/pijltoetsen tussen alle foto's van het bericht
 // al goed werkt. Vanaf 5 foto's krijgt de laatste zichtbare cel een
 // "+N"-label voor de rest.
-export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
+export function AttachmentCarousel({ images, compact = false }: { images: FeedAttachment[]; compact?: boolean }) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   if (images.length === 0) return null;
 
   const visible = images.slice(0, MAX_VISIBLE);
   const remaining = Math.max(0, images.length - MAX_VISIBLE);
+  const maxHeight = compact ? COMPACT_MAX_HEIGHT : MAX_HEIGHT;
 
   return (
     <>
       <div className="mt-3 overflow-hidden rounded-xl">
-        {visible.length === 1 && <SingleCell image={visible[0]} onClick={() => setLightboxIndex(0)} label="Foto bekijken" />}
+        {visible.length === 1 && (
+          <SingleCell image={visible[0]} onClick={() => setLightboxIndex(0)} label="Foto bekijken" maxHeight={maxHeight} />
+        )}
 
         {/* 2 foto's: elke cel apart vierkant i.p.v. de hele rij vierkant maken
             — bij 2 naast elkaar geplaatste vierkanten is de rij vanzelf 2:1
             liggend, zonder dat daar nog een aparte max-hoogte voor nodig is
             (dat was bij de vorige aanpak, met vierkant op de hele container,
             wél nodig omdat dat elke cel juist een smalle, hoge 1:2-kolom
-            maakte). */}
+            maakte). Compact: container krijgt zelf een vaste, lagere hoogte
+            i.p.v. aspect-square, zodat de cellen breder croppen i.p.v. hoger
+            worden — zelfde "minder aandacht, wel nog zichtbaar"-aanpak als
+            SingleCell/het >=3-grid hieronder. */}
         {visible.length === 2 && (
-          <div className="grid grid-cols-2 gap-0.5">
+          <div className="grid grid-cols-2 gap-0.5" style={compact ? { height: maxHeight } : undefined}>
             {visible.map((image, i) => (
               <Cell
                 key={image.id}
                 image={image}
                 onClick={() => setLightboxIndex(i)}
-                className="aspect-square"
+                className={compact ? "h-full" : "aspect-square"}
                 label={`Foto ${i + 1} van ${images.length} bekijken`}
               />
             ))}
@@ -158,7 +181,7 @@ export function AttachmentCarousel({ images }: { images: FeedAttachment[] }) {
         )}
 
         {visible.length >= 3 && (
-          <div className="grid aspect-square w-full grid-rows-[2fr_1fr] gap-0.5" style={{ maxHeight: MAX_HEIGHT }}>
+          <div className="grid aspect-square w-full grid-rows-[2fr_1fr] gap-0.5" style={{ maxHeight }}>
             <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} label={`Foto 1 van ${images.length} bekijken`} />
             <div
               className={clsx("grid grid-rows-[1fr] gap-0.5", visible.length === 3 ? "grid-cols-2" : "grid-cols-3")}

@@ -324,6 +324,7 @@ export function PostCard({
   onCommentUpdated,
   onCommentCreated,
   forceCommentsOpen = false,
+  compact = false,
 }: {
   post: FeedPost;
   currentUserId: string;
@@ -335,11 +336,16 @@ export function PostCard({
   onCommentUpdated: (comment: FeedComment) => void;
   onCommentCreated: (comment: FeedComment) => void;
   forceCommentsOpen?: boolean;
+  // Alleen voor de berichten-sectie op het eigen ledenprofiel: kleinere
+  // foto's en reacties die niet standaard al openstaan, zodat deze sectie
+  // niet met de volle community-feed-intensiteit op de profielpagina staat.
+  compact?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
   // Reactieveld en de eerste paar reacties staan standaard al open — dat
-  // scheelt de losse stap van eerst op het praatwolkje moeten klikken.
-  const [commentsOpen, setCommentsOpen] = useState(true);
+  // scheelt de losse stap van eerst op het praatwolkje moeten klikken. In
+  // compact-modus (profielpagina) juist dicht, om minder ruimte te claimen.
+  const [commentsOpen, setCommentsOpen] = useState(!compact);
   const [showAllComments, setShowAllComments] = useState(forceCommentsOpen);
   const [showLikers, setShowLikers] = useState(false);
   const [reporting, setReporting] = useState(false);
@@ -416,7 +422,7 @@ export function PostCard({
         </>
       )}
 
-      <AttachmentCarousel images={post.attachments.filter((a) => a.type === "image")} />
+      <AttachmentCarousel images={post.attachments.filter((a) => a.type === "image")} compact={compact} />
       {post.attachments
         .filter((a) => a.type !== "image" && a.url)
         .map((attachment) => (

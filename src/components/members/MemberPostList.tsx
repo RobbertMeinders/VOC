@@ -81,6 +81,7 @@ export function MemberPostList({
             onCommentDeleted={removeComment}
             onCommentUpdated={updateComment}
             onCommentCreated={addComment}
+            compact
           />
         ))}
         {hasMore && (
