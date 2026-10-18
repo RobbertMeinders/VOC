@@ -364,20 +364,39 @@ export async function quickUpdateMemberAction(
   // profiles — zie 0107_vereniging_bestuur_commissies.sql. Alleen
   // aanraken als het veld daadwerkelijk wijzigt (geen onnodige
   // beëindigen+opnieuw-aanmaken-cyclus bij elke snelle-bewerken-opslag).
+  // Elke stap checkt expliciet op een fout i.p.v. die te negeren — anders
+  // meldt dit formulier "Opgeslagen" terwijl de functie (bv. door een nog
+  // niet toegepaste migratie of een RLS-afwijzing) feitelijk niet is
+  // weggeschreven, en blijft de bestuurder onzichtbaar op de Bestuur-pagina.
   const boardTitle = String(formData.get("board_title") ?? "").trim();
-  const { data: activePosition } = await supabase
+  const { data: activePosition, error: boardSelectError } = await supabase
     .from("board_positions")
     .select("id, title")
     .eq("profile_id", memberId)
     .is("ended_at", null)
     .maybeSingle();
 
+  if (boardSelectError) {
+    return { error: "Opslaan van de bestuursfunctie is niet gelukt. Probeer het opnieuw." };
+  }
+
   if (boardTitle !== (activePosition?.title ?? "")) {
     if (activePosition) {
-      await supabase.from("board_positions").update({ ended_at: new Date().toISOString() }).eq("id", activePosition.id);
+      const { error: endError } = await supabase
+        .from("board_positions")
+        .update({ ended_at: new Date().toISOString() })
+        .eq("id", activePosition.id);
+      if (endError) {
+        return { error: "Opslaan van de bestuursfunctie is niet gelukt. Probeer het opnieuw." };
+      }
     }
     if (boardTitle) {
-      await supabase.from("board_positions").insert({ profile_id: memberId, title: boardTitle, created_by: viewer.id });
+      const { error: insertError } = await supabase
+        .from("board_positions")
+        .insert({ profile_id: memberId, title: boardTitle, created_by: viewer.id });
+      if (insertError) {
+        return { error: "Opslaan van de bestuursfunctie is niet gelukt. Probeer het opnieuw." };
+      }
     }
     revalidatePath("/beheer/vereniging/bestuur");
     revalidatePath("/vereniging/bestuur");
