@@ -51,7 +51,7 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
   {
     title: "Vereniging",
     items: [
-      { href: "/beheer/instellingen", label: "Verenigingsgegevens en portaalinstellingen", icon: Settings, adminOnly: true },
+      { href: "/beheer/instellingen", label: "Portaalinstellingen", icon: Settings, adminOnly: true },
       { href: "/beheer/vereniging/over-ons", label: "Over VOC", icon: Info },
       { href: "/beheer/vereniging/bestuur", label: "Bestuur", icon: IdCard },
       { href: "/beheer/vereniging/commissies", label: "Commissies", icon: UsersRound },
