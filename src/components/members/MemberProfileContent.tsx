@@ -130,7 +130,7 @@ export async function MemberProfileContent({ id }: { id: string }) {
               )}
             </div>
           </div>
-          {isOwnProfile ? (
+          {isOwnProfile && (
             <>
               {/* Op mobiel alleen het potloodje — "Profiel aanpassen" als
                   volledige pil drukte naam/functie anders te veel opzij. */}
@@ -149,10 +149,6 @@ export async function MemberProfileContent({ id }: { id: string }) {
                 Profiel aanpassen
               </Link>
             </>
-          ) : (
-            // VOC Hub — Veilige e-mailcontactfunctie: alleen op andermans
-            // profiel, en alleen als dat lid nog bereikbaar is.
-            member.is_active && <ContactMemberButton recipientId={member.id} recipientName={`${member.first_name} ${member.last_name}`} />
           )}
         </div>
 
@@ -189,6 +185,13 @@ export async function MemberProfileContent({ id }: { id: string }) {
               <Phone size={16} className="text-muted" />
               {member.phone}
             </a>
+          )}
+          {/* VOC Hub — Veilige e-mailcontactfunctie: alleen op andermans
+              profiel, en alleen als dat lid nog bereikbaar is. Bij de
+              overige contactgegevens i.p.v. los bovenaan — hoort daar
+              inhoudelijk bij. */}
+          {!isOwnProfile && member.is_active && (
+            <ContactMemberButton recipientId={member.id} recipientName={`${member.first_name} ${member.last_name}`} />
           )}
           <EntitySocialLinks linkedinUrl={member.linkedin_url} />
         </div>
