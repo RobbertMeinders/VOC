@@ -66,7 +66,7 @@ export async function BestuurContent() {
   );
 
   return (
-    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
       {activePositions.map(({ id, title, profile }) => {
         if (!profile) return null;
         const path = profile.avatar_thumb_url ?? profile.avatar_url;
@@ -76,14 +76,14 @@ export async function BestuurContent() {
           <Link
             key={id}
             href={`/leden/${profile.id}`}
-            className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm hover:border-voc-red/40"
+            className="flex flex-col items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-6 text-center shadow-sm hover:border-voc-red/40"
           >
-            <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={48} />
+            <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={88} />
             <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-foreground">
+              <p className="truncate text-sm font-semibold text-foreground">
                 {profile.first_name} {profile.last_name}
               </p>
-              <p className="truncate text-xs font-medium text-voc-red-text">{title}</p>
+              <p className="truncate text-xs text-muted">{title}</p>
               {companyName && <p className="truncate text-xs text-muted">{companyName}</p>}
             </div>
           </Link>
