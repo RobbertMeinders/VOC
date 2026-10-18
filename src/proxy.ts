@@ -10,7 +10,18 @@ export const config = {
     /*
      * Match all request paths except for:
      * - _next/static, _next/image (Next.js internals)
-     * - static assets and the PWA manifest/service worker
+     * - the actual static assets this app serves: the PWA manifest/service
+     *   worker, the two Next.js-convention icon routes (app/icon.png,
+     *   app/apple-icon.png), favicon.ico, and the /icons and /brand folders
+     *   (manifest icons, social/logo assets from public/). Listed by their
+     *   exact, known path — never by "ends in an image extension": that
+     *   used to also exclude dynamic routes like /leden/[id] whenever the
+     *   id happened to end in .png/.svg/etc. (e.g. /leden/x.png), which skips
+     *   this middleware entirely and meant the x-voc-verified-user-id header
+     *   below went unverified on those requests — a client could set it
+     *   directly and impersonate any profile id. Same bug class as the
+     *   api/embed incident this file already documents below; fixed the
+     *   same way, by narrowing the exclusion to only real static paths.
      * - api/cron/* — Vercel Cron hits these with its own CRON_SECRET
      *   bearer header, never a Supabase session cookie. Without this
      *   exclusion, `!user` sends every cron request into the login
@@ -34,6 +45,6 @@ export const config = {
      * instead, so it still never gets redirected to /login for an
      * anonymous visitor, while the header keeps getting verified.
      */
-    "/((?!_next/static|_next/image|manifest.webmanifest|sw.js|api/cron|api/notifications/click|api/webhooks|.*\\.(?:svg|png|jpg|jpeg|webp|gif|ico)$).*)",
+    "/((?!_next/static|_next/image|manifest.webmanifest|sw.js|favicon.ico|icon.png|apple-icon.png|icons/|brand/|api/cron|api/notifications/click|api/webhooks).*)",
   ],
 };
