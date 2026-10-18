@@ -47,30 +47,42 @@ export default async function ProfielPage() {
       </div>
 
       {membership?.company ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">
-          <Link
-            href={`/bedrijven/${membership.company.id}`}
-            className="flex items-center gap-2 text-sm text-foreground hover:text-voc-red-text"
-          >
-            <Building2 size={16} className="text-muted" />
-            Werkzaam bij <span className="font-medium">{membership.company.name}</span>
-            {membership.company.city && <span className="text-muted">· {membership.company.city}</span>}
-          </Link>
-          {/* "Bedrijf wijzigen" (koppelen aan een ándere werkgever) stond
-              hier als enige actie naast "Werkzaam bij X", wat de indruk
-              wekte dat het naar de bedrijfsgegevens zou leiden. Die link
-              gaat daar wél direct naartoe, en staat verderop op de pagina
-              (zie onder ProfileForm) — wisselen van werkgever is zeldzaam,
-              dus hoeft hier niet naast de dagelijkse actie te staan. Subtiele
-              tekstlink i.p.v. knop — dit is een snelkoppeling, geen
-              hoofdactie van deze pagina. */}
-          <Link
-            href={`/bedrijven/${membership.company.id}/bewerken`}
-            className="flex items-center gap-1 text-xs text-muted hover:text-voc-red-text"
-          >
-            <Pencil size={11} />
-            Bedrijfsgegevens bewerken
-          </Link>
+        <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Link
+              href={`/bedrijven/${membership.company.id}`}
+              className="flex items-center gap-2 text-sm text-foreground hover:text-voc-red-text"
+            >
+              <Building2 size={16} className="text-muted" />
+              Werkzaam bij <span className="font-medium">{membership.company.name}</span>
+              {membership.company.city && <span className="text-muted">· {membership.company.city}</span>}
+            </Link>
+            {/* "Bedrijf wijzigen" (koppelen aan een ándere werkgever) stond
+                hier als enige actie naast "Werkzaam bij X", wat de indruk
+                wekte dat het naar de bedrijfsgegevens zou leiden. Die link
+                gaat daar wél direct naartoe, en staat verderop op de pagina
+                (zie onder ProfileForm) — wisselen van werkgever is zeldzaam,
+                dus hoeft hier niet naast de dagelijkse actie te staan. Subtiele
+                tekstlink i.p.v. knop — dit is een snelkoppeling, geen
+                hoofdactie van deze pagina. */}
+            <Link
+              href={`/bedrijven/${membership.company.id}/bewerken`}
+              className="flex items-center gap-1 text-xs text-muted hover:text-voc-red-text"
+            >
+              <Pencil size={11} />
+              Bedrijfsgegevens bewerken
+            </Link>
+          </div>
+          {/* F1: de huidige koppeling blijft bewust staan terwijl een
+              aanvraag voor een ander (bestaand) bedrijf nog in behandeling
+              is — pas bij goedkeuring wisselt het systeem over. */}
+          {pendingRequest?.company && (
+            <p className="flex items-center gap-2 text-xs text-muted">
+              <Clock size={13} />
+              Aanvraag voor <span className="font-medium text-foreground">{pendingRequest.company.name}</span> in
+              behandeling
+            </p>
+          )}
         </div>
       ) : pendingRequest?.company ? (
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">

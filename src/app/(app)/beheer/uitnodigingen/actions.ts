@@ -108,11 +108,28 @@ export async function createInvitationAction(
   return { success: true, emailSent: !emailError, emailError: emailError };
 }
 
-export async function revokeInvitationAction(id: string) {
+export async function revokeInvitationAction(id: string): Promise<{ error?: string }> {
   await requireBoard();
   const supabase = await createClient();
-  await supabase.from("invitations").update({ status: "revoked" }).eq("id", id);
+  // F12: zonder de status-guard kon dit een inmiddels geaccepteerde
+  // uitnodiging (de uitgenodigde registreerde zich terwijl deze pagina nog
+  // de oude, nog-pending lijst toonde) stilletjes op 'revoked' zetten —
+  // het account bestaat dan al, maar de geschiedenis van de uitnodiging
+  // zelf zou dat verkeerd laten zien. Zelfde guard als extendInvitationAction
+  // hierboven.
+  const { error, count } = await supabase
+    .from("invitations")
+    .update({ status: "revoked" }, { count: "exact" })
+    .eq("id", id)
+    .eq("status", "pending");
   revalidatePath("/beheer/instroom");
+  if (error) {
+    return { error: "Intrekken is niet gelukt. Probeer het opnieuw." };
+  }
+  if (!count) {
+    return { error: "Deze uitnodiging is al gebruikt of al ingetrokken." };
+  }
+  return {};
 }
 
 const EXTENDED_VALIDITY_MS = DEFAULT_VALIDITY_MS;

@@ -402,7 +402,11 @@ export async function sendNewsletterAction(communicationId: string): Promise<Sen
   let total: number;
   let sent: number;
   try {
-    ({ total, sent } = await performNewsletterSend(supabase, communication));
+    const result = await performNewsletterSend(supabase, communication);
+    if (result.alreadySending) {
+      return { error: "Deze nieuwsbrief wordt al verstuurd (mogelijk net via de ingeplande verzending). Probeer het straks opnieuw." };
+    }
+    ({ total, sent } = result);
   } catch {
     return { error: "Ontvangerslijst ophalen is niet gelukt. Probeer het opnieuw." };
   }

@@ -10,6 +10,7 @@ import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
 import { FormSection, FormSections, FormToggleRow } from "@/components/ui/FormSection";
 import { updateCompanyBillingAction, type UpdateCompanyBillingState } from "@/app/(app)/bedrijven/[id]/actions";
 import { useToast } from "@/lib/ui/ToastContext";
+import { useCompanyEditFormsGuard } from "./CompanyEditFormsGuard";
 import { useFieldValidation } from "@/lib/validation/useFieldValidation";
 import { validateEmail } from "@/lib/validation/fields";
 import type { Database } from "@/lib/types/database";
@@ -35,6 +36,7 @@ export function CompanyBillingForm({ company, billing }: { company: Company; bil
   const updateWithId = updateCompanyBillingAction.bind(null, company.id);
   const [state, formAction] = useActionState(updateWithId, initialState);
   const toast = useToast();
+  const formsGuard = useCompanyEditFormsGuard();
   const { errors, validateField, validateAll } = useFieldValidation({
     invoice_email: (value) => validateEmail(value),
   });
@@ -45,7 +47,10 @@ export function CompanyBillingForm({ company, billing }: { company: Company; bil
   const [sameAsVisitAddress, setSameAsVisitAddress] = useState(billing?.same_as_visit_address ?? true);
 
   useEffect(() => {
-    if (state.success) toast("Opgeslagen.");
+    if (state.success) {
+      toast("Opgeslagen.");
+      formsGuard.markDirty("billing", false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
@@ -56,8 +61,13 @@ export function CompanyBillingForm({ company, billing }: { company: Company; bil
   return (
     <form
       action={formAction}
+      onInput={() => formsGuard.markDirty("billing", true)}
       onSubmit={(e) => {
-        if (!validateAll(new FormData(e.currentTarget))) e.preventDefault();
+        if (!validateAll(new FormData(e.currentTarget))) {
+          e.preventDefault();
+          return;
+        }
+        if (!formsGuard.confirmIfOthersDirty("billing")) e.preventDefault();
       }}
       className="flex flex-col gap-5"
     >
@@ -69,7 +79,10 @@ export function CompanyBillingForm({ company, billing }: { company: Company; bil
             <input type="hidden" name="same_as_visit_address" value={sameAsVisitAddress ? "on" : ""} />
             <Switch
               checked={sameAsVisitAddress}
-              onChange={() => setSameAsVisitAddress((v) => !v)}
+              onChange={() => {
+                setSameAsVisitAddress((v) => !v);
+                formsGuard.markDirty("billing", true);
+              }}
               label="Factuuradres is hetzelfde als bezoekadres"
             />
           </FormToggleRow>

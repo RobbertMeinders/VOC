@@ -15,6 +15,7 @@ import { updateCompanyAction, type UpdateCompanyState } from "@/app/(app)/bedrij
 import { compressInputFile, createThumbnailFile } from "@/lib/image/compress";
 import { INDUSTRIES } from "@/lib/constants/industries";
 import { useToast } from "@/lib/ui/ToastContext";
+import { useCompanyEditFormsGuard } from "./CompanyEditFormsGuard";
 import { useFieldValidation } from "@/lib/validation/useFieldValidation";
 import { validateUrl, validateEmail } from "@/lib/validation/fields";
 import type { Database } from "@/lib/types/database";
@@ -39,6 +40,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
   const logoThumbInputRef = useRef<HTMLInputElement>(null);
   const shownLogo = preview ?? logoUrl;
   const toast = useToast();
+  const formsGuard = useCompanyEditFormsGuard();
   const { errors, validateField, validateAll } = useFieldValidation({
     website: (value) => validateUrl(value),
     linkedin_url: (value) => validateUrl(value),
@@ -48,7 +50,10 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
   });
 
   useEffect(() => {
-    if (state.success) toast("Opgeslagen.");
+    if (state.success) {
+      toast("Opgeslagen.");
+      formsGuard.markDirty("company", false);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
   // Gecontroleerd i.p.v. defaultValue: React reset een <form> na een
@@ -79,8 +84,13 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
   return (
     <form
       action={formAction}
+      onInput={() => formsGuard.markDirty("company", true)}
       onSubmit={(e) => {
-        if (!validateAll(new FormData(e.currentTarget))) e.preventDefault();
+        if (!validateAll(new FormData(e.currentTarget))) {
+          e.preventDefault();
+          return;
+        }
+        if (!formsGuard.confirmIfOthersDirty("company")) e.preventDefault();
       }}
       className="flex flex-col gap-5"
     >
@@ -271,7 +281,14 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           </div>
           <FormToggleRow label="Bezoekersadres tonen">
             <input type="hidden" name="show_address" value={showAddress ? "on" : ""} />
-            <Switch checked={showAddress} onChange={() => setShowAddress((v) => !v)} label="Bezoekersadres tonen" />
+            <Switch
+              checked={showAddress}
+              onChange={() => {
+                setShowAddress((v) => !v);
+                formsGuard.markDirty("company", true);
+              }}
+              label="Bezoekersadres tonen"
+            />
           </FormToggleRow>
         </FormSection>
 
@@ -307,7 +324,10 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
             <input type="hidden" name="is_publicly_visible" value={isPubliclyVisible ? "on" : ""} />
             <Switch
               checked={isPubliclyVisible}
-              onChange={() => setIsPubliclyVisible((v) => !v)}
+              onChange={() => {
+                setIsPubliclyVisible((v) => !v);
+                formsGuard.markDirty("company", true);
+              }}
               label="Zichtbaar op de openbare bedrijvengids"
             />
           </FormToggleRow>

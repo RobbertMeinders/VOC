@@ -94,12 +94,14 @@ function StatusBadge({ status }: { status: string }) {
     verzonden: "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400",
     verzenden_mislukt: "bg-voc-red-light text-voc-red-text",
     ingepland: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",
+    versturen: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",
   };
   const labels: Record<string, string> = {
     concept: "Concept",
     verzonden: "Verzonden",
     verzenden_mislukt: "Verzending onderbroken",
     ingepland: "Ingepland",
+    versturen: "Wordt verstuurd…",
   };
   // UX-review T5: status ook herkenbaar voor kleurenblinden, niet alleen op kleur.
   const icons: Record<string, LucideIcon> = {

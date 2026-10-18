@@ -58,7 +58,20 @@ export async function registerPublicForActivityAction(
   });
 
   if (error) {
-    return { error: "Aanmelden is niet gelukt. Mogelijk staat deze activiteit niet (meer) open voor aanmelden." };
+    // F6: upsert_public_activity_registration (0099) bewaakt nu ook deadline
+    // en maximum, met een eigen duidelijke foutmelding per geval — die mag
+    // hier getoond worden (geen interne details, gewoon leesbare NL-tekst).
+    // Alles daarbuiten blijft de algemene melding, om nooit een rauwe
+    // databasefout te laten zien.
+    const KNOWN_MESSAGES = [
+      "De aanmelddeadline voor deze activiteit is verstreken.",
+      "Deze activiteit heeft het maximum aantal deelnemers bereikt.",
+    ];
+    return {
+      error: KNOWN_MESSAGES.includes(error.message)
+        ? error.message
+        : "Aanmelden is niet gelukt. Mogelijk staat deze activiteit niet (meer) open voor aanmelden.",
+    };
   }
 
   revalidatePath(`/embed/agenda/${activityId}`);

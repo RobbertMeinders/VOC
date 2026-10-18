@@ -324,11 +324,11 @@ export async function updateMyCompanyAction(
     targetCompanyId = newCompany.id;
   }
 
-  // A member has one primary company in this UI — drop any existing link first.
-  await supabase.from("company_members").delete().eq("profile_id", profile.id);
-
   if (companyMode === "new") {
-    // Net aangemaakt door dit lid — niemand hoeft dat goed te keuren.
+    // Net aangemaakt door dit lid — niemand hoeft dat goed te keuren. Eerst
+    // de nieuwe koppeling leggen, en de oude pas verwijderen als dat gelukt
+    // is — anders blijft een lid zonder enig bedrijf achter als deze insert
+    // onverwacht mislukt (F1).
     const { error: linkError } = await supabase
       .from("company_members")
       .insert({ company_id: targetCompanyId, profile_id: profile.id, is_primary: true });
@@ -336,6 +336,8 @@ export async function updateMyCompanyAction(
     if (linkError) {
       return { error: "Koppelen aan het bedrijf is niet gelukt. Probeer het opnieuw." };
     }
+
+    await supabase.from("company_members").delete().eq("profile_id", profile.id).neq("company_id", targetCompanyId);
 
     // Nieuw bedrijf + koppeling staan meteen in de bedrijven- en ledenlijst.
     invalidateQuery("bedrijven-page-data");
@@ -345,7 +347,12 @@ export async function updateMyCompanyAction(
     return { success: true };
   }
 
-  // Bestaand bedrijf: een bedrijfsgenoot of bestuur/beheerder moet dit goedkeuren.
+  // Bestaand bedrijf: een bedrijfsgenoot of bestuur/beheerder moet dit nog
+  // goedkeuren — de huidige koppeling (indien aanwezig) blijft dus gewoon
+  // staan tot die goedkeuring er is (anders staat dit lid tijdens het
+  // wachten op goedkeuring nergens meer als "werkzaam bij", F1). Pas
+  // handle_company_membership_decision (0013, bij approval) ruimt de oude
+  // koppeling op, samen met het leggen van de nieuwe.
   const { error: requestError } = await supabase.from("company_membership_requests").upsert(
     { company_id: targetCompanyId, profile_id: profile.id, status: "pending", decided_by: null, decided_at: null },
     { onConflict: "company_id,profile_id" }

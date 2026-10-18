@@ -897,6 +897,10 @@ export interface Database {
         Args: { p_send_id: string; p_provider_id?: string | null };
         Returns: undefined;
       };
+      claim_newsletter_send: {
+        Args: { p_communication_id: string };
+        Returns: boolean;
+      };
     };
     Enums: {
       user_role: UserRole;

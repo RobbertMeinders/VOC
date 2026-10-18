@@ -350,17 +350,25 @@ export async function deleteActivityAction(activityId: string, redirectAfter = t
     await requireProfile();
     const supabase = await createClient();
 
-    const { count } = await supabase
-      .from("activity_registrations")
-      .select("id", { count: "exact", head: true })
-      .eq("activity_id", activityId);
-    if ((count ?? 0) > 0) {
+    // F9: telde alleen leden-aanmeldingen — een activiteit met uitsluitend
+    // externe aanmeldingen (public_activity_registrations, via het publieke
+    // formulier) kon zo zonder waarschuwing verwijderd worden, en die
+    // aanmeldingen verdwenen stilzwijgend mee (cascade op activity_id).
+    const [{ count: memberCount }, { count: publicCount }] = await Promise.all([
+      supabase.from("activity_registrations").select("id", { count: "exact", head: true }).eq("activity_id", activityId),
+      supabase.from("public_activity_registrations").select("id", { count: "exact", head: true }).eq("activity_id", activityId),
+    ]);
+    const totalCount = (memberCount ?? 0) + (publicCount ?? 0);
+    if (totalCount > 0) {
       throw new Error(
-        `Deze activiteit heeft ${count} aanmelding(en) en kan daarom niet verwijderd worden. Gebruik "Afgelasten" om aangemelden te informeren.`
+        `Deze activiteit heeft ${totalCount} aanmelding(en) en kan daarom niet verwijderd worden. Gebruik "Afgelasten" om aangemelden te informeren.`
       );
     }
 
-    await supabase.from("activities").delete().eq("id", activityId);
+    const { error: deleteError } = await supabase.from("activities").delete().eq("id", activityId);
+    if (deleteError) {
+      throw new Error("Verwijderen is niet gelukt. Probeer het opnieuw.");
+    }
     invalidateActivityStatsCache();
     revalidatePath("/agenda");
     revalidatePath("/beheer/agenda");
@@ -384,9 +392,17 @@ export async function cancelActivityAction(activityId: string, message: string):
   await requireBoard();
   const supabase = await createClient();
 
-  const { data: activity } = await supabase.from("activities").select("title").eq("id", activityId).maybeSingle();
+  const { data: activity } = await supabase.from("activities").select("title, status").eq("id", activityId).maybeSingle();
   if (!activity) {
     return { error: "Activiteit niet gevonden." };
+  }
+  // F8: zonder deze check stuurde een tweede keer op "Afgelasten" klikken
+  // (bv. dubbelklik, of de pagina nog open na een eerdere, al geslaagde
+  // afmelding) iedere aangemelde en externe deelnemer de melding/e-mail
+  // nogmaals — de update zelf was onschadelijk (status stond al op
+  // 'cancelled'), maar de bijwerkingen hieronder niet.
+  if (activity.status === "cancelled") {
+    return { error: "Deze activiteit is al afgelast." };
   }
 
   const { error } = await supabase.from("activities").update({ status: "cancelled" }).eq("id", activityId);

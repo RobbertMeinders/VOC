@@ -5,6 +5,7 @@ import { ROLE_LABELS } from "@/lib/auth/roles";
 import { ActionMenu, type ActionMenuItem } from "@/components/ui/ActionMenu";
 import { isInvitationExpired, type Invitation } from "./InvitationList";
 import { extendInvitationAction, revokeInvitationAction, sendInvitationEmailAction } from "@/app/(app)/beheer/uitnodigingen/actions";
+import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 
 function StatusBadge({ invitation }: { invitation: Invitation }) {
   if (isInvitationExpired(invitation)) {
@@ -34,6 +35,7 @@ export function InvitationRow({
   onToggleSelected: () => void;
 }) {
   const [feedback, setFeedback] = useState<string | null>(null);
+  const confirm = useConfirm();
 
   const link = typeof window !== "undefined" ? `${window.location.origin}/register/${invitation.token}` : "";
   const name = [invitation.first_name, invitation.last_name].filter(Boolean).join(" ");
@@ -58,7 +60,16 @@ export function InvitationRow({
   }
   items.push({
     label: "Kopieer link",
-    onClick: () => {
+    onClick: async () => {
+      // F2: zonder verzonden e-mail bleef expires_at NULL, dus een
+      // gekopieerde link ("verloopt pas na versturen") was in de praktijk
+      // altijd ongeldig totdat iemand hem per ongeluk via "Verleng"
+      // activeerde. Kopiëren is net zo goed een manier om de link bij de
+      // uitgenodigde te krijgen als de automatische mail, dus activeert 'm
+      // nu op dezelfde manier.
+      if (!invitation.expires_at) {
+        await extendInvitationAction(invitation.id);
+      }
       void navigator.clipboard.writeText(link);
       showFeedback("Link gekopieerd.");
     },
@@ -72,8 +83,18 @@ export function InvitationRow({
   items.push({
     label: "Intrekken",
     danger: true,
-    onClick: () => {
-      void revokeInvitationAction(invitation.id);
+    onClick: async () => {
+      // F12: stond zonder bevestiging naast de andere, onschadelijke
+      // menu-acties — één verkeerde klik trok een uitnodiging definitief in.
+      const confirmed = await confirm({
+        title: "Uitnodiging intrekken?",
+        description: `De link voor ${name || invitation.email || "deze uitnodiging"} werkt daarna niet meer.`,
+        confirmLabel: "Intrekken",
+        danger: true,
+      });
+      if (!confirmed) return;
+      const { error } = await revokeInvitationAction(invitation.id);
+      showFeedback(error ?? "Uitnodiging ingetrokken.");
     },
   });
 

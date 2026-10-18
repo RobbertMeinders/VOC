@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { CompanyForm } from "@/components/company/CompanyForm";
 import { CompanyBillingForm } from "@/components/company/CompanyBillingForm";
+import { CompanyEditFormsGuard } from "@/components/company/CompanyEditFormsGuard";
 import { BackLink } from "@/components/ui/BackLink";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { deleteCompanyAction } from "@/app/(app)/bedrijven/[id]/actions";
@@ -60,13 +61,15 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
         <h1 className="text-xl font-semibold text-foreground">Bedrijfsgegevens bewerken</h1>
         <p className="mt-0.5 text-sm text-muted">Zichtbaar voor leden van dit bedrijf en voor bestuur/beheer.</p>
       </div>
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-        <CompanyForm company={company} logoUrl={logoUrl} />
-      </div>
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-        <h2 className="mb-4 text-sm font-semibold text-foreground">Factuurgegevens</h2>
-        <CompanyBillingForm company={company} billing={billing ?? null} />
-      </div>
+      <CompanyEditFormsGuard>
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+          <CompanyForm company={company} logoUrl={logoUrl} />
+        </div>
+        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+          <h2 className="mb-4 text-sm font-semibold text-foreground">Factuurgegevens</h2>
+          <CompanyBillingForm company={company} billing={billing ?? null} />
+        </div>
+      </CompanyEditFormsGuard>
       {isAdmin(profile.role) && (
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
           <h2 className="mb-1 text-sm font-semibold text-foreground">Bedrijf verwijderen</h2>
