@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { FileText, IdCard, Info, Landmark, Menu, UsersRound, X, type LucideIcon } from "lucide-react";
+import { FileText, IdCard, Info, Menu, UsersRound, X, type LucideIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
@@ -107,7 +107,7 @@ export function VerenigingMenu({ variant }: { variant: "sidebar" | "mobile" }) {
             : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
-        <Landmark size={20} strokeWidth={active ? 2.5 : 2} />
+        <Info size={20} strokeWidth={active ? 2.5 : 2} />
         Vereniging
       </button>
       {open && rect && (

@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { logAuditAction } from "@/lib/audit/log";
 
 function revalidateCommissions() {
-  revalidatePath("/beheer/vereniging/commissies");
+  revalidatePath("/beheer/vereniging");
   revalidatePath("/vereniging/commissies");
 }
 

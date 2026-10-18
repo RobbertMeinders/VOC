@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
+import { setBoardPosition } from "@/lib/board/positions";
 import type { UpdateProfileState } from "@/app/(app)/profiel/actions";
 import type { Database, UserRole } from "@/lib/types/database";
 
@@ -360,47 +361,16 @@ export async function quickUpdateMemberAction(
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
 
-  // Bestuursfunctie: losse board_positions-geschiedenis i.p.v. een kolom op
-  // profiles — zie 0107_vereniging_bestuur_commissies.sql. Alleen
-  // aanraken als het veld daadwerkelijk wijzigt (geen onnodige
-  // beëindigen+opnieuw-aanmaken-cyclus bij elke snelle-bewerken-opslag).
-  // Elke stap checkt expliciet op een fout i.p.v. die te negeren — anders
-  // meldt dit formulier "Opgeslagen" terwijl de functie (bv. door een nog
-  // niet toegepaste migratie of een RLS-afwijzing) feitelijk niet is
-  // weggeschreven, en blijft de bestuurder onzichtbaar op de Bestuur-pagina.
-  const boardTitle = String(formData.get("board_title") ?? "").trim();
-  const { data: activePosition, error: boardSelectError } = await supabase
-    .from("board_positions")
-    .select("id, title")
-    .eq("profile_id", memberId)
-    .is("ended_at", null)
-    .maybeSingle();
-
-  if (boardSelectError) {
-    return { error: "Opslaan van de bestuursfunctie is niet gelukt. Probeer het opnieuw." };
+  // Bestuursfunctie: gedeelde helper (src/lib/board/positions.ts) i.p.v. een
+  // eigen kopie van de select/end/insert-logica — zelfde gedrag als het
+  // Bestuur-tabblad in Beheer -> Vereniging.
+  const boardTitle = String(formData.get("board_title") ?? "");
+  const boardResult = await setBoardPosition(supabase, memberId, boardTitle, viewer.id);
+  if (boardResult.error) {
+    return boardResult;
   }
-
-  if (boardTitle !== (activePosition?.title ?? "")) {
-    if (activePosition) {
-      const { error: endError } = await supabase
-        .from("board_positions")
-        .update({ ended_at: new Date().toISOString() })
-        .eq("id", activePosition.id);
-      if (endError) {
-        return { error: "Opslaan van de bestuursfunctie is niet gelukt. Probeer het opnieuw." };
-      }
-    }
-    if (boardTitle) {
-      const { error: insertError } = await supabase
-        .from("board_positions")
-        .insert({ profile_id: memberId, title: boardTitle, created_by: viewer.id });
-      if (insertError) {
-        return { error: "Opslaan van de bestuursfunctie is niet gelukt. Probeer het opnieuw." };
-      }
-    }
-    revalidatePath("/beheer/vereniging/bestuur");
-    revalidatePath("/vereniging/bestuur");
-  }
+  revalidatePath("/beheer/vereniging");
+  revalidatePath("/vereniging/bestuur");
 
   await logAuditAction("member_profile_updated", "profile", memberId);
 

@@ -38,7 +38,7 @@ export async function updateOrgProfileAction(
 
   await logAuditAction("org_profile_updated", "org_profile", "org_profile");
 
-  revalidatePath("/beheer/vereniging/over-ons");
+  revalidatePath("/beheer/vereniging");
   revalidatePath("/vereniging/over-ons");
   return { success: true };
 }

@@ -6,7 +6,6 @@ import {
   CalendarDays,
   Code,
   Flag,
-  IdCard,
   Info,
   LayoutDashboard,
   Mail,
@@ -16,7 +15,6 @@ import {
   Settings,
   UserPlus,
   Users,
-  UsersRound,
 } from "lucide-react";
 
 // adminOnly ontbreekt (= false) voor inhoudelijk-beheer-items (bestuurslid +
@@ -52,9 +50,7 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     title: "Vereniging",
     items: [
       { href: "/beheer/instellingen", label: "Portaalinstellingen", icon: Settings, adminOnly: true },
-      { href: "/beheer/vereniging/over-ons", label: "Over VOC", icon: Info },
-      { href: "/beheer/vereniging/bestuur", label: "Bestuur", icon: IdCard },
-      { href: "/beheer/vereniging/commissies", label: "Commissies", icon: UsersRound },
+      { href: "/beheer/vereniging", label: "Vereniging", icon: Info },
     ],
   },
   {
