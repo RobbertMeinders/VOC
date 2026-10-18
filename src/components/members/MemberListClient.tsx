@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo, useState } from "react";
 import { Users } from "lucide-react";
-import { ListToolbar, type ListToolbarFilter } from "@/components/ui/ListToolbar";
+import { FilterControl, ListToolbar, type ListToolbarFilter } from "@/components/ui/ListToolbar";
 import { matchesSearch } from "@/lib/search/normalize";
 import { useUrlFilterState } from "@/lib/dom/useUrlFilterState";
 import { ComingSoon } from "@/components/ui/ComingSoon";
@@ -59,7 +59,16 @@ function MemberListInner({ members, branches }: { members: MemberListItem[]; bra
         resultCount={filtered.length}
         totalCount={members.length}
         filters={filters}
+        showFilterButtons={false}
       />
+      {/* Rechts uitgelijnd i.p.v. ListToolbar's standaard links-uitgelijnde
+          filterrij — zelfde positie als de Branche-filter op de
+          bedrijvenpagina (BedrijvenView, naast de Lijst/Kaart-toggle). */}
+      {filters.length > 0 && (
+        <div className="mb-3 flex justify-end">
+          <FilterControl filter={filters[0]} />
+        </div>
+      )}
       {filtered.length > 0 ? (
         <div className="grid gap-3 sm:grid-cols-2">
           {filtered.map((member) => (
