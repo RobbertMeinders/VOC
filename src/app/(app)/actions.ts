@@ -415,5 +415,11 @@ export async function reportPostAction(
     return { error: "Rapporteren is niet gelukt. Probeer het opnieuw." };
   }
 
+  // notify_feed_post_report zet net een notifications-rij voor bestuur/
+  // beheer — zonder dit wachtte de pushmelding tot de volgende dagelijkse
+  // cron-run i.p.v. binnen enkele seconden aan te komen (zelfde reden als
+  // bij createCommentAction hierboven).
+  after(() => dispatchPendingPushNotifications(10));
+
   return { success: true };
 }
