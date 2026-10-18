@@ -26,9 +26,9 @@ export function PostTypeChooser({ onChoose }: { onChoose: (type: FeedPostType | 
             key={type}
             type="button"
             onClick={() => onChoose(type)}
-            className="flex flex-col items-center gap-2 rounded-2xl border border-border p-4 text-center hover:border-voc-red"
+            className="flex flex-col items-center gap-2 rounded-2xl border border-border p-4 text-center hover:border-muted hover:bg-black/[.04] dark:hover:bg-white/[.06]"
           >
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-voc-red-light text-voc-red-text">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/5 text-foreground dark:bg-white/10">
               <Icon size={22} />
             </span>
             <span className="text-sm font-semibold text-foreground">{label}</span>
@@ -39,7 +39,7 @@ export function PostTypeChooser({ onChoose }: { onChoose: (type: FeedPostType | 
       <button
         type="button"
         onClick={() => onChoose(null)}
-        className="flex items-center justify-center gap-2 rounded-xl border border-border px-3.5 py-2 text-sm text-muted hover:border-voc-red hover:text-voc-red-text"
+        className="flex items-center justify-center gap-2 rounded-xl border border-border px-3.5 py-2 text-sm text-muted hover:border-muted hover:bg-black/[.04] dark:hover:bg-white/[.06]"
       >
         <MoreHorizontal size={15} className="shrink-0" />
         Overig
