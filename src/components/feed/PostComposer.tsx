@@ -65,11 +65,23 @@ export function PostComposer({ author, onCreated }: { author: FeedAuthor; onCrea
         onCreated(post);
         setFormKey((k) => k + 1);
       }}
+      // Remount i.p.v. alleen setOpen(false): zo start de composer bij de
+      // volgende keer openen altijd met een schone beginsituatie (geen
+      // onthouden categoriekeuze, tekst of bijlagen) — zie opdracht "punt 4".
+      onClose={() => setFormKey((k) => k + 1)}
     />
   );
 }
 
-function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated: (post: FeedPost) => void }) {
+function PostComposerForm({
+  author,
+  onCreated,
+  onClose,
+}: {
+  author: FeedAuthor;
+  onCreated: (post: FeedPost) => void;
+  onClose: () => void;
+}) {
   const [open, setOpen] = useState(false);
   const [state, formAction] = useActionState(createPostAction, initialState);
   const [previews, setPreviews] = useState<Preview[]>([]);
@@ -81,7 +93,7 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
   const thumbInputRef = useRef<HTMLInputElement>(null);
   const previewUrlsRef = useRef<string[]>([]);
 
-  useEscapeKey(open, () => setOpen(false));
+  useEscapeKey(open, onClose);
   useBodyScrollLock(open);
 
   useEffect(() => {
@@ -206,14 +218,14 @@ function PostComposerForm({ author, onCreated }: { author: FeedAuthor; onCreated
     // gerenderde BottomNav de klik, waardoor die onder dit paneel aanklikbaar
     // bleef (zelfde bugklasse als bij NotificationCenter).
     <FloatingPortal>
-      <div className="fixed inset-0 z-40 cursor-pointer bg-black/60 animate-fade-in" onClick={() => setOpen(false)} />
+      <div className="fixed inset-0 z-40 cursor-pointer bg-black/60 animate-fade-in" onClick={onClose} />
       <div className="fixed inset-x-3 top-1/2 z-50 -translate-y-1/2 sm:inset-x-0 sm:mx-auto sm:w-full sm:max-w-xl sm:px-3 md:left-72">
         <div className="animate-scale-in max-h-[85vh] overflow-y-auto rounded-2xl border border-border bg-surface shadow-lg">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <p className="text-sm font-semibold text-foreground">Nieuw bericht</p>
             <button
               type="button"
-              onClick={() => setOpen(false)}
+              onClick={onClose}
               aria-label="Sluiten"
               className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
             >
