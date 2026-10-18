@@ -28,6 +28,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   );
 
   const result: CompanyDetailData = {
+    companyId: company.id,
     name: company.name,
     logoUrl: publicLogoUrl(company.logo_url),
     tagline: company.tagline,

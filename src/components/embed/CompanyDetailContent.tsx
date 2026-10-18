@@ -7,6 +7,7 @@ import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { PopupLoginLink } from "@/components/embed/PopupLoginLink";
 
 export type CompanyDetailData = {
+  companyId: string;
   name: string;
   logoUrl: string | null;
   tagline: string | null;
@@ -107,7 +108,10 @@ export function CompanyDetailContent({ company }: { company: CompanyDetailData }
           <p className="mt-3 flex items-center gap-1.5 border-t border-border pt-3 text-xs text-muted">
             <Lock size={12} className="shrink-0" />
             <span>
-              <PopupLoginLink href="/login" className="font-medium text-voc-red-text hover:underline">
+              <PopupLoginLink
+                href={`/login?next=${encodeURIComponent(`/bedrijven/${company.companyId}`)}`}
+                className="font-medium text-voc-red-text hover:underline"
+              >
                 Log in
               </PopupLoginLink>{" "}
               voor meer info.

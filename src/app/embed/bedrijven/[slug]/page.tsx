@@ -45,6 +45,7 @@ export default async function BedrijfEmbedDetailPage({
   );
 
   const detail: CompanyDetailData = {
+    companyId: company.id,
     name: company.name,
     logoUrl: publicLogoUrl(company.logo_url),
     tagline: company.tagline,

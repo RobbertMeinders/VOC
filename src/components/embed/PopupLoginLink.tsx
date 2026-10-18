@@ -3,16 +3,19 @@
 import { useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 
-// Waarom een pop-up i.p.v. gewoon target="_top": deze pagina draait in een
-// iframe op een ander domein (de WordPress-site). Zelfs met een geldige
-// portaalsessie in een ander tabblad stuurt de browser die sessiecookie
-// nooit mee naar dit iframe (SameSite=Lax, en Safari/Firefox blokkeren
-// third-party cookies sowieso altijd) — het portaal "weet" hier dus nooit
-// wie je bent, ongeacht wat we los proberen te detecteren. Een pop-up is
-// een gewone top-level navigatie naar het portaal zelf: daar werkt de
-// sessiecookie gewoon normaal (first-party), dus inloggen/aanmelden lukt
-// altijd, in elke browser — en de WordPress-pagina blijft intussen gewoon
-// open i.p.v. dat je 'm helemaal verlaat.
+// Waarom een nieuw tabblad i.p.v. gewoon target="_top": deze pagina draait
+// in een iframe op een ander domein (de WordPress-site). Zelfs met een
+// geldige portaalsessie in een ander tabblad stuurt de browser die
+// sessiecookie nooit mee naar dit iframe (SameSite=Lax, en Safari/Firefox
+// blokkeren third-party cookies sowieso altijd) — het portaal "weet" hier
+// dus nooit wie je bent, ongeacht wat we los proberen te detecteren. Een
+// nieuw tabblad is een gewone top-level navigatie naar het portaal zelf:
+// daar werkt de sessiecookie gewoon normaal (first-party), dus inloggen/
+// aanmelden lukt altijd, in elke browser — en de WordPress-pagina blijft
+// intussen gewoon open i.p.v. dat je 'm helemaal verlaat. Geen
+// width/height/left/top-features: die laten de browser dit als een los
+// pop-upvenster renderen (geen tabbladen/adresbalk) i.p.v. als een gewoon
+// tabblad in hetzelfde venster.
 export function PopupLoginLink({ href, className, children }: { href: string; className?: string; children: React.ReactNode }) {
   const router = useRouter();
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -29,24 +32,20 @@ export function PopupLoginLink({ href, className, children }: { href: string; cl
 
   function open(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
-    const width = 460;
-    const height = 720;
-    const left = window.screenX + Math.max(0, (window.outerWidth - width) / 2);
-    const top = window.screenY + Math.max(0, (window.outerHeight - height) / 2);
-    const popup = window.open(href, "voc-login", `width=${width},height=${height},left=${left},top=${top}`);
-    if (!popup) {
-      // Pop-up geblokkeerd door de browser: val terug op de oude, volle
-      // navigatie i.p.v. dat er niets gebeurt.
+    const tab = window.open(href, "voc-login");
+    if (!tab) {
+      // Nieuw tabblad geblokkeerd door de browser: val terug op de oude,
+      // volle navigatie i.p.v. dat er niets gebeurt.
       window.top!.location.href = href;
       return;
     }
-    popup.focus();
+    tab.focus();
 
-    // Ververst deze embed-pagina zodra de pop-up weer dicht is — zonder dit
+    // Ververst deze embed-pagina zodra het tabblad weer dicht is — zonder dit
     // laat de teller "X aanmeldingen" nog het aantal van vóór je aanmelding
-    // zien, ook al is die in de pop-up (op het echte portaal) al gelukt.
+    // zien, ook al is die in dat tabblad (op het echte portaal) al gelukt.
     const interval = setInterval(() => {
-      if (popup.closed) {
+      if (tab.closed) {
         clearInterval(interval);
         intervalRef.current = null;
         router.refresh();
