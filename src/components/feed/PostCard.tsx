@@ -360,10 +360,21 @@ export function PostCard({
   const summary = likeSummaryText(post.likeSummary.topLikerName, post.likeSummary.count);
 
   return (
-    <article id={`post-${post.id}`} className="animate-rise-in scroll-mt-20 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+    <article
+      id={`post-${post.id}`}
+      className={clsx(
+        "animate-rise-in scroll-mt-20 rounded-2xl border border-border bg-surface shadow-sm",
+        compact ? "p-3" : "p-4"
+      )}
+    >
       <div className="flex items-start justify-between gap-2">
         <Link href={`/leden/${post.author.id}`} className="flex items-center gap-3">
-          <Avatar firstName={post.author.first_name} lastName={post.author.last_name} avatarUrl={post.author.avatarUrl} size={40} />
+          <Avatar
+            firstName={post.author.first_name}
+            lastName={post.author.last_name}
+            avatarUrl={post.author.avatarUrl}
+            size={compact ? 32 : 40}
+          />
           <div>
             <p className="text-sm font-medium text-foreground">
               {post.author.first_name} {post.author.last_name}

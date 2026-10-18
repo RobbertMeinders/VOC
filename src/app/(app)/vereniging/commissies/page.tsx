@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { UsersRound } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
@@ -50,7 +51,10 @@ export default async function CommissiesPage() {
       {!commissions || commissions.length === 0 ? (
         <ComingSoon icon={UsersRound} title="Nog geen commissies" description="Het bestuur heeft nog geen commissies aangemaakt." />
       ) : (
-        <div className="flex flex-col gap-3">
+        // gap-5 i.p.v. gap-3: een commissie telt doorgaans maar een paar
+        // leden, geen lange lijst — iets meer lucht ertussen past bij hoe
+        // weinig elke kaart al bevat, i.p.v. ze dicht op elkaar te proppen.
+        <div className="flex flex-col gap-5">
           {commissions.map((commission) => {
             const members = (memberships ?? []).filter((m) => m.commission_id === commission.id && m.profile);
             const isMember = members.some((m) => m.profile_id === viewer.id);
@@ -75,17 +79,25 @@ export default async function CommissiesPage() {
                 </div>
 
                 {members.length > 0 && (
-                  <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border pt-3">
+                  // Een commissie telt meestal maar een paar leden — die
+                  // mogen dan ook echt zichtbaar zijn i.p.v. als kleine
+                  // naamlabeltjes weggedrukt: grotere foto, eigen kaartje
+                  // per lid, en doorklikbaar naar het profiel.
+                  <div className="mt-4 flex flex-wrap gap-3 border-t border-border pt-4">
                     {members.map((member) => {
                       const path = member.profile!.avatar_thumb_url ?? member.profile!.avatar_url;
                       const avatarUrl = path ? (avatarUrls.get(path) ?? null) : null;
                       return (
-                        <div key={member.profile_id} className="flex items-center gap-1.5 rounded-full bg-black/5 py-1 pl-1 pr-3 dark:bg-white/10">
-                          <Avatar firstName={member.profile!.first_name} lastName={member.profile!.last_name} avatarUrl={avatarUrl} size={22} />
-                          <span className="text-xs text-foreground">
+                        <Link
+                          key={member.profile_id}
+                          href={`/leden/${member.profile_id}`}
+                          className="flex items-center gap-2.5 rounded-full bg-black/5 py-1.5 pl-1.5 pr-4 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/15"
+                        >
+                          <Avatar firstName={member.profile!.first_name} lastName={member.profile!.last_name} avatarUrl={avatarUrl} size={36} />
+                          <span className="text-sm font-medium text-foreground">
                             {member.profile!.first_name} {member.profile!.last_name}
                           </span>
-                        </div>
+                        </Link>
                       );
                     })}
                   </div>

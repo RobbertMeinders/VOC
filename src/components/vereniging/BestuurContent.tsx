@@ -8,6 +8,7 @@ import { ComingSoon } from "@/components/ui/ComingSoon";
 type BoardPositionRow = {
   id: string;
   title: string;
+  started_at: string;
   profile: {
     id: string;
     first_name: string;
@@ -39,7 +40,9 @@ export async function BestuurContent() {
 
   const { data: positions } = await supabase
     .from("board_positions")
-    .select("id, title, profile:profiles!board_positions_profile_id_fkey(id, first_name, last_name, avatar_url, avatar_thumb_url)")
+    .select(
+      "id, title, started_at, profile:profiles!board_positions_profile_id_fkey(id, first_name, last_name, avatar_url, avatar_thumb_url)"
+    )
     .is("ended_at", null)
     .order("started_at", { ascending: true })
     .returns<BoardPositionRow[]>();
@@ -82,7 +85,7 @@ export async function BestuurContent() {
     // grotere kaarten/foto's voelt de pagina als een echte kennismaking met
     // het bestuur i.p.v. een dichte rooster-lijst.
     <div className="flex flex-wrap justify-center gap-4">
-      {activePositions.map(({ id, title, profile }) => {
+      {activePositions.map(({ id, title, started_at, profile }) => {
         if (!profile) return null;
         const path = profile.avatar_thumb_url ?? profile.avatar_url;
         const avatarUrl = path ? (avatarUrls.get(path) ?? null) : null;
@@ -91,7 +94,11 @@ export async function BestuurContent() {
           <Link
             key={id}
             href={`/leden/${profile.id}`}
-            className="flex w-40 flex-col items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-8 text-center shadow-sm transition-colors hover:border-voc-red/40 sm:w-48"
+            // animate-rise-in + een lichte hover-lift (i.p.v. alleen de
+            // randkleur) geven de kennismakingspagina wat meer leven dan een
+            // statische kaart — zelfde soort micro-interactie als elders in
+            // de app (bv. de sidebar-items die bij hover opschuiven).
+            className="animate-rise-in group flex w-40 flex-col items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-8 text-center shadow-sm transition-all duration-150 hover:-translate-y-1 hover:border-voc-red/40 hover:shadow-md sm:w-48"
           >
             <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={112} />
             <div className="min-w-0">
@@ -100,6 +107,7 @@ export async function BestuurContent() {
               </p>
               <p className="truncate text-xs text-muted">{title}</p>
               {companyName && <p className="truncate text-xs text-muted">{companyName}</p>}
+              <p className="mt-1 truncate text-[11px] text-muted">Sinds {new Date(started_at).getFullYear()}</p>
             </div>
           </Link>
         );

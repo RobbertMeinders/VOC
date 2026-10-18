@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
-import { ChevronDown, FileText, Briefcase, Info, Menu, UsersRound, X, type LucideIcon } from "lucide-react";
+import { ChevronDown, FileText, Briefcase, Info, Landmark, Menu, UsersRound, X, type LucideIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
@@ -131,7 +131,7 @@ export function VerenigingMenu({ variant }: { variant: "sidebar" | "mobile" }) {
             : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
-        <Info size={20} strokeWidth={active ? 2.5 : 2} />
+        <Landmark size={20} strokeWidth={active ? 2.5 : 2} />
         Vereniging
         <ChevronDown size={16} className={clsx("ml-auto transition-transform duration-150", open && "rotate-180")} />
       </button>

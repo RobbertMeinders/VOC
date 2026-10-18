@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import Image from "next/image";
 import { clsx } from "clsx";
 import { ImageLightbox } from "./ImageLightbox";
@@ -28,23 +28,28 @@ const MAX_VISIBLE = 4;
 const MAX_HEIGHT = 420;
 
 // Op het eigen ledenprofiel ("Berichten") mag een foto nooit zo veel
-// aandacht trekken als in de feed zelf — compact gebruikt dezelfde mozaïek
-// maar flink lager/meer gecropt, zodat je ziet dát er een foto bij zit
-// zonder dat 'm de rest van de pagina overschaduwt. Tikken opent nog
-// gewoon de volledige foto in de lightbox.
-const COMPACT_MAX_HEIGHT = 160;
+// aandacht trekken als in de feed zelf. Een eerste poging (dezelfde
+// breedte-vullende mozaïek, alleen lager) oogde nog steeds als een brede
+// banner. Compact laat de mozaïek daarom helemaal los en toont in plaats
+// daarvan een rijtje kleine, vaste vierkante duimnagels — je ziet dát er
+// foto's bij het bericht zitten, zonder dat ze de kaart overnemen. Tikken
+// opent nog gewoon de volledige foto in de lightbox.
+const COMPACT_THUMB_SIZE = 72;
+const COMPACT_MAX_VISIBLE = 4;
 
 function Cell({
   image,
   remainingCount,
   onClick,
   className,
+  style,
   label,
 }: {
   image: FeedAttachment;
   remainingCount?: number;
   onClick: () => void;
   className?: string;
+  style?: CSSProperties;
   label: string;
 }) {
   const [loaded, setLoaded] = useState(false);
@@ -55,6 +60,7 @@ function Cell({
       type="button"
       onClick={onClick}
       aria-label={remainingCount ? `${label}, en nog ${remainingCount} foto's` : label}
+      style={style}
       className={clsx("relative overflow-hidden bg-black/[.03] dark:bg-white/[.03]", className)}
     >
       {/* opacity-0 -> 100 i.p.v. direct scherp verschijnen: zonder dit kan een
@@ -146,15 +152,39 @@ export function AttachmentCarousel({ images, compact = false }: { images: FeedAt
 
   if (images.length === 0) return null;
 
+  if (compact) {
+    const visibleThumbs = images.slice(0, COMPACT_MAX_VISIBLE);
+    const remainingThumbs = Math.max(0, images.length - COMPACT_MAX_VISIBLE);
+    return (
+      <>
+        <div className="mt-3 flex gap-1.5">
+          {visibleThumbs.map((image, i) => (
+            <Cell
+              key={image.id}
+              image={image}
+              onClick={() => setLightboxIndex(i)}
+              className="shrink-0 rounded-lg"
+              style={{ width: COMPACT_THUMB_SIZE, height: COMPACT_THUMB_SIZE }}
+              remainingCount={i === visibleThumbs.length - 1 ? remainingThumbs : undefined}
+              label={`Foto ${i + 1} van ${images.length} bekijken`}
+            />
+          ))}
+        </div>
+        {lightboxIndex !== null && (
+          <ImageLightbox images={images} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
+        )}
+      </>
+    );
+  }
+
   const visible = images.slice(0, MAX_VISIBLE);
   const remaining = Math.max(0, images.length - MAX_VISIBLE);
-  const maxHeight = compact ? COMPACT_MAX_HEIGHT : MAX_HEIGHT;
 
   return (
     <>
       <div className="mt-3 overflow-hidden rounded-xl">
         {visible.length === 1 && (
-          <SingleCell image={visible[0]} onClick={() => setLightboxIndex(0)} label="Foto bekijken" maxHeight={maxHeight} />
+          <SingleCell image={visible[0]} onClick={() => setLightboxIndex(0)} label="Foto bekijken" maxHeight={MAX_HEIGHT} />
         )}
 
         {/* 2 foto's: elke cel apart vierkant i.p.v. de hele rij vierkant maken
@@ -162,18 +192,15 @@ export function AttachmentCarousel({ images, compact = false }: { images: FeedAt
             liggend, zonder dat daar nog een aparte max-hoogte voor nodig is
             (dat was bij de vorige aanpak, met vierkant op de hele container,
             wél nodig omdat dat elke cel juist een smalle, hoge 1:2-kolom
-            maakte). Compact: container krijgt zelf een vaste, lagere hoogte
-            i.p.v. aspect-square, zodat de cellen breder croppen i.p.v. hoger
-            worden — zelfde "minder aandacht, wel nog zichtbaar"-aanpak als
-            SingleCell/het >=3-grid hieronder. */}
+            maakte). */}
         {visible.length === 2 && (
-          <div className="grid grid-cols-2 gap-0.5" style={compact ? { height: maxHeight } : undefined}>
+          <div className="grid grid-cols-2 gap-0.5">
             {visible.map((image, i) => (
               <Cell
                 key={image.id}
                 image={image}
                 onClick={() => setLightboxIndex(i)}
-                className={compact ? "h-full" : "aspect-square"}
+                className="aspect-square"
                 label={`Foto ${i + 1} van ${images.length} bekijken`}
               />
             ))}
@@ -181,7 +208,7 @@ export function AttachmentCarousel({ images, compact = false }: { images: FeedAt
         )}
 
         {visible.length >= 3 && (
-          <div className="grid aspect-square w-full grid-rows-[2fr_1fr] gap-0.5" style={{ maxHeight }}>
+          <div className="grid aspect-square w-full grid-rows-[2fr_1fr] gap-0.5" style={{ maxHeight: MAX_HEIGHT }}>
             <Cell image={visible[0]} onClick={() => setLightboxIndex(0)} label={`Foto 1 van ${images.length} bekijken`} />
             <div
               className={clsx("grid grid-rows-[1fr] gap-0.5", visible.length === 3 ? "grid-cols-2" : "grid-cols-3")}
