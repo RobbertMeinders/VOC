@@ -48,7 +48,7 @@ export function isEmailConfigured(): boolean {
 
 type SendResult = { error?: string; providerId?: string };
 
-async function sendMail(to: string, subject: string, html: string, from?: string): Promise<SendResult> {
+async function sendMail(to: string, subject: string, html: string, from?: string, replyTo?: string): Promise<SendResult> {
   const transporter = getTransporter();
   const defaultFrom = process.env.EMAIL_FROM;
   if (!transporter || !defaultFrom) {
@@ -56,7 +56,7 @@ async function sendMail(to: string, subject: string, html: string, from?: string
   }
 
   try {
-    const info = await transporter.sendMail({ from: from ?? defaultFrom, to, subject, html });
+    const info = await transporter.sendMail({ from: from ?? defaultFrom, to, subject, html, ...(replyTo ? { replyTo } : {}) });
     return { providerId: info.messageId };
   } catch {
     return { error: "Versturen van de e-mail is niet gelukt." };
@@ -136,15 +136,48 @@ async function sendRawNotificationEmail(to: string, title: string, body: string 
  * overschrijft alleen de weergavenaam, niet het onderliggende, in SMTP_USER
  * geverifieerde afzenderadres uit EMAIL_FROM.
  */
-export async function sendRawHtmlEmail(to: string, subject: string, html: string, senderName?: string | null): Promise<SendResult> {
+export async function sendRawHtmlEmail(
+  to: string,
+  subject: string,
+  html: string,
+  senderName?: string | null,
+  replyTo?: string
+): Promise<SendResult> {
   const defaultFrom = process.env.EMAIL_FROM;
-  if (!defaultFrom) return sendMail(to, subject, html);
+  if (!defaultFrom) return sendMail(to, subject, html, undefined, replyTo);
 
   const fromAddressMatch = defaultFrom.match(/<([^>]+)>/);
   const fromAddress = fromAddressMatch ? fromAddressMatch[1] : defaultFrom;
   const from = senderName ? `${senderName} <${fromAddress}>` : defaultFrom;
 
-  return sendMail(to, subject, html, from);
+  return sendMail(to, subject, html, from, replyTo);
+}
+
+/**
+ * VOC Hub — Veilige e-mailcontactfunctie: het "Neem contact op"-formulier op
+ * een ledenprofiel. Verstuurt altijd vanaf het geverifieerde portaal-adres
+ * (EMAIL_FROM, met de afzenders naam als weergavenaam — zelfde truc als
+ * sendRawHtmlEmail hierboven) zodat de ontvanger niets geks in zijn
+ * spamfilter ziet, maar Reply-To staat op het ECHTE e-mailadres van de
+ * afzender: een rechtstreeks antwoord komt zo bij de afzender terecht,
+ * zonder dat de ontvanger zelf iets hoeft op te zoeken. Het e-mailadres van
+ * de ontvanger komt hier nergens de respons/logging van de aanroeper in —
+ * die blijft binnen deze functie.
+ */
+export async function sendMemberContactEmail(params: {
+  to: string;
+  replyTo: string;
+  senderName: string;
+  subject: string;
+  message: string;
+}): Promise<SendResult> {
+  const { to, replyTo, senderName, subject, message } = params;
+  const html = `
+    <p>${escapeHtml(senderName)} heeft je een bericht gestuurd via het ledenportaal.</p>
+    <p style="white-space:pre-line;">${escapeHtml(message)}</p>
+    <p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je kunt rechtstreeks op deze e-mail reageren — je antwoord gaat naar ${escapeHtml(senderName)}, niet naar het ledenportaal.</p>
+  `;
+  return sendRawHtmlEmail(to, subject, html, senderName, replyTo);
 }
 
 /**

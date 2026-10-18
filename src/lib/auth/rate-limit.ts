@@ -89,3 +89,48 @@ export async function recordFailedPasswordLoginAttempt(email: string): Promise<v
     console.error("[rate-limit] recordFailedPasswordLoginAttempt failed:", cause);
   }
 }
+
+const CONTACT_MESSAGE_KIND = "member_contact_message_sent";
+const CONTACT_WINDOW_MINUTES = 60;
+const CONTACT_MAX_MESSAGES = 5;
+
+async function countRecentContactMessages(senderId: string): Promise<number> {
+  const admin = createAdminClient();
+  const since = new Date(Date.now() - CONTACT_WINDOW_MINUTES * 60 * 1000).toISOString();
+  const { count } = await admin
+    .from("events")
+    .select("id", { count: "exact", head: true })
+    .eq("event_type", CONTACT_MESSAGE_KIND)
+    .eq("profile_id", senderId)
+    .gte("created_at", since);
+  return count ?? 0;
+}
+
+/**
+ * Begrenst het "Neem contact op"-formulier op een ledenprofiel: een
+ * ingelogd lid is hier de afzender (niet een los e-mailadres), dus deze
+ * telt per profile_id i.p.v. per metadata.email zoals isEmailRateLimited
+ * hierboven — dat is ook een echte kolom op events, geen jsonb-containment
+ * nodig. Faalt bewust "open" bij een onverwachte fout, zelfde reden als
+ * isEmailRateLimited: een storing hier mag de knop niet voor iedereen
+ * platleggen.
+ */
+export async function isContactMessageRateLimited(senderId: string): Promise<boolean> {
+  try {
+    return (await countRecentContactMessages(senderId)) >= CONTACT_MAX_MESSAGES;
+  } catch (cause) {
+    console.error("[rate-limit] isContactMessageRateLimited failed, failing open:", cause);
+    return false;
+  }
+}
+
+export async function recordContactMessageSent(senderId: string, recipientId: string): Promise<void> {
+  try {
+    const admin = createAdminClient();
+    await admin
+      .from("events")
+      .insert({ event_type: CONTACT_MESSAGE_KIND, profile_id: senderId, target_type: "profile", target_id: recipientId });
+  } catch (cause) {
+    console.error("[rate-limit] recordContactMessageSent failed:", cause);
+  }
+}

@@ -17,6 +17,7 @@ import { RoleEditor } from "@/components/members/RoleEditor";
 import { AdminEditProfile } from "@/components/members/AdminEditProfile";
 import { MemberActiveToggle } from "@/components/members/MemberActiveToggle";
 import { GenerateLoginLinkButton } from "@/components/members/GenerateLoginLinkButton";
+import { ContactMemberButton } from "@/components/members/ContactMemberButton";
 import { fetchFeedPostsByAuthor } from "@/lib/feed/queries";
 import { MEMBER_PROFILE_LIST_PREVIEW } from "@/lib/feed/pagination";
 import type { Database } from "@/lib/types/database";
@@ -129,7 +130,7 @@ export async function MemberProfileContent({ id }: { id: string }) {
               )}
             </div>
           </div>
-          {isOwnProfile && (
+          {isOwnProfile ? (
             <>
               {/* Op mobiel alleen het potloodje — "Profiel aanpassen" als
                   volledige pil drukte naam/functie anders te veel opzij. */}
@@ -148,6 +149,10 @@ export async function MemberProfileContent({ id }: { id: string }) {
                 Profiel aanpassen
               </Link>
             </>
+          ) : (
+            // VOC Hub — Veilige e-mailcontactfunctie: alleen op andermans
+            // profiel, en alleen als dat lid nog bereikbaar is.
+            member.is_active && <ContactMemberButton recipientId={member.id} recipientName={`${member.first_name} ${member.last_name}`} />
           )}
         </div>
 
