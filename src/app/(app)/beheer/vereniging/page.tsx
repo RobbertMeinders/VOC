@@ -52,7 +52,7 @@ async function BestuurTab() {
   const [{ data: positions }, { data: activeProfiles }, { data: memberships }] = await Promise.all([
     supabase
       .from("board_positions")
-      .select("id, title, profile:profiles(id, first_name, last_name, avatar_url, avatar_thumb_url)")
+      .select("id, title, profile:profiles!board_positions_profile_id_fkey(id, first_name, last_name, avatar_url, avatar_thumb_url)")
       .is("ended_at", null)
       .order("started_at", { ascending: true })
       .returns<BoardPositionRow[]>(),
@@ -123,11 +123,13 @@ async function CommissiesTab() {
     supabase.from("commissions").select("id, name, description, archived_at").returns<CommissionRow[]>(),
     supabase
       .from("commission_memberships")
-      .select("commission_id, profile_id, profile:profiles(id, first_name, last_name, avatar_url, avatar_thumb_url)")
+      .select("commission_id, profile_id, profile:profiles!commission_memberships_profile_id_fkey(id, first_name, last_name, avatar_url, avatar_thumb_url)")
       .returns<CommissionMembershipRow[]>(),
     supabase
       .from("commission_applications")
-      .select("id, commission_id, profile_id, created_at, profile:profiles(id, first_name, last_name, avatar_url, avatar_thumb_url)")
+      .select(
+        "id, commission_id, profile_id, created_at, profile:profiles!commission_applications_profile_id_fkey(id, first_name, last_name, avatar_url, avatar_thumb_url)"
+      )
       .eq("status", "in_behandeling")
       .returns<ApplicationRow[]>(),
     supabase.from("profiles").select("id, first_name, last_name").eq("is_active", true).order("first_name").returns<ActiveProfileRow[]>(),

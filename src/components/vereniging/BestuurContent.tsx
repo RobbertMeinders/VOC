@@ -29,7 +29,7 @@ export async function BestuurContent() {
 
   const { data: positions } = await supabase
     .from("board_positions")
-    .select("id, title, profile:profiles(id, first_name, last_name, avatar_url, avatar_thumb_url)")
+    .select("id, title, profile:profiles!board_positions_profile_id_fkey(id, first_name, last_name, avatar_url, avatar_thumb_url)")
     .is("ended_at", null)
     .order("started_at", { ascending: true })
     .returns<BoardPositionRow[]>();

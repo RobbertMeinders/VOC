@@ -26,7 +26,7 @@ export default async function CommissiesPage() {
     supabase.from("commissions").select("id, name, description").is("archived_at", null).order("name").returns<CommissionRow[]>(),
     supabase
       .from("commission_memberships")
-      .select("commission_id, profile_id, profile:profiles(id, first_name, last_name, avatar_url, avatar_thumb_url)")
+      .select("commission_id, profile_id, profile:profiles!commission_memberships_profile_id_fkey(id, first_name, last_name, avatar_url, avatar_thumb_url)")
       .returns<MembershipRow[]>(),
     supabase
       .from("commission_applications")
