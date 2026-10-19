@@ -158,6 +158,29 @@ export async function dismissOnboardingAction(): Promise<{ error?: string }> {
   return {};
 }
 
+// Eigen, losstaande "weggeklikt"-vlag voor de introductiestap (zie
+// IntroductionPrompt + 0110_introduction_prompt_dismissed.sql) — bewust
+// een apart veld i.p.v. onboarding_dismissed_at hergebruiken, dat dekt
+// profielvelden (foto/functie/bedrijf) en kan bij bestaande leden al lang
+// geleden gezet zijn. Wegklikken verbergt alleen de Home-prompt; de
+// introductie zelf blijft gewoon later te plaatsen via /profiel of de
+// community-composer (zie IntroductionPrompt met dismissible={false}).
+export async function dismissIntroductionPromptAction(): Promise<{ error?: string }> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ introduction_prompt_dismissed_at: new Date().toISOString() })
+    .eq("id", profile.id);
+
+  if (error) {
+    return { error: "Wegklikken is niet gelukt. Probeer het opnieuw." };
+  }
+  revalidatePath("/");
+  return {};
+}
+
 export async function updatePubliclyVisibleAction(visible: boolean): Promise<{ error?: string }> {
   const profile = await requireProfile();
   const supabase = await createClient();

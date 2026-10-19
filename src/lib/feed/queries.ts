@@ -172,6 +172,24 @@ export async function fetchFeedPostsByAuthor(
   return hydrateAll(supabase, data ?? [], viewerId);
 }
 
+// Lichte existence-check (geen volledige fetchFeedPostsByAuthor-ophaal) —
+// gebruikt door de introductiestap in de onboarding (Home, /profiel) om te
+// bepalen of een lid al een introductiebericht heeft geplaatst. De bron van
+// waarheid is simpelweg of er al een feed_posts-rij met dit type bestaat,
+// ongeacht via welke weg (deze stap, of gewoon de normale composer) die
+// geplaatst is — zo blijft een al bestaande introductie altijd correct
+// herkend, ook zonder aparte status-kolom die uit de pas kan gaan lopen.
+export async function hasIntroductionPost(supabase: SupabaseClient<Database>, authorId: string): Promise<boolean> {
+  const { data } = await supabase
+    .from("feed_posts")
+    .select("id")
+    .eq("author_id", authorId)
+    .eq("type", "voorstellen")
+    .limit(1)
+    .maybeSingle();
+  return data !== null;
+}
+
 export async function fetchPostById(supabase: SupabaseClient<Database>, postId: string, viewerId: string): Promise<FeedPost | null> {
   const { data } = await supabase
     .from("feed_posts")

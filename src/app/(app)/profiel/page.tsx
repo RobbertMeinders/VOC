@@ -5,8 +5,10 @@ import { clsx } from "clsx";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
+import { hasIntroductionPost } from "@/lib/feed/queries";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { CompanyMembershipForm } from "@/components/profile/CompanyMembershipForm";
+import { IntroductionPrompt } from "@/components/feed/IntroductionPrompt";
 import { ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
 
 export const metadata: Metadata = { title: "Profiel" };
@@ -18,7 +20,7 @@ export default async function ProfielPage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: membership }, { data: pendingRequest }, avatarUrl] = await Promise.all([
+  const [{ data: membership }, { data: pendingRequest }, avatarUrl, hasIntroduced] = await Promise.all([
     supabase
       .from("company_members")
       .select("company:companies(id, name, city)")
@@ -35,6 +37,7 @@ export default async function ProfielPage() {
       .maybeSingle()
       .returns<PendingRequest>(),
     getSignedStorageUrl("avatars", profile.avatar_url),
+    hasIntroductionPost(supabase, profile.id),
   ]);
 
   return (
@@ -45,6 +48,12 @@ export default async function ProfielPage() {
           {ROLE_LABELS[profile.role]}
         </span>
       </div>
+
+      {/* Niet-wegklikbaar i.t.t. de versie op Home: dit is bewust de blijvende
+          plek om een eerder overgeslagen introductie alsnog te plaatsen,
+          zonder de hele onboarding opnieuw te doorlopen — zie
+          IntroductionPrompt en hasIntroductionPost. */}
+      {!hasIntroduced && <IntroductionPrompt dismissible={false} />}
 
       {membership?.company ? (
         <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">

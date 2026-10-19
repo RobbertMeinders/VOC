@@ -54,13 +54,28 @@ function SubmitButton() {
  * post, which is how the textarea/file input/local state get reset — rather
  * than resetting them by calling setState from an effect.
  */
-export function PostComposer({ author, onCreated }: { author: FeedAuthor; onCreated: (post: FeedPost) => void }) {
+export function PostComposer({
+  author,
+  onCreated,
+  autoOpenIntro = false,
+}: {
+  author: FeedAuthor;
+  onCreated: (post: FeedPost) => void;
+  // Vanuit de introductiestap (?intro=1, zie FeedList) — opent de composer
+  // direct met "Even voorstellen" gekozen, zonder PostTypeChooser-stap.
+  // Alleen de EERSTE formulierinstantie (formKey 0) mag hierdoor openen:
+  // anders zou een remount ná het annuleren of plaatsen van dit bericht
+  // (hieronder, via setFormKey) zichzelf steeds opnieuw openen, want de
+  // prop zelf verandert niet (die volgt de URL, niet of er al gesloten is).
+  autoOpenIntro?: boolean;
+}) {
   const [formKey, setFormKey] = useState(0);
 
   return (
     <PostComposerForm
       key={formKey}
       author={author}
+      autoOpenIntro={formKey === 0 && autoOpenIntro}
       onCreated={(post) => {
         onCreated(post);
         setFormKey((k) => k + 1);
@@ -75,20 +90,22 @@ export function PostComposer({ author, onCreated }: { author: FeedAuthor; onCrea
 
 function PostComposerForm({
   author,
+  autoOpenIntro,
   onCreated,
   onClose,
 }: {
   author: FeedAuthor;
+  autoOpenIntro: boolean;
   onCreated: (post: FeedPost) => void;
   onClose: () => void;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(autoOpenIntro);
   const [state, formAction] = useActionState(createPostAction, initialState);
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [dragActive, setDragActive] = useState(false);
   // undefined = nog geen keuze gemaakt (stap 1 wordt getoond) — zie
   // PostTypeChooser en NO_POST_TYPE_VALUE hierboven.
-  const [chosen, setChosen] = useState<PostTypeChoice | undefined>(undefined);
+  const [chosen, setChosen] = useState<PostTypeChoice | undefined>(autoOpenIntro ? "voorstellen" : undefined);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbInputRef = useRef<HTMLInputElement>(null);
   const previewUrlsRef = useRef<string[]>([]);
@@ -222,7 +239,7 @@ function PostComposerForm({
       <div className="fixed inset-x-3 top-1/2 z-50 -translate-y-1/2 sm:inset-x-0 sm:mx-auto sm:w-full sm:max-w-xl sm:px-3 md:left-72">
         <div className="animate-scale-in max-h-[85vh] overflow-y-auto rounded-2xl border border-border bg-surface shadow-lg">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
-            <p className="text-sm font-semibold text-foreground">Nieuw bericht</p>
+            <p className="text-sm font-semibold text-foreground">{chosen === "voorstellen" ? "Stel jezelf voor" : "Nieuw bericht"}</p>
             <button
               type="button"
               onClick={onClose}

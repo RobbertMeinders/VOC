@@ -6,7 +6,9 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { formatActivityDate } from "@/lib/format/date";
+import { hasIntroductionPost } from "@/lib/feed/queries";
 import { ProfilePhotoPrompt } from "@/components/home/ProfilePhotoPrompt";
+import { IntroductionPrompt } from "@/components/feed/IntroductionPrompt";
 import { NewsHeroCarousel } from "@/components/home/NewsHeroCarousel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import type { Database } from "@/lib/types/database";
@@ -29,6 +31,7 @@ export default async function HomePage() {
     { count: companyMemberCount },
     { data: myRegistrationRows },
     { data: pendingCompanyRequest },
+    hasIntroduced,
   ] = await Promise.all([
     supabase
       .from("activities")
@@ -59,6 +62,7 @@ export default async function HomePage() {
       .eq("status", "pending")
       .limit(1)
       .maybeSingle(),
+    hasIntroductionPost(supabase, profile.id),
   ]);
 
   const nextActivity = activities?.[0] ?? null;
@@ -71,6 +75,10 @@ export default async function HomePage() {
   // checklist.
   const missingProfileInfo = !profile.avatar_url || !profile.job_title || (companyMemberCount ?? 0) === 0;
   const showPhotoPrompt = !profile.onboarding_dismissed_at && missingProfileInfo;
+  // Introductiestap: eigen, losstaande weggeklikt-vlag (zie
+  // dismissIntroductionPromptAction) — niet gekoppeld aan showPhotoPrompt
+  // hierboven, dus blijft onafhankelijk zichtbaar/wegklikbaar.
+  const showIntroductionPrompt = !hasIntroduced && !profile.introduction_prompt_dismissed_at;
 
   const [nextActivityImageUrl, myRegistration, newsImageUrls] = await Promise.all([
     nextActivity
@@ -119,6 +127,8 @@ export default async function HomePage() {
           companyRequestPending={pendingCompanyRequest !== null}
         />
       )}
+
+      {showIntroductionPrompt && <IntroductionPrompt />}
 
       {newsSlides.length > 0 && (
         <section>
