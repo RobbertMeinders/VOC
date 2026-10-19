@@ -48,7 +48,37 @@ export function isEmailConfigured(): boolean {
 
 type SendResult = { error?: string; providerId?: string };
 
+// Extra, expliciet slot bovenop SMTP_HOST/EMAIL_FROM: EMAIL_ALLOWLIST (kommagescheiden
+// adressen) begrenst waar mail écht naartoe mag, ongeacht welke ontvanger een
+// nieuwsbrief- of notificatieverzending oplevert. In productie ongezet =
+// ongewijzigd gedrag (iedereen toegestaan); overal elders (preview, lokale
+// ontwikkeling, tests) staat de begrenzing standaard aan, en zonder
+// EMAIL_ALLOWLIST betekent dat: niemand toegestaan — zo kan een test- of
+// previewomgeving nooit per ongeluk een lid of contact mailen.
+function allowedRecipients(): Set<string> | null {
+  const raw = process.env.EMAIL_ALLOWLIST;
+  if (raw === undefined) {
+    return process.env.NODE_ENV === "production" ? null : new Set();
+  }
+  return new Set(
+    raw
+      .split(",")
+      .map((address) => address.trim().toLowerCase())
+      .filter(Boolean)
+  );
+}
+
+function isRecipientAllowed(to: string): boolean {
+  const allowlist = allowedRecipients();
+  if (allowlist === null) return true;
+  return allowlist.has(to.trim().toLowerCase());
+}
+
 async function sendMail(to: string, subject: string, html: string, from?: string, replyTo?: string): Promise<SendResult> {
+  if (!isRecipientAllowed(to)) {
+    return { error: "Overgeslagen: dit e-mailadres staat niet op de EMAIL_ALLOWLIST." };
+  }
+
   const transporter = getTransporter();
   const defaultFrom = process.env.EMAIL_FROM;
   if (!transporter || !defaultFrom) {
