@@ -37,40 +37,52 @@ export function VerenigingMenu() {
         type="button"
         onClick={toggle}
         aria-expanded={open}
+        // Afwerkronde blok 3: rood streepje links i.p.v. een volle rode pil
+        // (zelfde patroon als de rest van de sidebar, zie Sidebar.tsx).
         className={clsx(
-          "flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
+          "flex w-full items-center gap-3 rounded-r-lg border-l-[3px] py-2.5 pl-[9px] pr-3 text-sm font-medium transition-all duration-150",
           active || open
-            ? "bg-voc-red-light text-voc-red-text"
-            : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            ? "border-l-voc-red bg-black/[.03] text-foreground dark:bg-white/[.06]"
+            : "border-l-transparent text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
         <Handshake size={20} strokeWidth={active ? 2.5 : 2} />
         Vereniging
         <ChevronDown size={16} className={clsx("ml-auto transition-transform duration-150", open && "rotate-180")} />
       </button>
-      {open && (
-        <div className="flex flex-col gap-1 pt-1">
-          {LINKS.map(({ href, label, icon: Icon }) => {
-            const linkActive = pathname.startsWith(href);
-            return (
-              <Link
-                key={href}
-                href={href}
-                onClick={close}
-                className={clsx(
-                  "flex items-center gap-3 rounded-lg px-3 py-2.5 pl-10 text-sm font-medium transition-all duration-150",
-                  linkActive
-                    ? "bg-voc-red-light text-voc-red-text"
-                    : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-                )}
-              >
-                <Icon size={16} strokeWidth={linkActive ? 2.5 : 2} />
-                {label}
-              </Link>
-            );
-          })}
+      {/* Afwerkronde blok 5: hoogte-animatie i.p.v. direct in/uit poppen —
+          grid-template-rows 0fr->1fr is de enige CSS-only manier om een
+          onbekende hoogte (afhankelijk van het aantal links) toch te
+          animeren, zonder een vaste max-height te moeten gokken. */}
+      <div
+        className="grid transition-[grid-template-rows] duration-200 ease-out motion-reduce:transition-none"
+        style={{ gridTemplateRows: open ? "1fr" : "0fr" }}
+      >
+        <div className="overflow-hidden">
+          <div className="flex flex-col gap-1 pt-1">
+            {LINKS.map(({ href, label, icon: Icon }) => {
+              const linkActive = pathname.startsWith(href);
+              return (
+                <Link
+                  key={href}
+                  href={href}
+                  onClick={close}
+                  tabIndex={open ? undefined : -1}
+                  className={clsx(
+                    "flex items-center gap-3 rounded-r-lg border-l-[3px] py-2.5 pl-[37px] pr-3 text-sm font-medium transition-all duration-150",
+                    linkActive
+                      ? "border-l-voc-red bg-black/[.03] text-foreground dark:bg-white/[.06]"
+                      : "border-l-transparent text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                  )}
+                >
+                  <Icon size={16} strokeWidth={linkActive ? 2.5 : 2} />
+                  {label}
+                </Link>
+              );
+            })}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 }

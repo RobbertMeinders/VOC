@@ -42,12 +42,15 @@ export function Sidebar({
       <Link
         key={href}
         href={href}
+        // Afwerkronde blok 3: een rood streepje links (zelfde patroon als
+        // BeheerSidebar) i.p.v. een volle rode pil — ook het actieve item
+        // in de gewone navigatie hoeft geen heel kleurvlak te zijn.
         className={clsx(
-          "flex items-center gap-3 rounded-lg py-2.5 text-sm font-medium transition-all duration-150",
-          indented ? "px-3 pl-10" : "px-3",
+          "flex items-center gap-3 rounded-r-lg border-l-[3px] py-2.5 pr-3 text-sm font-medium transition-all duration-150",
+          indented ? "pl-[37px]" : "pl-[9px]",
           active
-            ? "bg-voc-red-light text-voc-red-text"
-            : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            ? "border-l-voc-red bg-black/[.03] text-foreground dark:bg-white/[.06]"
+            : "border-l-transparent text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
         <Icon size={indented ? 16 : 20} strokeWidth={active ? 2.5 : 2} />
@@ -78,10 +81,10 @@ export function Sidebar({
         key={href}
         href={href}
         className={clsx(
-          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-150",
+          "flex items-center gap-3 rounded-r-lg border-l-[3px] py-2.5 pl-[9px] pr-3 text-sm font-medium transition-all duration-150",
           active
-            ? "bg-voc-red-light text-voc-red-text"
-            : "text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            ? "border-l-voc-red bg-black/[.03] text-foreground dark:bg-white/[.06]"
+            : "border-l-transparent text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
         <Icon size={20} strokeWidth={active ? 2.5 : 2} />

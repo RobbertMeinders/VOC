@@ -24,13 +24,17 @@ export function Logo({
 }) {
   return (
     <Link href="/" className={`flex min-w-0 items-center gap-2 ${className ?? ""}`}>
+      {/* Afwerkronde blok 3: iets groter rood logomerk in de header — was
+          h-8 (32px), VOC-rood was door het dieet elders bijna overal
+          verdwenen behalve op knoppen; het logo mag als vast merkanker
+          best een fractie nadrukkelijker zijn. */}
       <Image
         src={logoUrl || "/brand/voc-logo-mark.png"}
         alt={siteName ?? "VOC"}
-        width={32}
-        height={32}
+        width={36}
+        height={36}
         unoptimized={Boolean(logoUrl)}
-        className="h-8 w-8 shrink-0 object-contain"
+        className="h-9 w-9 shrink-0 object-contain"
         priority
       />
       {withLabel && (

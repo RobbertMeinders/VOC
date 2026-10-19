@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarDays, ChevronDown, Plus } from "lucide-react";
+import { CalendarDays, Plus } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
@@ -9,6 +9,7 @@ import { ActivityCard } from "@/components/agenda/ActivityCard";
 import { WeekStrip } from "@/components/agenda/WeekStrip";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { Chip } from "@/components/ui/Chip";
+import { AnimatedDisclosure } from "@/components/ui/AnimatedDisclosure";
 import { MarkSectionReadOnView } from "@/components/notifications/MarkSectionReadOnView";
 import type { Database } from "@/lib/types/database";
 
@@ -162,20 +163,17 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
         <ComingSoon icon={CalendarDays} title="Geen activiteiten gepland" description="Er zijn momenteel geen activiteiten." />
       )}
 
-      {/* Redesign: eerdere activiteiten ingeklapt — een native <details>
-          i.p.v. een client component: geen JS nodig voor simpel
-          open/dicht klappen. */}
+      {/* Afwerkronde blok 5: hoogte-animatie bij het uitklappen i.p.v. de
+          native <details> die instant open/dicht klapte. */}
       {past.length > 0 && (
-        <details className="group mt-8">
-          <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-muted">
-            <ChevronDown size={16} className="transition-transform duration-200 group-open:rotate-180" />
-            Eerdere activiteiten ({past.length})
-          </summary>
-          {/* Lichtjes grijzer dan de rest, niet extreem, en blijft ook zo —
-              geen kleur-restore bij hover (dat voelde als een onnodige
-              knipper-animatie voor iets dat sowieso al voorbij is). */}
-          <div className="mt-3 opacity-80 grayscale-[65%]">{renderTimelineGroup(past)}</div>
-        </details>
+        <div className="mt-8">
+          <AnimatedDisclosure label={`Eerdere activiteiten (${past.length})`} contentClassName="opacity-80 grayscale-[65%]">
+            {/* Lichtjes grijzer dan de rest, niet extreem, en blijft ook zo —
+                geen kleur-restore bij hover (dat voelde als een onnodige
+                knipper-animatie voor iets dat sowieso al voorbij is). */}
+            {renderTimelineGroup(past)}
+          </AnimatedDisclosure>
+        </div>
       )}
     </div>
   );

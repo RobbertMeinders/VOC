@@ -104,7 +104,7 @@ function MenuPanel({
       <div
         className={clsx(
           "fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg md:hidden",
-          closing ? "animate-sheet-out" : "animate-sheet-in"
+          closing ? "animate-sheet-out" : "animate-sheet-in-spring"
         )}
         style={closing ? undefined : { transform: `translateY(${dragY}px)`, transition: dragging ? "none" : "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)" }}
         onAnimationEnd={(e) => {
@@ -150,13 +150,16 @@ function MenuPanel({
           </div>
         </div>
 
+        {/* Afwerkronde blok 5: items komen na het open-veren van de sheet
+            na elkaar omhoog, zelfde ritme als het hamburgermenu. */}
         <div className="flex flex-col py-1.5">
-          {items.map(({ href, label, icon: Icon }) => (
+          {items.map(({ href, label, icon: Icon }, i) => (
             <Link
               key={href}
               href={href}
               onClick={onClose}
-              className="flex items-center gap-3 px-5 py-3.5 text-sm font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+              className="animate-stagger-item flex items-center gap-3 px-5 py-3.5 text-sm font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+              style={{ animationDelay: `${260 + i * 30}ms` }}
             >
               <Icon size={19} className="text-muted" />
               <span className="flex-1">{label}</span>
@@ -168,7 +171,8 @@ function MenuPanel({
         <form action={signOutAction} className="border-t border-border py-1.5">
           <button
             type="submit"
-            className="flex w-full items-center gap-3 px-5 py-3.5 text-left text-sm font-medium text-voc-red-text hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            className="animate-stagger-item flex w-full items-center gap-3 px-5 py-3.5 text-left text-sm font-medium text-voc-red-text hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            style={{ animationDelay: `${260 + items.length * 30}ms` }}
           >
             <LogOut size={19} />
             Uitloggen

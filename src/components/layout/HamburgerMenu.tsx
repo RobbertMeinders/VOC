@@ -63,7 +63,26 @@ function isLinkActive(pathname: string, href: string): boolean {
   return path === "/" ? pathname === "/" : pathname.startsWith(path);
 }
 
-function MenuGroup({ heading, links, pathname, onNavigate }: { heading?: string; links: MenuLink[]; pathname: string; onNavigate: () => void }) {
+// Afwerkronde blok 5: items komen na het open-schuiven van het paneel
+// (animate-slide-in-right, 220ms) na elkaar omhoog i.p.v. allemaal
+// tegelijk — startIndex telt door over de drie groepen heen, zodat het één
+// doorlopend ritme is i.p.v. dat elke groep weer vanaf 0 begint.
+const STAGGER_STEP_MS = 30;
+const STAGGER_BASE_MS = 220;
+
+function MenuGroup({
+  heading,
+  links,
+  pathname,
+  onNavigate,
+  startIndex,
+}: {
+  heading?: string;
+  links: MenuLink[];
+  pathname: string;
+  onNavigate: () => void;
+  startIndex: number;
+}) {
   return (
     <div className="flex flex-col gap-0.5 py-2">
       {heading && (
@@ -71,7 +90,7 @@ function MenuGroup({ heading, links, pathname, onNavigate }: { heading?: string;
           {heading}
         </p>
       )}
-      {links.map(({ href, label, icon: Icon }) => {
+      {links.map(({ href, label, icon: Icon }, i) => {
         const active = isLinkActive(pathname, href);
         return (
           <Link
@@ -79,9 +98,10 @@ function MenuGroup({ heading, links, pathname, onNavigate }: { heading?: string;
             href={href}
             onClick={onNavigate}
             className={clsx(
-              "relative flex items-center gap-3 px-4 py-3 text-sm font-medium text-white",
+              "animate-stagger-item relative flex items-center gap-3 px-4 py-3 text-sm font-medium text-white",
               active ? "bg-white/10" : "hover:bg-white/5"
             )}
+            style={{ animationDelay: `${STAGGER_BASE_MS + (startIndex + i) * STAGGER_STEP_MS}ms` }}
           >
             {/* Live QA: een border-left met een transparante variant voor het
                 niet-actieve item bleek in de praktijk zelf als een vage
@@ -169,11 +189,30 @@ export function HamburgerMenu({ logoUrl, siteName }: { logoUrl: string | null; s
                 <X size={16} />
               </button>
             </div>
-            <MenuGroup heading="Vereniging" links={VERENIGING_LINKS} pathname={pathname} onNavigate={requestClose} />
-            <div className="border-t border-white/[.12]" />
-            <MenuGroup heading="Snel naar" links={SNEL_NAAR_LINKS} pathname={pathname} onNavigate={requestClose} />
-            <div className="border-t border-white/[.12]" />
-            <MenuGroup links={OVERIGE_LINKS} pathname={pathname} onNavigate={requestClose} />
+            <MenuGroup heading="Vereniging" links={VERENIGING_LINKS} pathname={pathname} onNavigate={requestClose} startIndex={0} />
+            <div
+              className="animate-divider-draw border-t border-white/[.12]"
+              style={{ animationDelay: `${STAGGER_BASE_MS + VERENIGING_LINKS.length * STAGGER_STEP_MS}ms` }}
+            />
+            <MenuGroup
+              heading="Snel naar"
+              links={SNEL_NAAR_LINKS}
+              pathname={pathname}
+              onNavigate={requestClose}
+              startIndex={VERENIGING_LINKS.length}
+            />
+            <div
+              className="animate-divider-draw border-t border-white/[.12]"
+              style={{
+                animationDelay: `${STAGGER_BASE_MS + (VERENIGING_LINKS.length + SNEL_NAAR_LINKS.length) * STAGGER_STEP_MS}ms`,
+              }}
+            />
+            <MenuGroup
+              links={OVERIGE_LINKS}
+              pathname={pathname}
+              onNavigate={requestClose}
+              startIndex={VERENIGING_LINKS.length + SNEL_NAAR_LINKS.length}
+            />
           </div>
         </FloatingPortal>
       )}

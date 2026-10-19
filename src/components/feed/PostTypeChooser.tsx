@@ -20,17 +20,23 @@ const ICONS: Record<FeedPostType, typeof HelpCircle> = {
   overig: HelpCircle,
 };
 
+// Afwerkronde blok 5: de vier keuzes komen na elkaar in i.p.v. allemaal
+// tegelijk — zelfde ritme (30ms per stap) als het hamburger-/profielmenu.
+const STAGGER_BASE_MS = 150;
+const STAGGER_STEP_MS = 30;
+
 export function PostTypeChooser({ onChoose }: { onChoose: (type: FeedPostType) => void }) {
   return (
     <div className="grid grid-cols-2 gap-2.5">
-      {COMPOSER_POST_TYPES.map((type) => {
+      {COMPOSER_POST_TYPES.map((type, i) => {
         const Icon = ICONS[type];
         return (
           <button
             key={type}
             type="button"
             onClick={() => onChoose(type)}
-            className="flex flex-col items-center gap-2 rounded-2xl border border-border p-4 text-center hover:border-muted hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            style={{ animationDelay: `${STAGGER_BASE_MS + i * STAGGER_STEP_MS}ms` }}
+            className="animate-stagger-item flex flex-col items-center gap-2 rounded-2xl border border-border p-4 text-center hover:border-muted hover:bg-black/[.04] dark:hover:bg-white/[.06]"
           >
             <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/5 text-foreground dark:bg-white/10">
               <Icon size={22} />

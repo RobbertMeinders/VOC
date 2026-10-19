@@ -490,6 +490,14 @@ body {
 .animate-sheet-in {
   animation: voc-sheet-in 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
+/* Afwerkronde blok 5: alleen het mobiele profielmenu krijgt een iets
+   veerkrachtigere intrede (met lichte overshoot) i.p.v. het rustige
+   "zacht landen" van de andere bottom sheets (profiel-/activiteitoverlay,
+   nieuw-bericht-paneel) — dat zijn overlays over bestaande inhoud, dit is
+   het complete accountmenu en mag iets nadrukkelijker aanvoelen. */
+.animate-sheet-in-spring {
+  animation: voc-sheet-in 0.26s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
 @media (min-width: 768px) {
   .animate-sheet-in {
     animation: voc-fade-slide-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -573,16 +581,55 @@ body {
 .animate-slide-out-right {
   animation: voc-slide-out-right 0.18s cubic-bezier(0.4, 0, 1, 1) both;
 }
+/* Afwerkronde blok 5 (vast ritme): items in een net geopend paneel
+   (hamburgermenu, profielmenu) komen niet allemaal tegelijk, maar na elkaar
+   omhoog — elke aanroeper zet zelf de oplopende animation-delay (30ms per
+   item). Scheidingslijnen tekenen van links naar rechts open i.p.v. meteen
+   voluit te staan. */
+@keyframes voc-stagger-item {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+.animate-stagger-item {
+  animation: voc-stagger-item 0.2s ease-out both;
+}
+@keyframes voc-divider-draw {
+  from {
+    transform: scaleX(0);
+  }
+}
+.animate-divider-draw {
+  transform-origin: left;
+  animation: voc-divider-draw 0.3s ease-out both;
+}
+/* Panelen die vanaf een vaste positie verschijnen (meldingen, zoeken) —
+   een lichte verticale schuif + fade i.p.v. de nadrukkelijkere
+   "open vouwen"-schaal die dropdowns/menu's (.animate-scale-in) gebruiken. */
+@keyframes voc-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+.animate-panel-in {
+  animation: voc-panel-in 0.16s ease-out both;
+}
 @media (prefers-reduced-motion: reduce) {
   .animate-fade-in,
   .animate-scale-in,
   .animate-rise-in,
   .animate-sheet-in,
+  .animate-sheet-in-spring,
   .animate-sheet-out,
   .animate-avatar-grow-in,
   .animate-avatar-grow-out,
   .animate-slide-in-right,
-  .animate-slide-out-right {
+  .animate-slide-out-right,
+  .animate-stagger-item,
+  .animate-divider-draw,
+  .animate-panel-in {
     animation: none;
   }
 }
@@ -644,6 +691,35 @@ a:focus-visible {
   button,
   a {
     transition: none;
+  }
+}
+
+/* Afwerkronde blok 5: knoppen veren bij een klik iets in — overal dezelfde
+   subtiele tactiele bevestiging i.p.v. dat sommige knoppen dat wel hebben
+   (eigen hover-transform) en andere niet. */
+button:not(:disabled):active {
+  transform: scale(0.98);
+}
+@media (prefers-reduced-motion: reduce) {
+  button:not(:disabled):active {
+    transform: none;
+  }
+}
+
+/* Gedeelde hover-lift voor klikbare kaarten (activiteiten, leden, bedrijven,
+   bestuur, berichten-preview, ...) — vervangt een aantal losse, net iets
+   verschillende varianten (-translate-y-1, scale-[1.008], ...) door één
+   vaste maat. */
+.card-hover-lift {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+.card-hover-lift:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-hover-lift:hover {
+    transform: none;
   }
 }
 

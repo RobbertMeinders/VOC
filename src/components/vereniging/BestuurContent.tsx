@@ -98,7 +98,7 @@ export async function BestuurContent() {
             // randkleur) geven de kennismakingspagina wat meer leven dan een
             // statische kaart — zelfde soort micro-interactie als elders in
             // de app (bv. de sidebar-items die bij hover opschuiven).
-            className="animate-rise-in group flex w-40 flex-col items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-8 text-center shadow-sm transition-all duration-150 hover:-translate-y-1 hover:border-foreground/20 hover:shadow-md sm:w-48"
+            className="card-hover-lift animate-rise-in group flex w-40 flex-col items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-8 text-center shadow-sm hover:border-foreground/20 sm:w-48"
           >
             <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={112} />
             <div className="min-w-0">

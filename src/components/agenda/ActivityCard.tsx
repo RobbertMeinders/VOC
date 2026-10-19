@@ -84,7 +84,7 @@ export function ActivityCard({
     return (
       <Link
         href={`/agenda/${activity.id}`}
-        className="animate-rise-in overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-all duration-500 ease-out hover:scale-[1.005] hover:border-foreground/20 hover:shadow-md"
+        className="card-hover-lift animate-rise-in overflow-hidden rounded-2xl border border-border bg-surface shadow-sm hover:border-foreground/20"
       >
         {imageUrl ? (
           <div className="relative h-44 w-full sm:h-52">
@@ -126,7 +126,7 @@ export function ActivityCard({
   return (
     <Link
       href={`/agenda/${activity.id}`}
-      className="animate-rise-in relative flex items-start gap-3 overflow-hidden rounded-2xl bg-surface p-3 shadow-sm transition-all duration-500 ease-out hover:-translate-y-0.5 hover:shadow-md"
+      className="card-hover-lift animate-rise-in relative flex items-start gap-3 overflow-hidden rounded-2xl bg-surface p-3 shadow-sm"
     >
       <span
         aria-hidden

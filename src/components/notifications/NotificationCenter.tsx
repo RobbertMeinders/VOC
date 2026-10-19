@@ -263,8 +263,10 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
       {open && rect && (
         <FloatingPortal>
           <div className="fixed inset-0 z-40 cursor-pointer" onClick={close} />
+          {/* Afwerkronde blok 5: lichte schuif + fade i.p.v. de
+              "open vouwen"-schaal van gewone dropdowns/menu's. */}
           <div
-            className="animate-scale-in origin-top fixed z-50 w-80 overflow-hidden rounded-xl border border-border bg-surface shadow-lg"
+            className="animate-panel-in fixed z-50 w-80 overflow-hidden rounded-xl border border-border bg-surface shadow-lg"
             style={{ left: rect.left, top: rect.bottom + 4 }}
           >
             {panelContent}
