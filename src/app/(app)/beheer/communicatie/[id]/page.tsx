@@ -6,6 +6,7 @@ import { DeleteButton } from "@/components/feed/DeleteButton";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { NewsletterEditor } from "@/components/beheer/NewsletterEditor";
 import { getAppSettings } from "@/lib/settings/app-settings";
+import { previewNewsletterRecipients } from "@/lib/newsletter/recipients";
 import { deleteCommunicationAction } from "../actions";
 
 export const metadata: Metadata = { title: "Nieuwsbrief" };
@@ -71,6 +72,11 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
     notFound();
   }
 
+  // Echte aantal ontvangers voor de bevestiging bij "Versturen" (N4) — zie
+  // previewNewsletterRecipients voor de aannames (nog geen ontdubbeling
+  // leden/contacten, dat is N5).
+  const recipientPreview = await previewNewsletterRecipients(supabase, communication);
+
   // Alleen relevant na een (eventueel gedeeltelijk mislukte) verzendpoging
   // — bij een concept of een nog niet opgepakte planning is er nog niets
   // geclaimd, dus geen zinvolle telling. Telt leden (notifications) en
@@ -135,6 +141,7 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
         selectedListIds={(selectedLists ?? []).map((l) => l.list_id)}
         extraProfileIds={(selectedProfiles ?? []).map((p) => p.profile_id)}
         extraContactIds={(selectedContacts ?? []).map((c) => c.contact_id)}
+        recipientPreview={recipientPreview}
       />
     </div>
   );

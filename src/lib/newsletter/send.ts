@@ -12,6 +12,22 @@ type Communication = Database["public"]["Tables"]["communications"]["Row"];
 
 export type NewsletterSendResult = { total: number; sent: number; alreadySending?: boolean };
 
+// N4: de mail is dan al écht verstuurd, maar als het markeren zelf mislukt
+// (een kortstondig DB-foutje) blijft emailed_at leeg — en zonder deze check
+// zou een volgende poging diezelfde ontvanger domweg nog een keer mailen.
+// Een paar keer opnieuw proberen vangt zo'n kortstondig foutje vrijwel
+// altijd op; blijft het mislukken, dan stopt de hele verzending meteen
+// (de catch hieronder in performNewsletterSend) i.p.v. door te gaan zonder
+// te weten of de boekhouding nog klopt.
+async function markSentOrThrow(supabase: SupabaseClient<Database>, label: string, run: () => Promise<{ error: { message: string } | null }>): Promise<void> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { error } = await run();
+    if (!error) return;
+    if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
+  }
+  throw new Error(`Markeren als verstuurd is mislukt (${label}) — verzending gestopt om niemand dubbel te mailen.`);
+}
+
 // Gedeeld tussen sendNewsletterAction (de "Versturen"-knop, bestuurslid met
 // sessie) en de cron die ingeplande campagnes oppakt (geen sessie, draait
 // via de service-role-client) — zelfde claim/render/verzend/finalize-lus
@@ -76,10 +92,12 @@ export async function performNewsletterSend(
         // Direct na elke individuele, al-geslaagde verzending — nooit
         // gebufferd tot het einde van de lus (zie sendNewsletterAction voor
         // de volledige uitleg van dit patroon).
-        await supabase.rpc("mark_newsletter_notification_sent", {
-          p_notification_id: recipient.notification_id,
-          p_provider_id: result.providerId ?? null,
-        });
+        await markSentOrThrow(supabase, `lid ${recipient.profile_id}`, async () =>
+          supabase.rpc("mark_newsletter_notification_sent", {
+            p_notification_id: recipient.notification_id,
+            p_provider_id: result.providerId ?? null,
+          })
+        );
       }
     }
 
@@ -94,10 +112,12 @@ export async function performNewsletterSend(
         "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
       });
       if (!result.error) {
-        await supabase.rpc("mark_newsletter_contact_sent", {
-          p_send_id: recipient.send_id,
-          p_provider_id: result.providerId ?? null,
-        });
+        await markSentOrThrow(supabase, `contact ${recipient.contact_id}`, async () =>
+          supabase.rpc("mark_newsletter_contact_sent", {
+            p_send_id: recipient.send_id,
+            p_provider_id: result.providerId ?? null,
+          })
+        );
       }
     }
 

@@ -409,8 +409,13 @@ export async function sendNewsletterAction(communicationId: string): Promise<Sen
       return { error: "Deze nieuwsbrief wordt al verstuurd (mogelijk net via de ingeplande verzending). Probeer het straks opnieuw." };
     }
     ({ total, sent } = result);
-  } catch {
-    return { error: "Ontvangerslijst ophalen is niet gelukt. Probeer het opnieuw." };
+  } catch (cause) {
+    // performNewsletterSend gooit een specifieke boodschap als het
+    // markeren-als-verstuurd blijft mislukken (N4) — die is belangrijker om
+    // te laten zien dan de generieke terugval, want hij betekent dat een
+    // deel al écht verstuurd is terwijl de boekhouding mogelijk achterloopt.
+    const message = cause instanceof Error ? cause.message : null;
+    return { error: message || "Ontvangerslijst ophalen is niet gelukt. Probeer het opnieuw." };
   }
 
   if (sent > 0) {

@@ -588,6 +588,7 @@ export function NewsletterEditor({
   selectedListIds,
   extraProfileIds,
   extraContactIds,
+  recipientPreview,
 }: {
   communication: Communication;
   activities: ActivityOption[];
@@ -601,6 +602,7 @@ export function NewsletterEditor({
   selectedListIds: string[];
   extraProfileIds: string[];
   extraContactIds: string[];
+  recipientPreview: { willReceive: number; excludedUnsubscribed: number };
 }) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -636,6 +638,23 @@ export function NewsletterEditor({
   const [sendPending, setSendPending] = useState(false);
   const [sendResult, setSendResult] = useState<{ error?: string; total?: number; sent?: number } | null>(null);
 
+  // Alleen bij status 'concept' zijn de velden hierboven nog bewerkbaar
+  // (readOnly hierna), dus alleen dan kan er iets onopgeslagen openstaan.
+  const isDirty =
+    communication.status === "concept" &&
+    (subject !== communication.subject ||
+      preheader !== (communication.preheader ?? "") ||
+      senderName !== (communication.sender_name ?? "") ||
+      showHeader !== communication.show_header ||
+      showFooter !== communication.show_footer ||
+      JSON.stringify(blocks) !== JSON.stringify(communication.content ?? []));
+
+  const recipientSummary = `Naar ${recipientPreview.willReceive} ontvanger${recipientPreview.willReceive === 1 ? "" : "s"}${
+    recipientPreview.excludedUnsubscribed > 0
+      ? `; ${recipientPreview.excludedUnsubscribed} ${recipientPreview.excludedUnsubscribed === 1 ? "heeft" : "hebben"} zich afgemeld`
+      : ""
+  }.`;
+
   async function handleSend() {
     const isRetry = communication.status === "verzenden_mislukt";
     const isExtra = communication.status === "verzonden";
@@ -646,7 +665,7 @@ export function NewsletterEditor({
         ? `Opnieuw proberen te versturen aan de ${(communication.total_recipients ?? activeMemberCount) - sentCount} ontvangers die 'm nog niet ontvingen.`
         : isStuck
           ? "Een vorige verzending leek vast te zijn gelopen. Dit probeert opnieuw te versturen aan iedereen die nog geen e-mail ontving."
-          : `Dit verstuurt "${communication.subject}" naar de huidige doelgroep.`;
+          : recipientSummary;
     const confirmed = await confirm({
       title: isExtra ? "Extra versturen?" : isRetry || isStuck ? "Opnieuw proberen te versturen?" : "Nieuwsbrief versturen?",
       description: `${confirmMessage} Dit kan niet ongedaan worden gemaakt.`,
@@ -657,6 +676,27 @@ export function NewsletterEditor({
 
     setSendPending(true);
     setSendResult(null);
+
+    // N4: "Versturen" gebruikte altijd de laatst-opgeslagen versie, ook als
+    // de velden hierboven nog niet opgeslagen wijzigingen hadden — zonder
+    // waarschuwing. Eerst stilletjes opslaan i.p.v. alleen waarschuwen, zodat
+    // de verstuurde versie altijd exact is wat je in de preview ziet.
+    if (isDirty) {
+      const fd = new FormData();
+      fd.set("subject", subject);
+      fd.set("preheader", preheader);
+      fd.set("sender_name", senderName);
+      fd.set("content", JSON.stringify(blocks));
+      fd.set("show_header", showHeader ? "true" : "false");
+      fd.set("show_footer", showFooter ? "true" : "false");
+      const saveResult = await updateWithId(initialState, fd);
+      if (saveResult.error) {
+        setSendPending(false);
+        setSendResult({ error: saveResult.error });
+        return;
+      }
+    }
+
     const result = await sendNewsletterAction(communication.id);
     setSendPending(false);
     setSendResult(result);
@@ -955,7 +995,7 @@ export function NewsletterEditor({
                   ? `${sentCount} van ${communication.total_recipients ?? activeMemberCount} ontvangers ontvingen 'm al - de rest nog niet.`
                   : communication.status === "versturen"
                     ? "Deze nieuwsbrief staat al een tijd op 'versturen'. Mogelijk is een eerdere poging vastgelopen — probeer het hieronder opnieuw."
-                    : "Gaat naar de hierboven gekozen doelgroep."}
+                    : recipientSummary}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <Button type="button" onClick={handleSend} disabled={sendPending}>
