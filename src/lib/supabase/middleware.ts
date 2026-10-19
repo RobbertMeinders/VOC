@@ -38,14 +38,17 @@ function isPublicPath(pathname: string) {
 // praktisch bruikbaar nonce-mechanisme, en CSS-injectie alleen (zonder
 // script-uitvoering, die wél strikt is afgedwongen) is een veel kleiner
 // risico. img-src/connect-src dekken exact de externe origins die de app
-// daadwerkelijk laadt: Supabase Storage/Realtime, OpenStreetMap-tiles
-// (bedrijvenkaart) en unpkg.com (Leaflet's eigen marker-iconen).
+// daadwerkelijk laadt: Supabase Storage/Realtime, CARTO-kaarttegels
+// (bedrijvenkaart) en unpkg.com (Leaflet's eigen marker-iconen). Was
+// *.tile.openstreetmap.org — sinds de overstap naar CARTO Positron/Dark
+// Matter (afwerkronde blok 3) blokkeerde dat stilletjes elke tegel-
+// afbeelding (de kaart toonde dan wel de spelden, maar geen ondergrond).
 function buildCsp(nonce: string): string {
   return [
     `default-src 'self'`,
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
     `style-src 'self' 'unsafe-inline'`,
-    `img-src 'self' data: blob: https://*.supabase.co https://*.tile.openstreetmap.org https://unpkg.com`,
+    `img-src 'self' data: blob: https://*.supabase.co https://*.basemaps.cartocdn.com https://unpkg.com`,
     `font-src 'self' data:`,
     `connect-src 'self' https://*.supabase.co wss://*.supabase.co`,
     `base-uri 'self'`,
