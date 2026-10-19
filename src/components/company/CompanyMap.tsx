@@ -9,7 +9,6 @@ import "leaflet/dist/leaflet.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.Default.css";
 import { escapeHtml } from "@/lib/text/escape-html";
-import { useResolvedTheme } from "@/lib/theme/useResolvedTheme";
 import { CompanyLogo } from "./CompanyLogo";
 import type { CompanyListItem } from "./CompanyCard";
 
@@ -79,18 +78,15 @@ function createClusterIcon(cluster: { getChildCount: () => number }) {
   });
 }
 
-const TILE_LAYERS = {
-  light: {
-    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-auteurs &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  },
-  dark: {
-    url: "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png",
-    attribution:
-      '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-auteurs &copy; <a href="https://carto.com/attributions">CARTO</a>',
-  },
-} as const;
+// Terug naar gewone OpenStreetMap-tegels: CARTO's gratis basemaps (de
+// gedempte Positron/Dark Matter-stijl uit de afwerkronde) vereisen sinds kort
+// een API-key (carto.com/basemaps/apikey) — zonder key gaf dat een "API key
+// required"-foutmelding i.p.v. een kaart. Geen losse CARTO-account/key hier
+// beschikbaar, dus terug naar de kale, gratis, geen-key-nodig OSM-tegels
+// (wel weer feller gekleurd, ook in donker thema — dat is de prijs van geen
+// externe dienst nodig hebben).
+const TILE_LAYER_URL = "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+const TILE_LAYER_ATTRIBUTION = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>-auteurs';
 
 export type MappableCompany = CompanyListItem & { latitude: number; longitude: number };
 
@@ -106,8 +102,6 @@ export function CompanyMap({
   const [currentZoom, setCurrentZoom] = useState(zoom);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const pinSize = currentZoom >= CLOSE_ZOOM_THRESHOLD ? PIN_SIZE_CLOSE : PIN_SIZE_COMPACT;
-  const resolvedTheme = useResolvedTheme();
-  const tileLayer = TILE_LAYERS[resolvedTheme];
 
   if (companies.length === 0) {
     return (
@@ -128,10 +122,7 @@ export function CompanyMap({
       style={{ zIndex: 0 }}
     >
       <ZoomWatcher onZoomChange={setCurrentZoom} />
-      {/* Afwerkronde blok 3: een gedempte basiskaart (CARTO Positron/Dark
-          Matter) i.p.v. de fel-gekleurde standaard-OpenStreetMap-tegels, die
-          in donker thema ook nog eens altijd fel wit bleven. */}
-      <TileLayer key={resolvedTheme} attribution={tileLayer.attribution} url={tileLayer.url} />
+      <TileLayer attribution={TILE_LAYER_ATTRIBUTION} url={TILE_LAYER_URL} />
       {/* Bij veel bedrijven dicht bij elkaar (bv. hele binnenstad) groepeert
           dit tot één getal-bubbel i.p.v. een onleesbare stapel spelden —
           inzoomen of erop klikken splitst 'm vanzelf weer op. Een kleinere
