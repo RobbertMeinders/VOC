@@ -106,7 +106,7 @@ function AppShellBody({
   children: ReactNode;
   modal?: ReactNode;
 }) {
-  // Beheer-pagina's laten de standaard gecentreerde max-w-6xl los: met
+  // Beheer-pagina's laten de standaard gecentreerde breedte los: met
   // mx-auto bleef er op een breed scherm namelijk een leeg stuk over tussen
   // de hoofdsidebar en het Beheer-zijmenu (het centreert binnen de
   // resterende ruimte), waardoor dat menu niet overal consistent vlak
@@ -114,8 +114,25 @@ function AppShellBody({
   // (i.p.v. via een losse context + useEffect die pas ná de eerste render
   // "breed" zet) zodat er geen zichtbare sprong van gecentreerd naar links
   // optreedt bij het laden van de pagina.
+  //
+  // Afwerkronde (desktopbreedtes): elke pagina had tot nu toe zijn eigen,
+  // ad-hoc binnenste max-w-wrapper (of geen), met als gevolg dat Nieuws,
+  // Community en Agenda alledrie een andere breedte hadden. Drie vaste
+  // maten, hier op één plek bepaald i.p.v. per pagina een eigen wrapper:
+  // "lezen" (720px, één kolom doorlopende tekst — nieuwsbericht, profiel,
+  // privacy, activiteitdetail), "lijst" (960px — agenda, community,
+  // documenten, meldingen, nieuwsoverzicht, instellingen) en "breed"
+  // (onveranderd de volle max-w-6xl-kolom — netwerk, beheer, en elke
+  // pagina die hier niet expliciet in staat).
   const pathname = usePathname();
   const wide = pathname.startsWith("/beheer");
+  const contentWidth = (() => {
+    if (/^\/agenda\/[^/]+/.test(pathname)) return "lezen";
+    if (/^\/(leden|bedrijven)\/[^/]+/.test(pathname)) return "lezen";
+    if (pathname === "/privacy" || pathname.startsWith("/nieuws/")) return "lezen";
+    if (["/agenda", "/community", "/documenten", "/notificaties", "/nieuws", "/instellingen"].includes(pathname)) return "lijst";
+    return "breed";
+  })();
 
   return (
     // UX-review punt 6: vangnet tegen een gemiste overflow-bug elders die de
@@ -173,7 +190,12 @@ function AppShellBody({
         <div
           className={clsx(
             "relative w-full px-4 py-6",
-            wide ? "md:px-16 md:py-10" : "mx-auto max-w-2xl md:max-w-6xl md:px-8 md:py-10"
+            wide
+              ? "md:px-16 md:py-10"
+              : clsx(
+                  "mx-auto max-w-2xl md:px-8 md:py-10",
+                  contentWidth === "lezen" ? "md:max-w-[720px]" : contentWidth === "lijst" ? "md:max-w-[960px]" : "md:max-w-6xl"
+                )
           )}
         >
           {children}

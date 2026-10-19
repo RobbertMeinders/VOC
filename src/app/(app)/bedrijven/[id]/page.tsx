@@ -9,9 +9,5 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 export default async function CompanyPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
 
-  return (
-    <div className="mx-auto w-full md:max-w-3xl">
-      <CompanyProfileContent id={id} />
-    </div>
-  );
+  return <CompanyProfileContent id={id} />;
 }

@@ -34,7 +34,7 @@ export default async function NieuwsPage() {
   );
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div>
       <h1 className="mb-6 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Nieuws</h1>
 
       {newsItems && newsItems.length > 0 ? (

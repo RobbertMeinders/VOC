@@ -9,7 +9,7 @@ export default async function PrivacyVeiligheidPage() {
   const settings = await getAppSettings();
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div>
       <BackLink href="/instellingen" label="Terug naar Instellingen" />
       <h1 className="mb-4 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Privacy & veiligheid</h1>
 

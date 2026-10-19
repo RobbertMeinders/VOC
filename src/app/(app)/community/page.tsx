@@ -20,7 +20,7 @@ export default async function CommunityPage() {
   ]);
 
   return (
-    <div className="mx-auto w-full md:max-w-3xl">
+    <div>
       <h1 className="mb-3 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Community</h1>
       <Suspense>
         <FeedList

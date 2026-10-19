@@ -8,6 +8,8 @@ import { formatActivityDateCompact, formatActivityTimeOnly, formatTodayLabel, ge
 import { Avatar } from "@/components/ui/Avatar";
 import { NewsHeroCarousel } from "@/components/home/NewsHeroCarousel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { RecentPostPreview } from "@/components/feed/RecentPostPreview";
+import { fetchFeedPosts } from "@/lib/feed/queries";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Home" };
@@ -20,6 +22,7 @@ type NewMemberRow = {
   last_name: string;
   avatar_url: string | null;
   avatar_thumb_url: string | null;
+  company_members: { is_primary: boolean; company: { id: string; name: string } | null }[];
 };
 
 const QUICK_ACTIONS = [
@@ -33,7 +36,7 @@ export default async function HomePage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: activities }, { data: newsItems }, { data: myRegistrationRows }, { data: newMembers }] = await Promise.all([
+  const [{ data: activities }, { data: newsItems }, { data: myRegistrationRows }, { data: newMembers }, communityPosts] = await Promise.all([
     supabase
       .from("activities")
       .select("*")
@@ -54,13 +57,18 @@ export default async function HomePage() {
     // ledenlijst (/leden) zelf.
     supabase
       .from("profiles")
-      .select("id, first_name, last_name, avatar_url, avatar_thumb_url")
+      .select(
+        "id, first_name, last_name, avatar_url, avatar_thumb_url, company_members(is_primary, company:companies(id, name))"
+      )
       .eq("is_active", true)
       .eq("is_organization_account", false)
       .neq("id", profile.id)
       .order("created_at", { ascending: false })
       .limit(5)
       .returns<NewMemberRow[]>(),
+    // Afwerkronde blok 2: "Laatst in de community" op desktop — de 3 meest
+    // recente berichten, zelfde ophaalfunctie als de Community-pagina zelf.
+    fetchFeedPosts(supabase, profile.id, 3),
   ]);
 
   const nextActivity = activities?.[0] ?? null;
@@ -113,6 +121,11 @@ export default async function HomePage() {
         : `Je bent voor ${upcomingRegistrationCount} activiteiten aangemeld`
       : null;
 
+  const newMembersWithCompany = (newMembers ?? []).map((member) => {
+    const membership = member.company_members.find((m) => m.is_primary) ?? member.company_members[0];
+    return { ...member, company: membership?.company ?? null };
+  });
+
   return (
     <div className="flex flex-col gap-6">
       {/* Welkomstblok: donkerpetrol, geen decoratie/glaseffect (redesign-
@@ -126,6 +139,23 @@ export default async function HomePage() {
               {getGreeting()}, {profile.first_name}
             </h1>
             {statusLine && <p className="mt-1 text-sm text-white/70">{statusLine}</p>}
+
+            {/* Afwerkronde blok 2: snelle acties op desktop in het
+                welkomstblok zelf, als lichte pillen op de donkerpetrol
+                ondergrond — het losse "Snel naar"-blok (hieronder, enkel op
+                mobiel zichtbaar) verviel daarmee voor desktop. */}
+            <div className="mt-4 hidden flex-wrap gap-2 lg:flex">
+              {QUICK_ACTIONS.map(({ href, label, icon: Icon }) => (
+                <Link
+                  key={href}
+                  href={href}
+                  className="flex items-center gap-1.5 rounded-full bg-white/15 px-3.5 py-1.5 text-xs font-medium text-white hover:bg-white/25"
+                >
+                  <Icon size={14} />
+                  {label}
+                </Link>
+              ))}
+            </div>
           </div>
 
           {nextActivity && (
@@ -171,43 +201,91 @@ export default async function HomePage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
-        <div className="flex flex-col gap-6 lg:order-2">
+      {/* Mobiel: ongewijzigd t.o.v. voor de afwerkronde-herindeling —
+          "Snel naar" als los blok, dan "Nieuw in het netwerk" als rij
+          avatarcirkels, dan Nieuws. */}
+      <div className="flex flex-col gap-6 lg:hidden">
+        <section>
+          <h2 className="font-display mb-2 text-base font-bold text-foreground">Snel naar</h2>
+          <div className="grid grid-cols-4 gap-2">
+            {QUICK_ACTIONS.map(({ href, label, icon: Icon }) => (
+              <Link key={href} href={href} className="flex flex-col items-center gap-1.5 text-center text-[11px] font-medium text-foreground">
+                <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-petrol-soft text-petrol">
+                  <Icon size={18} />
+                </span>
+                {label}
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        {newMembersWithCompany.length > 0 && (
           <section>
-            <h2 className="font-display mb-2 text-base font-bold text-foreground">Snel naar</h2>
-            <div className="grid grid-cols-4 gap-2">
-              {QUICK_ACTIONS.map(({ href, label, icon: Icon }) => (
-                <Link key={href} href={href} className="flex flex-col items-center gap-1.5 text-center text-[11px] font-medium text-foreground">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-petrol-soft text-petrol">
-                    <Icon size={18} />
-                  </span>
-                  {label}
-                </Link>
-              ))}
+            <SectionHeader title="Nieuw in het netwerk" href="/leden" linkLabel="Alle leden" />
+            <div className="flex gap-3 overflow-x-auto pb-1">
+              {newMembersWithCompany.map((member) => {
+                const path = member.avatar_thumb_url ?? member.avatar_url;
+                const avatarUrl = path ? (newMemberAvatarUrls.get(path) ?? null) : null;
+                return (
+                  <Link key={member.id} href={`/leden/${member.id}`} className="flex shrink-0 flex-col items-center gap-1.5 text-center">
+                    <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={avatarUrl} size={44} />
+                    <span className="max-w-[56px] truncate text-[11px] text-muted">{member.first_name}</span>
+                  </Link>
+                );
+              })}
             </div>
           </section>
+        )}
 
-          {newMembers && newMembers.length > 0 && (
+        {newsSlides.length > 0 ? (
+          <section>
+            <SectionHeader title="Nieuws" href="/nieuws" linkLabel="Alle nieuws" />
+            <NewsHeroCarousel slides={newsSlides} />
+          </section>
+        ) : (
+          !nextActivity && (
+            <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+              <p className="text-sm text-muted">Er staat nog geen activiteit gepland.</p>
+            </div>
+          )
+        )}
+      </div>
+
+      {/* Desktop: twee vaste kolommen (afwerkronde blok 2) — links Nieuws en
+          "Laatst in de community", rechts Agenda (zachte petrol-tegels; enkel
+          de eerstvolgende activiteit in het welkomstblok hierboven blijft
+          rood) en "Nieuw in het netwerk" als naam+bedrijf-lijst. */}
+      <div className="hidden gap-6 lg:grid" style={{ gridTemplateColumns: "1.75fr 1fr" }}>
+        <div className="flex flex-col gap-6">
+          {newsSlides.length > 0 && (
             <section>
-              <SectionHeader title="Nieuw in het netwerk" href="/leden" linkLabel="Alle leden" />
-              <div className="flex gap-3 overflow-x-auto pb-1">
-                {newMembers.map((member) => {
-                  const path = member.avatar_thumb_url ?? member.avatar_url;
-                  const avatarUrl = path ? (newMemberAvatarUrls.get(path) ?? null) : null;
-                  return (
-                    <Link key={member.id} href={`/leden/${member.id}`} className="flex shrink-0 flex-col items-center gap-1.5 text-center">
-                      <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={avatarUrl} size={44} />
-                      <span className="max-w-[56px] truncate text-[11px] text-muted">{member.first_name}</span>
-                    </Link>
-                  );
-                })}
+              <SectionHeader title="Nieuws" href="/nieuws" linkLabel="Alle nieuws" />
+              <NewsHeroCarousel slides={newsSlides} />
+            </section>
+          )}
+
+          {communityPosts.length > 0 && (
+            <section>
+              <SectionHeader title="Laatst in de community" href="/community" linkLabel="Naar Community" />
+              <div className="flex flex-col gap-3">
+                {communityPosts.map((post) => (
+                  <RecentPostPreview key={post.id} post={post} />
+                ))}
               </div>
             </section>
           )}
 
+          {newsSlides.length === 0 && communityPosts.length === 0 && !nextActivity && (
+            <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+              <p className="text-sm text-muted">Er staat nog geen activiteit gepland.</p>
+            </div>
+          )}
+        </div>
+
+        <div className="flex flex-col gap-6">
           {laterActivities.length > 0 && (
-            <section className="hidden lg:block">
-              <SectionHeader title="Daarna in de agenda" href="/agenda" linkLabel="Agenda" />
+            <section>
+              <SectionHeader title="Agenda" href="/agenda" linkLabel="Agenda" />
               <div className="flex flex-col divide-y divide-border rounded-2xl border border-border bg-surface shadow-sm">
                 {laterActivities.map((activity) => (
                   <Link key={activity.id} href={`/agenda/${activity.id}`} className="flex items-center gap-3 p-3 hover:bg-black/[.03] dark:hover:bg-white/[.05]">
@@ -231,20 +309,32 @@ export default async function HomePage() {
               </div>
             </section>
           )}
-        </div>
 
-        <div className="lg:order-1">
-          {newsSlides.length > 0 ? (
+          {newMembersWithCompany.length > 0 && (
             <section>
-              <SectionHeader title="Nieuws" href="/nieuws" linkLabel="Alle nieuws" />
-              <NewsHeroCarousel slides={newsSlides} />
-            </section>
-          ) : (
-            !nextActivity && (
-              <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-                <p className="text-sm text-muted">Er staat nog geen activiteit gepland.</p>
+              <SectionHeader title="Nieuw in het netwerk" href="/leden" linkLabel="Alle leden" />
+              <div className="flex flex-col divide-y divide-border rounded-2xl border border-border bg-surface shadow-sm">
+                {newMembersWithCompany.map((member) => {
+                  const path = member.avatar_thumb_url ?? member.avatar_url;
+                  const avatarUrl = path ? (newMemberAvatarUrls.get(path) ?? null) : null;
+                  return (
+                    <Link
+                      key={member.id}
+                      href={`/leden/${member.id}`}
+                      className="flex items-center gap-3 p-3 hover:bg-black/[.03] dark:hover:bg-white/[.05]"
+                    >
+                      <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={avatarUrl} size={40} />
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate text-sm font-medium text-foreground">
+                          {member.first_name} {member.last_name}
+                        </p>
+                        {member.company && <p className="truncate text-xs text-muted">{member.company.name}</p>}
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
-            )
+            </section>
           )}
         </div>
       </div>
