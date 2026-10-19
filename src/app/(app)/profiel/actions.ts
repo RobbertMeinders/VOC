@@ -5,6 +5,9 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { sendTemplatedEmail } from "@/lib/email/send";
+import { isEmailRateLimited } from "@/lib/auth/rate-limit";
 import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
@@ -283,17 +286,45 @@ export async function unsubscribeFromPushAction(endpoint: string): Promise<void>
 export type ChangeEmailState = { error?: string; success?: boolean };
 
 export async function changeEmailAction(_prevState: ChangeEmailState, formData: FormData): Promise<ChangeEmailState> {
-  await requireProfile();
+  const profile = await requireProfile();
   const email = String(formData.get("email") ?? "").trim();
 
   if (!email) {
     return { error: "Vul een e-mailadres in." };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.updateUser({ email });
+  if (await isEmailRateLimited("email_change_requested", email)) {
+    return { error: "Te veel pogingen. Probeer het over een kwartier opnieuw." };
+  }
 
-  if (error) {
+  // Niet langer auth.updateUser({ email }): dat liet Supabase zelf de
+  // bevestigingsmails versturen, vanaf Supabase's eigen afzenderadres i.p.v.
+  // info@vocveendam.nl. Zelfde patroon als wachtwoord-reset/magic link:
+  // generateLink maakt alleen de tokens aan (geen mail), en we versturen ze
+  // zelf via het eigen sjabloon/SMTP-adres. "Secure email change" staat aan
+  // op dit project (zie EmailChangeForm's bevestigingstekst), dus zowel het
+  // huidige als het nieuwe adres moet apart bevestigen voordat de wijziging
+  // echt ingaat — vandaar twee generateLink-aanroepen/mails i.p.v. één.
+  try {
+    const admin = createAdminClient();
+    const [currentLink, newLink] = await Promise.all([
+      admin.auth.admin.generateLink({ type: "email_change_current", email: profile.email, newEmail: email }),
+      admin.auth.admin.generateLink({ type: "email_change_new", email: profile.email, newEmail: email }),
+    ]);
+    const currentToken = currentLink.data?.properties?.hashed_token;
+    const newToken = newLink.data?.properties?.hashed_token;
+
+    if (currentLink.error || newLink.error || !currentToken || !newToken) {
+      return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
+    }
+
+    const siteUrl = (process.env.SITE_URL ?? "").replace(/\/$/, "");
+    const buildLink = (token: string) => `${siteUrl}/auth/confirm?token_hash=${token}&type=email_change&next=/instellingen`;
+    await Promise.all([
+      sendTemplatedEmail("email_wijzigen", profile.email, { link: buildLink(currentToken) }),
+      sendTemplatedEmail("email_wijzigen", email, { link: buildLink(newToken) }),
+    ]);
+  } catch {
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
 
