@@ -1067,7 +1067,7 @@ export function NewsletterEditor({
                 : communication.status === "verzenden_mislukt"
                   ? `${sentCount} van ${communication.total_recipients ?? activeMemberCount} ontvangers ontvingen 'm al. Opnieuw proberen voor ${failedCount} mislukte ontvanger${failedCount === 1 ? "" : "s"}.`
                   : communication.status === "versturen"
-                    ? "Deze nieuwsbrief staat al een tijd op 'versturen'. Mogelijk is een eerdere poging vastgelopen — probeer het hieronder opnieuw."
+                    ? "Deze nieuwsbrief staat al een tijd op 'versturen'. Mogelijk is een eerdere poging vastgelopen. Probeer het hieronder opnieuw."
                     : recipientSummary}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-3">

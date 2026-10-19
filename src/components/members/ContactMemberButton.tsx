@@ -49,9 +49,9 @@ export function ContactMemberButton({ recipientId, recipientName }: { recipientI
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium text-voc-red-text hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+        className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
       >
-        <Send size={16} />
+        <Send size={16} className="text-muted" />
         Neem contact op
       </button>
 

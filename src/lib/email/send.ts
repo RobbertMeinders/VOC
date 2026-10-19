@@ -224,7 +224,7 @@ export async function sendMemberContactEmail(params: {
   const html = `
     <p>${escapeHtml(senderName)} heeft je een bericht gestuurd via het ledenportaal.</p>
     <p style="white-space:pre-line;">${escapeHtml(message)}</p>
-    <p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je kunt rechtstreeks op deze e-mail reageren — je antwoord gaat naar ${escapeHtml(senderName)}, niet naar het ledenportaal.</p>
+    <p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je kunt rechtstreeks op deze e-mail reageren. Je antwoord gaat naar ${escapeHtml(senderName)}, niet naar het ledenportaal.</p>
   `;
   return sendRawHtmlEmail(to, subject, html, senderName, replyTo);
 }

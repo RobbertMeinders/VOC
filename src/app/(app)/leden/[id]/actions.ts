@@ -237,7 +237,7 @@ export async function forceLogoutMemberAction(memberId: string): Promise<ForceLo
   const viewer = await requireBoard();
 
   if (memberId === viewer.id) {
-    return { error: "Je kunt jezelf niet op deze manier uitloggen — gebruik je eigen uitlogknop." };
+    return { error: "Je kunt jezelf niet op deze manier uitloggen. Gebruik je eigen uitlogknop." };
   }
 
   const supabase = await createClient();

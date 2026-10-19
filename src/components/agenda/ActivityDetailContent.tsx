@@ -211,12 +211,12 @@ export async function ActivityDetailContent({ id }: { id: string }) {
             </p>
           )}
           <h1 className="text-xl font-semibold text-foreground">{activity.title}</h1>
-          {submitterLabel && <p className="mt-1 text-xs text-muted">Toegevoegd door {submitterLabel}</p>}
+          {submitterLabel && isBoard(profile.role) && <p className="mt-1 text-xs text-muted">Toegevoegd door {submitterLabel}</p>}
           <div className="mt-3 flex flex-col gap-2 text-sm text-muted">
             <span className="flex items-center gap-2">
               <CalendarDays size={16} />
               {formatActivityDate(activity.starts_at)}
-              {activity.ends_at && ` – ${formatActivityTimeOnly(activity.ends_at)}`}
+              {activity.ends_at && ` - ${formatActivityTimeOnly(activity.ends_at)}`}
             </span>
             {activity.location && (
               <span className="flex items-center gap-2">

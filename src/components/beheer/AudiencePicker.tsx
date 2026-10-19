@@ -109,7 +109,7 @@ export function AudiencePicker({
     <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
       <p className="text-sm font-medium text-foreground">Doelgroep</p>
       <p className="mt-0.5 text-sm text-muted">
-        Hoofddoelgroep plus eventueel losse extra ontvangers — handig om na te sturen naar iemand die nog niets ontving, of om zelf te
+        Hoofddoelgroep plus eventueel losse extra ontvangers. Handig om na te sturen naar iemand die nog niets ontving, of om zelf te
         testen.
       </p>
 

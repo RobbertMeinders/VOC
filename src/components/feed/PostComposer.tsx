@@ -248,8 +248,12 @@ function PostComposerForm({
     // bleef (zelfde bugklasse als bij NotificationCenter).
     <FloatingPortal>
       <div className="fixed inset-0 z-40 cursor-pointer bg-black/60 animate-fade-in" onClick={onClose} />
-      <div className="fixed inset-x-3 top-1/2 z-50 -translate-y-1/2 sm:inset-x-0 sm:mx-auto sm:w-full sm:max-w-xl sm:px-3 md:left-72">
-        <div className="animate-scale-in max-h-[85vh] overflow-y-auto rounded-2xl border border-border bg-surface shadow-lg">
+      {/* Mobiel: paneel van onderen (zelfde patroon als ProfileMenu) i.p.v.
+          een venster midden in het scherm — hoorde niet bij hoe de rest van
+          de app zijn panelen op een telefoon toont. Vanaf sm weer het
+          gecentreerde venster van ervoor. */}
+      <div className="fixed inset-x-0 bottom-0 z-50 sm:inset-x-0 sm:bottom-auto sm:top-1/2 sm:mx-auto sm:w-full sm:max-w-xl sm:-translate-y-1/2 sm:px-3 md:left-72">
+        <div className="animate-sheet-in sm:animate-scale-in max-h-[85vh] overflow-y-auto rounded-t-2xl border border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg sm:rounded-2xl sm:pb-0">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <p className="text-sm font-semibold text-foreground">{chosen === "voorstellen" ? "Stel jezelf voor" : "Nieuw bericht"}</p>
             <button
@@ -264,7 +268,7 @@ function PostComposerForm({
 
           {chosen === undefined ? (
             <div className="p-4">
-              <PostTypeChooser onChoose={(type) => setChosen(type ?? NO_POST_TYPE_VALUE)} />
+              <PostTypeChooser onChoose={setChosen} />
             </div>
           ) : (
             <form

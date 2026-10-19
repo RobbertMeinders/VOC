@@ -197,7 +197,7 @@ export default async function VerenigingBeheerPage({ searchParams }: { searchPar
 
   return (
     <div>
-      <PageHeader title="Vereniging" description="Inhoud, bestuur en commissies — zichtbaar voor leden via Vereniging in de hoofdnavigatie." />
+      <PageHeader title="Vereniging" description="Inhoud, bestuur en commissies. Leden zien dit onder Vereniging." />
 
       <div className="sticky top-14 z-10 -mx-4 mb-4 flex gap-1.5 overflow-x-auto bg-background px-4 py-2 md:top-0 md:-mx-16 md:px-16">
         {TABS.map((t) => (

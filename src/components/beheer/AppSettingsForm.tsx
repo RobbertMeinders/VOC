@@ -131,8 +131,9 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
             Privacy & veiligheid
           </label>
           <p className="text-xs text-muted">
-            Tekst van de pagina Privacy &amp; veiligheid. Een regel die begint met <code>##</code> wordt een tussenkop, een losse regel met{" "}
-            <code>---</code> een scheidingslijn, en <code>[tekst](/pad)</code> wordt een link.
+            Tekst van de pagina Privacy &amp; veiligheid. Een regel die begint met <code>##</code> (of die in zijn geheel <code>**vet**</code>{" "}
+            is) wordt een tussenkop, een losse regel met <code>---</code> een scheidingslijn, <code>[tekst](/pad)</code> wordt een link en{" "}
+            <code>**tekst**</code> wordt vet.
           </p>
           <textarea
             id="privacy_content"

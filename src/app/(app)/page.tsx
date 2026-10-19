@@ -108,7 +108,9 @@ export default async function HomePage() {
   // begroeting gewoon leeg, geen placeholder-tekst.
   const statusLine =
     upcomingRegistrationCount > 0
-      ? `${upcomingRegistrationCount} ${upcomingRegistrationCount === 1 ? "aankomende aanmelding" : "aankomende aanmeldingen"}`
+      ? upcomingRegistrationCount === 1
+        ? "Je bent voor 1 activiteit aangemeld"
+        : `Je bent voor ${upcomingRegistrationCount} activiteiten aangemeld`
       : null;
 
   return (

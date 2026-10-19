@@ -87,7 +87,7 @@ export function MemberQuickEditForm({
           id={`qe-board-${memberId}`}
           name="board_title"
           defaultValue={boardTitle ?? ""}
-          placeholder="Bijv. Voorzitter, Penningmeester — laat leeg voor geen bestuursfunctie"
+          placeholder="Bijv. Voorzitter of Penningmeester. Leeg laten als iemand geen bestuursfunctie heeft."
           className="h-9"
         />
         <p className="text-xs text-muted">Verschijnt op de Bestuur-pagina. Verandert niets aan de systeemrol van dit lid.</p>

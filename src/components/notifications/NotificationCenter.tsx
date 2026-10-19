@@ -97,7 +97,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
             <button
               type="button"
               onClick={handleMarkAllRead}
-              className="text-xs font-medium text-voc-red-text hover:underline"
+              className="text-xs font-medium text-petrol hover:underline"
             >
               Alles gelezen
             </button>
@@ -144,7 +144,7 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
       <Link
         href="/notificaties"
         onClick={close}
-        className="block border-t border-border px-4 py-2.5 text-center text-sm font-medium text-voc-red-text hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+        className="block border-t border-border px-4 py-2.5 text-center text-sm font-medium text-petrol hover:bg-black/[.04] dark:hover:bg-white/[.06]"
       >
         Alles bekijken
       </Link>
