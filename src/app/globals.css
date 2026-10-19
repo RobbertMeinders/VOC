@@ -681,5 +681,22 @@ a:focus-visible {
   margin: 10px 12px;
 }
 .voc-company-popup a {
-  color: var(--voc-red) !important;
+  /* Afwerkronde blok 3: petrol i.p.v. VOC-rood — een link is geen primaire
+     actieknop, rood blijft gereserveerd voor de geselecteerde speld zelf. */
+  color: var(--petrol) !important;
+}
+
+/* Zoom-knoppen in huisstijl i.p.v. Leaflets kale standaardvierkantjes. */
+.leaflet-control-zoom {
+  border: 1px solid var(--border) !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.18) !important;
+}
+.leaflet-control-zoom a {
+  background: var(--surface) !important;
+  color: var(--foreground) !important;
+}
+.leaflet-control-zoom a:hover {
+  background: var(--raised) !important;
 }

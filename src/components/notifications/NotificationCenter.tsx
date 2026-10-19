@@ -132,10 +132,15 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
               onClick={() => handleSelect(n)}
               className={clsx(
                 "flex w-full flex-col items-start gap-0.5 border-b border-border px-4 py-3 text-left last:border-0 hover:bg-black/[.04] dark:hover:bg-white/[.06]",
-                !n.is_read && "bg-petrol-soft/60"
+                // Afwerkronde blok 3: lichtere achtergrond + stipje i.p.v. een
+                // hele petrol-soft rij per ongelezen melding.
+                !n.is_read && "bg-raised"
               )}
             >
-              <p className="text-sm font-medium text-foreground">{n.title}</p>
+              <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+                {!n.is_read && <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-voc-red" />}
+                {n.title}
+              </p>
               {n.body && <p className="line-clamp-2 text-xs text-muted">{n.body}</p>}
               <p className="text-xs text-muted">{formatActivityDateShort(n.created_at)}</p>
             </button>

@@ -67,13 +67,19 @@ export function NotificationList({ notifications: initialNotifications }: { noti
         <div
           key={n.id}
           className={clsx(
-            "flex items-start gap-3 rounded-xl border p-3 shadow-sm",
-            n.is_read ? "border-border bg-surface" : "border-petrol/30 bg-petrol-soft"
+            "flex items-start gap-3 rounded-xl border border-border p-3 shadow-sm",
+            // Afwerkronde blok 3: een hele petrol-soft kaart per ongelezen
+            // melding oogde als een extra kleurvlak per rij; een stipje +
+            // een iets lichtere ondergrond valt net zo goed op.
+            n.is_read ? "bg-surface" : "bg-raised"
           )}
         >
           <Bell size={16} className={clsx("mt-0.5 shrink-0", n.is_read ? "text-muted" : "text-petrol")} />
           <Link href={n.link ?? "/"} onClick={() => handleOpen(n)} className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-foreground">{n.title}</p>
+            <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+              {!n.is_read && <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-voc-red" />}
+              {n.title}
+            </p>
             {n.body && <p className="text-sm text-muted">{n.body}</p>}
             <p className="mt-0.5 text-xs text-muted">{formatActivityDateShort(n.created_at)}</p>
           </Link>

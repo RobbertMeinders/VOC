@@ -16,7 +16,7 @@ export function MemberRow({ member }: { member: MemberListItem }) {
       href={`/leden/${member.id}`}
       className="animate-rise-in flex min-w-0 items-center gap-4 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-500 ease-out hover:scale-[1.008] hover:border-foreground/20 hover:shadow-md"
     >
-      <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={80} />
+      <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={56} />
       <div className="min-w-0 flex-1">
         <p className="line-clamp-2 text-sm font-medium leading-snug text-foreground">
           {member.first_name} {member.last_name}

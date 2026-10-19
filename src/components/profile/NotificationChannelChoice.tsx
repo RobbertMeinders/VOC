@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { clsx } from "clsx";
+import { Chip } from "@/components/ui/Chip";
 import { updateNotificationChannelAction } from "@/app/(app)/profiel/actions";
 
 type Category = "activities" | "feed";
@@ -21,11 +22,13 @@ const OPTIONS: { value: Choice; label: string }[] = [
   { value: "none", label: "Uit" },
 ];
 
-// Communicatieplan: één keuze i.p.v. losse push/e-mail-schakelaars. Zelfde
-// segment-pil-stijl als ThemeToggle (bg-background-pil, actieve knop in
-// inkt — "rood op dieet": een actief segment is geen rode knop) i.p.v. een
-// <select> — een dropdown stak qua gewicht en, in donker
-// thema, qua contrast af tegen de schakelaars verderop op dezelfde pagina.
+// Communicatieplan: één keuze i.p.v. losse push/e-mail-schakelaars, als
+// rij Chips i.p.v. een <select> (die stak qua gewicht en, in donker thema,
+// qua contrast af tegen de schakelaars verderop op dezelfde pagina).
+// Afwerkronde blok 3: dit hoort bij "filteren of kiezen" (net als Alles/VOC
+// in de agenda), dus de gedeelde Chip (inkt op actief) i.p.v. een eigen
+// segment-pil-track met surface+schaduw — dat laatste is voor "wisselen van
+// weergave" (Leden/Bedrijven, Lijst/Kaart, Thema), een andere categorie.
 // Geen flex-wrap: dat brak de 4 opties op mobiel lelijk over 2-3 ongelijke
 // regels (de rij in instellingen/page.tsx staat daarom op mobiel onder het
 // label i.p.v. ernaast, zodat deze pil altijd de volle breedte heeft en in
@@ -46,7 +49,7 @@ export function NotificationChannelChoice({
   const [isPending, startTransition] = useTransition();
 
   function handleChange(next: Choice) {
-    if (next === choice) return;
+    if (next === choice || isPending) return;
     const previous = choice;
     setChoice(next);
     setError(null);
@@ -61,20 +64,16 @@ export function NotificationChannelChoice({
 
   return (
     <div className="flex w-full flex-col items-end gap-1 sm:w-auto">
-      <div className="flex w-full justify-between rounded-lg border border-border bg-background p-1 sm:w-auto sm:justify-end sm:gap-1">
+      <div className="flex w-full justify-between gap-1.5 sm:w-auto sm:justify-end">
         {OPTIONS.map(({ value, label }) => (
-          <button
+          <Chip
             key={value}
-            type="button"
-            disabled={isPending}
+            active={choice === value}
             onClick={() => handleChange(value)}
-            className={clsx(
-              "flex-1 rounded-md px-2.5 py-1 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none",
-              choice === value ? "bg-foreground text-background" : "text-muted hover:text-foreground"
-            )}
+            className={clsx("flex-1 justify-center sm:flex-none", isPending && "cursor-not-allowed opacity-60")}
           >
             {label}
-          </button>
+          </Chip>
         ))}
       </div>
       {error && <p className="text-right text-xs text-voc-red-text">{error}</p>}
