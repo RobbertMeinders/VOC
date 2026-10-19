@@ -872,6 +872,14 @@ export interface Database {
         Args: { p_id: string };
         Returns: { profile_id: string; old_avatar_url: string | null }[];
       };
+      force_logout_member: {
+        Args: { p_id: string };
+        Returns: void;
+      };
+      force_logout_all_members: {
+        Args: { p_except_id?: string | null };
+        Returns: void;
+      };
       has_any_profiles: {
         Args: Record<string, never>;
         Returns: boolean;

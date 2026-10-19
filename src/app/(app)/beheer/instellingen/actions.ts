@@ -3,7 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { uploadImage } from "@/lib/supabase/upload";
+import { logAuditAction } from "@/lib/audit/log";
 
 export type UpdateAppSettingsState = { error?: string; success?: boolean };
 
@@ -82,4 +84,24 @@ export async function removeAppLogoAction(): Promise<void> {
   await supabase.from("app_settings").update({ logo_url: null, updated_by: profile.id }).eq("id", true);
 
   revalidatePath("/", "layout");
+}
+
+export type ForceLogoutAllState = { error?: string; success?: boolean };
+
+// Nucleaire optie: iedereen tegelijk uitloggen (bv. bij een vermoede
+// gelekte sessie, of na een beveiligingsincident) — alleen beheerder, en
+// alleen met expliciete bevestiging in de UI (ForceLogoutAllButton). Sluit
+// de eigen sessie van de aanroepende beheerder uit (force_logout_all_members,
+// 0111), anders zou die zichzelf er ook meteen uitgooien.
+export async function forceLogoutAllMembersAction(): Promise<ForceLogoutAllState> {
+  const profile = await requireAdmin();
+
+  const admin = createAdminClient();
+  const { error } = await admin.rpc("force_logout_all_members", { p_except_id: profile.id });
+  if (error) {
+    return { error: "Uitloggen is niet gelukt. Probeer het opnieuw." };
+  }
+
+  await logAuditAction("all_members_force_logged_out");
+  return { success: true };
 }

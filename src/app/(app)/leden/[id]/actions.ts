@@ -225,6 +225,43 @@ export async function generateLoginLinkAction(memberId: string): Promise<Generat
   return { link };
 }
 
+export type ForceLogoutMemberState = { error?: string; success?: boolean };
+
+// Direct uitloggen op alle apparaten — bv. bij verdenking van een
+// gedeelde/gestolen sessie, of na een rolwijziging die meteen moet ingaan.
+// force_logout_member (0111) ruimt de sessie/refresh-tokens in het
+// auth-schema op; er is geen eigen client-side effect nodig, de volgende
+// tokenverversing voor dat account faalt vanzelf en de browser valt terug
+// op de inlogpagina.
+export async function forceLogoutMemberAction(memberId: string): Promise<ForceLogoutMemberState> {
+  const viewer = await requireBoard();
+
+  if (memberId === viewer.id) {
+    return { error: "Je kunt jezelf niet op deze manier uitloggen — gebruik je eigen uitlogknop." };
+  }
+
+  const supabase = await createClient();
+  const { data: target } = await supabase.from("profiles").select("role").eq("id", memberId).maybeSingle();
+  if (!target) {
+    return { error: "Lid niet gevonden." };
+  }
+  // Zelfde beperking als generateLoginLinkAction hierboven: een gewoon
+  // bestuurslid grijpt niet in op de sessie van een ander bestuurslid of
+  // beheerder.
+  if (target.role !== "lid" && viewer.role !== "beheerder") {
+    return { error: "Alleen een beheerder kan een bestuurslid of beheerder uitloggen." };
+  }
+
+  const admin = createAdminClient();
+  const { error } = await admin.rpc("force_logout_member", { p_id: memberId });
+  if (error) {
+    return { error: "Uitloggen is niet gelukt. Probeer het opnieuw." };
+  }
+
+  await logAuditAction("member_force_logged_out", "profile", memberId);
+  return { success: true };
+}
+
 export type UpdateMemberOrganizationAccountState = { error?: string; success?: boolean };
 
 // Markeert een profiel als "dit is de organisatie zelf, geen collega" —
