@@ -36,3 +36,6 @@ Visueel overzicht: https://claude.ai/artifact/KduqUZMM3jV5ZJhAzXNWTZ
 
 ## Status
 - Gelukt #15803D, Let op #B45309, Fout #C8000D, Neutraal (concept/afgelast/verlopen) #55555C.
+
+## Achtergrond (wens Robbert, 19-10)
+- Spaarzaam een zachte gradient op de achtergrond in plaats van alleen blokken: lichte petroltint (#E3F0F0) die bovenaan of achter een kop naar wit/achtergrond verloopt; donker van #13292C naar #0F0F12. Bijvoorbeeld bovenaan Home, het beheerdashboard en lege staten.
