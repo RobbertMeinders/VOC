@@ -8,6 +8,7 @@ import { Chip } from "@/components/ui/Chip";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { CommunicationRow } from "@/components/beheer/CommunicationRow";
 import { NotificationRuleRow } from "@/components/beheer/NotificationRuleRow";
+import { AllNotificationChannelsSwitch } from "@/components/beheer/AllNotificationChannelsSwitch";
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { createCommunicationAction } from "./actions";
 import { CONFIGURABLE_NOTIFICATION_TYPES, ROLE_BASED_NOTIFICATION_TYPES, type ConfigurableNotificationType } from "@/lib/notifications/type-labels";
@@ -103,6 +104,7 @@ async function NotificatieregelsTab() {
     .returns<Database["public"]["Tables"]["notification_type_settings"]["Row"][]>();
 
   const byType = new Map((rows ?? []).map((row) => [row.type, row]));
+  const anyChannelEnabled = (rows ?? []).some((row) => row.channel_push || row.channel_email);
 
   return (
     <div className="flex flex-col gap-4">
@@ -110,6 +112,7 @@ async function NotificatieregelsTab() {
         Per type melding: welke rollen &apos;m krijgen (voor de types die naar bestuur/beheer gaan), via welke kanalen, en of de regel aan staat.
         Persoonlijke voorkeuren van leden zelf (zie Instellingen) blijven hier bovenop gelden.
       </p>
+      <AllNotificationChannelsSwitch initialEnabled={anyChannelEnabled} />
       <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
         <table className="w-full text-left text-sm">
           <thead>
@@ -124,8 +127,17 @@ async function NotificatieregelsTab() {
             {CONFIGURABLE_NOTIFICATION_TYPES.map((type: ConfigurableNotificationType) => {
               const row = byType.get(type);
               if (!row) return null;
+              // key op updated_at (i.p.v. alleen type): na de hoofdschakelaar
+              // hierboven krijgt elke rij een nieuwe updated_at, wat deze rij
+              // laat remounten met de verse initial-waarden i.p.v. de eigen,
+              // inmiddels verouderde lokale state te laten staan.
               return (
-                <NotificationRuleRow key={type} type={type} initial={row} isRoleBased={ROLE_BASED_NOTIFICATION_TYPES.includes(type)} />
+                <NotificationRuleRow
+                  key={`${type}-${row.updated_at}`}
+                  type={type}
+                  initial={row}
+                  isRoleBased={ROLE_BASED_NOTIFICATION_TYPES.includes(type)}
+                />
               );
             })}
           </tbody>

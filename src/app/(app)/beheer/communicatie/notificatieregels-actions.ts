@@ -45,3 +45,27 @@ export async function updateNotificationRuleAction(
   revalidatePath("/beheer/communicatie");
   return {};
 }
+
+export type UpdateAllNotificationChannelsState = { error?: string };
+
+// Hoofdschakelaar boven de tabel (NotificatieregelsTab): zet push en
+// e-mail voor élke regel in één keer aan/uit, zonder de aparte "aan/uit"-
+// schakelaar per regel, de rollen of in-app aan te raken — alleen de twee
+// kolommen die ook echt uitgaand verkeer bepalen. Bewust geen "vorige
+// stand onthouden": weer aanzetten zet gewoon alles weer aan, net als een
+// enkele regel die je terugzet.
+export async function updateAllNotificationChannelsAction(enabled: boolean): Promise<UpdateAllNotificationChannelsState> {
+  const profile = await requireBoard();
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("notification_type_settings")
+    .update({ channel_push: enabled, channel_email: enabled, updated_by: profile.id });
+
+  if (error) {
+    return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+  }
+
+  revalidatePath("/beheer/communicatie");
+  return {};
+}
