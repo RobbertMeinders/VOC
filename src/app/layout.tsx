@@ -6,6 +6,7 @@ import "./globals.css";
 import { THEME_INIT_SCRIPT } from "@/lib/theme/constants";
 import { ServiceWorkerRegister } from "@/components/pwa/ServiceWorkerRegister";
 import { getAppSettings } from "@/lib/settings/app-settings";
+import { bricolageGrotesque } from "@/lib/fonts/bricolageGrotesque";
 
 // Speeds up the first avatar/logo/attachment image on any page — a plain
 // string builder, not requireEnv(), so a missing env var never breaks the
@@ -38,7 +39,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  themeColor: "#e8000f",
+  // Redesign-besluit 3/fase 1 (docs/redesign-ontwerp.md): donkerpetrol i.p.v.
+  // rood — rood is voortaan schaars (logo, hoofdknop, actief item, teller).
+  themeColor: "#0B2E33",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -56,7 +59,11 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
   const nonce = (await headers()).get("x-nonce") ?? undefined;
 
   return (
-    <html lang="nl" className={`${inter.variable} h-full antialiased`} suppressHydrationWarning>
+    <html
+      lang="nl"
+      className={`${inter.variable} ${bricolageGrotesque.variable} h-full antialiased`}
+      suppressHydrationWarning
+    >
       <head>
         {supabaseStorageOrigin && <link rel="preconnect" href={supabaseStorageOrigin} crossOrigin="anonymous" />}
         <script nonce={nonce} dangerouslySetInnerHTML={{ __html: THEME_INIT_SCRIPT }} />

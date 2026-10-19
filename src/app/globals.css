@@ -23,14 +23,20 @@
   --surface: #ffffff;
   --foreground: #17171a;
   --muted: #6b6b72;
-  --border: #e5e5ea;
+  --border: #e4e4e7;
   /* Randkleur specifiek voor invoervelden/dropdowns — --border (voor
      kaartranden) is met opzet subtiel en haalt daardoor op een invoerveld
      de WCAG-ondergrens niet (gemeten 1,2–1,3 i.p.v. de vereiste 3); een
      leeg veld was daardoor bijna onzichtbaar wit-op-wit. */
   --input-border: #8e8e93;
+  /* Redesign fase 1 (docs/redesign-ontwerp.md/stijl-kleurenpalet.md):
+     "Verhoogd" — iets lichter dan --surface, voor een vlak dat zich net
+     van een kaart moet onderscheiden (bv. een ingebedde balk/track) zonder
+     een losse alfa-overlay per plek te verzinnen. */
+  --raised: #f1f1f3;
 
-  /* VOC huisstijl */
+  /* VOC huisstijl — rood op dieet: alleen nog logo, hoofdknop per scherm,
+     actief menu-item, tellers en foutmeldingen. */
   --voc-red: #e8000f;
   --voc-red-dark: #b8000c;
   --voc-red-light: #fdeaec;
@@ -39,10 +45,58 @@
      (gemeten 3,7–4,1 i.p.v. de vereiste 4,5) — alle tekst/iconen in rood
      (links, actieve tab, badge-tekst) gebruiken deze token. */
   --voc-red-text: #c8000d;
+  /* Rode tekst/logo bovenop een donkerpetrol vlak (welkomstblok,
+     beheerzijbalk) — --voc-red-text contrasteert daar onvoldoende, dit is
+     bewust dezelfde waarde in licht en donker. */
+  --voc-red-on-petrol: #ff3b45;
 
+  /* Tweede kleur (redesign-besluit 3): petrol vervangt inkt/zwart als groot
+     vlak (welkomstblok Home, beheerzijbalk) en kleurt iconen, datumtegels,
+     grafieken, focusring, links en vlakken. */
+  --petrol-deep: #0b2e33;
+  --petrol: #0e5a63;
+  --petrol-soft: #e3f0f0;
+
+  /* Fouten/waarschuwingen/foutteksten blijven rood (besluit "rood op
+     dieet") — eigen naam i.p.v. de voc-red-tokens rechtstreeks hergebruiken,
+     zodat het "rood eruit halen"-werk in fase 2 deze betekenis niet per
+     ongeluk ook meeneemt. */
+  --danger: var(--voc-red);
+  --danger-text: var(--voc-red-text);
+  --danger-soft: var(--voc-red-light);
+
+  /* Statuskleuren (generieke toestand: activiteit/aanvraag/campagne), los
+     van de community-labelkleuren hieronder — delen bewust dezelfde
+     kleurfamilie (groen/amber/grijs) maar blijven losse tokens zodat ze
+     onafhankelijk bij te stellen zijn. */
+  --status-success: #15803d;
+  --status-success-soft: #e8f6ee;
+  --status-warning: #b45309;
+  --status-warning-soft: #fdf3e2;
+  --status-neutral: #55555c;
+  --status-neutral-soft: var(--raised);
+
+  /* Labelkleuren community (tint-achtergrond + tekst per berichtsoort) —
+     vervangt de losse kleurmap in lib/feed/postType.ts (fase 2). */
+  --label-vraag-text: #1d4ed8;
+  --label-vraag-bg: #eaf1fe;
+  --label-aanbod-text: #15803d;
+  --label-aanbod-bg: #e8f6ee;
+  --label-nieuws-text: #6d28d9;
+  --label-nieuws-bg: #f1ecfe;
+  --label-voorstellen-text: #b45309;
+  --label-voorstellen-bg: #fdf3e2;
+  --label-overig-text: #55555c;
+  --label-overig-bg: var(--raised);
+
+  /* Primaire reeks in grafieken (Statistieken, beheerdashboard) — was rood,
+     wordt petrol (rood op dieet). Tweede reeks (--chart-secondary) blijft
+     ongewijzigd, al gevalideerd tegen --voc-red; bij gelegenheid opnieuw
+     controleren nu de primaire reeks petrol is i.p.v. rood. */
+  --chart-primary: var(--petrol);
   /* Tweede serie in grafieken met 2 reeksen (Statistieken) — nooit gebruikt
-     als losse merkkleur, alleen als begeleiding naast --voc-red. Gevalideerd
-     tegen --voc-red met dataviz-skill's validate_palette.js (CVD-veilig,
+     als losse merkkleur, alleen als begeleiding naast --chart-primary.
+     Gevalideerd met dataviz-skill's validate_palette.js (CVD-veilig,
      zelfde waarde werkt voor licht én donker). */
   --chart-secondary: #3b82f6;
 }
@@ -54,14 +108,45 @@
   --color-muted: var(--muted);
   --color-border: var(--border);
   --color-input-border: var(--input-border);
+  --color-raised: var(--raised);
 
   --color-voc-red: var(--voc-red);
   --color-voc-red-dark: var(--voc-red-dark);
   --color-voc-red-light: var(--voc-red-light);
   --color-voc-red-text: var(--voc-red-text);
+  --color-voc-red-on-petrol: var(--voc-red-on-petrol);
+
+  --color-petrol-deep: var(--petrol-deep);
+  --color-petrol: var(--petrol);
+  --color-petrol-soft: var(--petrol-soft);
+
+  --color-danger: var(--danger);
+  --color-danger-text: var(--danger-text);
+  --color-danger-soft: var(--danger-soft);
+
+  --color-status-success: var(--status-success);
+  --color-status-success-soft: var(--status-success-soft);
+  --color-status-warning: var(--status-warning);
+  --color-status-warning-soft: var(--status-warning-soft);
+  --color-status-neutral: var(--status-neutral);
+  --color-status-neutral-soft: var(--status-neutral-soft);
+
+  --color-label-vraag-text: var(--label-vraag-text);
+  --color-label-vraag-bg: var(--label-vraag-bg);
+  --color-label-aanbod-text: var(--label-aanbod-text);
+  --color-label-aanbod-bg: var(--label-aanbod-bg);
+  --color-label-nieuws-text: var(--label-nieuws-text);
+  --color-label-nieuws-bg: var(--label-nieuws-bg);
+  --color-label-voorstellen-text: var(--label-voorstellen-text);
+  --color-label-voorstellen-bg: var(--label-voorstellen-bg);
+  --color-label-overig-text: var(--label-overig-text);
+  --color-label-overig-bg: var(--label-overig-bg);
+
+  --color-chart-primary: var(--chart-primary);
   --color-chart-secondary: var(--chart-secondary);
 
   --font-sans: var(--font-inter);
+  --font-display: var(--font-bricolage), var(--font-inter), system-ui, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -70,11 +155,46 @@
     --surface: #1a1a1e;
     --foreground: #f2f2f3;
     --muted: #9a9aa2;
-    --border: #2b2b30;
+    --border: #2e2e34;
     --input-border: #6e6e76;
+    --raised: #232328;
 
-    --voc-red-light: #2a1315;
-    --voc-red-text: #ff5a63;
+    /* Herstel: deze stonden hier nog niet, dus bleven in donker de lichte
+       (#e8000f/#b8000c) waarden gebruiken — niet geoptimaliseerd voor een
+       donkere achtergrond. */
+    --voc-red: #f0323c;
+    --voc-red-dark: #ff5a63;
+    --voc-red-light: #3a1619;
+    --voc-red-text: #ff6b72;
+
+    /* --petrol-deep blijft gelijk in licht/donker (zie palet); --petrol en
+       --petrol-soft worden in donker juist lichter, anders zijn iconen/
+       cijfers/links in petrol nauwelijks te onderscheiden van de donkere
+       achtergrond. */
+    --petrol: #7cc4c8;
+    --petrol-soft: #13292c;
+
+    --danger: var(--voc-red);
+    --danger-text: var(--voc-red-text);
+    --danger-soft: var(--voc-red-light);
+
+    --status-success: #6ee7a0;
+    --status-success-soft: #13271d;
+    --status-warning: #fbc96b;
+    --status-warning-soft: #2c2112;
+    --status-neutral: #b4b4bb;
+    --status-neutral-soft: var(--raised);
+
+    --label-vraag-text: #8ab4ff;
+    --label-vraag-bg: #17233a;
+    --label-aanbod-text: #6ee7a0;
+    --label-aanbod-bg: #13271d;
+    --label-nieuws-text: #c4b2ff;
+    --label-nieuws-bg: #231b38;
+    --label-voorstellen-text: #fbc96b;
+    --label-voorstellen-bg: #2c2112;
+    --label-overig-text: #b4b4bb;
+    --label-overig-bg: var(--raised);
   }
 }
 
@@ -83,11 +203,39 @@
   --surface: #1a1a1e;
   --foreground: #f2f2f3;
   --muted: #9a9aa2;
-  --border: #2b2b30;
+  --border: #2e2e34;
   --input-border: #6e6e76;
+  --raised: #232328;
 
-  --voc-red-light: #2a1315;
-  --voc-red-text: #ff5a63;
+  --voc-red: #f0323c;
+  --voc-red-dark: #ff5a63;
+  --voc-red-light: #3a1619;
+  --voc-red-text: #ff6b72;
+
+  --petrol: #7cc4c8;
+  --petrol-soft: #13292c;
+
+  --danger: var(--voc-red);
+  --danger-text: var(--voc-red-text);
+  --danger-soft: var(--voc-red-light);
+
+  --status-success: #6ee7a0;
+  --status-success-soft: #13271d;
+  --status-warning: #fbc96b;
+  --status-warning-soft: #2c2112;
+  --status-neutral: #b4b4bb;
+  --status-neutral-soft: var(--raised);
+
+  --label-vraag-text: #8ab4ff;
+  --label-vraag-bg: #17233a;
+  --label-aanbod-text: #6ee7a0;
+  --label-aanbod-bg: #13271d;
+  --label-nieuws-text: #c4b2ff;
+  --label-nieuws-bg: #231b38;
+  --label-voorstellen-text: #fbc96b;
+  --label-voorstellen-bg: #2c2112;
+  --label-overig-text: #b4b4bb;
+  --label-overig-bg: var(--raised);
 }
 
 /* Niet alleen :root[data-theme] hierboven, ook dit ongescopede selector: een
@@ -103,11 +251,39 @@
   --surface: #ffffff;
   --foreground: #17171a;
   --muted: #6b6b72;
-  --border: #e5e5ea;
+  --border: #e4e4e7;
   --input-border: #8e8e93;
+  --raised: #f1f1f3;
 
+  --voc-red: #e8000f;
+  --voc-red-dark: #b8000c;
   --voc-red-light: #fdeaec;
   --voc-red-text: #c8000d;
+
+  --petrol: #0e5a63;
+  --petrol-soft: #e3f0f0;
+
+  --danger: var(--voc-red);
+  --danger-text: var(--voc-red-text);
+  --danger-soft: var(--voc-red-light);
+
+  --status-success: #15803d;
+  --status-success-soft: #e8f6ee;
+  --status-warning: #b45309;
+  --status-warning-soft: #fdf3e2;
+  --status-neutral: #55555c;
+  --status-neutral-soft: var(--raised);
+
+  --label-vraag-text: #1d4ed8;
+  --label-vraag-bg: #eaf1fe;
+  --label-aanbod-text: #15803d;
+  --label-aanbod-bg: #e8f6ee;
+  --label-nieuws-text: #6d28d9;
+  --label-nieuws-bg: #f1ecfe;
+  --label-voorstellen-text: #b45309;
+  --label-voorstellen-bg: #fdf3e2;
+  --label-overig-text: #55555c;
+  --label-overig-bg: var(--raised);
 }
 
 /* UX-review E3: ?thema=website op een embed-pagina (zie
@@ -411,17 +587,18 @@ button:not(:disabled) {
 }
 
 /* UX-review Q5: knoppen en links leunden op de dunne, soms nauwelijks
-   zichtbare browser-contour (invoervelden hebben al wel een duidelijke rode
+   zichtbare browser-contour (invoervelden hebben al wel een duidelijke
    focusring, zie Input.tsx). Eén globale regel i.p.v. per component — er
    staan door de hele app losse, met de hand gestylede knoppen (niet
    allemaal via Button.tsx) die anders allemaal apart deze stijl zouden
    moeten krijgen. :focus-visible i.p.v. :focus: alleen zichtbaar bij
    toetsenbordnavigatie, niet bij een muisklik. Outline (i.p.v. box-shadow/
    ring) volgt in elke moderne browser automatisch de eigen border-radius
-   van het element. */
+   van het element. Redesign-besluit 6: petrol i.p.v. rood — rood blijft
+   gereserveerd voor logo/hoofdknop/actief item/teller/fout. */
 button:focus-visible,
 a:focus-visible {
-  outline: 2px solid var(--voc-red);
+  outline: 2px solid var(--petrol);
   outline-offset: 2px;
 }
 @media (prefers-reduced-motion: reduce) {

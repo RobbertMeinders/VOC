@@ -10,7 +10,8 @@ export default async function manifest(): Promise<MetadataRoute.Manifest> {
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",
-    theme_color: "#e8000f",
+    // Redesign-besluit 3/fase 1 (docs/redesign-ontwerp.md): donkerpetrol.
+    theme_color: "#0B2E33",
     orientation: "portrait-primary",
     icons: [
       { src: "/icons/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
