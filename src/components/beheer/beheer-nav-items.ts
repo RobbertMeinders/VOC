@@ -4,16 +4,16 @@ import {
   Bell,
   Building2,
   CalendarDays,
-  Code,
+  FileText,
   Flag,
-  Info,
+  Globe,
+  Handshake,
+  Inbox,
   LayoutDashboard,
   Mail,
   Megaphone,
   Newspaper,
-  Send,
-  Settings,
-  UserPlus,
+  SlidersHorizontal,
   Users,
 } from "lucide-react";
 
@@ -30,12 +30,12 @@ export type BeheerNavSection = { title: string; items: BeheerNavItem[] };
 // sectie weer helemaal terug moest om iets anders te kiezen. Nu een
 // permanent zij-menu, net als de hoofdnavigatie zelf.
 //
-// Vijf secties. "Vereniging" (identiteit, "Over de vereniging"-inhoud,
+// Vijf secties. "Vereniging" (identiteit, "Over de VOC"-inhoud,
 // bestuur, commissies) staat niet meer als eigen sectie, maar als item onder
-// "Systeem & integraties", samen met Portaalinstellingen — allebei
-// verenigings-/portaalbrede instellingen i.p.v. dagelijks contentwerk, dus
-// horen ze inhoudelijk bij elkaar. "Leden & bedrijven" staat direct na
-// Overzicht (de twee overzichten, gevolgd door de acties daaromheen).
+// "Instellingen", samen met Portaalinstellingen — allebei verenigings-/
+// portaalbrede instellingen i.p.v. dagelijks contentwerk, dus horen ze
+// inhoudelijk bij elkaar. "Leden & bedrijven" staat direct na Overzicht (de
+// twee overzichten, gevolgd door de acties daaromheen).
 export const BEHEER_SECTIONS: BeheerNavSection[] = [
   {
     title: "Overzicht",
@@ -49,16 +49,16 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     items: [
       { href: "/beheer/leden", label: "Leden", icon: Users },
       { href: "/beheer/bedrijven", label: "Bedrijven", icon: Building2 },
-      { href: "/beheer/instroom", label: "Instroom", icon: UserPlus },
+      { href: "/beheer/instroom", label: "Aanvragen", icon: Inbox },
     ],
   },
   {
     title: "Communicatie",
     items: [
-      { href: "/beheer/communicatie", label: "Nieuwsbrieven", icon: Megaphone },
-      { href: "/beheer/email-templates", label: "E-mailtemplates", icon: Mail, adminOnly: true },
+      { href: "/beheer/communicatie", label: "Nieuwsbrieven", icon: Mail },
+      { href: "/beheer/email-templates", label: "E-mailteksten", icon: FileText, adminOnly: true },
       { href: "/beheer/notificaties", label: "Verzonden meldingen", icon: Bell },
-      { href: "/beheer/pushbericht", label: "Handmatig pushbericht", icon: Send, adminOnly: true },
+      { href: "/beheer/pushbericht", label: "Pushbericht", icon: Megaphone, adminOnly: true },
     ],
   },
   {
@@ -68,19 +68,19 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     // downloadstatistiek of bulkacties die een apart beheerscherm zouden
     // rechtvaardigen. Eén item bewerk je in context; dat is hier /documenten
     // zelf.
-    title: "Content & activiteiten",
+    title: "Inhoud",
     items: [
       { href: "/beheer/nieuws", label: "Nieuws", icon: Newspaper },
       { href: "/beheer/agenda", label: "Activiteiten", icon: CalendarDays },
-      { href: "/beheer/rapportages", label: "Moderatie", icon: Flag },
+      { href: "/beheer/rapportages", label: "Gemelde berichten", icon: Flag },
     ],
   },
   {
-    title: "Systeem & integraties",
+    title: "Instellingen",
     items: [
-      { href: "/beheer/vereniging", label: "Vereniging", icon: Info },
-      { href: "/beheer/instellingen", label: "Portaalinstellingen", icon: Settings, adminOnly: true },
-      { href: "/beheer/embed-codes", label: "Code voor de website", icon: Code, adminOnly: true },
+      { href: "/beheer/vereniging", label: "Vereniging", icon: Handshake },
+      { href: "/beheer/instellingen", label: "Portaalinstellingen", icon: SlidersHorizontal, adminOnly: true },
+      { href: "/beheer/embed-codes", label: "Website-koppeling", icon: Globe, adminOnly: true },
     ],
   },
 ];

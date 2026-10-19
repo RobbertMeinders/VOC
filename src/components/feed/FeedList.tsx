@@ -12,7 +12,7 @@ import { ComingSoon } from "@/components/ui/ComingSoon";
 import { Chip } from "@/components/ui/Chip";
 import { PostComposer } from "./PostComposer";
 import { PostCard } from "./PostCard";
-import { FEED_FILTER_TYPES, POST_TYPE_LABELS } from "@/lib/feed/postType";
+import { FEED_FILTER_TYPES, POST_TYPE_FILTER_LABELS, POST_TYPE_LABELS } from "@/lib/feed/postType";
 import type { FeedAuthor, FeedComment, FeedPost, FeedPostType } from "@/lib/feed/types";
 
 // Kleurpuntje per filterchip (redesign-besluit: "filters met een
@@ -172,7 +172,7 @@ export function FeedList({
         </Chip>
         {FEED_FILTER_TYPES.map((type) => (
           <Chip key={type} onClick={() => setFilter(type)} active={filter === type} dotColor={FILTER_DOT_COLOR[type]}>
-            {POST_TYPE_LABELS[type]}
+            {POST_TYPE_FILTER_LABELS[type]}
           </Chip>
         ))}
       </div>

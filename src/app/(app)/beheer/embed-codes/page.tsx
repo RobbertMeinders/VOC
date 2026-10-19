@@ -4,7 +4,7 @@ import { requireAdmin } from "@/lib/auth/session";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { CopyEmbedCode } from "@/components/beheer/CopyEmbedCode";
 
-export const metadata: Metadata = { title: "Code voor de website" };
+export const metadata: Metadata = { title: "Website-koppeling" };
 
 const EMBEDS = [
   {
@@ -16,7 +16,7 @@ const EMBEDS = [
   {
     kind: "aanmelden",
     label: "Word lid",
-    description: "Aanmeldformulier voor nieuwe leden (komt bij Beheer > Instroom terecht).",
+    description: "Aanmeldformulier voor nieuwe leden (komt bij Beheer > Aanvragen terecht).",
     // Starthoogte vóór de eerste echte hoogtemeting — dit formulier heeft
     // elf velden onder elkaar, dus 600 (de generieke starthoogte) laat de
     // verstuurknop er al staan zonder dat er ooit een hoogte-update binnen
@@ -102,7 +102,7 @@ export default async function EmbedCodesPage() {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        title="Code voor de website"
+        title="Website-koppeling"
         description="Plak de onderstaande code in een HTML-blok op de website."
       />
 

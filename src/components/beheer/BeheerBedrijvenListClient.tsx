@@ -53,6 +53,7 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
         searchPlaceholder="Zoek op bedrijfsnaam, branche, plaats, e-mail, btw-nummer…"
         resultCount={filtered.length}
         totalCount={companies.length}
+        itemLabel="bedrijven"
       />
 
       <div className="flex flex-col gap-2">

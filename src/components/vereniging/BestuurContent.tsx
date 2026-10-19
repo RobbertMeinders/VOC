@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Briefcase } from "lucide-react";
+import { UserCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { Avatar } from "@/components/ui/Avatar";
@@ -52,7 +52,7 @@ export async function BestuurContent() {
   if (activePositions.length === 0) {
     return (
       <ComingSoon
-        icon={Briefcase}
+        icon={UserCheck}
         title="Nog geen bestuur toegewezen"
         description="Zodra het bestuur bestuursfuncties toewijst via Beheer -> Leden, verschijnen die hier."
       />

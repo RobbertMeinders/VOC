@@ -12,6 +12,10 @@ function MemberListInner({ members, branches }: { members: MemberListItem[]; bra
   const { getInitial, setParam } = useUrlFilterState();
   const [query, setQuery] = useState(() => getInitial("q"));
   const [branche, setBranche] = useState(() => getInitial("branche"));
+  // Vanuit het hamburgermenu/Home ("Lid zoeken" → /leden?focus=1): het
+  // zoekveld staat dan al klaar om in te typen i.p.v. eerst zelf te moeten
+  // klikken.
+  const [autoFocusSearch] = useState(() => getInitial("focus") === "1");
 
   function handleQueryChange(value: string) {
     setQuery(value);
@@ -55,9 +59,11 @@ function MemberListInner({ members, branches }: { members: MemberListItem[]; bra
       <ListToolbar
         searchValue={query}
         onSearchChange={handleQueryChange}
-        searchPlaceholder="Zoek op naam, functie of bedrijf…"
+        searchPlaceholder="Zoek een lid"
         resultCount={filtered.length}
         totalCount={members.length}
+        itemLabel="leden"
+        autoFocusSearch={autoFocusSearch}
         filters={filters}
         showFilterButtons={false}
       />

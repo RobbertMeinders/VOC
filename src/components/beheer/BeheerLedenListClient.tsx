@@ -95,6 +95,7 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
         searchPlaceholder="Zoek op naam, e-mailadres of bedrijf…"
         resultCount={filtered.length}
         totalCount={members.length}
+        itemLabel="leden"
         filters={filters}
       />
 

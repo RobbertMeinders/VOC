@@ -66,7 +66,7 @@ export function Sidebar({
   // opent alleen nog Uitloggen (SidebarProfileMenu).
   const accountItems: { href: string; label: string; icon: LucideIcon; badge?: number }[] = [
     { href: `/leden/${profile.id}`, label: "Mijn profiel", icon: UserIcon },
-    ...(companyId ? [{ href: `/bedrijven/${companyId}`, label: "Mijn bedrijfsprofiel", icon: Building2 }] : []),
+    ...(companyId ? [{ href: `/bedrijven/${companyId}`, label: "Mijn bedrijf", icon: Building2 }] : []),
     { href: "/instellingen", label: "Instellingen", icon: Settings },
     ...(isBoard(profile.role) ? [{ href: "/beheer", label: "Beheer", icon: LayoutDashboard, badge: unread.beheer }] : []),
   ];
@@ -116,7 +116,7 @@ export function Sidebar({
 
       <nav className="flex flex-1 flex-col gap-1">
         {DESKTOP_NAV_ITEMS.map((item) => renderItem(item))}
-        <VerenigingMenu variant="sidebar" />
+        <VerenigingMenu />
       </nav>
 
       <nav className="mt-2 flex flex-col gap-1 border-t border-border pt-2">{accountItems.map(renderAccountItem)}</nav>

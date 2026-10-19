@@ -57,6 +57,7 @@ function DocumentListInner({
           searchPlaceholder="Zoek op documentnaam…"
           resultCount={filtered.length}
           totalCount={documents.length}
+          itemLabel="documenten"
         />
       )}
 

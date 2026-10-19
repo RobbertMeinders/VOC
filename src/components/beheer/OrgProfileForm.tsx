@@ -40,7 +40,7 @@ function UploadButton() {
   );
 }
 
-// Optionele headerfoto bovenaan de pagina Over de vereniging — zelfde
+// Optionele headerfoto bovenaan de pagina Over de VOC — zelfde
 // upload+opslaan-in-één-stap-patroon als het portaallogo (AppSettingsForm).
 function HeaderImageUpload({ currentImageUrl }: { currentImageUrl: string | null }) {
   const [state, formAction] = useActionState(uploadOrgHeaderImageAction, uploadInitialState);
@@ -92,7 +92,7 @@ export function OrgProfileForm({ orgProfile, headerImageUrl }: { orgProfile: Org
     <div className="flex flex-col gap-4">
       <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
         <h2 className="text-sm font-semibold text-foreground">Headerfoto</h2>
-        <p className="mt-1 text-xs text-muted">Verschijnt bovenaan de pagina Over de vereniging. Optioneel — zonder foto blijft het bij tekst.</p>
+        <p className="mt-1 text-xs text-muted">Verschijnt bovenaan de pagina Over de VOC. Optioneel — zonder foto blijft het bij tekst.</p>
         <div className="mt-4">
           <HeaderImageUpload currentImageUrl={headerImageUrl} />
         </div>
@@ -100,7 +100,7 @@ export function OrgProfileForm({ orgProfile, headerImageUrl }: { orgProfile: Org
 
       <form action={formAction} className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
         <FormSections>
-          <FormSection label="Introductie" description="Een korte, uitnodigende opening bovenaan de pagina Over de vereniging.">
+          <FormSection label="Introductie" description="Een korte, uitnodigende opening bovenaan de pagina Over de VOC.">
             <textarea
               name="intro_text"
               rows={4}

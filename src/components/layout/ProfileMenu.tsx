@@ -31,7 +31,7 @@ function menuItems(profile: Profile, companyId: string | null) {
     // Naar de (publieke) weergave i.p.v. meteen het bewerkformulier — daar
     // staat een "Profiel aanpassen"-knop naar /profiel voor wie wil wijzigen.
     { href: `/leden/${profile.id}`, label: "Mijn profiel", icon: UserIcon },
-    ...(companyId ? [{ href: `/bedrijven/${companyId}`, label: "Mijn bedrijfsprofiel", icon: Building2 }] : []),
+    ...(companyId ? [{ href: `/bedrijven/${companyId}`, label: "Mijn bedrijf", icon: Building2 }] : []),
     // Privacy & veiligheid staat niet hier — die link staat al op
     // Instellingen zelf, twee ingangen naar dezelfde pagina is overbodig.
     { href: "/instellingen", label: "Instellingen", icon: Settings },

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-// Samengevoegd met Over de vereniging/Commissies tot tabs op één pagina
+// Samengevoegd met Over de VOC/Commissies tot tabs op één pagina
 // (/beheer/vereniging) — deze route blijft bestaan als redirect voor
 // bestaande links/bladwijzers.
 export default function BeheerBestuurPage() {

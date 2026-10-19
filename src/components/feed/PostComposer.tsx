@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, useState, type DragEvent } from "react";
 import { useFormStatus } from "react-dom";
 import { clsx } from "clsx";
-import { FileText, Pencil, Upload, X } from "lucide-react";
+import { FileText, Pencil, SquarePen, Upload, X } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
@@ -234,7 +234,7 @@ function PostComposerForm({
           onClick={() => setOpen(true)}
           className="fixed bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] right-4 z-30 flex h-[46px] items-center gap-2 rounded-full bg-voc-red pl-4 pr-5 text-sm font-semibold text-white shadow-lg hover:bg-voc-red-dark sm:hidden"
         >
-          <Pencil size={16} />
+          <SquarePen size={16} />
           Bericht
         </button>
       </>

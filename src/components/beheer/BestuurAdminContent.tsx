@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Briefcase, Pencil, X } from "lucide-react";
+import { Pencil, UserCheck, X } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
@@ -178,7 +178,7 @@ export function BestuurAdminContent({
       <AddBoardMemberForm memberOptions={memberOptions} />
 
       {boardMembers.length === 0 ? (
-        <ComingSoon icon={Briefcase} title="Nog geen bestuur toegewezen" description="Voeg hierboven het eerste bestuurslid toe." />
+        <ComingSoon icon={UserCheck} title="Nog geen bestuur toegewezen" description="Voeg hierboven het eerste bestuurslid toe." />
       ) : (
         <div className="flex flex-col gap-2">
           {boardMembers.map((member) => (

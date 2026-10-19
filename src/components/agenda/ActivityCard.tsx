@@ -35,12 +35,12 @@ export function ActivityCard({
     <div className="mt-2 flex flex-wrap items-center gap-2">
       {isOfficial && (
         <span className="rounded-full bg-status-neutral-soft px-2 py-0.5 text-xs font-medium text-status-neutral">
-          VOC-activiteit
+          VOC
         </span>
       )}
       {isSubmitted && (
         <span className="rounded-full bg-status-neutral-soft px-2 py-0.5 text-xs font-medium text-status-neutral">
-          Externe activiteit
+          Extern
         </span>
       )}
       {activity.status === "pending" && (

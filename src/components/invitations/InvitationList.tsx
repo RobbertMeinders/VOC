@@ -132,6 +132,7 @@ function InvitationListInner({ invitations }: { invitations: Invitation[] }) {
         searchPlaceholder="Zoek op naam of e-mailadres…"
         resultCount={filtered.length}
         totalCount={invitations.length}
+        itemLabel="uitnodigingen"
         filters={[statusFilter]}
       />
 

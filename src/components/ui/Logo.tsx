@@ -9,11 +9,16 @@ import Link from "next/link";
 export function Logo({
   withLabel = true,
   className,
+  // Alleen nodig op een donkerpetrol vlak (hamburgermenu-paneel): de
+  // naam volgt daar --voc-red-on-petrol i.p.v. de standaard text-foreground
+  // hieronder, die op dat vlak onleesbaar zou zijn.
+  labelClassName = "text-foreground",
   logoUrl,
   siteName,
 }: {
   withLabel?: boolean;
   className?: string;
+  labelClassName?: string;
   logoUrl?: string | null;
   siteName?: string;
 }) {
@@ -33,7 +38,7 @@ export function Logo({
         // header staan de zoek-/notificatie-icoontjes ernaast in dezelfde
         // rij, en zonder dit overlapte de naam die icoontjes zodra de rij te
         // smal werd i.p.v. netjes af te breken.
-        <span className="truncate text-lg font-semibold tracking-tight text-foreground">{siteName ?? "Ledenportaal"}</span>
+        <span className={`truncate text-lg font-semibold tracking-tight ${labelClassName}`}>{siteName ?? "Ledenportaal"}</span>
       )}
     </Link>
   );

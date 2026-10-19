@@ -9,7 +9,7 @@ export default async function BestuurPage() {
 
   return (
     <div className="flex flex-col gap-6">
-      {/* Zelfde kleurrijke merkkop-stijl als Over de vereniging (zonder
+      {/* Zelfde kleurrijke merkkop-stijl als Over de VOC (zonder
           headerfoto) i.p.v. een kale PageHeader-titel — geeft de
           Vereniging-pagina's een herkenbare, wat levendigere opening.
           Redesign: rode hero's worden donkerpetrol. */}

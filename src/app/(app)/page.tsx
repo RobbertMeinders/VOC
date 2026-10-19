@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarDays, FileText, Pencil, Search } from "lucide-react";
+import { CalendarCheck, FileText, SquarePen, UserRoundSearch } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
@@ -23,9 +23,9 @@ type NewMemberRow = {
 };
 
 const QUICK_ACTIONS = [
-  { href: "/community", label: "Bericht", icon: Pencil },
-  { href: "/zoeken", label: "Lid zoeken", icon: Search },
-  { href: "/agenda", label: "Agenda", icon: CalendarDays },
+  { href: "/community", label: "Bericht", icon: SquarePen },
+  { href: "/leden?focus=1", label: "Lid zoeken", icon: UserRoundSearch },
+  { href: "/agenda?type=mijn-aanmeldingen", label: "Mijn agenda", icon: CalendarCheck },
   { href: "/documenten", label: "Documenten", icon: FileText },
 ];
 
@@ -204,7 +204,7 @@ export default async function HomePage() {
         <div className="lg:order-1">
           {newsSlides.length > 0 ? (
             <section>
-              <SectionHeader title="Uit de vereniging" href="/nieuws" linkLabel="Alle nieuws" />
+              <SectionHeader title="Nieuws" href="/nieuws" linkLabel="Alle nieuws" />
               <NewsHeroCarousel slides={newsSlides} />
             </section>
           ) : (

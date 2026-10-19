@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarDays, CalendarPlus, ChevronDown } from "lucide-react";
+import { CalendarDays, ChevronDown, Plus } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { formatMonthLabel, splitUpcomingAndPast } from "@/lib/format/date";
-import { isBoard } from "@/lib/auth/roles";
 import { ActivityCard } from "@/components/agenda/ActivityCard";
 import { WeekStrip } from "@/components/agenda/WeekStrip";
 import { ComingSoon } from "@/components/ui/ComingSoon";
@@ -27,9 +26,9 @@ type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
 
 const TYPE_TABS = [
   { value: undefined, label: "Alles" },
-  { value: "activiteit", label: "Activiteiten" },
-  { value: "ingebracht", label: "Externe activiteiten" },
-  { value: "mijn-aanmeldingen", label: "Mijn aanmeldingen" },
+  { value: "activiteit", label: "VOC" },
+  { value: "ingebracht", label: "Extern" },
+  { value: "mijn-aanmeldingen", label: "Aangemeld" },
 ] as const;
 
 export default async function AgendaPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
@@ -136,10 +135,10 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
           <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Agenda</h1>
           <Link
             href="/agenda/nieuw"
-            className="flex items-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
+            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
           >
-            <CalendarPlus size={16} />
-            {isBoard(profile.role) ? "Nieuwe activiteit" : "Agenda activiteit toevoegen"}
+            <Plus size={16} />
+            Activiteit
           </Link>
         </div>
 

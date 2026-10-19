@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/auth/session";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { PushBroadcastForm } from "@/components/beheer/PushBroadcastForm";
 
-export const metadata: Metadata = { title: "Handmatig pushbericht" };
+export const metadata: Metadata = { title: "Pushbericht" };
 
 export default async function PushberichtPage() {
   await requireAdmin();
@@ -11,7 +11,7 @@ export default async function PushberichtPage() {
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        title="Handmatig pushbericht"
+        title="Pushbericht"
         description="Verstuur direct een pushbericht naar alle actieve abonnementen - los van de automatische meldingen, en zonder de persoonlijke meldingsvoorkeuren van leden."
       />
 

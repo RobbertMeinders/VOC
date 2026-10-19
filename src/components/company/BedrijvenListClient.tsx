@@ -14,6 +14,7 @@ function BedrijvenListInner({ items, branches }: { items: SearchableCompany[]; b
   const { getInitial, setParam } = useUrlFilterState();
   const [query, setQuery] = useState(() => getInitial("q"));
   const [branche, setBranche] = useState(() => getInitial("branche"));
+  const [initialView] = useState<"lijst" | "kaart">(() => (getInitial("view") === "kaart" ? "kaart" : "lijst"));
 
   function handleQueryChange(value: string) {
     setQuery(value);
@@ -54,14 +55,15 @@ function BedrijvenListInner({ items, branches }: { items: SearchableCompany[]; b
       <ListToolbar
         searchValue={query}
         onSearchChange={handleQueryChange}
-        searchPlaceholder="Zoek op bedrijfsnaam, plaats of wie er werkt…"
+        searchPlaceholder="Zoek een bedrijf"
         resultCount={filtered.length}
         totalCount={items.length}
+        itemLabel="bedrijven"
         filters={filters}
         showFilterButtons={false}
       />
       {filtered.length > 0 ? (
-        <BedrijvenView items={filtered} filter={filters[0]} />
+        <BedrijvenView items={filtered} filter={filters[0]} initialView={initialView} />
       ) : (
         <ComingSoon icon={Building2} title="Geen bedrijven gevonden" description="Pas je zoekopdracht of filter aan." />
       )}

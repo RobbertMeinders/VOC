@@ -38,7 +38,7 @@ export function DocumentUploadForm({ categories }: { categories: string[] }) {
         className="flex items-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
       >
         <Upload size={16} />
-        Document uploaden
+        Uploaden
       </button>
     );
   }

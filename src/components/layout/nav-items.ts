@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Building2, CalendarDays, Home, LayoutDashboard, MessageCircle, Search, Users } from "lucide-react";
+import { Building2, CalendarDays, Home, LayoutDashboard, MessagesSquare, Search, Users } from "lucide-react";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
 // Eigen profiel/bedrijf (via "Mijn profiel"/"Mijn bedrijfsprofiel" in het
@@ -35,7 +35,7 @@ export function isNavItemActive(item: NavItem, pathname: string, ctx: NavActiveC
 }
 
 export const HOME_NAV_ITEM: NavItem = { href: "/", label: "Home", icon: Home };
-export const COMMUNITY_NAV_ITEM: NavItem = { href: "/community", label: "Community", icon: MessageCircle };
+export const COMMUNITY_NAV_ITEM: NavItem = { href: "/community", label: "Community", icon: MessagesSquare };
 export const AGENDA_NAV_ITEM: NavItem = {
   href: "/agenda",
   label: "Agenda",
@@ -88,7 +88,7 @@ export const MOBILE_PRIMARY_NAV_ITEMS: NavItem[] = [
 // navigatiebestemming, dus dat verdient geen even brede rij als de rest van
 // het menu. Documenten staat niet meer los in deze lijst: dat item is
 // vervangen door de Vereniging-dropdown (zie VerenigingMenu.tsx), die naast
-// Over de vereniging/Bestuur/Commissies ook naar /documenten linkt.
+// Over de VOC/Bestuur/Commissies ook naar /documenten linkt.
 export const DESKTOP_NAV_ITEMS: NavItem[] = [HOME_NAV_ITEM, AGENDA_NAV_ITEM, COMMUNITY_NAV_ITEM, NETWERK_NAV_ITEM];
 
 // "Profiel" is bewust geen eigen nav-item: dat, "mijn bedrijfsprofiel",

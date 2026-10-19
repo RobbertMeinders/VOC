@@ -2,117 +2,30 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { ChevronDown, FileText, Briefcase, Handshake, Info, Menu, UsersRound, X, type LucideIcon } from "lucide-react";
+import { ChevronDown, FileText, Handshake, Info, Newspaper, UserCheck, UsersRound, type LucideIcon } from "lucide-react";
 import { clsx } from "clsx";
-import { FloatingPortal } from "@/components/ui/FloatingPortal";
-import { useEscapeKey } from "@/lib/dom/useEscapeKey";
-import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { useOverlay } from "@/lib/ui/OverlayContext";
 
 const LINKS: { href: string; label: string; icon: LucideIcon }[] = [
-  { href: "/vereniging/over-ons", label: "Over de vereniging", icon: Info },
-  { href: "/vereniging/bestuur", label: "Bestuur", icon: Briefcase },
+  { href: "/vereniging/over-ons", label: "Over de VOC", icon: Info },
+  { href: "/vereniging/bestuur", label: "Bestuur", icon: UserCheck },
   { href: "/vereniging/commissies", label: "Commissies", icon: UsersRound },
   { href: "/documenten", label: "Documenten", icon: FileText },
+  { href: "/nieuws", label: "Nieuws", icon: Newspaper },
 ];
 
 // Vervangt het losse "Documenten"-item in de hoofdnavigatie (VOC Hub —
-// Beheeromgeving-opdracht, punt over toegang voor leden): op desktop een
-// dropdown vanuit de sidebar-rij, op mobiel een paginavullend paneel vanuit
-// een hamburgerknop in MobileHeader — zelfde desktop/mobiel-opzet als
-// NotificationCenter. Documenten zelf blijft als route en functionaliteit
-// ongewijzigd, alleen de ingang ernaartoe verhuist hierheen.
-export function VerenigingMenu({ variant }: { variant: "sidebar" | "mobile" }) {
+// Beheeromgeving-opdracht, punt over toegang voor leden): een inline
+// uitklap-dropdown vanuit de sidebar-rij. Documenten zelf blijft als route
+// en functionaliteit ongewijzigd, alleen de ingang ernaartoe verhuist
+// hierheen. Alleen nog desktop/sidebar: het mobiele, schermvullende paneel
+// achter de hamburgerknop is verhuisd naar HamburgerMenu (eigen "Menu",
+// met naast deze verenigingslinks ook "Snel naar" en instellingen/privacy).
+export function VerenigingMenu() {
   const { open, toggle, close } = useOverlay("vereniging");
   const pathname = usePathname();
 
-  // Alleen voor de mobiele variant: sluiten speelt eerst de omgekeerde
-  // schuifanimatie af (animate-slide-out-right) en unmount daarna pas —
-  // zelfde "closing"-opzet als MobileProfileMenu, zodat teruggaan vanuit dit
-  // paginavullende paneel net zo vloeiend aanvoelt als het openen.
-  const [closing, setClosing] = useState(false);
-  function requestClose() {
-    setClosing(true);
-  }
-  function handleExitComplete() {
-    setClosing(false);
-    close();
-  }
-
-  useEscapeKey(open && !closing, variant === "mobile" ? requestClose : close);
-  useBodyScrollLock(variant === "mobile" && (open || closing));
-
-  const active = pathname.startsWith("/vereniging") || pathname.startsWith("/documenten");
-
-  const links = (
-    <>
-      {LINKS.map(({ href, label, icon: Icon }) => {
-        const linkActive = pathname.startsWith(href);
-        return (
-          <Link
-            key={href}
-            href={href}
-            onClick={close}
-            className={clsx(
-              "flex items-center gap-3 px-4 py-3 text-sm font-medium",
-              linkActive ? "bg-voc-red-light text-voc-red-text" : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-            )}
-          >
-            <Icon size={18} />
-            {label}
-          </Link>
-        );
-      })}
-    </>
-  );
-
-  if (variant === "mobile") {
-    return (
-      <>
-        <button
-          type="button"
-          onClick={toggle}
-          aria-label="Vereniging"
-          className={clsx(
-            "flex h-9 w-9 items-center justify-center rounded-full text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.08]",
-            (active || open) && "bg-voc-red-light text-voc-red-text"
-          )}
-        >
-          <Menu size={20} />
-        </button>
-        {/* Zelfde FloatingPortal-redenering als NotificationCenter's mobiele
-            paneel: MobileHeader heeft backdrop-blur, dat vangt een
-            position:fixed kind anders in zijn eigen, lagere stacking context. */}
-        {(open || closing) && (
-          <FloatingPortal>
-            <div
-              className={clsx(
-                "fixed inset-x-0 bottom-0 top-14 z-50 flex flex-col overflow-y-auto bg-surface pb-[env(safe-area-inset-bottom)] md:hidden",
-                closing ? "animate-slide-out-right" : "animate-slide-in-right"
-              )}
-              onAnimationEnd={() => {
-                if (closing) handleExitComplete();
-              }}
-            >
-              <div className="flex items-center justify-between border-b border-border px-4 py-3">
-                <p className="text-sm font-semibold text-foreground">Vereniging</p>
-                <button
-                  type="button"
-                  onClick={requestClose}
-                  aria-label="Sluiten"
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              <div className="flex flex-col py-1">{links}</div>
-            </div>
-          </FloatingPortal>
-        )}
-      </>
-    );
-  }
+  const active = pathname.startsWith("/vereniging") || pathname.startsWith("/documenten") || pathname.startsWith("/nieuws");
 
   return (
     // Echte inline accordion i.p.v. een FloatingPortal-dropdown: de

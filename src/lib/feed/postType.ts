@@ -3,9 +3,18 @@ import type { FeedPostType } from "./types";
 export const POST_TYPE_LABELS: Record<FeedPostType, string> = {
   vraag: "Vraag",
   aanbod: "Aanbod",
-  nieuws: "Nieuws & ervaringen",
+  nieuws: "Ervaring",
   overig: "Overig",
   voorstellen: "Even voorstellen",
+};
+
+// Alleen voor de feedfilter-chips (FeedList): meervoud i.p.v. het enkelvoud
+// hierboven dat de badge op een los bericht en de categoriekeuze in de
+// composer gebruiken. De databasewaarde ("nieuws") blijft ongewijzigd —
+// puur een andere weergavetekst op dezelfde waarde.
+export const POST_TYPE_FILTER_LABELS: Record<FeedPostType, string> = {
+  ...POST_TYPE_LABELS,
+  nieuws: "Ervaringen",
 };
 
 // Redesign fase 2: labelkleuren komen voortaan uit de tokens in globals.css

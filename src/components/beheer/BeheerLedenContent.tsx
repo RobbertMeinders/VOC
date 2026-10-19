@@ -86,7 +86,7 @@ export async function BeheerLedenContent() {
 
   return (
     <div>
-      <PageHeader title="Leden beheren" />
+      <PageHeader title="Leden" />
 
       <BeheerLedenListClient members={members} viewerId={viewer.id} canEditRole={isAdmin(viewer.role)} />
     </div>

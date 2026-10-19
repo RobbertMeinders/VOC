@@ -144,17 +144,23 @@ export function ListToolbar({
   searchPlaceholder,
   resultCount,
   totalCount,
+  itemLabel,
   filters = [],
   showFilterButtons = true,
+  autoFocusSearch = false,
 }: {
   searchValue: string;
   onSearchChange: (value: string) => void;
   searchPlaceholder: string;
   resultCount: number;
   totalCount: number;
+  /** Meervoudig zelfstandig naamwoord bij het aantal, bv. "leden" of "bedrijven" — "6 leden" i.p.v. het betekenisloze "6 van 6" zonder actief filter. */
+  itemLabel: string;
   filters?: ListToolbarFilter[];
   /** Zet op false als de filter-knoppen al elders (bv. naast een weergave-toggle) worden getoond — de actieve-filter-chips en "Alles wissen" blijven dan wel werken. */
   showFilterButtons?: boolean;
+  /** Voor binnenkomst vanuit het hamburgermenu ("Lid zoeken" → /leden?focus=1): het zoekveld staat dan al klaar om in te typen. */
+  autoFocusSearch?: boolean;
 }) {
   const activeFilters = filters.filter((f) => f.value);
   const hasActiveFilter = activeFilters.length > 0 || Boolean(searchValue);
@@ -170,6 +176,7 @@ export function ListToolbar({
             placeholder={searchPlaceholder}
             aria-label={searchPlaceholder}
             className="pl-9 pr-9"
+            autoFocus={autoFocusSearch}
           />
           {searchValue && (
             <button
@@ -183,7 +190,7 @@ export function ListToolbar({
           )}
         </div>
         <p className="shrink-0 text-xs text-muted sm:text-right">
-          {resultCount} van {totalCount}
+          {hasActiveFilter ? `${resultCount} van ${totalCount} ${itemLabel}` : `${totalCount} ${itemLabel}`}
         </p>
       </div>
 
