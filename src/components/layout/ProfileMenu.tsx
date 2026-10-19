@@ -12,6 +12,7 @@ import { signOutAction } from "@/lib/auth/actions";
 import { isBoard } from "@/lib/auth/roles";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
+import { useFixedAnchor } from "@/lib/dom/useFixedAnchor";
 import { useOverlay } from "@/lib/ui/OverlayContext";
 import type { Profile } from "@/lib/auth/session";
 
@@ -179,24 +180,26 @@ function MenuPanel({
   );
 }
 
-// Op desktop staan Mijn profiel/Mijn bedrijfsprofiel/Instellingen/Beheer
+// Op desktop staan Mijn profiel/Mijn bedrijfsprofiel/Instellingen/Beheer nu
 // altijd zichtbaar als gewone sidebar-rijen (zie Sidebar.tsx) i.p.v. achter
-// deze knop verstopt. Afwerkronde blok 6: het openklappen hier gaf alleen
-// "Uitloggen" en dat kleine paneeltje overlapte het Beheer-teller-badge
-// erboven — een los uitlogicoontje naast de naam (zoals het rapport als
-// alternatief voorstelde) lost beide in één keer op: geen paneel meer dat
-// kan overlappen, en de profielkaart zelf wordt een gewone link naar het
-// eigen profiel i.p.v. een knop die niets opent.
+// deze knop verstopt — de profielkaart hier is dus alleen nog de kortste
+// weg naar uitloggen.
 export function SidebarProfileMenu({
   profile,
   avatarUrl,
   companyName,
 }: Pick<ProfileMenuProps, "profile" | "avatarUrl" | "companyName">) {
+  const { open, toggle, close } = useOverlay("profile");
+  const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(open);
+  useEscapeKey(open, close);
+
   return (
-    <div className="flex min-w-0 items-center gap-1">
-      <Link
-        href={`/leden/${profile.id}`}
-        className="flex min-w-0 flex-1 items-center gap-3 rounded-lg p-1.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+    <div className="relative min-w-0 flex-1">
+      <button
+        ref={anchorRef}
+        type="button"
+        onClick={toggle}
+        className="flex w-full min-w-0 items-center gap-3 rounded-lg p-1.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
       >
         <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={36} />
         <div className="min-w-0 flex-1 text-left">
@@ -205,17 +208,33 @@ export function SidebarProfileMenu({
           </p>
           {companyName && <p className="truncate text-xs text-muted">{companyName}</p>}
         </div>
-      </Link>
-      <form action={signOutAction}>
-        <button
-          type="submit"
-          aria-label="Uitloggen"
-          title="Uitloggen"
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.06]"
-        >
-          <LogOut size={18} />
-        </button>
-      </form>
+      </button>
+
+      {/* FloatingPortal: de sidebar zelf is position:fixed, wat altijd een
+          eigen stacking-context creëert — zonder portal blijft dit paneel
+          (ook met z-50) daarin "opgesloten" en kan het achter een geopende
+          overlay (RouteOverlayPanel, z-30) uitkomen i.p.v. er overheen, want
+          de sidebar zelf heeft geen eigen z-index. Zelfde bugklasse als
+          MenuPanel hierboven (daar was backdrop-blur de vanger). */}
+      {open && rect && (
+        <FloatingPortal>
+          <div className="fixed inset-0 z-40 cursor-pointer" onClick={close} />
+          <div
+            className="animate-scale-in origin-bottom fixed z-50 w-56 overflow-hidden rounded-xl border border-border bg-surface shadow-lg"
+            style={{ left: rect.left, bottom: window.innerHeight - rect.top + 8 }}
+          >
+            <form action={signOutAction}>
+              <button
+                type="submit"
+                className="flex w-full items-center gap-3 px-4 py-3.5 text-left text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+              >
+                <LogOut size={20} />
+                Uitloggen
+              </button>
+            </form>
+          </div>
+        </FloatingPortal>
+      )}
     </div>
   );
 }
