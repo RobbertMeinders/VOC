@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useLayoutEffect, useRef, useState, type TouchEvent } from "react";
+import { useEffect, useRef, useState, type TouchEvent } from "react";
 import { Building2, LayoutDashboard, LogOut, Settings, User as UserIcon, X } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
@@ -16,27 +16,6 @@ import { useOverlay } from "@/lib/ui/OverlayContext";
 import type { Profile } from "@/lib/auth/session";
 
 const DISMISS_THRESHOLD = 60;
-const AVATAR_FLIP_MS = 220;
-const AVATAR_FLIP_EASING = "cubic-bezier(0.16, 1, 0.3, 1)";
-
-// De profielfoto "reist" van haar kleine plek in de bottom-nav naar haar
-// grote plek in het paneel (en terug) — FLIP-techniek (First/Last/Invert/
-// Play): eerst de rustpositie in het paneel bepalen, dan het verschil met
-// de knop-positie omzetten in een transform die bij het begin geen overgang
-// heeft, en daarna in één animatieframe naar "geen transform" overgaan.
-// offsetHeight i.p.v. rect-hoogte voor de sheet-rustpositie: dat blijft
-// correct ook terwijl de sheet zelf nog aan het op-/dichtschuiven is (een
-// transform raakt offsetHeight niet, in tegenstelling tot de rect).
-function computeAvatarRestRect(sheetEl: HTMLElement, slotEl: HTMLElement): DOMRect {
-  const sheetRect = sheetEl.getBoundingClientRect();
-  const slotRect = slotEl.getBoundingClientRect();
-  const restTop = window.innerHeight - sheetEl.offsetHeight + (slotRect.top - sheetRect.top);
-  return new DOMRect(slotRect.left, restTop, slotRect.width, slotRect.height);
-}
-
-function flipTransform(from: DOMRect, to: DOMRect): string {
-  return `translate(${from.left - to.left}px, ${from.top - to.top}px) scale(${from.width / to.width})`;
-}
 
 type ProfileMenuProps = {
   profile: Profile;
@@ -66,7 +45,6 @@ function MenuPanel({
   items,
   beheerBadge,
   closing,
-  originRect,
   onClose,
   onExitComplete,
 }: {
@@ -76,82 +54,20 @@ function MenuPanel({
   items: ReturnType<typeof menuItems>;
   beheerBadge?: number;
   closing: boolean;
-  originRect: DOMRect | null;
   onClose: () => void;
   onExitComplete: () => void;
 }) {
   useEscapeKey(!closing, onClose);
   useBodyScrollLock(true);
 
-  const sheetRef = useRef<HTMLDivElement>(null);
-  const avatarSlotRef = useRef<HTMLDivElement>(null);
-  // Twee fases bij sluiten i.p.v. één: eerst reist de foto terug naar de
-  // knop en vervaagt de tekst (zichtbaar, zelf aangevraagd — "je moet de
-  // animatie ook al zien"), pas daarna schuift de hele sheet omlaag. Bij
-  // openen precies omgekeerd: eerst de sheet omhoog, dan de foto erin.
-  const [stage, setStage] = useState<"sheet-in" | "avatar-in" | "idle" | "avatar-out" | "sheet-out">(
-    originRect ? "sheet-in" : "idle"
-  );
-  const IDENTITY = "translate(0, 0) scale(1)";
-  // withTransition staat los van `stage`: de eerste stap (naar de
-  // knop-positie springen, geen overgang) en de tweede stap (naar identity
-  // animeren, wél een overgang) gebeuren allebei terwijl stage al
-  // "avatar-in"/"avatar-out" is — zonder dit eigen vlaggetje zou React de
-  // overgang al aanzetten vóór die eerste (ongewenste) sprong.
-  const [avatarAnim, setAvatarAnim] = useState<{ transform: string; withTransition: boolean }>({
-    transform: IDENTITY,
-    withTransition: false,
-  });
-
-  // Vangnet: bij prefers-reduced-motion (of enig ander geval waarin de
-  // CSS-animatie niet afspeelt) vuurt onAnimationEnd nooit, en zonder dit
-  // zou de foto nooit zichtbaar worden / zou sluiten nooit echt unmounten.
-  // Ruim binnen de normale animatieduur, dus normaal gesproken wint
-  // onAnimationEnd altijd eerst.
-  useEffect(() => {
-    if (stage === "sheet-in") {
-      const t = setTimeout(() => setStage((s) => (s === "sheet-in" ? "avatar-in" : s)), 400);
-      return () => clearTimeout(t);
-    }
-    if (stage === "sheet-out") {
-      const t = setTimeout(onExitComplete, 300);
-      return () => clearTimeout(t);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stage]);
-
-  // Stap 2 bij openen: zodra de sheet zelf tot rust is gekomen, de foto van
-  // de knop-positie naar haar plek in het paneel laten "warpen".
-  useLayoutEffect(() => {
-    if (stage !== "avatar-in" || !originRect || !sheetRef.current || !avatarSlotRef.current) return;
-    const rest = computeAvatarRestRect(sheetRef.current, avatarSlotRef.current);
-    setAvatarAnim({ transform: flipTransform(originRect, rest), withTransition: false });
-    const raf = requestAnimationFrame(() => {
-      requestAnimationFrame(() => setAvatarAnim({ transform: IDENTITY, withTransition: true }));
-    });
-    return () => cancelAnimationFrame(raf);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stage]);
-
-  // Sluiten gestart (closing ging van false naar true): eerst stap 1
-  // (foto + tekst terug), de sheet zelf schuift pas in stage "sheet-out".
+  // Vangnet: bij prefers-reduced-motion (animate-sheet-out staat dan op
+  // "none") vuurt onAnimationEnd nooit, en zonder dit zou sluiten nooit
+  // echt unmounten. Ruim binnen de normale animatieduur (220ms), dus
+  // normaal gesproken wint onAnimationEnd altijd eerst.
   useEffect(() => {
     if (!closing) return;
-    if (!originRect || !sheetRef.current || !avatarSlotRef.current) {
-      setStage("sheet-out");
-      return;
-    }
-    const rest = computeAvatarRestRect(sheetRef.current, avatarSlotRef.current);
-    setStage("avatar-out");
-    setAvatarAnim({ transform: IDENTITY, withTransition: false });
-    const raf = requestAnimationFrame(() => {
-      requestAnimationFrame(() => setAvatarAnim({ transform: flipTransform(originRect, rest), withTransition: true }));
-    });
-    const timeout = setTimeout(() => setStage("sheet-out"), AVATAR_FLIP_MS);
-    return () => {
-      cancelAnimationFrame(raf);
-      clearTimeout(timeout);
-    };
+    const t = setTimeout(onExitComplete, 300);
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [closing]);
 
@@ -196,20 +112,13 @@ function MenuPanel({
         onClick={onClose}
       />
       <div
-        ref={sheetRef}
         className={clsx(
           "fixed inset-x-0 bottom-0 z-50 max-h-[85vh] overflow-y-auto rounded-t-2xl border-t border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg md:hidden",
-          stage === "sheet-in" ? "animate-sheet-in" : stage === "sheet-out" ? "animate-sheet-out" : undefined
+          closing ? "animate-sheet-out" : "animate-sheet-in"
         )}
-        style={
-          stage === "sheet-in" || stage === "sheet-out"
-            ? undefined
-            : { transform: `translateY(${dragY}px)`, transition: dragging ? "none" : "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)" }
-        }
+        style={closing ? undefined : { transform: `translateY(${dragY}px)`, transition: dragging ? "none" : "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)" }}
         onAnimationEnd={(e) => {
-          if (e.target !== e.currentTarget) return;
-          if (stage === "sheet-in") setStage("avatar-in");
-          else if (stage === "sheet-out") onExitComplete();
+          if (closing && e.target === e.currentTarget) onExitComplete();
         }}
       >
         <div
@@ -223,28 +132,8 @@ function MenuPanel({
           </div>
 
           <div className="flex items-center gap-3 border-b border-border px-5 py-4">
-            {/* De foto "warpt" van de knop-positie naar hier (en terug) —
-                zie computeAvatarRestRect/flipTransform hierboven. Onzichtbaar
-                zolang de sheet zelf nog aan het schuiven is: pas als die tot
-                rust is gekomen (stage "avatar-in") begint de foto's eigen
-                reis, zodat beide bewegingen niet door elkaar heen optellen. */}
-            <div
-              ref={avatarSlotRef}
-              className={stage === "sheet-in" ? "opacity-0" : "opacity-100"}
-              style={{
-                transform: avatarAnim.transform,
-                transformOrigin: "top left",
-                transition: avatarAnim.withTransition ? `transform ${AVATAR_FLIP_MS}ms ${AVATAR_FLIP_EASING}` : "none",
-              }}
-            >
-              <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={48} />
-            </div>
-            <div
-              className={clsx(
-                "min-w-0 flex-1 transition-opacity",
-                stage === "avatar-out" || stage === "sheet-out" ? "opacity-0 duration-300" : "opacity-100 duration-200"
-              )}
-            >
+            <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={48} />
+            <div className="min-w-0 flex-1">
               <p className="truncate text-base font-semibold text-foreground">
                 {profile.first_name} {profile.last_name}
               </p>
@@ -339,11 +228,6 @@ export function SidebarProfileMenu({
 export function MobileProfileMenu({ profile, avatarUrl, companyId, companyName, beheerBadge }: ProfileMenuProps) {
   const { open, toggle, close } = useOverlay("profile");
   const [closing, setClosing] = useState(false);
-  const avatarButtonRef = useRef<HTMLSpanElement>(null);
-  // De positie/grootte van de kleine foto hier, vastgelegd vlak vóór het
-  // openen — zie MenuPanel: daar "warpt" de grote foto in het paneel vanuit
-  // precies dit rechthoekje (en terug bij sluiten).
-  const [originRect, setOriginRect] = useState<DOMRect | null>(null);
   const items = menuItems(profile, companyId);
   const pathname = usePathname();
   const active =
@@ -353,12 +237,11 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, companyName, 
     pathname.startsWith("/beheer") ||
     (companyId ? pathname.startsWith(`/bedrijven/${companyId}`) : false);
 
-  // Sluiten zet eerst de foto/tekst-terugreis in gang (zie MenuPanel) en
-  // unmount de sheet pas daarna — vandaar deze lokale "closing"-fase naast
-  // de gedeelde open/dicht-state uit
-  // OverlayContext. Wordt deze sheet dicht gezet omdat een ándere overlay
-  // (bv. Vereniging) opent, dan verdwijnt hij wel meteen zonder animatie —
-  // een zelden voorkomend randgeval.
+  // Sluiten speelt eerst de omgekeerde animatie af (animate-sheet-out) en
+  // unmount de sheet daarna pas — vandaar deze lokale "closing"-fase naast
+  // de gedeelde open/dicht-state uit OverlayContext. Wordt deze sheet dicht
+  // gezet omdat een ándere overlay (bv. Vereniging) opent, dan verdwijnt
+  // hij wel meteen zonder animatie — een zelden voorkomend randgeval.
   function requestClose() {
     setClosing(true);
   }
@@ -367,16 +250,11 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, companyName, 
     close();
   }
 
-  function handleToggle() {
-    if (!open) setOriginRect(avatarButtonRef.current?.getBoundingClientRect() ?? null);
-    toggle();
-  }
-
   return (
     <div className="relative flex-1">
       <button
         type="button"
-        onClick={handleToggle}
+        onClick={toggle}
         className={clsx(
           "flex h-14 w-full flex-col items-center justify-center gap-0.5 text-xs font-medium",
           // "active" (op een profiel-/account-route) is de echte BottomNav-
@@ -387,15 +265,13 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, companyName, 
           active ? "text-voc-red-text" : open ? "text-foreground" : "text-muted"
         )}
       >
-        <span ref={avatarButtonRef} className="inline-block">
-          <Avatar
-            firstName={profile.first_name}
-            lastName={profile.last_name}
-            avatarUrl={avatarUrl}
-            size={26}
-            className={clsx(active ? "ring-2 ring-voc-red" : open && "ring-2 ring-border")}
-          />
-        </span>
+        <Avatar
+          firstName={profile.first_name}
+          lastName={profile.last_name}
+          avatarUrl={avatarUrl}
+          size={26}
+          className={clsx(active ? "ring-2 ring-voc-red" : open && "ring-2 ring-border")}
+        />
         Profiel
       </button>
 
@@ -407,7 +283,6 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, companyName, 
           items={items}
           beheerBadge={beheerBadge}
           closing={closing}
-          originRect={originRect}
           onClose={requestClose}
           onExitComplete={handleExitComplete}
         />
