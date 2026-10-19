@@ -32,7 +32,7 @@ export function CommissionApplyButton({ commissionId, commissionName }: { commis
           }
         });
       }}
-      className="rounded-full bg-voc-red px-3.5 py-1.5 text-xs font-medium text-white hover:bg-voc-red-dark disabled:opacity-60"
+      className="rounded-full border border-border bg-surface px-3.5 py-1.5 text-xs font-medium text-foreground hover:bg-black/[.03] disabled:opacity-60 dark:hover:bg-white/[.06]"
     >
       {isPending ? "Bezig…" : "Aanmelden"}
     </button>

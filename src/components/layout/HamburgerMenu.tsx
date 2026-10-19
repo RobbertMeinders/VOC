@@ -79,10 +79,15 @@ function MenuGroup({ heading, links, pathname, onNavigate }: { heading?: string;
             href={href}
             onClick={onNavigate}
             className={clsx(
-              "flex items-center gap-3 border-l-[3px] px-4 py-3 text-sm font-medium text-white",
-              active ? "border-l-voc-red-on-petrol bg-white/10" : "border-l-transparent hover:bg-white/5"
+              "relative flex items-center gap-3 px-4 py-3 text-sm font-medium text-white",
+              active ? "bg-white/10" : "hover:bg-white/5"
             )}
           >
+            {/* Live QA: een border-left met een transparante variant voor het
+                niet-actieve item bleek in de praktijk zelf als een vage
+                lijn te renderen — alleen voor het actieve item een los
+                staafje, geen border-aanpak meer. */}
+            {active && <span aria-hidden className="absolute inset-y-0 left-0 w-[3px] bg-voc-red-on-petrol" />}
             <Icon size={20} className="text-white/75" />
             {label}
           </Link>
@@ -112,10 +117,11 @@ export function HamburgerMenu({ logoUrl, siteName }: { logoUrl: string | null; s
   useEscapeKey(open && !closing, requestClose);
   useBodyScrollLock(open || closing);
 
-  const active =
-    VERENIGING_LINKS.some((l) => isLinkActive(pathname, l.href)) ||
-    SNEL_NAAR_LINKS.some((l) => isLinkActive(pathname, l.href)) ||
-    OVERIGE_LINKS.some((l) => isLinkActive(pathname, l.href));
+  // Alleen de Vereniging-items tellen voor het oplichten van de knop zelf —
+  // "Mijn agenda" (Snel naar) wees de knop ook op /agenda als actief aan,
+  // terwijl de eigenlijke Agenda-navigatie daar al een eigen actieve staat
+  // heeft (live QA).
+  const active = VERENIGING_LINKS.some((l) => isLinkActive(pathname, l.href));
 
   return (
     <>
@@ -151,7 +157,9 @@ export function HamburgerMenu({ logoUrl, siteName }: { logoUrl: string | null; s
             }}
           >
             <div className="flex items-center justify-between border-b border-white/[.12] px-4 py-3">
-              <Logo logoUrl={logoUrl} siteName={siteName} labelClassName="text-voc-red-on-petrol" />
+              {/* Alleen het logo-icoon — de sitenaam staat al in de gewone
+                  header erboven (MobileHeader), dubbelop in dit paneel. */}
+              <Logo logoUrl={logoUrl} siteName={siteName} withLabel={false} />
               <button
                 type="button"
                 onClick={requestClose}

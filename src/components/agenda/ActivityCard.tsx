@@ -2,7 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { clsx } from "clsx";
 import { CalendarDays, CheckCircle2, Clock, MapPin, Users, XCircle } from "lucide-react";
-import { formatActivityDate } from "@/lib/format/date";
+import { formatActivityDate, formatActivityTimeOnly } from "@/lib/format/date";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -114,15 +114,24 @@ export function ActivityCard({
   // bovenaan i.p.v. een vierkante thumbnail naast de tekst, met een
   // gekleurde linkerrand per soort (rood = VOC, petrol = extern). De
   // datumkolom zelf staat ernaast, in de aanroeper (agenda/page.tsx), zodat
-  // deze kaart niet hoeft te weten of 'ie in een tijdlijn staat.
+  // deze kaart niet hoeft te weten of 'ie in een tijdlijn staat — alleen tijd
+  // (+ plaats) hierbinnen, anders staat de datum er dubbel.
+  //
+  // Live QA: een border-left met een conditionele kleur (actief/niet, VOC/
+  // extern) bleek in de praktijk onzichtbaar op een element dat ook
+  // overflow-hidden + rounded-2xl + een composited hover-transform heeft
+  // (zelfde patroon brak ook in HamburgerMenu's actieve-item-streepje) —
+  // een los, absoluut gepositioneerd staafje binnen de overflow-hidden-grens
+  // i.p.v. een border-left omzeilt dat.
   return (
     <Link
       href={`/agenda/${activity.id}`}
-      className={clsx(
-        "animate-rise-in block overflow-hidden rounded-2xl border-l-4 bg-surface shadow-sm transition-all duration-500 ease-out hover:-translate-y-0.5 hover:shadow-md",
-        isOfficial ? "border-l-voc-red" : "border-l-petrol"
-      )}
+      className="animate-rise-in relative block overflow-hidden rounded-2xl bg-surface shadow-sm transition-all duration-500 ease-out hover:-translate-y-0.5 hover:shadow-md"
     >
+      <span
+        aria-hidden
+        className={clsx("absolute inset-y-0 left-0 z-10 w-1", isOfficial ? "bg-voc-red" : "bg-petrol")}
+      />
       {imageUrl && (
         <div className="relative h-14 w-full">
           <Image src={imageUrl} alt="" fill sizes="(min-width: 640px) 700px, 100vw" className="object-cover" />
@@ -132,7 +141,7 @@ export function ActivityCard({
         <p className={clsx("line-clamp-2 font-semibold leading-snug text-foreground", isSubmitted ? "text-sm" : "text-base")}>
           {activity.title}
         </p>
-        <p className="mt-1 text-sm text-muted">{formatActivityDate(activity.starts_at)}</p>
+        <p className="mt-1 text-sm text-muted">{formatActivityTimeOnly(activity.starts_at)}</p>
         {/* Ingebracht mag compacter: de locatieregel weg (staat nog op de
             detailpagina). */}
         {activity.location && !isSubmitted && (
