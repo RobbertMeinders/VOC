@@ -140,15 +140,23 @@ function AppShellBody({
       </a>
       <OnlineHeartbeat />
       <ScrollLockGuard />
-      <Sidebar
-        profile={profile}
-        unread={unread}
-        avatarUrl={avatarUrl}
-        companyId={companyId}
-        companyName={companyName}
-        logoUrl={logoUrl}
-        siteName={siteName}
-      />
+      {/* QA-feedback redesign: op /beheer vervangt de donkerpetrol
+          beheerzijbalk (BeheerSidebar, in beheer/layout.tsx) de gewone
+          Sidebar — niet ernaast. Die beheerzijbalk is zelf fixed en vult
+          dezelfde linkerkolom (zie BeheerSidebar.tsx), dus main's
+          md:ml-72 hieronder blijft ongewijzigd correct, met Sidebar of
+          zonder. */}
+      {!wide && (
+        <Sidebar
+          profile={profile}
+          unread={unread}
+          avatarUrl={avatarUrl}
+          companyId={companyId}
+          companyName={companyName}
+          logoUrl={logoUrl}
+          siteName={siteName}
+        />
+      )}
       <MobileHeader unread={unread} logoUrl={logoUrl} siteName={siteName} />
       <main id="main-content" tabIndex={-1} className="pb-20 focus:outline-none md:ml-72 md:pb-0">
         <div

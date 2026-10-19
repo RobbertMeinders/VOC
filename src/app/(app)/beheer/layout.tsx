@@ -9,13 +9,17 @@ import { BeheerSidebar } from "@/components/beheer/BeheerSidebar";
 // requireBoard() staat hier nogmaals naast de losse check in elke pagina
 // zelf: onschuldig dubbelop, maar dekt ook een pagina af die die check
 // ooit zou missen.
+// Geen md:flex-row meer: BeheerSidebar's desktop-nav is zelf fixed (ze
+// vervangt daar de gewone Sidebar, zie AppShell) en neemt dus geen
+// flex-ruimte meer in — alleen de mobiele kolomstapeling hieronder is nog
+// nodig voor het inklapbare mobiele zij-menu.
 export default async function BeheerLayout({ children }: { children: ReactNode }) {
   const profile = await requireBoard();
 
   return (
-    <div className="flex flex-col gap-6 md:flex-row md:items-start md:gap-8">
+    <div className="flex flex-col gap-6">
       <BeheerSidebar isAdmin={profile.role === "beheerder"} />
-      <div className="min-w-0 flex-1">{children}</div>
+      <div className="min-w-0">{children}</div>
     </div>
   );
 }

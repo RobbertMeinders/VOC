@@ -6,6 +6,7 @@ import {
   CalendarDays,
   Check,
   CheckCircle2,
+  ChevronDown,
   Clock,
   Flag,
   Megaphone,
@@ -196,12 +197,15 @@ export default async function BeheerPage() {
   );
   const activationRate = totalProfileCount ? Math.round(((activeMemberCount ?? 0) / totalProfileCount) * 100) : 0;
 
-  const hasWaitingWork =
-    (accessRequests?.length ?? 0) > 0 ||
-    (pendingActivities?.length ?? 0) > 0 ||
-    openReports.length > 0 ||
-    pendingMembershipRequests.length > 0 ||
-    (expiringInvitations?.length ?? 0) > 0;
+  const waitingCounts = {
+    accessRequests: accessRequests?.length ?? 0,
+    pendingActivities: pendingActivities?.length ?? 0,
+    openReports: openReports.length,
+    pendingMembershipRequests: pendingMembershipRequests.length,
+    expiringInvitations: expiringInvitations?.length ?? 0,
+  };
+  const totalWaiting = Object.values(waitingCounts).reduce((sum, n) => sum + n, 0);
+  const hasWaitingWork = totalWaiting > 0;
 
   const kerncijfers = [
     { label: "Actieve leden", value: activeMemberCount ?? 0, icon: Users, href: "/beheer/leden" },
@@ -225,23 +229,38 @@ export default async function BeheerPage() {
         ))}
       </div>
 
-      {/* Redesign: "Wacht op jou" springt eruit als er iets wacht
-          (danger-soft vlak, zie "opvallende melding bovenaan") i.p.v. een
-          gewone kaart — de bestaande, per categorie uitgewerkte acties
-          eronder blijven intact (geen functionaliteit inleveren voor één
-          generieke knop die het ontwerp laat zien). */}
-      <div className={clsx("rounded-2xl p-4 shadow-sm", hasWaitingWork ? "bg-danger-soft" : "border border-border bg-surface")}>
-        <h2 className={clsx("mb-3 flex items-center gap-1.5 text-sm font-semibold", hasWaitingWork ? "text-danger-text" : "text-foreground")}>
-          {hasWaitingWork && <Flag size={14} />}
-          Wacht op jou
-        </h2>
+      {/* QA-feedback redesign: "Wacht op jou" was een groot, altijd open
+          danger-soft blok met alle categorieën volledig uitgeklapt — op
+          desktop de dominante blikvanger van het hele dashboard. Nu een
+          compacte samenvattingsregel (icoontegel + aantal + "Bekijken"),
+          die via <details>/<summary> (geen eigen client-component nodig)
+          de bestaande, per categorie uitgewerkte acties uitklapt. Zonder
+          wachtend werk blijft het een gewone, niet-klikbare kaart. */}
+      <div className={clsx("rounded-2xl shadow-sm", hasWaitingWork ? "bg-danger-soft" : "border border-border bg-surface p-4")}>
+        {!hasWaitingWork ? (
+          <>
+            <h2 className="mb-3 text-sm font-semibold text-foreground">Wacht op jou</h2>
+            <ComingSoon icon={CheckCircle2} title="Niets te doen." />
+          </>
+        ) : (
+          <details className="group">
+            <summary className="flex cursor-pointer list-none items-center gap-3 p-4 [&::-webkit-details-marker]:hidden">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-danger text-white">
+                <Flag size={16} />
+              </span>
+              <span className="min-w-0 flex-1 text-sm font-semibold text-danger-text">
+                {totalWaiting} {totalWaiting === 1 ? "item" : "items"} wachten op jou
+              </span>
+              <span className="flex shrink-0 items-center gap-1 rounded-full bg-foreground px-3 py-1.5 text-xs font-medium text-background">
+                Bekijken
+                <ChevronDown size={13} className="transition-transform duration-200 group-open:rotate-180" />
+              </span>
+            </summary>
 
-        {!hasWaitingWork && (
-          <ComingSoon icon={CheckCircle2} title="Niets te doen." />
-        )}
+            <div className="flex flex-col gap-4 px-4 pb-4 pt-1">
 
         {(accessRequests?.length ?? 0) > 0 && (
-          <div className="mb-4">
+          <div>
             <p className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted">
               <UserPlus size={13} />
               Toegangsaanvragen ({accessRequests!.length})
@@ -255,7 +274,7 @@ export default async function BeheerPage() {
         )}
 
         {(pendingActivities?.length ?? 0) > 0 && (
-          <div className="mb-4">
+          <div>
             <p className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted">
               <CalendarDays size={13} />
               Activiteiten ter goedkeuring ({pendingActivities!.length})
@@ -291,7 +310,7 @@ export default async function BeheerPage() {
         )}
 
         {openReports.length > 0 && (
-          <div className="mb-4">
+          <div>
             <p className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted">
               <Flag size={13} />
               Openstaande rapportages ({openReports.length})
@@ -305,7 +324,7 @@ export default async function BeheerPage() {
         )}
 
         {pendingMembershipRequests.length > 0 && (
-          <div className="mb-4">
+          <div>
             <p className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted">
               <Building2 size={13} />
               Bedrijfskoppelingen ter goedkeuring ({pendingMembershipRequests.length})
@@ -398,6 +417,10 @@ export default async function BeheerPage() {
               </Link>
             )}
           </div>
+        )}
+
+            </div>
+          </details>
         )}
       </div>
 

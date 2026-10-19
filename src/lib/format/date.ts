@@ -16,6 +16,19 @@ export function formatActivityDate(iso: string): string {
   }).format(new Date(iso));
 }
 
+// Home-welkomstblok (activiteitkaart): "di 3 nov" — korte weekdag + dag +
+// maand, zonder tijd (die staat er met de locatie apart naast, zie
+// HomePage). formatActivityDate's volledige vorm ("maandag 3 november,
+// 16:00") bleek in die smalle kaart de knop eronder te verdringen.
+export function formatActivityDateCompact(iso: string): string {
+  return new Intl.DateTimeFormat("nl-NL", {
+    timeZone: NL_TIMEZONE,
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+  }).format(new Date(iso));
+}
+
 export function formatActivityDateShort(iso: string): string {
   return new Intl.DateTimeFormat("nl-NL", {
     timeZone: NL_TIMEZONE,

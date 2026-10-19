@@ -114,16 +114,16 @@ export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
         </div>
       </div>
 
-      {/* -ml-16 trekt deze kolom over de paginarand van Beheer-pagina's heen
-          (md:px-16 in AppShell voor "brede" pagina's), zodat hij vlak tegen
-          de hoofd-Sidebar aan ligt i.p.v. er met een zichtbaar gaatje los
-          van te staan. md:sticky: blijft in beeld bij scrollen door een lange
-          lijst, i.p.v. dat je terug naar boven moet om van sectie te wisselen.
-          Redesign-besluit 8: donkerpetrol vlak i.p.v. een gewone lichte
-          kolom — zodat je in Beheer altijd meteen ziet dat je niet meer in
-          het ledenportaal zelf zit. */}
+      {/* QA-feedback redesign: vervangt op desktop de gewone Sidebar (zie
+          AppShell, wide-tak) i.p.v. ernaast te staan — zelfde fixed/w-72-
+          geometrie als Sidebar.tsx, zodat main's md:ml-72 in AppShell voor
+          beide varianten klopt. overflow-y-auto: deze lijst is langer dan
+          de gewone navigatie en moet zelf kunnen scrollen zonder de vaste
+          hoogte van de kolom te verliezen. Redesign-besluit 8: donkerpetrol
+          vlak i.p.v. een gewone lichte kolom — zodat je in Beheer altijd
+          meteen ziet dat je niet meer in het ledenportaal zelf zit. */}
       <nav
-        className="hidden md:sticky md:top-10 md:-ml-16 md:flex md:w-60 md:shrink-0 md:flex-col md:gap-5 md:self-start md:rounded-r-2xl md:px-3 md:py-5 md:shadow-sm"
+        className="fixed inset-y-0 left-0 hidden w-72 flex-col gap-5 overflow-y-auto px-3 py-6 md:flex"
         style={{ backgroundImage: "var(--hero-gradient)" }}
       >
         <Link

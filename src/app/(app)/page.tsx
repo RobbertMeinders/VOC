@@ -4,7 +4,7 @@ import { CalendarDays, FileText, Pencil, Search } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
-import { formatActivityDate, formatTodayLabel, getGreeting } from "@/lib/format/date";
+import { formatActivityDateCompact, formatActivityTimeOnly, formatTodayLabel, getGreeting } from "@/lib/format/date";
 import { Avatar } from "@/components/ui/Avatar";
 import { NewsHeroCarousel } from "@/components/home/NewsHeroCarousel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -56,6 +56,7 @@ export default async function HomePage() {
       .from("profiles")
       .select("id, first_name, last_name, avatar_url, avatar_thumb_url")
       .eq("is_active", true)
+      .eq("is_organization_account", false)
       .neq("id", profile.id)
       .order("created_at", { ascending: false })
       .limit(5)
@@ -125,32 +126,40 @@ export default async function HomePage() {
           {nextActivity && (
             <Link
               href={`/agenda/${nextActivity.id}`}
-              className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-sm hover:-translate-y-px sm:w-80 sm:shrink-0"
+              className="flex flex-col gap-3 rounded-2xl bg-surface p-3 shadow-sm hover:-translate-y-px sm:w-80 sm:shrink-0"
             >
-              <div className="flex h-[46px] w-[46px] shrink-0 flex-col items-center justify-center rounded-xl bg-voc-red leading-none text-white">
-                <span className="text-[9px] font-bold uppercase tracking-wide opacity-90">
-                  {new Intl.DateTimeFormat("nl-NL", { month: "short", timeZone: "Europe/Amsterdam" }).format(new Date(nextActivity.starts_at))}
-                </span>
-                <span className="font-display mt-0.5 text-xl font-extrabold">
-                  {new Intl.DateTimeFormat("nl-NL", { day: "numeric", timeZone: "Europe/Amsterdam" }).format(new Date(nextActivity.starts_at))}
-                </span>
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">{nextActivity.title}</p>
-                <p className="truncate text-xs text-muted">{formatActivityDate(nextActivity.starts_at)}</p>
+              <div className="flex items-center gap-3">
+                <div className="flex h-[46px] w-[46px] shrink-0 flex-col items-center justify-center rounded-xl bg-voc-red leading-none text-white">
+                  <span className="text-[9px] font-bold uppercase tracking-wide opacity-90">
+                    {new Intl.DateTimeFormat("nl-NL", { month: "short", timeZone: "Europe/Amsterdam" }).format(new Date(nextActivity.starts_at))}
+                  </span>
+                  <span className="font-display mt-0.5 text-xl font-extrabold">
+                    {new Intl.DateTimeFormat("nl-NL", { day: "numeric", timeZone: "Europe/Amsterdam" }).format(new Date(nextActivity.starts_at))}
+                  </span>
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">{nextActivity.title}</p>
+                  {/* Korte notatie (dag + tijd + locatie) i.p.v. de volledige
+                      "maandag 3 november, 16:00" — die verdrong in deze smalle
+                      kaart de knop eronder. */}
+                  <p className="truncate text-xs text-muted">
+                    {formatActivityDateCompact(nextActivity.starts_at)} · {formatActivityTimeOnly(nextActivity.starts_at)}
+                    {nextActivity.location ? ` · ${nextActivity.location}` : ""}
+                  </p>
+                </div>
               </div>
               {myRegistration.data ? (
                 <span
                   className={
                     myRegistration.data.is_waitlisted
-                      ? "shrink-0 rounded-full bg-status-warning-soft px-2.5 py-1 text-xs font-medium text-status-warning"
-                      : "shrink-0 rounded-full bg-status-success-soft px-2.5 py-1 text-xs font-medium text-status-success"
+                      ? "w-full rounded-full bg-status-warning-soft py-1.5 text-center text-xs font-medium text-status-warning"
+                      : "w-full rounded-full bg-status-success-soft py-1.5 text-center text-xs font-medium text-status-success"
                   }
                 >
                   {myRegistration.data.is_waitlisted ? "Wachtlijst" : "Aangemeld"}
                 </span>
               ) : (
-                <span className="shrink-0 rounded-full bg-voc-red px-3.5 py-1.5 text-xs font-medium text-white">Aanmelden</span>
+                <span className="w-full rounded-full bg-voc-red py-1.5 text-center text-xs font-medium text-white">Aanmelden</span>
               )}
             </Link>
           )}

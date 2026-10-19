@@ -107,13 +107,13 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
   function renderTimelineGroup(items: ActivityRow[]) {
     return (
       <div className="relative flex flex-col gap-3">
-        <div className="absolute bottom-2 left-[21px] top-2 w-px bg-border" aria-hidden />
+        <div className="absolute bottom-2 left-[21px] top-2 w-[2px] bg-border" aria-hidden />
         {items.map((activity) => {
           const { day, weekday } = dayParts(activity.starts_at);
           return (
             <div key={activity.id} className="relative flex gap-2.5">
               <div className="z-10 flex w-11 shrink-0 flex-col items-center bg-background pt-1 leading-none">
-                <span className="font-display text-xl font-extrabold tracking-[-0.02em] text-foreground">{day}</span>
+                <span className="font-display text-2xl font-extrabold tracking-[-0.02em] text-foreground">{day}</span>
                 <span className="text-[9px] font-bold tracking-wide text-muted">{weekday}</span>
               </div>
               <div className="min-w-0 flex-1">{renderCard(activity)}</div>
