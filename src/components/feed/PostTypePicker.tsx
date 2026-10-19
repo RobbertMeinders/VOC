@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { clsx } from "clsx";
+import { Chip } from "@/components/ui/Chip";
 import { COMPOSER_POST_TYPES, POST_TYPE_LABELS } from "@/lib/feed/postType";
 import type { FeedPostType } from "@/lib/feed/types";
 
@@ -18,19 +18,9 @@ export function PostTypePicker({ defaultValue }: { defaultValue?: FeedPostType |
         {/* Klikken op het al-actieve label zet 'm weer uit — geen apart
             "Geen label"-knop nodig om dezelfde lege staat te bereiken. */}
         {COMPOSER_POST_TYPES.map((type) => (
-          <button
-            key={type}
-            type="button"
-            onClick={() => setValue(value === type ? null : type)}
-            className={clsx(
-              "rounded-full px-2.5 py-1 text-xs font-medium",
-              value === type
-                ? "bg-voc-red text-white"
-                : "bg-black/[.06] text-muted hover:bg-black/[.1] dark:bg-white/[.08]"
-            )}
-          >
+          <Chip key={type} onClick={() => setValue(value === type ? null : type)} active={value === type}>
             {POST_TYPE_LABELS[type]}
-          </button>
+          </Chip>
         ))}
       </div>
     </div>

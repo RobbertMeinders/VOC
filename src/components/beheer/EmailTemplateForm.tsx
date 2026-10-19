@@ -128,7 +128,7 @@ function ImageUploadButton({
         required
         label="Afbeelding kiezen"
         onChange={handleFileChange}
-        className="bg-black/[.06] text-xs text-foreground hover:bg-black/[.1] dark:bg-white/[.08]"
+        className="bg-black/[.06] text-xs text-foreground hover:bg-black/[.1] dark:bg-white/[.08] dark:hover:bg-white/[.12]"
       />
       <UploadSubmitButton />
       {state.error && (
