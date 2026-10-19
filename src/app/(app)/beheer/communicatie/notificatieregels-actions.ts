@@ -58,9 +58,13 @@ export async function updateAllNotificationChannelsAction(enabled: boolean): Pro
   const profile = await requireBoard();
 
   const supabase = await createClient();
+  // Expliciet gefilterd (type is de not-null primary key, dus dit raakt
+  // altijd elke rij) i.p.v. een update zonder enig filter — dat laatste
+  // bleek in de praktijk te mislukken.
   const { error } = await supabase
     .from("notification_type_settings")
-    .update({ channel_push: enabled, channel_email: enabled, updated_by: profile.id });
+    .update({ channel_push: enabled, channel_email: enabled, updated_by: profile.id })
+    .not("type", "is", null);
 
   if (error) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };

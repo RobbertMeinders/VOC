@@ -36,11 +36,7 @@ export function AllNotificationChannelsSwitch({ initialEnabled }: { initialEnabl
   return (
     <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm">
       <div className="min-w-0">
-        <p className="text-sm font-medium text-foreground">Push en e-mail voor alle regels</p>
-        <p className="text-xs text-muted">
-          Zet in één keer alle push- en e-mailkanalen hieronder aan of uit. In-app-meldingen, nieuwsbrieven en handmatige
-          pushberichten hebben hun eigen instelling en blijven hier buiten.
-        </p>
+        <p className="text-sm font-medium text-foreground">Alles</p>
         {error && <p className="mt-1 text-xs text-voc-red-text">{error}</p>}
       </div>
       <Switch checked={enabled} onChange={handleChange} disabled={pending} label="Push en e-mail voor alle regels" />
