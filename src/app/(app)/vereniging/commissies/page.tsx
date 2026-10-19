@@ -4,10 +4,10 @@ import { UsersRound } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
-import { PageHeader } from "@/components/ui/PageHeader";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { Avatar } from "@/components/ui/Avatar";
 import { CommissionApplyButton } from "@/components/vereniging/CommissionApplyButton";
+import { VerenigingHero } from "@/components/vereniging/VerenigingHero";
 
 export const metadata: Metadata = { title: "Commissies" };
 
@@ -45,8 +45,8 @@ export default async function CommissiesPage() {
   const pendingCommissionIds = new Set((ownApplications ?? []).map((a) => a.commission_id));
 
   return (
-    <div className="flex flex-col gap-4">
-      <PageHeader title="Commissies" description="Meld je aan voor een commissie waar je graag aan meewerkt." />
+    <div className="flex flex-col gap-6">
+      <VerenigingHero title="Commissies" description="Meld je aan voor een commissie waar je graag aan meewerkt." />
 
       {!commissions || commissions.length === 0 ? (
         <ComingSoon icon={UsersRound} title="Nog geen commissies" description="Het bestuur heeft nog geen commissies aangemaakt." />
@@ -69,7 +69,7 @@ export default async function CommissiesPage() {
                   </div>
                   <div className="shrink-0">
                     {isMember ? (
-                      <span className="rounded-full bg-voc-red-light px-3 py-1 text-xs font-medium text-voc-red-text">Lid</span>
+                      <span className="rounded-full bg-petrol-soft px-3 py-1 text-xs font-medium text-petrol">Lid</span>
                     ) : isPending ? (
                       <span className="text-xs font-medium text-muted">Aanvraag in behandeling</span>
                     ) : (
@@ -91,7 +91,7 @@ export default async function CommissiesPage() {
                         <Link
                           key={member.profile_id}
                           href={`/leden/${member.profile_id}`}
-                          className="flex items-center gap-2.5 rounded-full bg-black/5 py-1.5 pl-1.5 pr-4 hover:bg-black/10 dark:bg-white/10 dark:hover:bg-white/15"
+                          className="flex items-center gap-2.5 rounded-full bg-raised py-1.5 pl-1.5 pr-4 hover:bg-black/[.06] dark:hover:bg-white/[.08]"
                         >
                           <Avatar firstName={member.profile!.first_name} lastName={member.profile!.last_name} avatarUrl={avatarUrl} size={36} />
                           <span className="text-sm font-medium text-foreground">

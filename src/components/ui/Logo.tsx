@@ -38,7 +38,7 @@ export function Logo({
         // header staan de zoek-/notificatie-icoontjes ernaast in dezelfde
         // rij, en zonder dit overlapte de naam die icoontjes zodra de rij te
         // smal werd i.p.v. netjes af te breken.
-        <span className={`truncate text-lg font-semibold tracking-tight ${labelClassName}`}>{siteName ?? "Ledenportaal"}</span>
+        <span className={`truncate font-display text-lg font-bold tracking-[-0.02em] ${labelClassName}`}>{siteName ?? "Ledenportaal"}</span>
       )}
     </Link>
   );

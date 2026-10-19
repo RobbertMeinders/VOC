@@ -40,7 +40,7 @@ export default async function HomePage() {
       .eq("status", "approved")
       .gte("starts_at", new Date().toISOString())
       .order("starts_at", { ascending: true })
-      .limit(1)
+      .limit(4)
       .returns<ActivityRow[]>(),
     supabase.from("news_items").select("*").order("position", { ascending: true }).limit(3).returns<NewsItemRow[]>(),
     supabase
@@ -64,6 +64,9 @@ export default async function HomePage() {
   ]);
 
   const nextActivity = activities?.[0] ?? null;
+  // De eerstvolgende staat al in het welkomstblok; de rest vult op desktop
+  // de rechterkolom, zodat Home daar niet halverwege ophoudt.
+  const laterActivities = (activities ?? []).slice(1);
 
   const [myRegistration, newsImageUrls, newMemberAvatarUrls] = await Promise.all([
     nextActivity
@@ -173,7 +176,7 @@ export default async function HomePage() {
             <div className="grid grid-cols-4 gap-2">
               {QUICK_ACTIONS.map(({ href, label, icon: Icon }) => (
                 <Link key={href} href={href} className="flex flex-col items-center gap-1.5 text-center text-[11px] font-medium text-foreground">
-                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface text-petrol shadow-sm">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-petrol-soft text-petrol">
                     <Icon size={18} />
                   </span>
                   {label}
@@ -196,6 +199,33 @@ export default async function HomePage() {
                     </Link>
                   );
                 })}
+              </div>
+            </section>
+          )}
+
+          {laterActivities.length > 0 && (
+            <section className="hidden lg:block">
+              <SectionHeader title="Daarna in de agenda" href="/agenda" linkLabel="Agenda" />
+              <div className="flex flex-col divide-y divide-border rounded-2xl border border-border bg-surface shadow-sm">
+                {laterActivities.map((activity) => (
+                  <Link key={activity.id} href={`/agenda/${activity.id}`} className="flex items-center gap-3 p-3 hover:bg-black/[.03] dark:hover:bg-white/[.05]">
+                    <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-xl bg-petrol-soft leading-none text-petrol">
+                      <span className="text-[8.5px] font-bold uppercase tracking-wide">
+                        {new Intl.DateTimeFormat("nl-NL", { month: "short", timeZone: "Europe/Amsterdam" }).format(new Date(activity.starts_at))}
+                      </span>
+                      <span className="font-display mt-0.5 text-base font-extrabold">
+                        {new Intl.DateTimeFormat("nl-NL", { day: "numeric", timeZone: "Europe/Amsterdam" }).format(new Date(activity.starts_at))}
+                      </span>
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-foreground">{activity.title}</p>
+                      <p className="truncate text-xs text-muted">
+                        {formatActivityTimeOnly(activity.starts_at)}
+                        {activity.location ? ` · ${activity.location}` : ""}
+                      </p>
+                    </div>
+                  </Link>
+                ))}
               </div>
             </section>
           )}

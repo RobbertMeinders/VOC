@@ -22,7 +22,7 @@
   --background: #f7f7f8;
   --surface: #ffffff;
   --foreground: #17171a;
-  --muted: #6b6b72;
+  --muted: #5e5e66;
   --border: #e4e4e7;
   /* Randkleur specifiek voor invoervelden/dropdowns — --border (voor
      kaartranden) is met opzet subtiel en haalt daardoor op een invoerveld
@@ -275,7 +275,7 @@
   --background: #f7f7f8;
   --surface: #ffffff;
   --foreground: #17171a;
-  --muted: #6b6b72;
+  --muted: #5e5e66;
   --border: #e4e4e7;
   --input-border: #8e8e93;
   --raised: #f1f1f3;
