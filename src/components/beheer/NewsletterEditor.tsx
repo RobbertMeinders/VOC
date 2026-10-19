@@ -639,15 +639,18 @@ export function NewsletterEditor({
   async function handleSend() {
     const isRetry = communication.status === "verzenden_mislukt";
     const isExtra = communication.status === "verzonden";
+    const isStuck = communication.status === "versturen";
     const confirmMessage = isExtra
       ? "Dit verstuurt alleen naar wie in de huidige doelgroep nog geen e-mail ontving (bv. een nieuw toegevoegde ontvanger)."
       : isRetry
         ? `Opnieuw proberen te versturen aan de ${(communication.total_recipients ?? activeMemberCount) - sentCount} ontvangers die 'm nog niet ontvingen.`
-        : `Dit verstuurt "${communication.subject}" naar de huidige doelgroep.`;
+        : isStuck
+          ? "Een vorige verzending leek vast te zijn gelopen. Dit probeert opnieuw te versturen aan iedereen die nog geen e-mail ontving."
+          : `Dit verstuurt "${communication.subject}" naar de huidige doelgroep.`;
     const confirmed = await confirm({
-      title: isExtra ? "Extra versturen?" : isRetry ? "Opnieuw proberen te versturen?" : "Nieuwsbrief versturen?",
+      title: isExtra ? "Extra versturen?" : isRetry || isStuck ? "Opnieuw proberen te versturen?" : "Nieuwsbrief versturen?",
       description: `${confirmMessage} Dit kan niet ongedaan worden gemaakt.`,
-      confirmLabel: isExtra ? "Extra versturen" : isRetry ? "Opnieuw proberen" : "Versturen",
+      confirmLabel: isExtra ? "Extra versturen" : isRetry || isStuck ? "Opnieuw proberen" : "Versturen",
       danger: true,
     });
     if (!confirmed) return;
@@ -937,17 +940,22 @@ export function NewsletterEditor({
           </div>
         )}
 
-        {(communication.status === "concept" || communication.status === "verzenden_mislukt" || communication.status === "verzonden") && (
+        {(communication.status === "concept" ||
+          communication.status === "verzenden_mislukt" ||
+          communication.status === "verzonden" ||
+          communication.status === "versturen") && (
           <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
             <p className="text-sm font-medium text-foreground">
-              {communication.status === "verzonden" ? "Extra versturen" : "Versturen"}
+              {communication.status === "verzonden" ? "Extra versturen" : communication.status === "versturen" ? "Vastgelopen?" : "Versturen"}
             </p>
             <p className="mt-1 text-sm text-muted">
               {communication.status === "verzonden"
                 ? "Stuur alsnog naar wie je hierboven als extra ontvanger toevoegt (bv. een nieuw lid, of jezelf om te testen)."
                 : communication.status === "verzenden_mislukt"
                   ? `${sentCount} van ${communication.total_recipients ?? activeMemberCount} ontvangers ontvingen 'm al - de rest nog niet.`
-                  : "Gaat naar de hierboven gekozen doelgroep."}
+                  : communication.status === "versturen"
+                    ? "Deze nieuwsbrief staat al een tijd op 'versturen'. Mogelijk is een eerdere poging vastgelopen — probeer het hieronder opnieuw."
+                    : "Gaat naar de hierboven gekozen doelgroep."}
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <Button type="button" onClick={handleSend} disabled={sendPending}>
@@ -956,7 +964,7 @@ export function NewsletterEditor({
                   ? "Versturen…"
                   : communication.status === "verzonden"
                     ? "Extra versturen"
-                    : communication.status === "verzenden_mislukt"
+                    : communication.status === "verzenden_mislukt" || communication.status === "versturen"
                       ? "Opnieuw proberen"
                       : "Versturen"}
               </Button>

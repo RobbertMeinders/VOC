@@ -388,9 +388,11 @@ export async function sendNewsletterAction(communicationId: string): Promise<Sen
   if (!communication) {
     return { error: "Nieuwsbrief niet gevonden." };
   }
-  if (communication.status === "verzonden") {
-    return { error: "Deze nieuwsbrief is al volledig verzonden." };
-  }
+  // Geen blanco weigering meer bij status 'verzonden' (N3/D6): dat blokkeerde
+  // "nasturen" naar een later toegevoegde ontvanger. claim_newsletter_send
+  // (0113) staat 'verzonden' nu ook toe als startstatus, en de claim-RPC's
+  // slaan iedereen die al een geslaagde verzending heeft toch al over —
+  // zie performNewsletterSend voor de volledige uitleg van dat patroon.
   if (!communication.subject.trim()) {
     return { error: "Onderwerp is verplicht voor je kunt versturen." };
   }

@@ -76,7 +76,7 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
   // geclaimd, dus geen zinvolle telling. Telt leden (notifications) en
   // contacten (communication_contact_sends, zie 0089) samen.
   let sentCount = 0;
-  if (communication.status === "verzonden" || communication.status === "verzenden_mislukt") {
+  if (communication.status === "verzonden" || communication.status === "verzenden_mislukt" || communication.status === "versturen") {
     const [{ count: sentProfiles }, { count: sentContacts }] = await Promise.all([
       supabase
         .from("notifications")
@@ -92,6 +92,9 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
     sentCount = (sentProfiles ?? 0) + (sentContacts ?? 0);
   }
 
+  // 'versturen' had hiervoor geen eigen label en viel terug op "Concept" —
+  // verwarrend bij een vastgelopen verzending (bug uit de analyse: de
+  // detailpagina toonde "Concept" terwijl er feitelijk nog iets vastzat).
   const statusLabel =
     communication.status === "verzonden"
       ? "Verstuurd"
@@ -99,7 +102,9 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
         ? "Deels verstuurd"
         : communication.status === "ingepland"
           ? "Ingepland"
-          : "Concept";
+          : communication.status === "versturen"
+            ? "Versturen…"
+            : "Concept";
 
   return (
     <div className="flex flex-col gap-4">
