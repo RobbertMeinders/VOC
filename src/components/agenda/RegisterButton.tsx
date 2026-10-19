@@ -10,12 +10,20 @@ export function RegisterButton({
   initialWaitlisted,
   isFull,
   deadlinePassed,
+  // Externe activiteiten: de échte aanmelding gebeurt op de site van de
+  // organisator (zie de link ernaast in ActivityDetailContent) — deze knop
+  // registreert dan geen "aanmelding" maar laat een lid alleen aangeven erbij
+  // te zijn, zodat andere leden dat in "Wie gaat er ook" kunnen zien.
+  // Hergebruikt bewust dezelfde activity_registrations-rij/knop i.p.v. een
+  // apart mechanisme — alleen de tekst verandert.
+  externalEvent = false,
 }: {
   activityId: string;
   initialRegistered: boolean;
   initialWaitlisted: boolean;
   isFull: boolean;
   deadlinePassed: boolean;
+  externalEvent?: boolean;
 }) {
   const [registered, setRegistered] = useState(initialRegistered);
   const [waitlisted, setWaitlisted] = useState(initialWaitlisted);
@@ -56,16 +64,20 @@ export function RegisterButton({
 
   return (
     <div className="flex flex-col gap-2">
-      <Button onClick={handleClick} disabled={pending} variant={registered ? "secondary" : "primary"}>
+      <Button onClick={handleClick} disabled={pending} variant={externalEvent || registered ? "secondary" : "primary"}>
         {pending
           ? "Bezig…"
           : registered
             ? waitlisted
               ? "Wachtlijst verlaten"
-              : "Afmelden"
+              : externalEvent
+                ? "Niet meer aanwezig"
+                : "Afmelden"
             : isFull
               ? "Op de wachtlijst"
-              : "Aanmelden"}
+              : externalEvent
+                ? "Ik ben hierbij aanwezig"
+                : "Aanmelden"}
       </Button>
       {registered && waitlisted && (
         <p className="text-xs text-amber-700 dark:text-amber-400">

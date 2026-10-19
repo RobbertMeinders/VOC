@@ -288,6 +288,19 @@ export async function ActivityDetailContent({ id }: { id: string }) {
                     deadlinePassed={deadlinePassed}
                   />
                 )}
+                {/* Externe activiteiten: de échte aanmelding staat hierboven
+                    (de link naar de organisator) — deze knop is er puur voor
+                    andere leden, zie "Wie gaat er ook" verderop. */}
+                {activity.external_registration_url && (
+                  <RegisterButton
+                    activityId={activity.id}
+                    initialRegistered={Boolean(myRegistration)}
+                    initialWaitlisted={Boolean(myRegistration?.is_waitlisted)}
+                    isFull={isFull}
+                    deadlinePassed={deadlinePassed}
+                    externalEvent
+                  />
+                )}
                 <a
                   href={`/agenda/${activity.id}/ics`}
                   className="inline-flex h-10 items-center gap-1.5 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
@@ -296,6 +309,9 @@ export async function ActivityDetailContent({ id }: { id: string }) {
                   Zet in je agenda
                 </a>
               </div>
+            )}
+            {activity.status !== "cancelled" && activity.external_registration_url && (
+              <p className="mt-2 text-xs text-muted">Aanmelden gaat via de website van de organisator hierboven.</p>
             )}
             {activity.status !== "cancelled" && activity.registration_deadline && !deadlinePassed && (
               <p className="mt-2 text-xs text-muted">
