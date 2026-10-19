@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } f
 import Link from "next/link";
 import Image from "next/image";
 import { Megaphone } from "lucide-react";
+import { clsx } from "clsx";
 
 export type NewsHeroSlide = {
   id: string;
@@ -148,7 +149,7 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
                   didDragRef.current = false;
                 }
               }}
-              className="absolute inset-x-0 bottom-0 block p-4 sm:p-6"
+              className={clsx("absolute inset-x-0 bottom-0 block p-4 sm:p-6", slides.length > 1 && "pb-8 sm:pb-9")}
             >
               {/* Redesign: statuslabel wit i.p.v. gevuld rood. */}
               <span className="inline-block rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-petrol-deep">
@@ -167,7 +168,10 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
       })}
 
       {slides.length > 1 && (
-        <div className="absolute right-0 top-0 flex gap-1.5 p-4 sm:p-6">
+        // Afwerkronde blok 6: stond rechtsboven en oogde daar als een losse
+        // witte streep/visuele bug — stippen onderaan (naast de tekst) zijn
+        // herkenbaarder als paginering.
+        <div className="absolute inset-x-0 bottom-0 z-10 flex justify-center gap-1.5 pb-2.5">
           {slides.map((slide, slideIndex) => (
             <button
               key={slide.id}

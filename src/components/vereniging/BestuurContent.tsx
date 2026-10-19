@@ -81,9 +81,11 @@ export async function BestuurContent() {
   return (
     // flex-wrap + justify-center i.p.v. een vast grid: bij een niet-rond
     // aantal bestuursleden (bv. 5) laat een grid de laatste rij links
-    // "verweesd" achter — hiermee centreert die laatste rij juist, en met
-    // grotere kaarten/foto's voelt de pagina als een echte kennismaking met
-    // het bestuur i.p.v. een dichte rooster-lijst.
+    // "verweesd" achter — hiermee centreert die laatste rij juist. Afwerkronde
+    // blok 6: kaartbreedte nu per breakpoint berekend (2/3/4 per rij i.p.v.
+    // een vaste w-40/w-48) zodat de rij de beschikbare breedte opvult i.p.v.
+    // ruimte over te laten; foto kleiner (64px, was 112px) om daarbij te
+    // passen.
     <div className="flex flex-wrap justify-center gap-4">
       {activePositions.map(({ id, title, started_at, profile }) => {
         if (!profile) return null;
@@ -98,9 +100,9 @@ export async function BestuurContent() {
             // randkleur) geven de kennismakingspagina wat meer leven dan een
             // statische kaart — zelfde soort micro-interactie als elders in
             // de app (bv. de sidebar-items die bij hover opschuiven).
-            className="card-hover-lift animate-rise-in group flex w-40 flex-col items-center gap-4 rounded-2xl border border-border bg-surface px-5 py-8 text-center shadow-sm hover:border-foreground/20 sm:w-48"
+            className="card-hover-lift animate-rise-in group flex w-[calc(50%-0.5rem)] flex-col items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-6 text-center shadow-sm hover:border-foreground/20 sm:w-[calc(33.333%-0.667rem)] lg:w-[calc(25%-0.75rem)]"
           >
-            <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={112} />
+            <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={64} />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-foreground">
                 {profile.first_name} {profile.last_name}

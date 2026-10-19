@@ -20,9 +20,18 @@ function isSameDay(a: Date, b: Date): boolean {
 // week"-overzicht, geen filter/interactie (dat is bewust optioneel/later,
 // zie docs/redesign-ontwerp.md). Stippen i.p.v. een volledige kalender:
 // rood voor een VOC-activiteit die dag, petrol voor extern.
+//
+// Afwerkronde blok 6: "deze week" was meestal leeg en voegde dan weinig toe
+// — toont nu de week van de eerstvolgende activiteit (meestal dus al wel
+// iets te zien), met terugval op de huidige week als er niets gepland
+// staat.
 export function WeekStrip({ activities }: { activities: ActivityForStrip[] }) {
   const today = new Date();
-  const monday = startOfWeek(today);
+  const nextUpcoming = activities
+    .map((a) => new Date(a.starts_at))
+    .filter((d) => d >= today)
+    .sort((a, b) => a.getTime() - b.getTime())[0];
+  const monday = startOfWeek(nextUpcoming ?? today);
   const days = Array.from({ length: 7 }, (_, i) => {
     const date = new Date(monday);
     date.setDate(monday.getDate() + i);

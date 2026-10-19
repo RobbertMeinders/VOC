@@ -168,50 +168,72 @@ export async function ActivityDetailContent({ id }: { id: string }) {
     <div className="flex flex-col gap-4">
       <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
         {imageUrl && (
-          <Image
-            src={imageUrl}
-            alt={activity.title}
-            width={0}
-            height={0}
-            sizes="(min-width: 640px) 640px, 100vw"
-            className="max-h-64 w-full object-cover"
-            style={{ width: "100%", height: "auto" }}
-          />
+          // Afwerkronde blok 6: vaste 16:9-verhouding met object-position
+          // top i.p.v. een losse max-h — bij een hoge/staande foto werd het
+          // bovenste (vaak belangrijkste) deel er eerder middenin afgesneden.
+          <div className="relative aspect-video w-full">
+            <Image src={imageUrl} alt={activity.title} fill sizes="(min-width: 640px) 640px, 100vw" className="object-cover object-top" />
+          </div>
         )}
         <div className="p-6">
-          {(activity.source === "lid" || activity.status !== "approved") && (
-            <div className="mb-2 flex flex-wrap gap-2">
-              {activity.source === "lid" && (
-                <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-xs font-medium text-muted dark:bg-white/[.08]">
-                  Externe activiteit
-                </span>
+          {/* Afwerkronde blok 6: Bewerken + het "..."-menu stonden als los
+              blok onder AttendeeList/bijlagen — nu rechtsboven in deze kaart,
+              naast de titel, i.p.v. ergens onderaan de pagina te "zweven". */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              {(activity.source === "lid" || activity.status !== "approved") && (
+                <div className="mb-2 flex flex-wrap gap-2">
+                  {activity.source === "lid" && (
+                    <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-xs font-medium text-muted dark:bg-white/[.08]">
+                      Externe activiteit
+                    </span>
+                  )}
+                  {activity.status === "pending" && (
+                    <StatusPill tone="warning" icon={Clock}>
+                      Ter goedkeuring
+                    </StatusPill>
+                  )}
+                  {/* "Afgewezen" is geen echte fout meer (rood blijft
+                      voorbehouden aan "Afgelast" en echte fouten) — neutraal
+                      i.p.v. rood. */}
+                  {activity.status === "rejected" && (
+                    <StatusPill tone="neutral" icon={XCircle}>
+                      Afgewezen
+                    </StatusPill>
+                  )}
+                  {activity.status === "cancelled" && (
+                    <StatusPill tone="danger" icon={XCircle}>
+                      Afgelast
+                    </StatusPill>
+                  )}
+                </div>
               )}
-              {activity.status === "pending" && (
-                <StatusPill tone="warning" icon={Clock}>
-                  Ter goedkeuring
-                </StatusPill>
+              {activity.status === "rejected" && activity.rejection_reason && (
+                <p className="mb-2 rounded-lg bg-status-neutral-soft px-3 py-2 text-sm text-status-neutral">
+                  {activity.rejection_reason}
+                </p>
               )}
-              {/* "Afgewezen" is geen echte fout meer (rood blijft voorbehouden
-                  aan "Afgelast" en echte fouten) — neutraal i.p.v. rood. */}
-              {activity.status === "rejected" && (
-                <StatusPill tone="neutral" icon={XCircle}>
-                  Afgewezen
-                </StatusPill>
-              )}
-              {activity.status === "cancelled" && (
-                <StatusPill tone="danger" icon={XCircle}>
-                  Afgelast
-                </StatusPill>
-              )}
+              <h1 className="text-xl font-semibold text-foreground">{activity.title}</h1>
+              {submitterLabel && isBoard(profile.role) && <p className="mt-1 text-xs text-muted">Toegevoegd door {submitterLabel}</p>}
             </div>
-          )}
-          {activity.status === "rejected" && activity.rejection_reason && (
-            <p className="mb-2 rounded-lg bg-status-neutral-soft px-3 py-2 text-sm text-status-neutral">
-              {activity.rejection_reason}
-            </p>
-          )}
-          <h1 className="text-xl font-semibold text-foreground">{activity.title}</h1>
-          {submitterLabel && isBoard(profile.role) && <p className="mt-1 text-xs text-muted">Toegevoegd door {submitterLabel}</p>}
+            {isBoard(profile.role) && (
+              <div className="flex shrink-0 items-center gap-1.5">
+                <Link
+                  href={`/agenda/${activity.id}/bewerken`}
+                  aria-label="Bewerken"
+                  title="Bewerken"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+                >
+                  <Pencil size={14} />
+                </Link>
+                <ActivityDetailActionsMenu
+                  activityId={activity.id}
+                  activityTitle={activity.title}
+                  canCancel={activity.status !== "cancelled" && confirmedCount + waitlistedRegistrations.length > 0}
+                />
+              </div>
+            )}
+          </div>
           <div className="mt-3 flex flex-col gap-2 text-sm text-muted">
             <span className="flex items-center gap-2">
               <CalendarDays size={16} />
@@ -241,38 +263,45 @@ export async function ActivityDetailContent({ id }: { id: string }) {
               <p className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
                 Deze activiteit is afgelast. Aanmelden is niet meer mogelijk.
               </p>
-            ) : activity.external_registration_url ? (
-              <a
-                href={activity.external_registration_url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red-dark"
-                title="Aanmelden op de website van de organisator (opent in een nieuw tabblad)"
-              >
-                Aanmelden
-                <ExternalLink size={14} />
-              </a>
             ) : (
-              <RegisterButton
-                activityId={activity.id}
-                initialRegistered={Boolean(myRegistration)}
-                initialWaitlisted={Boolean(myRegistration?.is_waitlisted)}
-                isFull={isFull}
-                deadlinePassed={deadlinePassed}
-              />
+              // Afwerkronde blok 6: "Zet in je agenda" was een klein grijs
+              // linkje onder de aanmeldknop — nu een echte secundaire knop
+              // ernaast, zelfde gewicht als Aanmelden i.p.v. bijna onzichtbaar.
+              <div className="flex flex-wrap items-start gap-2">
+                {activity.external_registration_url ? (
+                  <a
+                    href={activity.external_registration_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex h-10 items-center gap-1.5 rounded-full bg-voc-red px-4 text-sm font-medium text-white hover:bg-voc-red-dark"
+                    title="Aanmelden op de website van de organisator (opent in een nieuw tabblad)"
+                  >
+                    Aanmelden
+                    <ExternalLink size={14} />
+                  </a>
+                ) : (
+                  <RegisterButton
+                    activityId={activity.id}
+                    initialRegistered={Boolean(myRegistration)}
+                    initialWaitlisted={Boolean(myRegistration?.is_waitlisted)}
+                    isFull={isFull}
+                    deadlinePassed={deadlinePassed}
+                  />
+                )}
+                <a
+                  href={`/agenda/${activity.id}/ics`}
+                  className="inline-flex h-10 items-center gap-1.5 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+                >
+                  <Download size={14} />
+                  Zet in je agenda
+                </a>
+              </div>
             )}
             {activity.status !== "cancelled" && activity.registration_deadline && !deadlinePassed && (
               <p className="mt-2 text-xs text-muted">
                 Aanmelden kan tot {formatActivityDate(activity.registration_deadline)}.
               </p>
             )}
-            <a
-              href={`/agenda/${activity.id}/ics`}
-              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-foreground"
-            >
-              <Download size={13} />
-              Zet in je agenda
-            </a>
           </div>
         </div>
       </div>
@@ -335,27 +364,6 @@ export async function ActivityDetailContent({ id }: { id: string }) {
               "use server";
               await decideActivitySubmissionAction(activity.id, "rejected", reason);
             }}
-          />
-        </div>
-      )}
-
-      {isBoard(profile.role) && (
-        <div className="flex flex-wrap items-center gap-2">
-          <Link
-            href={`/agenda/${activity.id}/bewerken`}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-muted"
-          >
-            <Pencil size={14} />
-            Bewerken
-          </Link>
-          {/* C8/E3: Communiceren, downloaden en afgelasten/verwijderen zaten
-              voorheen als vier losse knoppen (plus een losse prullenbak)
-              naast elkaar — nu gebundeld in één "..."-menu, zoals elders in
-              Beheer al de norm is. */}
-          <ActivityDetailActionsMenu
-            activityId={activity.id}
-            activityTitle={activity.title}
-            canCancel={activity.status !== "cancelled" && confirmedCount + waitlistedRegistrations.length > 0}
           />
         </div>
       )}

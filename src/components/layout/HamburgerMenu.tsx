@@ -178,8 +178,13 @@ export function HamburgerMenu({ logoUrl, siteName }: { logoUrl: string | null; s
           >
             <div className="flex items-center justify-between border-b border-white/[.12] px-4 py-3">
               {/* Alleen het logo-icoon — de sitenaam staat al in de gewone
-                  header erboven (MobileHeader), dubbelop in dit paneel. */}
-              <Logo logoUrl={logoUrl} siteName={siteName} withLabel={false} />
+                  header erboven (MobileHeader), dubbelop in dit paneel.
+                  Afwerkronde blok 6: "Menu" ernaast i.p.v. alleen logo + X,
+                  die kop voelde zonder titel wat leeg. */}
+              <div className="flex items-center gap-2.5">
+                <Logo logoUrl={logoUrl} siteName={siteName} withLabel={false} />
+                <span className="text-sm font-semibold text-white">Menu</span>
+              </div>
               <button
                 type="button"
                 onClick={requestClose}

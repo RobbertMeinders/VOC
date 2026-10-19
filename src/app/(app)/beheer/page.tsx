@@ -249,7 +249,7 @@ export default async function BeheerPage() {
                 <Flag size={16} />
               </span>
               <span className="min-w-0 flex-1 text-sm font-semibold text-danger-text">
-                {totalWaiting} {totalWaiting === 1 ? "item" : "items"} wachten op jou
+                {totalWaiting} {totalWaiting === 1 ? "item wacht" : "items wachten"} op jou
               </span>
               <span className="flex shrink-0 items-center gap-1 rounded-full bg-foreground px-3 py-1.5 text-xs font-medium text-background">
                 Bekijken
