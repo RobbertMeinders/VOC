@@ -74,7 +74,14 @@ function isRecipientAllowed(to: string): boolean {
   return allowlist.has(to.trim().toLowerCase());
 }
 
-async function sendMail(to: string, subject: string, html: string, from?: string, replyTo?: string): Promise<SendResult> {
+async function sendMail(
+  to: string,
+  subject: string,
+  html: string,
+  from?: string,
+  replyTo?: string,
+  headers?: Record<string, string>
+): Promise<SendResult> {
   if (!isRecipientAllowed(to)) {
     return { error: "Overgeslagen: dit e-mailadres staat niet op de EMAIL_ALLOWLIST." };
   }
@@ -86,7 +93,14 @@ async function sendMail(to: string, subject: string, html: string, from?: string
   }
 
   try {
-    const info = await transporter.sendMail({ from: from ?? defaultFrom, to, subject, html, ...(replyTo ? { replyTo } : {}) });
+    const info = await transporter.sendMail({
+      from: from ?? defaultFrom,
+      to,
+      subject,
+      html,
+      ...(replyTo ? { replyTo } : {}),
+      ...(headers ? { headers } : {}),
+    });
     return { providerId: info.messageId };
   } catch {
     return { error: "Versturen van de e-mail is niet gelukt." };
@@ -171,16 +185,17 @@ export async function sendRawHtmlEmail(
   subject: string,
   html: string,
   senderName?: string | null,
-  replyTo?: string
+  replyTo?: string,
+  headers?: Record<string, string>
 ): Promise<SendResult> {
   const defaultFrom = process.env.EMAIL_FROM;
-  if (!defaultFrom) return sendMail(to, subject, html, undefined, replyTo);
+  if (!defaultFrom) return sendMail(to, subject, html, undefined, replyTo, headers);
 
   const fromAddressMatch = defaultFrom.match(/<([^>]+)>/);
   const fromAddress = fromAddressMatch ? fromAddressMatch[1] : defaultFrom;
   const from = senderName ? `${senderName} <${fromAddress}>` : defaultFrom;
 
-  return sendMail(to, subject, html, from, replyTo);
+  return sendMail(to, subject, html, from, replyTo, headers);
 }
 
 /**

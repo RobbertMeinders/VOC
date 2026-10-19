@@ -42,7 +42,7 @@ import {
   type CommunicationFormState,
   type UploadImageState,
 } from "@/app/(app)/beheer/communicatie/actions";
-import { renderNewsletterHtml } from "@/lib/newsletter/render";
+import { renderNewsletterHtml, renderFooterUnsubscribeLine, UNSUBSCRIBE_LINE_TOKEN } from "@/lib/newsletter/render";
 import { AudiencePicker } from "@/components/beheer/AudiencePicker";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 import { useToast } from "@/lib/ui/ToastContext";
@@ -705,7 +705,11 @@ export function NewsletterEditor({
   }
 
   const previewHtml = useMemo(
-    () => renderNewsletterHtml(blocks, { subject, preheader, showHeader, showFooter, orgName, logoUrl }),
+    () =>
+      renderNewsletterHtml(blocks, { subject, preheader, showHeader, showFooter, orgName, logoUrl }).replace(
+        UNSUBSCRIBE_LINE_TOKEN,
+        renderFooterUnsubscribeLine({ variant: "preview", orgName })
+      ),
     [blocks, subject, preheader, showHeader, showFooter, orgName, logoUrl]
   );
 

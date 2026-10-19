@@ -13,6 +13,7 @@ import { useToast } from "@/lib/ui/ToastContext";
 import {
   createContactAction,
   deleteContactAction,
+  setContactOptedOutAction,
   createListAction,
   deleteListAction,
   addProfileToListAction,
@@ -66,6 +67,13 @@ function ContactsSection({ contacts }: { contacts: Contact[] }) {
         {contacts.map((contact) => {
           const items: ActionMenuItem[] = [
             {
+              label: contact.opted_out ? "Weer aanmelden" : "Afmelden",
+              onClick: async () => {
+                await setContactOptedOutAction(contact.id, !contact.opted_out);
+                router.refresh();
+              },
+            },
+            {
               label: "Verwijderen",
               danger: true,
               onClick: async () => {
@@ -84,7 +92,10 @@ function ContactsSection({ contacts }: { contacts: Contact[] }) {
           return (
             <div key={contact.id} className="flex items-center justify-between gap-3 border-b border-border py-2 last:border-0">
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-foreground">{contact.name}</p>
+                <p className="truncate text-sm font-medium text-foreground">
+                  {contact.name}
+                  {contact.opted_out && <span className="ml-1.5 text-xs font-normal text-muted">(afgemeld)</span>}
+                </p>
                 <p className="truncate text-xs text-muted">
                   {contact.email}
                   {contact.company && ` · ${contact.company}`}

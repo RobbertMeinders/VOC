@@ -3,7 +3,8 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendRawHtmlEmail } from "@/lib/email/send";
 import { fetchAppSettings } from "@/lib/settings/app-settings";
-import { renderNewsletterHtml } from "./render";
+import { renderNewsletterHtml, renderFooterUnsubscribeLine, UNSUBSCRIBE_LINE_TOKEN } from "./render";
+import { buildUnsubscribeUrl } from "./unsubscribe";
 import type { NewsletterBlock } from "./types";
 import type { Database } from "@/lib/types/database";
 
@@ -50,18 +51,27 @@ export async function performNewsletterSend(
     }
 
     const settings = await fetchAppSettings(supabase);
-    const html = renderNewsletterHtml(content, {
+    const siteUrl = process.env.SITE_URL ?? "";
+    const htmlTemplate = renderNewsletterHtml(content, {
       subject: communication.subject,
       preheader: communication.preheader,
       showHeader: communication.show_header,
       showFooter: communication.show_footer,
-      siteUrl: process.env.SITE_URL,
+      siteUrl,
       orgName: settings.org_name,
       logoUrl: settings.logo_url,
     });
 
     for (const recipient of recipients ?? []) {
-      const result = await sendRawHtmlEmail(recipient.email, communication.subject, html, communication.sender_name);
+      const unsubscribeUrl = buildUnsubscribeUrl(siteUrl, "profile", recipient.profile_id);
+      const html = htmlTemplate.replace(
+        UNSUBSCRIBE_LINE_TOKEN,
+        renderFooterUnsubscribeLine({ variant: "member", orgName: settings.org_name, siteUrl, unsubscribeUrl })
+      );
+      const result = await sendRawHtmlEmail(recipient.email, communication.subject, html, communication.sender_name, undefined, {
+        "List-Unsubscribe": `<${unsubscribeUrl}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      });
       if (!result.error) {
         // Direct na elke individuele, al-geslaagde verzending — nooit
         // gebufferd tot het einde van de lus (zie sendNewsletterAction voor
@@ -74,7 +84,15 @@ export async function performNewsletterSend(
     }
 
     for (const recipient of contactRecipients ?? []) {
-      const result = await sendRawHtmlEmail(recipient.email, communication.subject, html, communication.sender_name);
+      const unsubscribeUrl = buildUnsubscribeUrl(siteUrl, "contact", recipient.contact_id);
+      const html = htmlTemplate.replace(
+        UNSUBSCRIBE_LINE_TOKEN,
+        renderFooterUnsubscribeLine({ variant: "contact", orgName: settings.org_name, unsubscribeUrl })
+      );
+      const result = await sendRawHtmlEmail(recipient.email, communication.subject, html, communication.sender_name, undefined, {
+        "List-Unsubscribe": `<${unsubscribeUrl}>`,
+        "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+      });
       if (!result.error) {
         await supabase.rpc("mark_newsletter_contact_sent", {
           p_send_id: recipient.send_id,

@@ -154,10 +154,41 @@ function renderHeader(siteUrl: string, logoUrl: string | null): string {
   </td></tr>`;
 }
 
-// Vast maar uitzetbaar (communications.show_footer) — zelfde opbouw als de
-// bestaande VOC-mails: een korte uitnodigingstekst boven een rij met
-// werkelijke social-iconen (geen platte tekstlinks).
-function renderFooter(siteUrl: string, orgName: string): string {
+// Token dat performNewsletterSend/sendTestNewsletterAction per ontvanger
+// vervangt door de echte afmeldregel (renderFooterUnsubscribeLine) — de HTML
+// hier wordt één keer gerenderd voor de hele verzending, maar de afmeldlink
+// is per lid/contact anders, dus kan niet al bij het renderen vaststaan.
+export const UNSUBSCRIBE_LINE_TOKEN = "%%VOC_UNSUBSCRIBE_LINE%%";
+
+// Losse variant per ontvangertype: leden hebben ook nog "Voorkeuren
+// aanpassen" (hun instellingenpagina), externe contacten hebben geen account
+// en dus geen voorkeurenpagina — zij lazen voorheen per ongeluk "je ontvangt
+// dit als lid", wat gewoon onjuist is.
+export function renderFooterUnsubscribeLine(opts: {
+  variant: "member" | "contact" | "preview";
+  orgName: string;
+  siteUrl?: string;
+  unsubscribeUrl?: string;
+}): string {
+  const { variant, orgName } = opts;
+  const linkStyle = `color:${COLORS.muted};text-decoration:underline;`;
+
+  if (variant === "member") {
+    const preferencesUrl = `${(opts.siteUrl ?? "").replace(/\/$/, "")}/instellingen`;
+    return `Je ontvangt dit als lid van ${escapeHtml(orgName)}. <a href="${escapeHtml(preferencesUrl)}" style="${linkStyle}">Voorkeuren aanpassen</a> · <a href="${escapeHtml(opts.unsubscribeUrl ?? "")}" style="${linkStyle}">Afmelden</a>`;
+  }
+  if (variant === "contact") {
+    return `Je ontvangt dit omdat je op de contactenlijst van ${escapeHtml(orgName)} staat. <a href="${escapeHtml(opts.unsubscribeUrl ?? "")}" style="${linkStyle}">Afmelden</a>`;
+  }
+  // Preview/testmail: geen echte ontvanger, dus geen werkende link.
+  return `Je ontvangt dit als lid van ${escapeHtml(orgName)}. Voorkeuren aanpassen · Afmelden`;
+}
+
+// De socials-rij is uitzetbaar (communications.show_footer), de wettelijk
+// verplichte afmeldregel onder de streep altijd aanwezig — die twee zaten
+// voorheen in dezelfde schakelaar, waardoor "voettekst uitzetten" ook de
+// afmeldlink liet verdwijnen.
+function renderSocialsBlock(siteUrl: string): string {
   const iconCells = VOC_SOCIAL_LINKS.map(
     (link) => `<td style="padding:0 6px;">
       <a href="${escapeHtml(link.href)}">
@@ -166,16 +197,18 @@ function renderFooter(siteUrl: string, orgName: string): string {
     </td>`
   ).join("");
 
-  return `<tr><td style="padding:24px 24px 4px;border-top:1px solid ${COLORS.border};">
-    <p style="margin:0 0 2px;font-size:13px;font-weight:600;color:${COLORS.foreground};font-family:${FONT};text-align:center;">Volg jij ons al op de socials?</p>
+  return `<p style="margin:0 0 2px;font-size:13px;font-weight:600;color:${COLORS.foreground};font-family:${FONT};text-align:center;">Volg jij ons al op de socials?</p>
     <p style="margin:0 0 14px;font-size:12px;color:${COLORS.muted};font-family:${FONT};text-align:center;">Blijf op de hoogte van onze activiteiten en het laatste nieuws.</p>
     <table role="presentation" cellpadding="0" cellspacing="0" align="center" style="margin:0 auto;">
       <tr>${iconCells}</tr>
-    </table>
-    <p style="margin:14px 0 0;font-size:11px;color:${COLORS.muted};font-family:${FONT};text-align:center;">${escapeHtml(orgName)}</p>
-    <p style="margin:10px 0 0;font-size:11px;color:${COLORS.muted};font-family:${FONT};text-align:center;">
-      Je ontvangt dit als lid van ${escapeHtml(orgName)}. <a href="${escapeHtml(`${siteUrl}/instellingen`)}" style="color:${COLORS.muted};text-decoration:underline;">Voorkeuren aanpassen</a>
-    </p>
+    </table>`;
+}
+
+function renderFooter(orgName: string, showSocials: boolean, siteUrl: string): string {
+  return `<tr><td style="padding:24px 24px 4px;border-top:1px solid ${COLORS.border};">
+    ${showSocials ? renderSocialsBlock(siteUrl) : ""}
+    <p style="margin:${showSocials ? "14px" : "0"} 0 0;font-size:11px;color:${COLORS.muted};font-family:${FONT};text-align:center;">${escapeHtml(orgName)}</p>
+    <p style="margin:10px 0 0;font-size:11px;color:${COLORS.muted};font-family:${FONT};text-align:center;">${UNSUBSCRIBE_LINE_TOKEN}</p>
   </td></tr>`;
 }
 
@@ -232,10 +265,9 @@ export function renderNewsletterHtml(
     meta.showHeader ?? true
       ? renderHeader(siteUrl, meta.logoUrl ?? null)
       : `<tr><td style="height:24px;line-height:24px;font-size:0;">&nbsp;</td></tr>`;
-  const footerHtml =
-    meta.showFooter ?? true
-      ? renderFooter(siteUrl, orgName)
-      : `<tr><td style="height:8px;line-height:8px;font-size:0;">&nbsp;</td></tr>`;
+  // De afmeldregel (via renderFooter) staat altijd in de HTML, los van
+  // show_footer — die schakelaar bepaalt alleen de socials-rij erboven.
+  const footerHtml = renderFooter(orgName, meta.showFooter ?? true, siteUrl);
 
   return `<!DOCTYPE html>
 <html lang="nl">

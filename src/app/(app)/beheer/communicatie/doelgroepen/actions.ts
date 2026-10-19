@@ -46,6 +46,17 @@ export async function deleteContactAction(contactId: string): Promise<void> {
   revalidatePath(PATH);
 }
 
+// Naast de afmeldlink in de mail zelf (zie src/app/afmelden/route.ts) kan
+// het bestuur een contact ook hier direct af-/weer aanmelden — bijvoorbeeld
+// na een telefonisch of mondeling verzoek.
+export async function setContactOptedOutAction(contactId: string, optedOut: boolean): Promise<void> {
+  await requireBoard();
+  const supabase = await createClient();
+  await supabase.from("contacts").update({ opted_out: optedOut }).eq("id", contactId);
+  await logAuditAction(optedOut ? "contact_unsubscribed" : "contact_resubscribed", "contact", contactId);
+  revalidatePath(PATH);
+}
+
 export type ListState = { error?: string; list?: { id: string; name: string } };
 
 export async function createListAction(name: string, description?: string): Promise<ListState> {
