@@ -12,15 +12,17 @@ import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 import { useToast } from "@/lib/ui/ToastContext";
 import {
   createContactAction,
+  updateContactAction,
   deleteContactAction,
   setContactOptedOutAction,
   createListAction,
+  renameListAction,
   deleteListAction,
   addProfileToListAction,
   removeProfileFromListAction,
   addContactToListAction,
   removeContactFromListAction,
-} from "@/app/(app)/beheer/communicatie/doelgroepen/actions";
+} from "@/app/(app)/beheer/contacten/actions";
 import type { Database } from "@/lib/types/database";
 
 type Contact = Database["public"]["Tables"]["contacts"]["Row"];
@@ -29,6 +31,47 @@ type Profile = { id: string; first_name: string; last_name: string };
 
 function profileName(p: Profile): string {
   return `${p.first_name} ${p.last_name}`.trim();
+}
+
+function ContactEditRow({ contact, onDone }: { contact: Contact; onDone: () => void }) {
+  const router = useRouter();
+  const [name, setName] = useState(contact.name);
+  const [email, setEmail] = useState(contact.email);
+  const [company, setCompany] = useState(contact.company ?? "");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSave() {
+    setPending(true);
+    setError(null);
+    const result = await updateContactAction(contact.id, name, email, company);
+    setPending(false);
+    if (result.error) {
+      setError(result.error);
+      return;
+    }
+    router.refresh();
+    onDone();
+  }
+
+  return (
+    <div className="flex flex-col gap-2 border-b border-border py-2 last:border-0">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Naam" className="flex-1" />
+        <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="naam@bedrijf.nl" className="flex-1" />
+        <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Bedrijf (optioneel)" className="flex-1" />
+        <div className="flex gap-2">
+          <Button type="button" size="sm" onClick={handleSave} disabled={pending || !name.trim() || !email.trim()}>
+            Opslaan
+          </Button>
+          <Button type="button" size="sm" variant="secondary" onClick={onDone} disabled={pending}>
+            Annuleren
+          </Button>
+        </div>
+      </div>
+      {error && <p className="text-sm text-voc-red-text">{error}</p>}
+    </div>
+  );
 }
 
 function ContactsSection({ contacts }: { contacts: Contact[] }) {
@@ -40,6 +83,7 @@ function ContactsSection({ contacts }: { contacts: Contact[] }) {
   const [company, setCompany] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   async function handleAdd() {
     setPending(true);
@@ -65,7 +109,12 @@ function ContactsSection({ contacts }: { contacts: Contact[] }) {
       <div className="mt-3 flex flex-col gap-2">
         {contacts.length === 0 && <p className="text-sm text-muted">Nog geen contactpersonen.</p>}
         {contacts.map((contact) => {
+          if (editingId === contact.id) {
+            return <ContactEditRow key={contact.id} contact={contact} onDone={() => setEditingId(null)} />;
+          }
+
           const items: ActionMenuItem[] = [
+            { label: "Bewerken", onClick: () => setEditingId(contact.id) },
             {
               label: contact.opted_out ? "Weer aanmelden" : "Afmelden",
               onClick: async () => {
@@ -146,13 +195,32 @@ function ListCard({
   const router = useRouter();
   const confirm = useConfirm();
   const [expanded, setExpanded] = useState(false);
+  const [renaming, setRenaming] = useState(false);
+  const [name, setName] = useState(list.name);
+  const [description, setDescription] = useState(list.description ?? "");
+  const [renamePending, setRenamePending] = useState(false);
+  const [renameError, setRenameError] = useState<string | null>(null);
   const [addProfileId, setAddProfileId] = useState("");
   const [addContactId, setAddContactId] = useState("");
 
   const availableProfiles = allProfiles.filter((p) => !memberProfiles.some((m) => m.id === p.id));
   const availableContacts = allContacts.filter((c) => !memberContacts.some((m) => m.id === c.id));
 
+  async function handleRename() {
+    setRenamePending(true);
+    setRenameError(null);
+    const result = await renameListAction(list.id, name, description);
+    setRenamePending(false);
+    if (result.error) {
+      setRenameError(result.error);
+      return;
+    }
+    router.refresh();
+    setRenaming(false);
+  }
+
   const items: ActionMenuItem[] = [
+    { label: "Hernoemen", onClick: () => setRenaming(true) },
     {
       label: "Verwijderen",
       danger: true,
@@ -169,6 +237,26 @@ function ListCard({
       },
     },
   ];
+
+  if (renaming) {
+    return (
+      <div className="rounded-xl border border-border p-3">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Naam" className="flex-1" />
+          <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Omschrijving (optioneel)" className="flex-1" />
+          <div className="flex gap-2">
+            <Button type="button" size="sm" onClick={handleRename} disabled={renamePending || !name.trim()}>
+              Opslaan
+            </Button>
+            <Button type="button" size="sm" variant="secondary" onClick={() => setRenaming(false)} disabled={renamePending}>
+              Annuleren
+            </Button>
+          </div>
+        </div>
+        {renameError && <p className="mt-2 text-sm text-voc-red-text">{renameError}</p>}
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-xl border border-border">
@@ -351,13 +439,15 @@ function ListsSection({
   );
 }
 
-export function DoelgroepenContent({
+export function ContactenContent({
+  activeTab,
   contacts,
   lists,
   listProfiles,
   listContacts,
   activeProfiles,
 }: {
+  activeTab: "contacten" | "lijsten";
   contacts: Contact[];
   lists: ContactList[];
   listProfiles: { list_id: string; profile_id: string }[];
@@ -366,8 +456,10 @@ export function DoelgroepenContent({
 }) {
   return (
     <div className="flex flex-col gap-4">
-      <ListsSection lists={lists} listProfiles={listProfiles} listContacts={listContacts} activeProfiles={activeProfiles} contacts={contacts} />
-      <ContactsSection contacts={contacts} />
+      {activeTab === "contacten" && <ContactsSection contacts={contacts} />}
+      {activeTab === "lijsten" && (
+        <ListsSection lists={lists} listProfiles={listProfiles} listContacts={listContacts} activeProfiles={activeProfiles} contacts={contacts} />
+      )}
     </div>
   );
 }

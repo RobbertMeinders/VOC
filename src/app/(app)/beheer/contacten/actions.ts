@@ -5,9 +5,21 @@ import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { logAuditAction } from "@/lib/audit/log";
 
-const PATH = "/beheer/communicatie/doelgroepen";
+const PATH = "/beheer/contacten";
 
 export type ContactState = { error?: string; contact?: { id: string; name: string; email: string } };
+
+// Scenario 6 uit het nieuwsbriefsysteem-plan: een contact met het adres van
+// een bestaand lid levert een duidelijke melding op i.p.v. gewoon een tweede
+// (en dus dubbel-mailende) rij. profiles.email loopt sinds migratie 0112
+// mee met een accountwijziging, dus deze check blijft kloppen.
+async function findMemberByEmail(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  email: string
+): Promise<{ first_name: string; last_name: string } | null> {
+  const { data } = await supabase.from("profiles").select("first_name, last_name").ilike("email", email).maybeSingle();
+  return data ?? null;
+}
 
 // Ook rechtstreeks aangeroepen vanuit de ontvangers-kiezer in de
 // nieuwsbriefeditor ("+ Nieuw contact toevoegen") — niet alleen vanaf deze
@@ -22,6 +34,12 @@ export async function createContactAction(name: string, email: string, company?:
   }
 
   const supabase = await createClient();
+
+  const member = await findMemberByEmail(supabase, trimmedEmail);
+  if (member) {
+    return { error: `Dit is het adres van lid ${member.first_name} ${member.last_name}.`.trim() };
+  }
+
   const { data, error } = await supabase
     .from("contacts")
     .insert({ name: trimmedName, email: trimmedEmail, company: company?.trim() || null })
@@ -34,6 +52,42 @@ export async function createContactAction(name: string, email: string, company?:
   }
 
   await logAuditAction("contact_created", "contact", data.id, { email: data.email });
+  revalidatePath(PATH);
+  return { contact: data };
+}
+
+export async function updateContactAction(
+  contactId: string,
+  name: string,
+  email: string,
+  company?: string
+): Promise<ContactState> {
+  await requireBoard();
+  const trimmedName = name.trim();
+  const trimmedEmail = email.trim();
+  if (!trimmedName || !trimmedEmail) {
+    return { error: "Naam en e-mailadres zijn verplicht." };
+  }
+
+  const supabase = await createClient();
+
+  const member = await findMemberByEmail(supabase, trimmedEmail);
+  if (member) {
+    return { error: `Dit is het adres van lid ${member.first_name} ${member.last_name}.`.trim() };
+  }
+
+  const { data, error } = await supabase
+    .from("contacts")
+    .update({ name: trimmedName, email: trimmedEmail, company: company?.trim() || null })
+    .eq("id", contactId)
+    .select("id, name, email")
+    .single();
+
+  if (error || !data) {
+    return { error: error?.code === "23505" ? "Er bestaat al een contact met dit e-mailadres." : "Opslaan is niet gelukt." };
+  }
+
+  await logAuditAction("contact_updated", "contact", contactId);
   revalidatePath(PATH);
   return { contact: data };
 }
@@ -78,6 +132,30 @@ export async function createListAction(name: string, description?: string): Prom
   }
 
   await logAuditAction("contact_list_created", "contact_list", data.id, { name: data.name });
+  revalidatePath(PATH);
+  return { list: data };
+}
+
+export async function renameListAction(listId: string, name: string, description?: string): Promise<ListState> {
+  await requireBoard();
+  const trimmedName = name.trim();
+  if (!trimmedName) {
+    return { error: "Naam is verplicht." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("contact_lists")
+    .update({ name: trimmedName, description: description?.trim() || null })
+    .eq("id", listId)
+    .select("id, name")
+    .single();
+
+  if (error || !data) {
+    return { error: "Opslaan is niet gelukt." };
+  }
+
+  await logAuditAction("contact_list_renamed", "contact_list", listId, { name: data.name });
   revalidatePath(PATH);
   return { list: data };
 }

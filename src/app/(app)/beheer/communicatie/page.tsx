@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { Megaphone, Plus, Users, Bell } from "lucide-react";
+import { Megaphone, Plus, Bell } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
@@ -40,13 +39,6 @@ async function NieuwsbrievenTab() {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex w-full flex-wrap items-center justify-end gap-2">
-        <Link
-          href="/beheer/communicatie/doelgroepen"
-          className="flex items-center justify-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
-        >
-          <Users size={16} />
-          Doelgroepen
-        </Link>
         <form action={createCommunicationAction} className="flex-1 sm:flex-none">
           <button
             type="submit"

@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { useToast } from "@/lib/ui/ToastContext";
 import { updateCommunicationAudienceAction } from "@/app/(app)/beheer/communicatie/actions";
-import { createContactAction } from "@/app/(app)/beheer/communicatie/doelgroepen/actions";
+import { createContactAction } from "@/app/(app)/beheer/contacten/actions";
 
 type Profile = { id: string; first_name: string; last_name: string };
 type Contact = { id: string; name: string; email: string };
@@ -127,7 +127,7 @@ export function AudiencePicker({
             {lists.length === 0 && (
               <p className="text-sm text-muted">
                 Nog geen lijsten.{" "}
-                <Link href="/beheer/communicatie/doelgroepen" className="text-voc-red-text hover:underline">
+                <Link href="/beheer/contacten?tab=lijsten" className="text-petrol hover:underline">
                   Lijst aanmaken
                 </Link>
                 .
