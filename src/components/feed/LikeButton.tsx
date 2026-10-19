@@ -10,41 +10,34 @@ import { clsx } from "clsx";
 export function LikeButton({
   targetId,
   initialLiked,
-  initialCount,
   toggleAction,
   onToggled,
   size = "md",
 }: {
   targetId: string;
   initialLiked: boolean;
-  initialCount: number;
   toggleAction: (id: string) => Promise<{ liked: boolean }>;
   onToggled?: () => void;
   size?: "sm" | "md";
 }) {
   const [liked, setLiked] = useState(initialLiked);
-  const [count, setCount] = useState(initialCount);
   const [isPending, startTransition] = useTransition();
 
   function handleClick() {
     const nextLiked = !liked;
     setLiked(nextLiked);
-    setCount((c) => c + (nextLiked ? 1 : -1));
 
     startTransition(async () => {
       try {
         const result = await toggleAction(targetId);
-        if (result.liked !== nextLiked) {
-          setLiked(result.liked);
-          setCount((c) => c + (result.liked ? 1 : -1));
-        }
-        // Het "X en N anderen"-samenvattingsregeltje bij een bericht leest de
-        // server-data van de post, niet deze lokale like-state — zonder deze
-        // callback zag je jezelf daar pas na een refresh bij staan.
+        if (result.liked !== nextLiked) setLiked(result.liked);
+        // Het "1 vind-ik-leuk · 2 reacties"-samenvattingsregeltje bij een
+        // bericht leest de server-data van de post, niet deze lokale
+        // like-state — zonder deze callback zag je jezelf daar pas na een
+        // refresh bij staan.
         onToggled?.();
       } catch {
         setLiked(!nextLiked);
-        setCount((c) => c + (nextLiked ? -1 : 1));
       }
     });
   }
@@ -63,7 +56,10 @@ export function LikeButton({
       )}
     >
       <ThumbsUp key={String(liked)} size={size === "sm" ? 13 : 16} className={clsx(liked && "fill-voc-red animate-pop")} />
-      {size === "md" && count > 0 && count}
+      {/* Afwerkronde blok 4: het aantal staat voortaan alleen nog in de
+          gedeelde samenvattingsregel erboven (PostCard) — hier een label
+          i.p.v. een dubbel-getoond getal. */}
+      {size === "md" && "Vind ik leuk"}
     </button>
   );
 }

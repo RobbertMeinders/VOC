@@ -139,7 +139,7 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
                 swipen over de afbeelding mogelijk zonder dat een sleep per
                 ongeluk als klik naar /nieuws telt. */}
             <Link
-              href="/nieuws"
+              href={`/nieuws/${slide.id}`}
               tabIndex={slideIndex === index ? undefined : -1}
               draggable={false}
               onClick={(e) => {

@@ -90,10 +90,14 @@ function EditPostForm({
   );
 }
 
-function likeSummaryText(topLikerName: string | null, count: number): string | null {
-  if (!topLikerName || count === 0) return null;
-  if (count === 1) return topLikerName;
-  return `${topLikerName} en ${count - 1} ${count - 1 === 1 ? "ander" : "anderen"}`;
+// Afwerkronde blok 4: één gedeelde samenvattingsregel i.p.v. een naam-
+// gebaseerde "X en N anderen" naast een los reactie-aantal verderop in de
+// actierij — "1 vind-ik-leuk · 2 reacties".
+function likeAndCommentSummary(likeCount: number, commentCount: number): string | null {
+  const parts: string[] = [];
+  if (likeCount > 0) parts.push(`${likeCount} vind-ik-leuk`);
+  if (commentCount > 0) parts.push(`${commentCount} ${commentCount === 1 ? "reactie" : "reacties"}`);
+  return parts.length > 0 ? parts.join(" · ") : null;
 }
 
 const editCommentInitialState: UpdateCommentState = {};
@@ -342,10 +346,11 @@ export function PostCard({
   compact?: boolean;
 }) {
   const [editing, setEditing] = useState(false);
-  // Reactieveld en de eerste paar reacties staan standaard al open — dat
-  // scheelt de losse stap van eerst op het praatwolkje moeten klikken. In
-  // compact-modus (profielpagina) juist dicht, om minder ruimte te claimen.
-  const [commentsOpen, setCommentsOpen] = useState(!compact);
+  // Afwerkronde blok 4: reactieveld + reacties staan standaard dicht (een
+  // altijd-open reactieveld onder élk bericht maakte de feed lang en druk) —
+  // behalve wanneer een notificatielink hier rechtstreeks naar een reactie
+  // verwijst (forceCommentsOpen), die moet meteen zichtbaar zijn.
+  const [commentsOpen, setCommentsOpen] = useState(forceCommentsOpen);
   const [showAllComments, setShowAllComments] = useState(forceCommentsOpen);
   const [showLikers, setShowLikers] = useState(false);
   const [reporting, setReporting] = useState(false);
@@ -357,7 +362,7 @@ export function PostCard({
 
   const visibleComments = showAllComments ? post.comments : post.comments.slice(0, VISIBLE_COMMENTS);
   const remainingComments = post.comments.length - visibleComments.length;
-  const summary = likeSummaryText(post.likeSummary.topLikerName, post.likeSummary.count);
+  const summary = likeAndCommentSummary(post.likesCount, post.comments.length);
 
   return (
     <article
@@ -449,32 +454,31 @@ export function PostCard({
           </a>
         ))}
 
-      <div className="mt-2 flex items-center justify-between">
-        <div className="flex min-w-0 items-center gap-2">
-          <LikeButton
-            targetId={post.id}
-            initialLiked={post.likedByMe}
-            initialCount={post.likesCount}
-            toggleAction={toggleLikeAction}
-            onToggled={() => {
-              void getPostAction(post.id).then((fresh) => fresh && onUpdated(fresh));
-            }}
-          />
-          {summary && (
-            <button type="button" onClick={() => setShowLikers(true)} className="truncate text-xs text-muted hover:underline">
-              {summary}
-            </button>
-          )}
-        </div>
+      {/* Afwerkronde blok 4: één samenvattingsregel ("1 vind-ik-leuk · 2
+          reacties") boven de twee knoppen, i.p.v. een naam-gebaseerde tekst
+          links en een los reactie-aantal rechts op dezelfde rij. */}
+      {summary && (
+        <button type="button" onClick={() => setShowLikers(true)} className="mt-2 block text-xs text-muted hover:underline">
+          {summary}
+        </button>
+      )}
+      <div className="mt-1 flex items-center gap-1">
+        <LikeButton
+          targetId={post.id}
+          initialLiked={post.likedByMe}
+          toggleAction={toggleLikeAction}
+          onToggled={() => {
+            void getPostAction(post.id).then((fresh) => fresh && onUpdated(fresh));
+          }}
+        />
         <button
           type="button"
           onClick={() => setCommentsOpen((o) => !o)}
-          aria-label={commentsOpen ? "Reacties verbergen" : "Reacties weergeven"}
           aria-expanded={commentsOpen}
-          className="flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.06]"
+          className="flex items-center gap-1.5 rounded-full px-2.5 py-1.5 text-sm font-medium text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.06]"
         >
           <MessageCircle size={16} />
-          {post.comments.length > 0 && post.comments.length}
+          Reageren
         </button>
       </div>
 
