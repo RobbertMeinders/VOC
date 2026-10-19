@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { activityIdFilter } from "@/lib/agenda/slug";
 
 // UX-review punt 15: CSV-export van aanmeldingen voor bestuur, naar het
 // patroon van de .ics-downloadroute hierboven. Alleen de velden die een
@@ -18,22 +19,23 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const { id } = await params;
 
   const supabase = await createClient();
-  // get_activity_registration_export (0091) i.p.v. rechtstreeks
-  // activity_registrations.select('...profile:profiles(..., email)') —
-  // profiles.email is sinds die migratie alleen nog via een RPC leesbaar.
-  const [{ data: activity }, { data: registrations }, { data: publicRegistrations }] = await Promise.all([
-    supabase.from("activities").select("title").eq("id", id).maybeSingle(),
-    supabase.rpc("get_activity_registration_export", { p_activity_id: id }),
-    supabase
-      .from("public_activity_registrations")
-      .select("name, email, company_name, created_at")
-      .eq("activity_id", id)
-      .order("created_at", { ascending: true }),
-  ]);
+  const { data: activity } = await supabase.from("activities").select("id, title").filter(...activityIdFilter(id)).maybeSingle();
 
   if (!activity) {
     return NextResponse.json({ error: "Activiteit niet gevonden" }, { status: 404 });
   }
+
+  // get_activity_registration_export (0091) i.p.v. rechtstreeks
+  // activity_registrations.select('...profile:profiles(..., email)') —
+  // profiles.email is sinds die migratie alleen nog via een RPC leesbaar.
+  const [{ data: registrations }, { data: publicRegistrations }] = await Promise.all([
+    supabase.rpc("get_activity_registration_export", { p_activity_id: activity.id }),
+    supabase
+      .from("public_activity_registrations")
+      .select("name, email, company_name, created_at")
+      .eq("activity_id", activity.id)
+      .order("created_at", { ascending: true }),
+  ]);
 
   const rows: string[][] = [["Naam", "E-mailadres", "Bedrijf", "Status", "Lid"]];
   for (const registration of registrations ?? []) {

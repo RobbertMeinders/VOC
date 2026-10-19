@@ -6,35 +6,40 @@ import { ActivityForm } from "@/components/agenda/ActivityForm";
 import { ActivityAttachmentRow } from "@/components/agenda/ActivityAttachmentRow";
 import { ActivityAttachmentUploadForm } from "@/components/agenda/ActivityAttachmentUploadForm";
 import { updateActivityAction } from "@/app/(app)/agenda/actions";
+import { activityIdFilter } from "@/lib/agenda/slug";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
 type Attachment = Database["public"]["Tables"]["activity_attachments"]["Row"];
 
 // Gedeeld tussen de volledige pagina (/agenda/[id]/bewerken) en de
-// intercepted overlay (@modal/(.)agenda/[id]/bewerken).
+// intercepted overlay (@modal/(.)agenda/[id]/bewerken). `id` is de
+// route-waarde (titel-slug of, voor oudere links, een kaal UUID) — zie
+// lib/agenda/slug.ts.
 export async function ActivityEditContent({ id }: { id: string }) {
   await requireBoard();
   const supabase = await createClient();
 
-  const [{ data: activity }, { data: attachments }] = await Promise.all([
-    supabase.from("activities").select("*").eq("id", id).maybeSingle<Activity>(),
-    supabase
-      .from("activity_attachments")
-      .select("*")
-      .eq("activity_id", id)
-      .order("created_at", { ascending: true })
-      .returns<Attachment[]>(),
-  ]);
+  const { data: activity } = await supabase
+    .from("activities")
+    .select("*")
+    .filter(...activityIdFilter(id))
+    .maybeSingle<Activity>();
   if (!activity) {
     notFound();
   }
 
-  const [imageUrl, attachmentUrls] = await Promise.all([
+  const [imageUrl, { data: attachments }] = await Promise.all([
     getSignedStorageUrl("activity-images", activity.image_url),
-    getSignedStorageUrls(supabase, "activity-attachments", (attachments ?? []).map((a) => a.storage_path)),
+    supabase
+      .from("activity_attachments")
+      .select("*")
+      .eq("activity_id", activity.id)
+      .order("created_at", { ascending: true })
+      .returns<Attachment[]>(),
   ]);
-  const updateWithId = updateActivityAction.bind(null, id);
+  const attachmentUrls = await getSignedStorageUrls(supabase, "activity-attachments", (attachments ?? []).map((a) => a.storage_path));
+  const updateWithId = updateActivityAction.bind(null, activity.id);
 
   return (
     <div className="flex flex-col gap-4">

@@ -13,7 +13,7 @@ export async function getMemberPostsPageAction(memberId: string, offset: number)
   return fetchFeedPostsByAuthor(supabase, viewer.id, memberId, MEMBER_PROFILE_LIST_PAGE_SIZE, offset);
 }
 
-export type AttendedActivity = { id: string; title: string; starts_at: string };
+export type AttendedActivity = { id: string; title: string; starts_at: string; slug: string };
 
 export async function getAttendedActivitiesPageAction(memberId: string, offset: number): Promise<AttendedActivity[]> {
   const viewer = await requireProfile();
@@ -34,7 +34,7 @@ export async function getAttendedActivitiesPageAction(memberId: string, offset: 
 
   const { data } = await supabase
     .from("activity_registrations")
-    .select("activity:activities(id, title, starts_at)")
+    .select("activity:activities(id, title, starts_at, slug)")
     .eq("profile_id", memberId)
     .eq("attended", true)
     .order("created_at", { ascending: false })

@@ -10,6 +10,7 @@ import { NewsHeroCarousel } from "@/components/home/NewsHeroCarousel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { RecentPostPreview } from "@/components/feed/RecentPostPreview";
 import { fetchFeedPosts } from "@/lib/feed/queries";
+import { activityHref } from "@/lib/agenda/slug";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Home" };
@@ -160,7 +161,7 @@ export default async function HomePage() {
 
           {nextActivity && (
             <Link
-              href={`/agenda/${nextActivity.id}`}
+              href={activityHref(nextActivity)}
               className="flex flex-col gap-3 rounded-2xl bg-surface p-3 shadow-sm hover:-translate-y-px sm:w-80 sm:shrink-0"
             >
               <div className="flex items-center gap-3">
@@ -288,7 +289,7 @@ export default async function HomePage() {
               <SectionHeader title="Agenda" href="/agenda" linkLabel="Agenda" />
               <div className="flex flex-col divide-y divide-border rounded-2xl border border-border bg-surface shadow-sm">
                 {laterActivities.map((activity) => (
-                  <Link key={activity.id} href={`/agenda/${activity.id}`} className="flex items-center gap-3 p-3 hover:bg-black/[.03] dark:hover:bg-white/[.05]">
+                  <Link key={activity.id} href={activityHref(activity)} className="flex items-center gap-3 p-3 hover:bg-black/[.03] dark:hover:bg-white/[.05]">
                     <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-xl bg-petrol-soft leading-none text-petrol">
                       <span className="text-[8.5px] font-bold uppercase tracking-wide">
                         {new Intl.DateTimeFormat("nl-NL", { month: "short", timeZone: "Europe/Amsterdam" }).format(new Date(activity.starts_at))}

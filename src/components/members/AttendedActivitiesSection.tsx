@@ -6,6 +6,7 @@ import { CalendarDays } from "lucide-react";
 import { formatActivityDateShort } from "@/lib/format/date";
 import { AttendedActivitiesOverlay } from "./AttendedActivitiesOverlay";
 import { MEMBER_PROFILE_LIST_PREVIEW } from "@/lib/feed/pagination";
+import { activityHref } from "@/lib/agenda/slug";
 import type { AttendedActivity } from "@/app/(app)/leden/[id]/list-actions";
 
 // `activities` komt van de server als MEMBER_PROFILE_LIST_PREVIEW + 1 — bij
@@ -22,7 +23,7 @@ export function AttendedActivitiesSection({ memberId, activities }: { memberId: 
         {preview.map((activity) => (
           <li key={activity.id}>
             <Link
-              href={`/agenda/${activity.id}`}
+              href={activityHref(activity)}
               className="flex items-center gap-3 rounded-lg px-1 py-1.5 text-sm hover:bg-black/[.04] dark:hover:bg-white/[.06]"
             >
               <CalendarDays size={16} className="shrink-0 text-muted" />

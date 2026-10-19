@@ -29,10 +29,12 @@ function isNextRedirectError(error: unknown): boolean {
 export function ActivityDetailActionsMenu({
   activityId,
   activityTitle,
+  activitySlug,
   canCancel,
 }: {
   activityId: string;
   activityTitle: string;
+  activitySlug: string;
   // true: activiteit heeft (wachtlijst-)aanmeldingen en is niet al afgelast
   // -> Afgelasten i.p.v. Verwijderen (zie deleteActivityAction's eigen
   // aanmeldingen-check).
@@ -57,7 +59,7 @@ export function ActivityDetailActionsMenu({
 
   function handleDownload() {
     const a = document.createElement("a");
-    a.href = `/agenda/${activityId}/registraties.csv`;
+    a.href = `/agenda/${activitySlug}/registraties.csv`;
     a.click();
   }
 

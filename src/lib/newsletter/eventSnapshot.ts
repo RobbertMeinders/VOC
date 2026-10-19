@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/types/database";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { randomFileName } from "@/lib/supabase/randomFileName";
+import { activityHref } from "@/lib/agenda/slug";
 import type { NewsletterEventBlock } from "./types";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -69,7 +70,7 @@ export async function buildEventSnapshot(
     location: activity.location,
     description: activity.description,
     imageUrl,
-    linkUrl: `${siteUrl}/agenda/${activity.id}`,
+    linkUrl: `${siteUrl}${activityHref(activity)}`,
     // Komt nooit van de activiteit — een "Ververs" mag 'm dus nooit
     // overschrijven met iets anders dan wat er al stond.
     buttonLabel: currentButtonLabel ?? "Bekijk activiteit",

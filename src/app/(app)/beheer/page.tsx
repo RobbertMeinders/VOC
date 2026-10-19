@@ -31,6 +31,7 @@ import { decideCompanyMembershipRequestAction } from "@/app/(app)/bedrijven/[id]
 import { extendInvitationAction } from "@/app/(app)/beheer/uitnodigingen/actions";
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { formatActivityDate, formatRelativeTime } from "@/lib/format/date";
+import { activityHref } from "@/lib/agenda/slug";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Beheer" };
@@ -282,7 +283,7 @@ export default async function BeheerPage() {
             <div className="flex flex-col gap-2">
               {pendingActivities!.map((activity) => (
                 <div key={activity.id} className="rounded-xl border border-border p-3">
-                  <Link href={`/agenda/${activity.id}`} className="text-sm font-medium text-foreground hover:text-petrol">
+                  <Link href={activityHref(activity)} className="text-sm font-medium text-foreground hover:text-petrol">
                     {activity.title}
                   </Link>
                   <p className="text-xs text-muted">
@@ -440,7 +441,7 @@ export default async function BeheerPage() {
               return (
                 <Link
                   key={activity.id}
-                  href={`/agenda/${activity.id}`}
+                  href={activityHref(activity)}
                   className="flex items-center justify-between gap-3 rounded-xl border border-border p-3 hover:border-foreground/20"
                 >
                   <div className="min-w-0">

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { buildActivityIcs } from "@/lib/agenda/ics";
+import { activityIdFilter } from "@/lib/agenda/slug";
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   await requireProfile();
@@ -11,7 +12,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   const { data: activity } = await supabase
     .from("activities")
     .select("id, title, description, location, starts_at, ends_at")
-    .eq("id", id)
+    .filter(...activityIdFilter(id))
     .maybeSingle();
 
   if (!activity) {

@@ -27,7 +27,7 @@ type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type Membership = {
   company: { id: string; name: string; city: string | null; industry: string | null; logo_url: string | null } | null;
 };
-type AttendedActivity = { id: string; title: string; starts_at: string };
+type AttendedActivity = { id: string; title: string; starts_at: string; slug: string };
 
 // Performance-audit #5: generateMetadata (title) en MemberProfileContent
 // riepen allebei hun eigen profiel-query aan voor dezelfde id — met
@@ -74,7 +74,7 @@ export async function MemberProfileContent({ id }: { id: string }) {
       .returns<Membership>(),
     supabase
       .from("activity_registrations")
-      .select("activity:activities(id, title, starts_at)")
+      .select("activity:activities(id, title, starts_at, slug)")
       .eq("profile_id", id)
       .eq("attended", true)
       .order("created_at", { ascending: false })

@@ -19,6 +19,7 @@ import { ApproveActivityForm } from "@/components/agenda/ApproveActivityForm";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { deleteActivityAction, decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
 import { logEvent } from "@/lib/events/log";
+import { activityHref, activityIdFilter } from "@/lib/agenda/slug";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -26,26 +27,34 @@ type Attachment = Database["public"]["Tables"]["activity_attachments"]["Row"];
 
 // Performance-audit #5: generateMetadata (title) en ActivityDetailContent
 // deden allebei hun eigen activities-query voor dezelfde id — cache() dedupet
-// de tweede aanroep binnen hetzelfde verzoek.
-const getCachedActivity = cache(async (id: string): Promise<Activity | null> => {
+// de tweede aanroep binnen hetzelfde verzoek. `param` is de route-waarde uit
+// de URL (sinds de leesbare-URL's een titel-slug, of — voor oudere links —
+// een kaal UUID), zie lib/agenda/slug.ts.
+const getCachedActivity = cache(async (param: string): Promise<Activity | null> => {
   const supabase = await createClient();
-  const { data } = await supabase.from("activities").select("*").eq("id", id).maybeSingle<Activity>();
+  const { data } = await supabase
+    .from("activities")
+    .select("*")
+    .filter(...activityIdFilter(param))
+    .maybeSingle<Activity>();
   return data;
 });
 
-export async function getActivityTitle(id: string): Promise<string> {
-  const activity = await getCachedActivity(id);
+export async function getActivityTitle(param: string): Promise<string> {
+  const activity = await getCachedActivity(param);
   return activity?.title ?? "Activiteit";
 }
 
 // Gedeeld tussen de volledige pagina (/agenda/[id]) en de intercepted
 // overlay (@modal/(.)agenda/[id]) — zie MemberProfileContent voor dezelfde
-// reden.
-export async function ActivityDetailContent({ id }: { id: string }) {
+// reden. `id`-prop hier is dus eigenlijk de route-slug/het-UUID uit de URL;
+// na het ophalen van de rij wordt overal verderop activity.id (het échte
+// UUID) gebruikt, nooit deze ruwe route-waarde.
+export async function ActivityDetailContent({ id: routeParam }: { id: string }) {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const activity = await getCachedActivity(id);
+  const activity = await getCachedActivity(routeParam);
   if (!activity) {
     notFound();
   }
@@ -89,19 +98,19 @@ export async function ActivityDetailContent({ id }: { id: string }) {
     supabase
       .from("activity_registrations")
       .select("id, is_waitlisted, attended, profile:profiles(id, first_name, last_name, avatar_url)")
-      .eq("activity_id", id)
+      .eq("activity_id", activity.id)
       .order("created_at", { ascending: true })
       .returns<RegistrationRow[]>(),
     supabase
       .from("activity_registrations")
       .select("id, is_waitlisted")
-      .eq("activity_id", id)
+      .eq("activity_id", activity.id)
       .eq("profile_id", profile.id)
       .maybeSingle(),
     supabase
       .from("activity_attachments")
       .select("*")
-      .eq("activity_id", id)
+      .eq("activity_id", activity.id)
       .order("created_at", { ascending: true })
       .returns<Attachment[]>(),
     activity.source === "lid" && activity.created_by
@@ -117,7 +126,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
       ? supabase
           .from("public_activity_registrations")
           .select("id, name, email, company_name, created_at")
-          .eq("activity_id", id)
+          .eq("activity_id", activity.id)
           .order("created_at", { ascending: true })
           .returns<PublicRegistrationRow[]>()
       : Promise.resolve({ data: null as PublicRegistrationRow[] | null }),
@@ -219,7 +228,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
             {isBoard(profile.role) && (
               <div className="flex shrink-0 items-center gap-1.5">
                 <Link
-                  href={`/agenda/${activity.id}/bewerken`}
+                  href={activityHref(activity, "/bewerken")}
                   aria-label="Bewerken"
                   title="Bewerken"
                   className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
@@ -229,6 +238,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
                 <ActivityDetailActionsMenu
                   activityId={activity.id}
                   activityTitle={activity.title}
+                  activitySlug={activity.slug}
                   canCancel={activity.status !== "cancelled" && confirmedCount + waitlistedRegistrations.length > 0}
                 />
               </div>
@@ -302,7 +312,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
                   />
                 )}
                 <a
-                  href={`/agenda/${activity.id}/ics`}
+                  href={activityHref(activity, "/ics")}
                   className="inline-flex h-10 items-center gap-1.5 rounded-full border border-border bg-surface px-4 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
                 >
                   <Download size={14} />
@@ -325,7 +335,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
       <AttendeeList
         attendees={attendees}
         waitlistCount={waitlistedRegistrations.length}
-        activityId={id}
+        activityId={activity.id}
         canManage={isBoard(profile.role)}
       />
 

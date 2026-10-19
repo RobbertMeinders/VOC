@@ -3,6 +3,7 @@ import Image from "next/image";
 import { clsx } from "clsx";
 import { CalendarDays, CheckCircle2, Clock, MapPin, Users, XCircle } from "lucide-react";
 import { formatActivityDate, formatActivityTimeOnly } from "@/lib/format/date";
+import { activityHref } from "@/lib/agenda/slug";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -83,7 +84,7 @@ export function ActivityCard({
   if (hero) {
     return (
       <Link
-        href={`/agenda/${activity.id}`}
+        href={activityHref(activity)}
         className="card-hover-lift animate-rise-in overflow-hidden rounded-2xl border border-border bg-surface shadow-sm hover:border-foreground/20"
       >
         {imageUrl ? (
@@ -125,7 +126,7 @@ export function ActivityCard({
   // i.p.v. een border-left omzeilt dat.
   return (
     <Link
-      href={`/agenda/${activity.id}`}
+      href={activityHref(activity)}
       className="card-hover-lift animate-rise-in relative flex items-start gap-3 overflow-hidden rounded-2xl bg-surface p-3 shadow-sm"
     >
       <span

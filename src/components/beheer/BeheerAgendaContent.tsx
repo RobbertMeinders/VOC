@@ -12,6 +12,7 @@ import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
 import { ApproveActivityForm } from "@/components/agenda/ApproveActivityForm";
 import { formatActivityDate, formatActivityDateShort } from "@/lib/format/date";
 import { deleteActivityAction, decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
+import { activityHref } from "@/lib/agenda/slug";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -184,7 +185,7 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
                     </span>
                   )}
                 </div>
-                <Link href={`/agenda/${activity.id}`} className="text-sm font-medium text-foreground hover:text-petrol">
+                <Link href={activityHref(activity)} className="text-sm font-medium text-foreground hover:text-petrol">
                   {activity.title}
                 </Link>
                 <p className="text-xs text-muted">{formatActivityDate(activity.starts_at)}</p>
@@ -213,7 +214,7 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
               </div>
               <div className="flex shrink-0 items-center gap-2">
                 <Link
-                  href={`/agenda/${activity.id}/bewerken`}
+                  href={activityHref(activity, "/bewerken")}
                   aria-label="Bewerken"
                   className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-foreground/30 hover:bg-black/[.03] dark:hover:bg-white/[.06]"
                 >

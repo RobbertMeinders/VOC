@@ -230,7 +230,7 @@ export async function createActivityAction(
     }
 
     revalidatePath("/agenda");
-    redirect(`/agenda/${activity.id}`);
+    redirect(`/agenda/${slug}`);
   } catch (cause) {
     if (isNextRedirectError(cause)) throw cause;
     console.error("[agenda] createActivityAction failed:", cause);

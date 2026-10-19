@@ -3,6 +3,7 @@
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
+import { activityHref } from "@/lib/agenda/slug";
 
 export type SearchPreviewItem = {
   id: string;
@@ -42,7 +43,7 @@ export async function searchPreviewAction(rawQuery: string): Promise<SearchPrevi
       .or(`first_name.ilike.${nameLike},last_name.ilike.${nameLike}`)
       .limit(PREVIEW_LIMIT),
     supabase.from("companies").select("id, name, city, logo_url").ilike("name", like).limit(PREVIEW_LIMIT),
-    supabase.from("activities").select("id, title, location").ilike("title", like).limit(PREVIEW_LIMIT),
+    supabase.from("activities").select("id, title, location, slug").ilike("title", like).limit(PREVIEW_LIMIT),
     supabase.from("documents").select("id, title, category").ilike("title", like).limit(PREVIEW_LIMIT),
   ]);
 
@@ -75,7 +76,7 @@ export async function searchPreviewAction(rawQuery: string): Promise<SearchPrevi
       type: "activity" as const,
       title: a.title,
       subtitle: a.location,
-      href: `/agenda/${a.id}`,
+      href: activityHref(a),
     })),
     ...(documents ?? []).map((d) => ({
       id: d.id,

@@ -10,6 +10,7 @@ import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { formatActivityDateShort } from "@/lib/format/date";
 import { getAttendedActivitiesPageAction, type AttendedActivity } from "@/app/(app)/leden/[id]/list-actions";
 import { MEMBER_PROFILE_LIST_PAGE_SIZE } from "@/lib/feed/pagination";
+import { activityHref } from "@/lib/agenda/slug";
 
 // Haalt bij het openen zijn eigen eerste pagina op — zie MemberPostsOverlay
 // voor de reden waarom dit niet de kleine preview-batch hergebruikt.
@@ -61,7 +62,7 @@ export function AttendedActivitiesOverlay({ memberId, onClose }: { memberId: str
             {activities?.map((activity) => (
               <Link
                 key={activity.id}
-                href={`/agenda/${activity.id}`}
+                href={activityHref(activity)}
                 onClick={onClose}
                 className="flex items-center gap-3 rounded-lg px-2 py-2 text-sm hover:bg-black/[.04] dark:hover:bg-white/[.06]"
               >
