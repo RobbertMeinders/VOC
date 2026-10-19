@@ -14,7 +14,7 @@ export default function AccessRequestPage() {
           <Logo />
         </div>
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-          <h1 className="mb-1 text-xl font-semibold text-foreground">Toegang aanvragen</h1>
+          <h1 className="mb-1 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Toegang aanvragen</h1>
           <p className="mb-6 text-sm text-muted">
             Nog geen uitnodiging? Laat je gegevens achter en het bestuur neemt contact met je op.
           </p>

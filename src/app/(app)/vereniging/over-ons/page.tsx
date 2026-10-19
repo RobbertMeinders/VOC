@@ -42,13 +42,16 @@ export default async function OverVerenigingPage() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8">
         <p className="text-xs font-medium uppercase tracking-wide text-white/80">{appSettings.org_name}</p>
-        <h1 className="mt-1 text-2xl font-semibold text-white sm:text-3xl">Over de vereniging</h1>
+        <h1 className="mt-1 font-display text-2xl font-extrabold tracking-[-0.03em] text-white sm:text-3xl">Over de vereniging</h1>
       </div>
     </div>
   ) : (
-    <div className="animate-rise-in overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-voc-red to-voc-red-dark p-6 shadow-sm sm:p-10">
+    <div
+      className="animate-rise-in overflow-hidden rounded-2xl border border-border p-6 shadow-sm sm:p-10"
+      style={{ backgroundImage: "var(--hero-gradient)" }}
+    >
       <p className="text-xs font-medium uppercase tracking-wide text-white/75">{appSettings.org_name}</p>
-      <h1 className="mt-1 text-2xl font-semibold text-white sm:text-3xl">Over de vereniging</h1>
+      <h1 className="mt-1 font-display text-2xl font-extrabold tracking-[-0.03em] text-white sm:text-3xl">Over de vereniging</h1>
     </div>
   );
 
@@ -64,7 +67,7 @@ export default async function OverVerenigingPage() {
         />
       ) : (
         <div className="animate-rise-in rounded-2xl border border-border bg-surface p-6 shadow-sm sm:p-8">
-          <div className="mb-4 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-voc-red-text">
+          <div className="mb-4 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-petrol">
             <Sparkles size={14} />
             Wie we zijn
           </div>
@@ -85,16 +88,16 @@ export default async function OverVerenigingPage() {
             <Link
               key={href}
               href={href}
-              className="animate-rise-in group flex items-center gap-4 rounded-2xl border border-border bg-surface p-5 shadow-sm transition-all duration-150 hover:border-voc-red/40 hover:shadow-md"
+              className="animate-rise-in group flex items-center gap-4 rounded-2xl border border-border bg-surface p-5 shadow-sm transition-all duration-150 hover:border-foreground/20 hover:shadow-md"
             >
-              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-voc-red-light to-voc-red/10 text-voc-red-text">
+              <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-petrol-soft text-petrol">
                 <Icon size={24} />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold text-foreground">{label}</p>
                 <p className="truncate text-xs text-muted">{description}</p>
               </div>
-              <ChevronRight size={18} className="shrink-0 text-muted transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-voc-red-text" />
+              <ChevronRight size={18} className="shrink-0 text-muted transition-transform duration-150 group-hover:translate-x-0.5 group-hover:text-petrol" />
             </Link>
           ))}
         </div>

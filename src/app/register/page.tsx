@@ -19,7 +19,7 @@ export default async function BootstrapRegisterPage() {
 
         {alreadyInitialized ? (
           <div className="rounded-2xl border border-border bg-surface p-6 text-center shadow-sm">
-            <h1 className="mb-2 text-xl font-semibold text-foreground">Al geïnitialiseerd</h1>
+            <h1 className="mb-2 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Al geïnitialiseerd</h1>
             <p className="text-sm text-muted">
               Er is al een account aangemaakt op dit ledenportaal. Nieuwe leden hebben een
               uitnodigingslink van het bestuur nodig.
@@ -30,7 +30,7 @@ export default async function BootstrapRegisterPage() {
           </div>
         ) : (
           <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
-            <h1 className="mb-1 text-xl font-semibold text-foreground">Eerste account aanmaken</h1>
+            <h1 className="mb-1 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Eerste account aanmaken</h1>
             <p className="mb-6 text-sm text-muted">
               Er bestaat nog geen account op dit ledenportaal. Maak het eerste account aan - dit
               wordt automatisch de beheerder. Deze pagina werkt alleen tot het eerste account

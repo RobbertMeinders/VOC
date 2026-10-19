@@ -29,7 +29,12 @@ export function PageHeader({
       {back && <BackLink href={back.href} label={back.label} />}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h1 className="text-xl font-semibold text-foreground">{title}</h1>
+          {/* Redesign fase 1/3: kopletter, paginatitel-maat uit het ontwerp
+              (28px mobiel -> 32px desktop, gewicht 800, letter-spacing
+              -0.03em) i.p.v. de vorige text-xl/semibold. */}
+          <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">
+            {title}
+          </h1>
           {description && <p className="mt-1 text-sm text-muted">{description}</p>}
         </div>
         {action && (

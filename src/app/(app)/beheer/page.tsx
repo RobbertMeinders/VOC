@@ -211,7 +211,7 @@ export default async function BeheerPage() {
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="mb-1 text-xl font-semibold text-foreground">Beheer</h1>
+        <h1 className="mb-1 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Beheer</h1>
         <p className="text-sm text-muted">Overzicht voor bestuur en beheer.</p>
       </div>
 

@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
-import { ChevronDown } from "lucide-react";
+import { ArrowLeft, ChevronDown } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { BEHEER_SECTIONS, type BeheerNavItem } from "./beheer-nav-items";
 
@@ -35,7 +35,10 @@ export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
 
   useEscapeKey(open, () => setOpen(false));
 
-  function renderItem(item: BeheerNavItem, onNavigate?: () => void) {
+  // Mobiele flyout (hieronder) blijft het gewone lichte lijst-item — die
+  // overlay staat los boven de pagina, geen eigen "zone" zoals de donkere
+  // desktop-zijbalk hieronder.
+  function renderMobileItem(item: BeheerNavItem, onNavigate?: () => void) {
     const active = isActive(item.href);
     const Icon = item.icon;
     return (
@@ -46,6 +49,28 @@ export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
         className={clsx(
           "flex items-center gap-2 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150",
           active ? "bg-voc-red-light text-voc-red-text" : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+        )}
+      >
+        <Icon size={16} strokeWidth={active ? 2.5 : 2} />
+        {item.label}
+      </Link>
+    );
+  }
+
+  // Redesign-besluit 8: donkerpetrol beheerzijbalk — actief item krijgt een
+  // rood streepje links (border-left i.p.v. absolute positionering, zodat
+  // het nergens buiten de eigen rij uitsteekt) i.p.v. de gevulde rode pil
+  // die de gewone navigatie gebruikt.
+  function renderDesktopItem(item: BeheerNavItem) {
+    const active = isActive(item.href);
+    const Icon = item.icon;
+    return (
+      <Link
+        key={item.href}
+        href={item.href}
+        className={clsx(
+          "flex items-center gap-2 whitespace-nowrap rounded-r-lg border-l-[3px] py-2 pl-3 pr-3 text-sm font-medium transition-all duration-150",
+          active ? "border-l-voc-red bg-white/10 text-white" : "border-l-transparent text-white/70 hover:bg-white/5 hover:text-white"
         )}
       >
         <Icon size={16} strokeWidth={active ? 2.5 : 2} />
@@ -79,7 +104,7 @@ export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
                   <div key={section.title}>
                     <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">{section.title}</p>
                     <div className="flex flex-col gap-0.5">
-                      {section.items.map((item) => renderItem(item, () => setOpen(false)))}
+                      {section.items.map((item) => renderMobileItem(item, () => setOpen(false)))}
                     </div>
                   </div>
                 ))}
@@ -93,12 +118,25 @@ export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
           (md:px-16 in AppShell voor "brede" pagina's), zodat hij vlak tegen
           de hoofd-Sidebar aan ligt i.p.v. er met een zichtbaar gaatje los
           van te staan. md:sticky: blijft in beeld bij scrollen door een lange
-          lijst, i.p.v. dat je terug naar boven moet om van sectie te wisselen. */}
-      <nav className="hidden md:sticky md:top-10 md:-ml-16 md:flex md:w-60 md:shrink-0 md:flex-col md:gap-5 md:self-start md:border-r md:border-border md:px-4 md:py-1">
+          lijst, i.p.v. dat je terug naar boven moet om van sectie te wisselen.
+          Redesign-besluit 8: donkerpetrol vlak i.p.v. een gewone lichte
+          kolom — zodat je in Beheer altijd meteen ziet dat je niet meer in
+          het ledenportaal zelf zit. */}
+      <nav
+        className="hidden md:sticky md:top-10 md:-ml-16 md:flex md:w-60 md:shrink-0 md:flex-col md:gap-5 md:self-start md:rounded-r-2xl md:px-3 md:py-5 md:shadow-sm"
+        style={{ backgroundImage: "var(--hero-gradient)" }}
+      >
+        <Link
+          href="/"
+          className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-white/70 transition-colors hover:bg-white/5 hover:text-white"
+        >
+          <ArrowLeft size={16} />
+          Terug naar portaal
+        </Link>
         {sections.map((section) => (
           <div key={section.title} className="flex flex-col gap-1">
-            <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-muted">{section.title}</p>
-            {section.items.map((item) => renderItem(item))}
+            <p className="px-3 pb-1 text-xs font-semibold uppercase tracking-wide text-white/40">{section.title}</p>
+            {section.items.map((item) => renderDesktopItem(item))}
           </div>
         ))}
       </nav>

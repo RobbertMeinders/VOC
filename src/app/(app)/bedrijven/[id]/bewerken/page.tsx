@@ -58,7 +58,7 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
     <div className="flex flex-col gap-4">
       <BackLink href={`/bedrijven/${id}`} label={`Terug naar ${company.name}`} />
       <div>
-        <h1 className="text-xl font-semibold text-foreground">Bedrijfsgegevens bewerken</h1>
+        <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Bedrijfsgegevens bewerken</h1>
       </div>
       <CompanyEditFormsGuard>
         <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">

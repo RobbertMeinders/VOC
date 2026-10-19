@@ -95,7 +95,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
     <div className="mx-auto w-full md:max-w-3xl">
       <MarkSectionReadOnView section="agenda" />
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-foreground">Agenda</h1>
+        <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Agenda</h1>
         <Link
           href="/agenda/nieuw"
           className="flex items-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"

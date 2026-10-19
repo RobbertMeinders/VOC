@@ -43,7 +43,8 @@ export function BottomNav({
                 )}
               >
                 <span className="relative flex h-7 w-7 items-center justify-center">
-                  {active && <span className="animate-pop absolute inset-0 rounded-full bg-voc-red-light" />}
+                  {/* Redesign: actief = alleen rode tekst/icoon, geen
+                      gevulde achtergrondpil meer. */}
                   <Icon size={22} strokeWidth={active ? 2.5 : 2} className="relative" />
                   {count > 0 && (
                     <span className="animate-pop absolute -right-1.5 -top-1.5 z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-voc-red px-1 text-[10px] font-medium text-white">

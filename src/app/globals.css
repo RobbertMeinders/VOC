@@ -95,6 +95,13 @@
   --label-overig-text: #55555c;
   --label-overig-bg: var(--raised);
 
+  /* Donkerpetrol vlak (welkomstblok Home, beheerzijbalk) — vaste maten uit
+     het ontwerp (docs/redesign-ontwerp.md, "Maten en details"), geen
+     losse tokens: de highlight-kleur (#1b6a73/#15545b) wordt verder nergens
+     anders hergebruikt. */
+  --hero-gradient: radial-gradient(120% 80% at 100% 0%, #1b6a73 0%, transparent 55%),
+    linear-gradient(165deg, #0b2e33 0%, #0e4249 100%);
+
   /* Primaire reeks in grafieken (Statistieken, beheerdashboard) — was rood,
      wordt petrol (rood op dieet). Tweede reeks (--chart-secondary) blijft
      ongewijzigd, al gevalideerd tegen --voc-red; bij gelegenheid opnieuw
@@ -205,6 +212,9 @@
     --label-voorstellen-bg: #2c2112;
     --label-overig-text: #b4b4bb;
     --label-overig-bg: var(--raised);
+
+    --hero-gradient: radial-gradient(120% 80% at 100% 0%, #15545b 0%, transparent 55%),
+      linear-gradient(165deg, #081f23 0%, #0b2e33 100%);
   }
 }
 
@@ -248,6 +258,9 @@
   --label-voorstellen-bg: #2c2112;
   --label-overig-text: #b4b4bb;
   --label-overig-bg: var(--raised);
+
+  --hero-gradient: radial-gradient(120% 80% at 100% 0%, #15545b 0%, transparent 55%),
+    linear-gradient(165deg, #081f23 0%, #0b2e33 100%);
 }
 
 /* Niet alleen :root[data-theme] hierboven, ook dit ongescopede selector: een
@@ -297,6 +310,9 @@
   --label-voorstellen-bg: #fdf3e2;
   --label-overig-text: #55555c;
   --label-overig-bg: var(--raised);
+
+  --hero-gradient: radial-gradient(120% 80% at 100% 0%, #1b6a73 0%, transparent 55%),
+    linear-gradient(165deg, #0b2e33 0%, #0e4249 100%);
 }
 
 /* UX-review E3: ?thema=website op een embed-pagina (zie
@@ -358,6 +374,17 @@ body {
 
 * {
   border-color: var(--border);
+}
+
+/* Redesign-besluit 4: zacht verloop bovenaan de inhoud op Home, Agenda,
+   Community, het beheerdashboard en lege toestanden — een lichte
+   petroltint die naar de achtergrond toe verloopt, geen vlak blok. Eigen
+   class i.p.v. een Tailwind-utility: dit is een samengestelde
+   (meerlaagse) achtergrond, geen los kleurtoken. Spaarzaam gebruiken (zie
+   stijl-kleurenpalet.md), niet overal. */
+.bg-top-gradient {
+  background: linear-gradient(180deg, var(--petrol-soft) 0%, transparent 100%) 0 0 / 100% 220px no-repeat,
+    var(--background);
 }
 
 /* Verberg scrollbar op de mobiele bottom navigation zonder functionaliteit te verliezen */

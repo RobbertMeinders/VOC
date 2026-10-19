@@ -21,7 +21,7 @@ export default async function CommunityPage() {
 
   return (
     <div className="mx-auto w-full md:max-w-3xl">
-      <h1 className="mb-3 text-xl font-semibold text-foreground">Community</h1>
+      <h1 className="mb-3 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Community</h1>
       <Suspense>
         <FeedList
           initialPosts={posts}

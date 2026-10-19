@@ -50,7 +50,7 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
   if (!query) {
     return (
       <div>
-        <h1 className="mb-4 text-xl font-semibold text-foreground">Zoeken</h1>
+        <h1 className="mb-4 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Zoeken</h1>
         <SearchForm />
       </div>
     );
@@ -147,7 +147,7 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="mb-4 text-xl font-semibold text-foreground">Zoeken</h1>
+        <h1 className="mb-4 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Zoeken</h1>
         <SearchForm />
       </div>
 

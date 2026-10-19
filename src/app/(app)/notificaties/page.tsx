@@ -29,7 +29,7 @@ export default async function NotificatiesPage() {
 
   return (
     <div>
-      <h1 className="mb-4 text-xl font-semibold text-foreground">Meldingen</h1>
+      <h1 className="mb-4 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Meldingen</h1>
 
       {notifications && notifications.length > 0 ? (
         <NotificationList notifications={notifications} />

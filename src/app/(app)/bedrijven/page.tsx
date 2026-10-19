@@ -66,7 +66,7 @@ export default async function BedrijvenPage() {
 
   return (
     <div>
-      <h1 className="mb-3 text-xl font-semibold text-foreground">Netwerk</h1>
+      <h1 className="mb-3 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Netwerk</h1>
       <NetworkTabs />
 
       <BedrijvenListClient items={items} branches={branches} />

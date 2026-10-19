@@ -41,7 +41,7 @@ export default async function DocumentenPage() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-foreground">Documenten</h1>
+        <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Documenten</h1>
         {isBoard(profile.role) && <DocumentUploadForm categories={categories} />}
       </div>
 
