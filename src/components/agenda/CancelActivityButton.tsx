@@ -50,8 +50,10 @@ export function CancelActivityButton({
           title="Afgelasten"
           aria-label="Afgelasten"
           onClick={() => setOpen(true)}
+          // Redesign: de trigger is neutraal — de daadwerkelijke
+          // afgelasten-actie (hieronder, in de dialoog) blijft rood.
           className={
-            className ?? "flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red-text hover:border-voc-red"
+            className ?? "flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-foreground/30 hover:bg-black/[.03] dark:hover:bg-white/[.06]"
           }
         >
           <Ban size={14} />
@@ -83,7 +85,7 @@ export function CancelActivityButton({
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={3}
-                className="mb-2 w-full rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+                className="mb-2 w-full rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
               />
               {error && <p className="mb-2 text-xs text-voc-red-text">{error}</p>}
               <div className="flex items-center gap-2">

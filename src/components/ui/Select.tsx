@@ -35,8 +35,8 @@ export const Select = forwardRef<
           "appearance-none rounded-lg border pr-9 text-sm text-foreground",
           surface === "surface" ? "bg-surface" : "bg-background",
           invalid
-            ? "border-voc-red focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-            : "border-input-border focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20",
+            ? "border-danger focus:border-danger focus:outline-none focus:ring-2 focus:ring-danger/20"
+            : "border-input-border focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20",
           "disabled:cursor-not-allowed disabled:opacity-60",
           className
         )}

@@ -71,7 +71,7 @@ export function AccessRequestRow({ request }: { request: AccessRequest }) {
         {request.message && <p className="mt-1 text-sm text-foreground">{request.message}</p>}
         {inviteState.error && <p className="mt-1.5 text-xs text-voc-red-text">{inviteState.error}</p>}
         {inviteState.success && inviteState.emailSent && (
-          <p className="mt-1.5 text-xs text-green-600">Uitnodiging aangemaakt en per e-mail verstuurd.</p>
+          <p className="mt-1.5 text-xs text-status-success">Uitnodiging aangemaakt en per e-mail verstuurd.</p>
         )}
         {inviteState.success && !inviteState.emailSent && (
           <p className="mt-1.5 text-xs text-voc-red-text">

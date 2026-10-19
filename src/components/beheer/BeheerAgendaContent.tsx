@@ -1,11 +1,11 @@
 import Link from "next/link";
 import { CalendarDays, CheckCircle2, Clock, Pencil, Plus, XCircle } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { clsx } from "clsx";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Chip } from "@/components/ui/Chip";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { CancelActivityButton } from "@/components/agenda/CancelActivityButton";
 import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
@@ -27,11 +27,13 @@ type AuditLogRow = {
   actor: { first_name: string; last_name: string } | null;
 };
 
+// Redesign fase 2: statuskleuren uit de nieuwe tokens i.p.v. losse
+// Tailwind-standaardkleuren zonder donkere variant.
 const STATUS_BADGE: Record<Activity["status"], string> = {
-  approved: "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400",
-  pending: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",
-  rejected: "bg-voc-red-light text-voc-red-text",
-  cancelled: "bg-voc-red-light text-voc-red-text",
+  approved: "bg-status-success-soft text-status-success",
+  pending: "bg-status-warning-soft text-status-warning",
+  rejected: "bg-danger-soft text-danger-text",
+  cancelled: "bg-danger-soft text-danger-text",
 };
 const STATUS_LABEL: Record<Activity["status"], string> = {
   approved: "Goedgekeurd",
@@ -150,16 +152,13 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
 
       <div className="mb-4 flex gap-1.5 overflow-x-auto">
         {STATUS_FILTERS.map((filter) => (
-          <Link
+          <Chip
             key={filter.key}
             href={filter.key === "alle" ? "/beheer/agenda" : `/beheer/agenda?status=${filter.key}`}
-            className={clsx(
-              "shrink-0 rounded-full px-3 py-1.5 text-sm font-medium",
-              activeFilter === filter.key ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
-            )}
+            active={activeFilter === filter.key}
           >
             {filter.label}
-          </Link>
+          </Chip>
         ))}
       </div>
 
@@ -185,7 +184,7 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
                     </span>
                   )}
                 </div>
-                <Link href={`/agenda/${activity.id}`} className="text-sm font-medium text-foreground hover:text-voc-red-text">
+                <Link href={`/agenda/${activity.id}`} className="text-sm font-medium text-foreground hover:text-petrol">
                   {activity.title}
                 </Link>
                 <p className="text-xs text-muted">{formatActivityDate(activity.starts_at)}</p>
@@ -216,7 +215,7 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
                 <Link
                   href={`/agenda/${activity.id}/bewerken`}
                   aria-label="Bewerken"
-                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red-text"
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-foreground/30 hover:bg-black/[.03] dark:hover:bg-white/[.06]"
                 >
                   <Pencil size={14} />
                 </Link>
@@ -224,13 +223,13 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
                   <CancelActivityButton
                     activityId={activity.id}
                     activityTitle={activity.title}
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-voc-red"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-muted hover:border-foreground/30 hover:bg-black/[.03] dark:hover:bg-white/[.06]"
                   />
                 ) : (
                   <DeleteButton
                     onDelete={deleteActivityAction.bind(null, activity.id, false)}
                     confirmMessage="Weet je zeker dat je deze activiteit wilt verwijderen?"
-                    className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-voc-red"
+                    className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-muted hover:border-foreground/30 hover:bg-black/[.03] dark:hover:bg-white/[.06]"
                   />
                 )}
               </div>

@@ -34,6 +34,12 @@
      van een kaart moet onderscheiden (bv. een ingebedde balk/track) zonder
      een losse alfa-overlay per plek te verzinnen. */
   --raised: #f1f1f3;
+  /* Redesign: "zware schaduwen" afgewezen, schaduw moet licht zijn. Dit
+     overschrijft Tailwinds eigen --shadow-sm (zie @theme inline) — de app
+     gebruikt die utility al overal als dé kaartschaduw, dus zo geldt "licht"
+     in één keer voor elke kaart zonder honderden call sites los aan te
+     passen. In donker vrijwel geen schaduw (scheiding via achtergrondkleur). */
+  --shadow-card: 0 1px 2px rgb(11 46 51 / 0.06), 0 4px 12px rgb(11 46 51 / 0.05);
 
   /* VOC huisstijl — rood op dieet: alleen nog logo, hoofdknop per scherm,
      actief menu-item, tellers en foutmeldingen. */
@@ -147,6 +153,8 @@
 
   --font-sans: var(--font-inter);
   --font-display: var(--font-bricolage), var(--font-inter), system-ui, sans-serif;
+
+  --shadow-sm: var(--shadow-card);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -173,6 +181,8 @@
        achtergrond. */
     --petrol: #7cc4c8;
     --petrol-soft: #13292c;
+
+    --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35);
 
     --danger: var(--voc-red);
     --danger-text: var(--voc-red-text);
@@ -215,6 +225,8 @@
   --petrol: #7cc4c8;
   --petrol-soft: #13292c;
 
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35);
+
   --danger: var(--voc-red);
   --danger-text: var(--voc-red-text);
   --danger-soft: var(--voc-red-light);
@@ -254,6 +266,7 @@
   --border: #e4e4e7;
   --input-border: #8e8e93;
   --raised: #f1f1f3;
+  --shadow-card: 0 1px 2px rgb(11 46 51 / 0.06), 0 4px 12px rgb(11 46 51 / 0.05);
 
   --voc-red: #e8000f;
   --voc-red-dark: #b8000c;

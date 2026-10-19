@@ -48,7 +48,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 className="animate-rise-in pointer-events-auto flex items-center gap-2 rounded-xl border border-border bg-surface px-4 py-3 text-sm font-medium text-foreground shadow-lg sm:max-w-sm"
               >
                 {t.variant === "success" ? (
-                  <CheckCircle2 size={18} className="shrink-0 text-green-600" />
+                  <CheckCircle2 size={18} className="shrink-0 text-status-success" />
                 ) : (
                   <XCircle size={18} className="shrink-0 text-voc-red-text" />
                 )}

@@ -19,10 +19,12 @@ export const ROLE_LABELS: Record<UserRole, string> = {
   beheerder: "Beheerder",
 };
 
-// "Lid" is the common case and gets a neutral badge; board roles keep the
-// accent color so elevated privileges still stand out.
+// "Lid" is the common case and gets a neutral badge; board roles keep an
+// accent color so elevated privileges still stand out. Redesign: rood is
+// schaars geworden (logo/hoofdknop/actief item/teller/fout) — rolbadges
+// gaan naar petrol.
 export const ROLE_BADGE_CLASS: Record<UserRole, string> = {
   lid: "bg-black/5 text-muted dark:bg-white/10",
-  bestuurslid: "bg-voc-red-light text-voc-red-text",
-  beheerder: "bg-voc-red-light text-voc-red-text",
+  bestuurslid: "bg-petrol-soft text-petrol",
+  beheerder: "bg-petrol-soft text-petrol",
 };

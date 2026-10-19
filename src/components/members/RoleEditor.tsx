@@ -66,7 +66,7 @@ export function RoleEditor({
           {state.error}
         </p>
       )}
-      {state.success && <p className="text-xs text-green-600">Rol bijgewerkt.</p>}
+      {state.success && <p className="text-xs text-status-success">Rol bijgewerkt.</p>}
     </form>
   );
 }

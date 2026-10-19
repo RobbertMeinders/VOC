@@ -63,7 +63,10 @@ export function DeleteButton({
           });
         }
       }}
-      className={className ?? "text-muted hover:text-voc-red-text disabled:opacity-50"}
+      // Redesign: verwijder-iconen in lijsten zijn neutraal — alleen de
+      // bevestigingsknop in het dialoogvenster hierboven (danger: true)
+      // blijft rood.
+      className={className ?? "text-muted hover:text-foreground disabled:opacity-50"}
     >
       <Trash2 size={size} />
     </button>

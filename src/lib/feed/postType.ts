@@ -8,12 +8,15 @@ export const POST_TYPE_LABELS: Record<FeedPostType, string> = {
   voorstellen: "Even voorstellen",
 };
 
+// Redesign fase 2: labelkleuren komen voortaan uit de tokens in globals.css
+// (fase 1) i.p.v. losse Tailwind-standaardkleuren zonder donkere variant —
+// "Nieuws & ervaringen" was rood, wordt paars (rood is schaars geworden).
 export const POST_TYPE_BADGE_CLASS: Record<FeedPostType, string> = {
-  vraag: "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400",
-  aanbod: "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400",
-  nieuws: "bg-voc-red-light text-voc-red-text",
-  overig: "bg-black/[.06] text-muted dark:bg-white/[.08]",
-  voorstellen: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",
+  vraag: "bg-label-vraag-bg text-label-vraag-text",
+  aanbod: "bg-label-aanbod-bg text-label-aanbod-text",
+  nieuws: "bg-label-nieuws-bg text-label-nieuws-text",
+  overig: "bg-label-overig-bg text-label-overig-text",
+  voorstellen: "bg-label-voorstellen-bg text-label-voorstellen-text",
 };
 
 // De drie categorieën met een eigen feedfilter — "Even voorstellen" en het

@@ -12,8 +12,8 @@ export const Input = forwardRef<HTMLInputElement, InputHTMLAttributes<HTMLInputE
         className={clsx(
           "h-10 w-full rounded-lg border bg-surface px-3 text-sm text-foreground placeholder:text-muted",
           invalid
-            ? "border-voc-red focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
-            : "border-input-border focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20",
+            ? "border-danger focus:border-danger focus:outline-none focus:ring-2 focus:ring-danger/20"
+            : "border-input-border focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20",
           "disabled:cursor-not-allowed disabled:opacity-60",
           className
         )}

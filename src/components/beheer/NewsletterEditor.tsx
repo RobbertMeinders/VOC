@@ -958,7 +958,7 @@ export function NewsletterEditor({
               </Button>
               {sendResult?.error && <p className="text-sm text-voc-red-text">{sendResult.error}</p>}
               {sendResult && sendResult.total !== undefined && sendResult.sent !== undefined && (
-                <p className={`text-sm ${sendResult.sent >= sendResult.total ? "text-green-600" : "text-voc-red-text"}`}>
+                <p className={`text-sm ${sendResult.sent >= sendResult.total ? "text-status-success" : "text-voc-red-text"}`}>
                   {sendResult.sent} van {sendResult.total} verzonden
                   {sendResult.sent < sendResult.total && " - probeer het later opnieuw voor de rest."}
                 </p>
@@ -1019,7 +1019,7 @@ export function NewsletterEditor({
               <Send size={16} />
               {testSendPending ? "Versturen…" : "Testmail versturen naar mij"}
             </Button>
-            {testSendResult?.success && <p className="text-sm text-green-600">Testmail verstuurd.</p>}
+            {testSendResult?.success && <p className="text-sm text-status-success">Testmail verstuurd.</p>}
             {testSendResult?.error && <p className="text-sm text-voc-red-text">{testSendResult.error}</p>}
           </div>
         </div>

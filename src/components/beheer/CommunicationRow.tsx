@@ -89,12 +89,14 @@ function formatDate(iso: string): string {
 }
 
 function StatusBadge({ status }: { status: string }) {
+  // Redesign fase 2: statuskleuren uit de nieuwe tokens i.p.v. losse
+  // Tailwind-standaardkleuren zonder donkere variant.
   const styles: Record<string, string> = {
-    concept: "bg-black/[.06] text-muted dark:bg-white/[.08]",
-    verzonden: "bg-green-50 text-green-700 dark:bg-green-500/10 dark:text-green-400",
-    verzenden_mislukt: "bg-voc-red-light text-voc-red-text",
-    ingepland: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",
-    versturen: "bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400",
+    concept: "bg-status-neutral-soft text-status-neutral",
+    verzonden: "bg-status-success-soft text-status-success",
+    verzenden_mislukt: "bg-danger-soft text-danger-text",
+    ingepland: "bg-status-warning-soft text-status-warning",
+    versturen: "bg-status-warning-soft text-status-warning",
   };
   const labels: Record<string, string> = {
     concept: "Concept",

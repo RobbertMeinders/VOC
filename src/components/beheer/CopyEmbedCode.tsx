@@ -29,7 +29,7 @@ export function CopyEmbedCode({ code }: { code: string }) {
           onClick={copy}
           className="flex shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         >
-          {copied ? <Check size={14} className="text-green-600" /> : <Copy size={14} />}
+          {copied ? <Check size={14} className="text-status-success" /> : <Copy size={14} />}
           {copied ? "Gekopieerd" : "Kopiëren"}
         </button>
       </div>

@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: "Verzonden meldingen" };
 const LOG_LIMIT = 100;
 
 function ChannelStatus({ sent }: { sent: boolean }) {
-  return sent ? <Check size={14} className="text-green-600" /> : <Minus size={14} className="text-muted" />;
+  return sent ? <Check size={14} className="text-status-success" /> : <Minus size={14} className="text-muted" />;
 }
 
 function formatDateTime(iso: string) {

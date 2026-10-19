@@ -94,7 +94,7 @@ export function ShareActivityButton({
       onClick={share}
       className="flex w-fit shrink-0 items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.04]"
     >
-      {copied ? <Check size={15} className="text-green-600" /> : <Share2 size={15} />}
+      {copied ? <Check size={15} className="text-status-success" /> : <Share2 size={15} />}
       {copied ? "Link gekopieerd" : "Delen"}
     </button>
   );

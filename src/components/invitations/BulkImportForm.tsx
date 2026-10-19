@@ -134,7 +134,7 @@ export function BulkImportForm() {
       {result && (
         <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
           {result.imported > 0 && (
-            <p className="text-sm text-green-600">
+            <p className="text-sm text-status-success">
               {result.imported} uitnodiging{result.imported === 1 ? "" : "en"} aangemaakt (nog geen e-mail
               verstuurd) - te vinden bij{" "}
               <Link href="/beheer/instroom?tab=uitnodigingen" className="underline">
