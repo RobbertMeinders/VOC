@@ -58,9 +58,9 @@ export function NotificationList({ notifications: initialNotifications }: { noti
         <button
           type="button"
           onClick={handleMarkAllRead}
-          className="mb-1 self-end text-xs font-medium text-voc-red-text hover:underline"
+          className="mb-1 self-end text-xs font-medium text-petrol hover:underline"
         >
-          Alles markeren als gelezen
+          Alles gelezen
         </button>
       )}
       {notifications.map((n) => (
@@ -68,10 +68,10 @@ export function NotificationList({ notifications: initialNotifications }: { noti
           key={n.id}
           className={clsx(
             "flex items-start gap-3 rounded-xl border p-3 shadow-sm",
-            n.is_read ? "border-border bg-surface" : "border-voc-red/30 bg-voc-red-light"
+            n.is_read ? "border-border bg-surface" : "border-petrol/30 bg-petrol-soft"
           )}
         >
-          <Bell size={16} className={clsx("mt-0.5 shrink-0", n.is_read ? "text-muted" : "text-voc-red-text")} />
+          <Bell size={16} className={clsx("mt-0.5 shrink-0", n.is_read ? "text-muted" : "text-petrol")} />
           <Link href={n.link ?? "/"} onClick={() => handleOpen(n)} className="min-w-0 flex-1">
             <p className="text-sm font-medium text-foreground">{n.title}</p>
             {n.body && <p className="text-sm text-muted">{n.body}</p>}

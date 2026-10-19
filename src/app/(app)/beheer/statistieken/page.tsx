@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import Link from "next/link";
 import { requireBoard } from "@/lib/auth/session";
+import { Chip } from "@/components/ui/Chip";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { LineTrend, BarTrend, Funnel } from "@/components/beheer/statistics/Charts";
 import {
@@ -109,7 +109,7 @@ async function OverviewTab({ period }: { period: StatsPeriod }) {
         <ChartCard title="Nieuwe leden per maand">
           <BarTrend
             months={stats.newMembersPerMonth.map((p) => ({ month: p.month, label: p.label }))}
-            series={[{ label: "Nieuwe leden", color: "var(--voc-red)", values: stats.newMembersPerMonth.map((p) => p.value) }]}
+            series={[{ label: "Nieuwe leden", color: "var(--chart-primary)", values: stats.newMembersPerMonth.map((p) => p.value) }]}
           />
         </ChartCard>
       </div>
@@ -133,7 +133,7 @@ async function CommunityTab({ period }: { period: StatsPeriod }) {
           <BarTrend
             months={stats.postsAndCommentsPerMonth.map((p) => ({ month: p.month, label: p.label }))}
             series={[
-              { label: "Berichten", color: "var(--voc-red)", values: stats.postsAndCommentsPerMonth.map((p) => p.posts) },
+              { label: "Berichten", color: "var(--chart-primary)", values: stats.postsAndCommentsPerMonth.map((p) => p.posts) },
               { label: "Reacties", color: "var(--chart-secondary)", values: stats.postsAndCommentsPerMonth.map((p) => p.comments) },
             ]}
           />
@@ -209,7 +209,7 @@ async function ActiviteitenTab({ period }: { period: StatsPeriod }) {
             series={[
               {
                 label: "Aangemeld",
-                color: "var(--voc-red)",
+                color: "var(--chart-primary)",
                 values: stats.registrationsAndAttendancePerMonth.map((p) => p.registrations),
               },
               {
@@ -426,29 +426,17 @@ export default async function StatistiekenPage({
       <div className="flex flex-col gap-2">
         <div className="flex gap-1.5 overflow-x-auto">
           {TABS.map((t) => (
-            <Link
-              key={t.key}
-              href={`/beheer/statistieken?tab=${t.key}&period=${period}`}
-              className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium ${
-                activeTab === t.key ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
-              }`}
-            >
+            <Chip key={t.key} href={`/beheer/statistieken?tab=${t.key}&period=${period}`} active={activeTab === t.key}>
               {t.label}
-            </Link>
+            </Chip>
           ))}
         </div>
         <div className="flex items-center gap-1.5 overflow-x-auto">
           <span className="shrink-0 text-xs text-muted">Periode</span>
           {PERIOD_OPTIONS.map((p) => (
-            <Link
-              key={p.key}
-              href={`/beheer/statistieken?tab=${activeTab}&period=${p.key}`}
-              className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ${
-                period === p.key ? "bg-foreground text-background" : "bg-black/[.04] text-muted dark:bg-white/[.06]"
-              }`}
-            >
+            <Chip key={p.key} href={`/beheer/statistieken?tab=${activeTab}&period=${p.key}`} active={period === p.key}>
               {p.label}
-            </Link>
+            </Chip>
           ))}
         </div>
       </div>

@@ -69,7 +69,7 @@ export function ReportRow({ report }: { report: ReportRowData }) {
         <div className="rounded-lg bg-black/[.03] px-3 py-2 dark:bg-white/[.05]">
           <p className="text-xs font-medium text-muted">Bericht van {report.post.authorName}</p>
           <p className="mt-0.5 line-clamp-3 text-sm text-foreground">{report.post.content}</p>
-          <Link href={`/community?highlight=${report.post.id}`} className="mt-1 inline-block text-xs text-voc-red-text hover:underline">
+          <Link href={`/community?highlight=${report.post.id}`} className="mt-1 inline-block text-xs text-petrol hover:underline">
             Bekijk in de feed
           </Link>
         </div>

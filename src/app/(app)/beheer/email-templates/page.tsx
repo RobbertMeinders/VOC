@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { Chip } from "@/components/ui/Chip";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { EmailTemplateForm } from "@/components/beheer/EmailTemplateForm";
 import { PushTemplateForm } from "@/components/beheer/PushTemplateForm";
@@ -10,7 +10,7 @@ import type { Database } from "@/lib/types/database";
 type EmailTemplate = Database["public"]["Tables"]["email_templates"]["Row"];
 type PushTemplate = Database["public"]["Tables"]["push_templates"]["Row"];
 
-export const metadata: Metadata = { title: "E-mailtemplates" };
+export const metadata: Metadata = { title: "E-mailteksten" };
 
 // "wachtwoord_reset" -> "Wachtwoord reset" — de key zelf blijft de
 // identifier (ook zichtbaar in het formulier eronder), dit is puur het
@@ -34,15 +34,9 @@ function TabRow({
   return (
     <div className="flex min-w-0 gap-1.5 overflow-x-auto">
       {templates.map((t) => (
-        <Link
-          key={t.key}
-          href={`/beheer/email-templates?${paramName}=${t.key}&${otherParam}`}
-          className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium ${
-            activeKey === t.key ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
-          }`}
-        >
+        <Chip key={t.key} href={`/beheer/email-templates?${paramName}=${t.key}&${otherParam}`} active={activeKey === t.key}>
           {formatTabLabel(t.key)}
-        </Link>
+        </Chip>
       ))}
     </div>
   );
@@ -72,7 +66,7 @@ export default async function EmailTemplatesPage({
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
-        title="E-mailtemplates"
+        title="E-mailteksten"
         description={
           <>
             Inhoud van de mails die de app zelf verstuurt. Gebruik <code>{"{{link}}"}</code> op de plek waar de

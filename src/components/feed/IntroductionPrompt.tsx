@@ -2,7 +2,7 @@
 
 import { useTransition } from "react";
 import Link from "next/link";
-import { UserPlus, X } from "lucide-react";
+import { Hand, X } from "lucide-react";
 import { dismissIntroductionPromptAction } from "@/app/(app)/profiel/actions";
 
 // Zelfde kleine, wegklikbare regel-stijl als ProfilePhotoPrompt (Home) —
@@ -23,9 +23,9 @@ export function IntroductionPrompt({ dismissible = true }: { dismissible?: boole
 
   return (
     <div className="animate-rise-in flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm shadow-sm">
-      <Link href="/community?intro=1" className="flex min-w-0 items-center gap-2 text-foreground hover:text-voc-red-text">
-        <UserPlus size={15} className="shrink-0 text-voc-red-text" />
-        <span className="truncate">Stel jezelf voor aan de andere leden</span>
+      <Link href="/community?intro=1" className="flex min-w-0 items-center gap-2 text-foreground hover:text-petrol">
+        <Hand size={15} className="shrink-0 text-petrol" />
+        <span className="truncate">Stel je voor</span>
       </Link>
       {dismissible && (
         <button

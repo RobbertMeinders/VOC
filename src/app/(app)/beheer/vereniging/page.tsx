@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { clsx } from "clsx";
-import { Briefcase, Info, UsersRound } from "lucide-react";
+import { Info, UserCheck, UsersRound } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { getOrgProfile } from "@/lib/settings/org-profile";
+import { Chip } from "@/components/ui/Chip";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { OrgProfileForm } from "@/components/beheer/OrgProfileForm";
 import { BestuurAdminContent, type BoardMemberRow, type MemberOption as BoardMemberOption } from "@/components/beheer/BestuurAdminContent";
@@ -13,14 +12,14 @@ import { CommissiesAdminContent, type CommissionAdminRow, type MemberOption } fr
 
 export const metadata: Metadata = { title: "Vereniging" };
 
-// VOC Hub — Beheeromgeving: Over de vereniging, Bestuur en Commissies stonden als drie
+// VOC Hub — Beheeromgeving: Over de VOC, Bestuur en Commissies stonden als drie
 // losse beheerpagina's naast elkaar voor wat inhoudelijk één onderwerp is
 // (de vereniging zelf) — nu tabs op één pagina, zelfde patroon als
 // /beheer/instroom. Oude routes (over-ons/bestuur/commissies) redirecten
 // hierheen.
 const TABS = [
-  { key: "over-ons", label: "Over de vereniging", icon: Info },
-  { key: "bestuur", label: "Bestuur", icon: Briefcase },
+  { key: "over-ons", label: "Over de VOC", icon: Info },
+  { key: "bestuur", label: "Bestuur", icon: UserCheck },
   { key: "commissies", label: "Commissies", icon: UsersRound },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
@@ -31,7 +30,7 @@ async function OverOnsTab() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted">
-        Inhoud voor de pagina Over de vereniging die leden via Vereniging in de hoofdnavigatie bereiken. Leeg laten betekent: dit onderdeel
+        Inhoud voor de pagina Over de VOC die leden via Vereniging in de hoofdnavigatie bereiken. Leeg laten betekent: dit onderdeel
         staat nog niet op de pagina.
       </p>
       <OrgProfileForm orgProfile={orgProfile} headerImageUrl={headerImageUrl} />
@@ -202,17 +201,14 @@ export default async function VerenigingBeheerPage({ searchParams }: { searchPar
 
       <div className="sticky top-14 z-10 -mx-4 mb-4 flex gap-1.5 overflow-x-auto bg-background px-4 py-2 md:top-0 md:-mx-16 md:px-16">
         {TABS.map((t) => (
-          <Link
+          <Chip
             key={t.key}
             href={t.key === "over-ons" ? "/beheer/vereniging" : `/beheer/vereniging?tab=${t.key}`}
-            className={clsx(
-              "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium",
-              activeTab === t.key ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
-            )}
+            active={activeTab === t.key}
           >
             <t.icon size={14} />
             {t.label}
-          </Link>
+          </Chip>
         ))}
       </div>
 

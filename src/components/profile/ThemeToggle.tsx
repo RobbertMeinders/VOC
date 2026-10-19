@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { Monitor, Moon, Sun } from "lucide-react";
-import { clsx } from "clsx";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { THEME_STORAGE_KEY, type Theme } from "@/lib/theme/constants";
 
 const OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
-  { value: "system", label: "Systeem", icon: Monitor },
+  { value: "system", label: "Automatisch", icon: Monitor },
   { value: "light", label: "Licht", icon: Sun },
   { value: "dark", label: "Donker", icon: Moon },
 ];
@@ -50,21 +50,18 @@ export function ThemeToggle() {
   }
 
   return (
-    <div className="inline-flex rounded-lg border border-border bg-background p-1">
-      {OPTIONS.map(({ value, label, icon: Icon }) => (
-        <button
-          key={value}
-          type="button"
-          onClick={() => handleSelect(value)}
-          className={clsx(
-            "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-colors",
-            theme === value ? "bg-voc-red text-white" : "text-muted hover:text-foreground"
-          )}
-        >
-          <Icon size={14} />
-          {label}
-        </button>
-      ))}
-    </div>
+    <SegmentedControl
+      items={OPTIONS.map(({ value, label, icon: Icon }) => ({
+        key: value,
+        active: theme === value,
+        onClick: () => handleSelect(value),
+        label: (
+          <span className="flex items-center justify-center gap-1.5">
+            <Icon size={14} />
+            {label}
+          </span>
+        ),
+      }))}
+    />
   );
 }

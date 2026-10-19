@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { INDUSTRIES } from "@/lib/constants/industries";
@@ -20,20 +21,12 @@ export function CompanySelector({ initialSelected = null }: { initialSelected?: 
   return (
     <div className="flex flex-col gap-2">
       <div className="flex gap-2 text-sm">
-        <button
-          type="button"
-          onClick={() => setCompanyMode("existing")}
-          className={`rounded-full px-3 py-1 ${companyMode === "existing" ? "bg-voc-red text-white" : "bg-black/5 text-muted dark:bg-white/10"}`}
-        >
+        <Chip onClick={() => setCompanyMode("existing")} active={companyMode === "existing"}>
           Bedrijf zoeken
-        </button>
-        <button
-          type="button"
-          onClick={() => setCompanyMode("new")}
-          className={`rounded-full px-3 py-1 ${companyMode === "new" ? "bg-voc-red text-white" : "bg-black/5 text-muted dark:bg-white/10"}`}
-        >
+        </Chip>
+        <Chip onClick={() => setCompanyMode("new")} active={companyMode === "new"}>
           Mijn bedrijf toevoegen
-        </button>
+        </Chip>
       </div>
 
       <input type="hidden" name="company_mode" value={companyMode} />

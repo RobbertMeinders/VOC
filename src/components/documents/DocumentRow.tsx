@@ -54,7 +54,7 @@ export function DocumentRow({
           }}
           disabled={!previewable}
           aria-label="Voorbeeld bekijken"
-          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red-text disabled:cursor-default"
+          className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-petrol-soft text-petrol disabled:cursor-default"
         >
           <FileText size={18} />
         </button>

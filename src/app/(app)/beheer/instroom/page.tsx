@@ -1,10 +1,9 @@
 import type { Metadata } from "next";
-import Link from "next/link";
-import { clsx } from "clsx";
 import { Clock, Inbox, UserPlus, UserSearch, Upload } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Chip } from "@/components/ui/Chip";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { AccessRequestRow, type AccessRequest } from "@/components/invitations/AccessRequestRow";
 import { InviteForm } from "@/components/invitations/InviteForm";
@@ -13,7 +12,7 @@ import { ProspectRow, type Prospect } from "@/components/beheer/ProspectRow";
 import { BulkImportForm } from "@/components/invitations/BulkImportForm";
 import { extendAllInvitationsAction } from "@/app/(app)/beheer/uitnodigingen/actions";
 
-export const metadata: Metadata = { title: "Instroom" };
+export const metadata: Metadata = { title: "Aanvragen" };
 
 // Leden importeren (tab "import") geocodeert elk nieuw bedrijf sequentieel,
 // zie leden-import/actions.ts — geldt voor de hele route, niet alleen die tab.
@@ -141,24 +140,21 @@ export default async function InstroomPage({ searchParams }: { searchParams: Pro
 
   return (
     <div>
-      <PageHeader title="Instroom" />
+      <PageHeader title="Aanvragen" />
 
       {/* sticky: blijft in beeld bij scrollen door een lange lijst (zelfde als
           /beheer/bedrijven). top-14 op mobiel (onder de mobiele header), top-0
           op desktop (geen vaste header daar). */}
       <div className="sticky top-14 z-10 -mx-4 mb-4 flex gap-1.5 overflow-x-auto bg-background px-4 py-2 md:top-0 md:-mx-16 md:px-16">
         {TABS.map((t) => (
-          <Link
+          <Chip
             key={t.key}
             href={t.key === "aanvragen" ? "/beheer/instroom" : `/beheer/instroom?tab=${t.key}`}
-            className={clsx(
-              "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium",
-              activeTab === t.key ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
-            )}
+            active={activeTab === t.key}
           >
             <t.icon size={14} />
             {t.label}
-          </Link>
+          </Chip>
         ))}
       </div>
 

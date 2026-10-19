@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import Image from "next/image";
 import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/Button";
+import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
 import { Switch } from "@/components/ui/Switch";
 import { FieldError } from "@/components/ui/FieldError";
@@ -196,30 +197,24 @@ export function ActivityForm({
         <div className="flex flex-col gap-1.5">
           <span className="text-sm font-medium text-foreground">Type</span>
           <div className="flex gap-1.5">
-            <button
-              type="button"
+            <Chip
               onClick={() => {
                 setSource("voc");
                 setDirty(true);
               }}
-              className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-                source === "voc" ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
-              }`}
+              active={source === "voc"}
             >
               Activiteit
-            </button>
-            <button
-              type="button"
+            </Chip>
+            <Chip
               onClick={() => {
                 setSource("lid");
                 setDirty(true);
               }}
-              className={`rounded-full px-3 py-1.5 text-sm font-medium ${
-                source === "lid" ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
-              }`}
+              active={source === "lid"}
             >
               Externe activiteit
-            </button>
+            </Chip>
           </div>
           {source === "lid" && (
             <p className="text-xs text-muted">Moet eerst worden goedgekeurd.</p>

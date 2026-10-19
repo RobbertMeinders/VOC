@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { List, Map as MapIcon } from "lucide-react";
 import { clsx } from "clsx";
 import { FilterControl, type ListToolbarFilter } from "@/components/ui/ListToolbar";
+import { SegmentedControl } from "@/components/ui/SegmentedControl";
 import { CompanyCard, type CompanyListItem } from "./CompanyCard";
 import type { MappableCompany } from "./CompanyMap";
 
@@ -26,12 +27,19 @@ export function BedrijvenView({
   // kolommen; alleen de website-embed (geen sidebar, meer ruimte) krijgt er
   // een 3e bij.
   threeColumns = false,
+  // Vanuit het hamburgermenu ("Bedrijvenkaart") opent /bedrijven?view=kaart
+  // al in kaartweergave — uitgelezen door de aanroeper (BedrijvenListClient,
+  // al binnen een Suspense-grens) i.p.v. hier zelf met useSearchParams: dit
+  // component wordt ook vanuit de website-embed gebruikt, die niet in een
+  // Suspense-grens zit.
+  initialView = "lijst",
 }: {
   items: MapCapableCompany[];
   filter?: ListToolbarFilter;
   threeColumns?: boolean;
+  initialView?: "lijst" | "kaart";
 }) {
-  const [view, setView] = useState<"lijst" | "kaart">("lijst");
+  const [view, setView] = useState<"lijst" | "kaart">(initialView);
 
   const withLocation: MappableCompany[] = items.filter(
     (c): c is MapCapableCompany & { latitude: number; longitude: number } => c.latitude !== null && c.longitude !== null
@@ -44,30 +52,33 @@ export function BedrijvenView({
           hier ook inhoudelijk bij elkaar (beide bepalen de weergave van
           dezelfde lijst). */}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="inline-flex rounded-lg border border-border bg-surface p-1">
-          <button
-            type="button"
-            onClick={() => setView("lijst")}
-            className={clsx(
-              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
-              view === "lijst" ? "bg-voc-red text-white" : "text-muted hover:text-foreground"
-            )}
-          >
-            <List size={14} />
-            Lijst
-          </button>
-          <button
-            type="button"
-            onClick={() => setView("kaart")}
-            className={clsx(
-              "flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium",
-              view === "kaart" ? "bg-voc-red text-white" : "text-muted hover:text-foreground"
-            )}
-          >
-            <MapIcon size={14} />
-            Kaart
-          </button>
-        </div>
+        <SegmentedControl
+          items={[
+            {
+              key: "lijst",
+              active: view === "lijst",
+              onClick: () => setView("lijst"),
+              label: (
+                <span className="flex items-center justify-center gap-1.5">
+                  <List size={14} />
+                  Lijst
+                </span>
+              ),
+            },
+            {
+              key: "kaart",
+              active: view === "kaart",
+              onClick: () => setView("kaart"),
+              label: (
+                <span className="flex items-center justify-center gap-1.5">
+                  <MapIcon size={14} />
+                  Kaart
+                </span>
+              ),
+            },
+          ]}
+          className="w-auto"
+        />
         {filter && <FilterControl filter={filter} />}
       </div>
 

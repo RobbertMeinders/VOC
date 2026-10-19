@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { clsx } from "clsx";
 import { Megaphone, Plus, Users, Bell } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { Chip } from "@/components/ui/Chip";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { CommunicationRow } from "@/components/beheer/CommunicationRow";
 import { NotificationRuleRow } from "@/components/beheer/NotificationRuleRow";
@@ -13,7 +13,7 @@ import { createCommunicationAction } from "./actions";
 import { CONFIGURABLE_NOTIFICATION_TYPES, ROLE_BASED_NOTIFICATION_TYPES, type ConfigurableNotificationType } from "@/lib/notifications/type-labels";
 import type { Database } from "@/lib/types/database";
 
-export const metadata: Metadata = { title: "Communicatie" };
+export const metadata: Metadata = { title: "Nieuwsbrieven" };
 
 type Communication = Database["public"]["Tables"]["communications"]["Row"] & {
   activity: { title: string } | null;
@@ -142,21 +142,18 @@ export default async function BeheerCommunicatiePage({ searchParams }: { searchP
 
   return (
     <div className="flex flex-col gap-4">
-      <PageHeader title="Communicatie" description="Nieuwsbrieven en notificatieregels op één plek." />
+      <PageHeader title="Nieuwsbrieven" description="Nieuwsbrieven en notificatieregels op één plek." />
 
       <div className="flex gap-1.5 overflow-x-auto">
         {TABS.map((t) => (
-          <Link
+          <Chip
             key={t.key}
             href={t.key === "nieuwsbrieven" ? "/beheer/communicatie" : `/beheer/communicatie?tab=${t.key}`}
-            className={clsx(
-              "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium",
-              activeTab === t.key ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
-            )}
+            active={activeTab === t.key}
           >
             <t.icon size={14} />
             {t.label}
-          </Link>
+          </Chip>
         ))}
       </div>
 

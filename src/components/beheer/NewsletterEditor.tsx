@@ -156,7 +156,7 @@ function AlignButtons({ value, onChange }: { value: NewsletterAlign | undefined;
           title={label}
           aria-label={label}
           className={`flex h-9 w-9 items-center justify-center rounded-full ${
-            active === key ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
+            active === key ? "bg-foreground text-background" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
           }`}
         >
           <Icon size={16} />
@@ -476,7 +476,7 @@ function BlockEditor({
                 type="button"
                 onClick={() => onChange({ ...block, layout })}
                 className={`rounded-full px-4 py-2 text-sm font-medium ${
-                  block.layout === layout ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
+                  block.layout === layout ? "bg-foreground text-background" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
                 }`}
               >
                 {layout === "full" ? "Volledige breedte" : layout === "left" ? "Foto links" : "Foto rechts"}
@@ -567,7 +567,7 @@ function PreviewToggleButton({
       type="button"
       onClick={onClick}
       className={`flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-medium ${
-        active ? "bg-voc-red text-white" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
+        active ? "bg-foreground text-background" : "bg-black/[.06] text-muted dark:bg-white/[.08]"
       }`}
     >
       {children}

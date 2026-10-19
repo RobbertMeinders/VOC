@@ -40,7 +40,9 @@ function AttendanceCheckbox({ attendee, activityId }: { attendee: Attendee; acti
       aria-label={attended ? "Gemarkeerd als aanwezig geweest" : "Markeer als aanwezig geweest"}
       className={clsx(
         "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border disabled:opacity-50",
-        attended ? "border-voc-red bg-voc-red text-white" : "border-border text-transparent hover:border-voc-red"
+        attended
+          ? "border-status-success bg-status-success text-white"
+          : "border-border text-transparent hover:border-status-success"
       )}
     >
       <Check size={14} />

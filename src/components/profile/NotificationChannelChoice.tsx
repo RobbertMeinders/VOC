@@ -15,15 +15,16 @@ function toChoice(push: boolean, email: boolean): Choice {
 }
 
 const OPTIONS: { value: Choice; label: string }[] = [
-  { value: "push", label: "Push" },
+  { value: "push", label: "App" },
   { value: "email", label: "E-mail" },
   { value: "both", label: "Beide" },
-  { value: "none", label: "Geen" },
+  { value: "none", label: "Uit" },
 ];
 
 // Communicatieplan: één keuze i.p.v. losse push/e-mail-schakelaars. Zelfde
-// segment-pil-stijl als ThemeToggle (bg-background-pil met een rode actieve
-// knop) i.p.v. een <select> — een dropdown stak qua gewicht en, in donker
+// segment-pil-stijl als ThemeToggle (bg-background-pil, actieve knop in
+// inkt — "rood op dieet": een actief segment is geen rode knop) i.p.v. een
+// <select> — een dropdown stak qua gewicht en, in donker
 // thema, qua contrast af tegen de schakelaars verderop op dezelfde pagina.
 // Geen flex-wrap: dat brak de 4 opties op mobiel lelijk over 2-3 ongelijke
 // regels (de rij in instellingen/page.tsx staat daarom op mobiel onder het
@@ -69,7 +70,7 @@ export function NotificationChannelChoice({
             onClick={() => handleChange(value)}
             className={clsx(
               "flex-1 rounded-md px-2.5 py-1 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none",
-              choice === value ? "bg-voc-red text-white" : "text-muted hover:text-foreground"
+              choice === value ? "bg-foreground text-background" : "text-muted hover:text-foreground"
             )}
           >
             {label}

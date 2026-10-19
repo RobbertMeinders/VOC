@@ -100,7 +100,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
           <CompanyLogo logoUrl={shownLogo} name={company.name} size={72} />
           <label
             htmlFor="logo"
-            className="absolute -bottom-1 -right-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-voc-red text-white shadow-sm hover:bg-voc-red-dark"
+            className="absolute -bottom-1 -right-1 flex h-7 w-7 cursor-pointer items-center justify-center rounded-full bg-petrol text-white shadow-sm hover:opacity-90"
           >
             <Camera size={14} />
           </label>
