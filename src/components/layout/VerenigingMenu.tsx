@@ -6,12 +6,14 @@ import { ChevronDown, FileText, Handshake, Info, Newspaper, UserCheck, UsersRoun
 import { clsx } from "clsx";
 import { useOverlay } from "@/lib/ui/OverlayContext";
 
+// Nieuws bovenaan (op gebruikersverzoek): meest actuele/bekeken link van
+// deze groep, hoort als eerste in beeld i.p.v. onderaan.
 const LINKS: { href: string; label: string; icon: LucideIcon }[] = [
+  { href: "/nieuws", label: "Nieuws", icon: Newspaper },
   { href: "/vereniging/over-ons", label: "Over de VOC", icon: Info },
   { href: "/vereniging/bestuur", label: "Bestuur", icon: UserCheck },
   { href: "/vereniging/commissies", label: "Commissies", icon: UsersRound },
   { href: "/documenten", label: "Documenten", icon: FileText },
-  { href: "/nieuws", label: "Nieuws", icon: Newspaper },
 ];
 
 // Vervangt het losse "Documenten"-item in de hoofdnavigatie (VOC Hub —
