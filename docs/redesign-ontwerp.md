@@ -136,6 +136,67 @@ De vier losse kleurmaps (`lib/feed/postType.ts`, `lib/auth/roles.ts`, `BeheerAge
 - Icoonmaten terugbrengen naar 14 / 16 / 20.
 - Gedachtestreepjes in UI-teksten vervangen; een en-dash in tijdsbereiken mag blijven.
 
+## Wat verandert waar (overzicht)
+
+| Onderdeel | Plek en structuur | Wat er verandert |
+|---|---|---|
+| Zijbalk desktop, balk onderin mobiel, mobiele kop | **ongewijzigd** (zelfde onderdelen, volgorde en labels) | alleen kleuren; actief item blijft rood |
+| Beheer (`/beheer/*`) | gewone zijbalk wordt vervangen door de beheerzijbalk | donkerpetrol zijbalk met link "Terug naar portaal" bovenaan |
+| Home | zelfde route | nieuwe opbouw: welkomstblok met activiteit, snelle acties, Nieuw in het netwerk, nieuws |
+| Agenda | zelfde route en filters | weekstrook plus tijdlijn in plaats van losse kaarten met grote foto |
+| Community | zelfde route, opstelveld blijft op desktop | op mobiel komt de zwevende knop "Bericht" in plaats van het opstelveld bovenaan; labels in kleur |
+| Netwerk (leden en bedrijven) | **ongewijzigd** (lijst) | foto's groter, initialen petrol, segmentknop en filter in nieuwe stijl |
+| Overige pagina's | ongewijzigd | alleen tokens, componenten, kopletter en rode hero's naar petrol |
+
+## Desktop
+
+De voorbeeldschermen zijn mobiel (behalve Beheer). Op desktop:
+- **Home** (binnen de bestaande contentbreedte):
+  - het welkomstblok als brede banner: begroeting links, de kaart met de eerstvolgende activiteit rechts;
+  - daaronder twee kolommen: links het nieuws met foto (breed), rechts "Nieuw in het netwerk" en de snelle acties als lijst of tegels.
+- **Agenda**: weekstrook en tijdlijn in een kolom van maximaal `max-w-3xl`, zoals nu.
+- **Community**: geen zwevende knop; het opstelveld blijft bovenaan de feed. Kaarten zoals op mobiel.
+- **Beheer**: zie het voorbeeld (zijbalk 196–240 px, inhoud met verloop bovenaan).
+
+## Maten en details (uit de voorbeeldschermen)
+
+Kleurwaarden staan in `docs/stijl-kleurenpalet.md`. Aanvullend:
+- **Welkomstblok en beheerzijbalk (donkerpetrol)**:
+  - licht: `radial-gradient(120% 80% at 100% 0%, #1B6A73 0%, transparent 55%), linear-gradient(165deg, #0B2E33 0%, #0E4249 100%)`;
+  - donker: dezelfde opbouw met `#15545B`, `#081F23` en `#0B2E33`;
+  - tekst wit, het kleine kopje (datum) `#9FD3D6`, het VOC-logo erop `#FF3B45`;
+  - geen decoratie, geen glas en geen blur.
+- **Kaart eerstvolgende activiteit** in het welkomstblok:
+  - gewone kaart (surface), radius 16 px, lichte schaduw;
+  - datumtegel 46 px breed, rood, wit, maand in 9–10 px hoofdletters, dag 22 px in de kopletter;
+  - de knop "Aanmelden" volle breedte, rood. Bij een bestaande aanmelding de status "Aangemeld" (groen label) in plaats van de knop.
+- **Snelle acties**:
+  - 4 tegels van 48 px, radius 16, surface met lichte schaduw, icoon petrol 18 px, label 10–11 px eronder;
+  - op mobiel staan ze direct onder het welkomstblok en nooit tegen de navigatie onderin.
+- **Nieuw in het netwerk**: ronde avatars van 44 px, de foto of anders initialen; voornaam eronder; geen ring en geen rand.
+- **Nieuws**: kaart met de foto bovenaan (ongeveer 96–180 px hoog), een wit label "Nieuws" linksboven, de titel in de kopletter. Bij meerdere berichten blijft vegen mogelijk zoals nu.
+- **Kopletter-maten**:
+  - paginatitel 28 px (mobiel) tot 32 px (desktop), gewicht 800, letter-spacing -0.03em;
+  - begroeting Home 25 px;
+  - sectiekoppen 16 px, gewicht 700;
+  - grote cijfers 22–26 px.
+- **Kaarten**: radius 16–18 px; schaduw licht `0 1px 2px rgb(11 46 51 / .06), 0 4px 12px rgb(11 46 51 / .05)`, donker `0 1px 2px rgb(0 0 0 / .35)`; een rand mag blijven waar dat nu helpt.
+- **Agenda-tijdlijn**:
+  - datumkolom 44 px met dag 24 px in de kopletter en weekdag 9.5 px;
+  - verticale lijn 2 px in de lijnkleur;
+  - kaart met een linkerrand van 4 px: rood voor VOC, petrol voor extern;
+  - de activiteitsfoto als band van ongeveer 58 px bovenaan de kaart;
+  - weekstrook: geselecteerde dag gevuld petrol, stip 5 px onder dagen met activiteiten.
+- **Zwevende knop Community (mobiel)**:
+  - rood, hoogte 46 px, pill, icoon plus tekst "Bericht";
+  - rechtsonder, ongeveer 16 px boven de navigatiebalk.
+- **Labels per soort bericht**: pill met icoon in de labelkleur op de lichte achtergrond van die kleur, zoals in het palet.
+- **Navigatie onderin**: hoogte en opbouw zoals nu; actief = rode tekst en rood icoon, zonder gevulde achtergrond.
+- **Beheer**:
+  - actief item: witte tekst op wit 10%, met een rood streepje van 3 px links;
+  - "Wacht op jou": danger-soft vlak met een rode icoontegel en één knop in inkt;
+  - stattegels met een groot cijfer in de kopletter.
+
 ## Niet aanraken zonder aparte opdracht
 - Nieuwsbrief-renderer en e-mailopmaak (`lib/newsletter/render.ts`, `lib/email/send.ts`, voorbeelden in templateformulieren). Die volgen bewust niet het portaalthema.
 - Database, migraties, beveiligingsregels, authenticatie, e-mail- en pushprocessen.
