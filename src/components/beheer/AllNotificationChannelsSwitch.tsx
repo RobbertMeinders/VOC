@@ -5,13 +5,14 @@ import { useRouter } from "next/navigation";
 import { Switch } from "@/components/ui/Switch";
 import { updateAllNotificationChannelsAction } from "@/app/(app)/beheer/communicatie/notificatieregels-actions";
 
-// Boven de tabel in NotificatieregelsTab: één schakelaar voor push + e-mail
-// op élke regel tegelijk, voor "ik wil nu even helemaal niets laten
-// versturen". router.refresh() ná een gelukte wijziging, zodat de rijen
-// eronder (die zelf hun laatst-opgeslagen stand onthouden, zie
-// NotificationRuleRow) de nieuwe stand ook echt tonen — de key per rij in
-// de aanroepende server component is aan updated_at gekoppeld, juist om dat
-// op te vangen.
+// Boven de tabel in NotificatieregelsTab: één schakelaar voor de status
+// (enabled) van élke regel tegelijk, voor "ik wil nu even helemaal niets
+// laten versturen" — zonder de kanaalkeuze per regel te overschrijven (zie
+// notificatieregels-actions.ts). router.refresh() ná een gelukte wijziging,
+// zodat de rijen eronder (die zelf hun laatst-opgeslagen stand onthouden,
+// zie NotificationRuleRow) de nieuwe stand ook echt tonen — de key per rij
+// in de aanroepende server component is aan updated_at gekoppeld, juist om
+// dat op te vangen.
 export function AllNotificationChannelsSwitch({ initialEnabled }: { initialEnabled: boolean }) {
   const [enabled, setEnabled] = useState(initialEnabled);
   const [pending, startTransition] = useTransition();
@@ -34,12 +35,12 @@ export function AllNotificationChannelsSwitch({ initialEnabled }: { initialEnabl
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+    <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-4 py-3 shadow-sm">
       <div className="min-w-0">
         <p className="text-sm font-medium text-foreground">Alles</p>
         {error && <p className="mt-1 text-xs text-voc-red-text">{error}</p>}
       </div>
-      <Switch checked={enabled} onChange={handleChange} disabled={pending} label="Push en e-mail voor alle regels" />
+      <Switch checked={enabled} onChange={handleChange} disabled={pending} label="Alle regels aan/uit" />
     </div>
   );
 }

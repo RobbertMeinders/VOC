@@ -48,12 +48,14 @@ export async function updateNotificationRuleAction(
 
 export type UpdateAllNotificationChannelsState = { error?: string };
 
-// Hoofdschakelaar boven de tabel (NotificatieregelsTab): zet push en
-// e-mail voor élke regel in één keer aan/uit, zonder de aparte "aan/uit"-
-// schakelaar per regel, de rollen of in-app aan te raken — alleen de twee
-// kolommen die ook echt uitgaand verkeer bepalen. Bewust geen "vorige
-// stand onthouden": weer aanzetten zet gewoon alles weer aan, net als een
-// enkele regel die je terugzet.
+// Hoofdschakelaar boven de tabel (NotificatieregelsTab): zet de "status"
+// (enabled) van élke regel in één keer aan/uit — dezelfde kolom als de
+// losse schakelaar in de Status-kolom per regel. Bewust NIET channel_push/
+// channel_email: die zet je per regel individueel in, en als de
+// hoofdschakelaar die zou overschrijven dan ben je na uit-en-weer-aanzetten
+// je eigen kanaalkeuze per regel kwijt. Via enabled blijft channel_push/
+// channel_email/roles per regel altijd intact — enabled=false stopt
+// (via notification_dispatch_config) toch alle verzending voor die regel.
 export async function updateAllNotificationChannelsAction(enabled: boolean): Promise<UpdateAllNotificationChannelsState> {
   const profile = await requireBoard();
 
@@ -63,7 +65,7 @@ export async function updateAllNotificationChannelsAction(enabled: boolean): Pro
   // bleek in de praktijk te mislukken.
   const { error } = await supabase
     .from("notification_type_settings")
-    .update({ channel_push: enabled, channel_email: enabled, updated_by: profile.id })
+    .update({ enabled, updated_by: profile.id })
     .not("type", "is", null);
 
   if (error) {
