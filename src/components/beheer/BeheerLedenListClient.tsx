@@ -114,8 +114,8 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                 aria-label={expanded ? "Snel bewerken sluiten" : "Snel bewerken"}
                 aria-expanded={expanded}
                 className={clsx(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-foreground hover:border-voc-red hover:text-voc-red-text",
-                  expanded ? "border-voc-red bg-voc-red-light text-voc-red-text" : "border-border bg-surface"
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-foreground hover:border-muted hover:text-foreground",
+                  expanded ? "border-foreground/20 bg-raised text-foreground" : "border-border bg-surface"
                 )}
               >
                 {expanded ? <ChevronDown size={14} /> : <Pencil size={13} />}

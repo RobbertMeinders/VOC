@@ -20,7 +20,7 @@ const initialState: UpdateOrgProfileState = {};
 const uploadInitialState: UploadOrgHeaderImageState = {};
 
 const TEXTAREA_CLASS =
-  "rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20";
+  "rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -64,7 +64,7 @@ function HeaderImageUpload({ currentImageUrl }: { currentImageUrl: string | null
         </form>
         {currentImageUrl && (
           <form action={removeOrgHeaderImageAction}>
-            <button type="submit" className="text-xs font-medium text-muted hover:text-voc-red-text">
+            <button type="submit" className="text-xs font-medium text-muted hover:text-petrol">
               Foto verwijderen
             </button>
           </form>

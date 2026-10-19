@@ -5,6 +5,7 @@ import Link from "next/link";
 import { formatRelativeTime } from "@/lib/format/date";
 import { resolveReportAction } from "@/app/(app)/beheer/rapportages/actions";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
+import { StatusPill } from "@/components/ui/StatusPill";
 
 const REASON_LABELS: Record<string, string> = {
   ongepast: "Ongepast",
@@ -57,9 +58,7 @@ export function ReportRow({ report }: { report: ReportRowData }) {
   return (
     <div className="flex flex-col gap-2 border-b border-border py-4 last:border-0">
       <div className="flex flex-wrap items-center gap-2">
-        <span className="rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red-text">
-          {REASON_LABELS[report.reason] ?? report.reason}
-        </span>
+        <StatusPill tone="warning">{REASON_LABELS[report.reason] ?? report.reason}</StatusPill>
         <span className="text-xs text-muted">
           Gerapporteerd door {report.reporterName} · {formatRelativeTime(report.createdAt)}
         </span>

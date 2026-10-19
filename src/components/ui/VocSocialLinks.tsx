@@ -17,7 +17,7 @@ export function VocSocialLinks({ className }: { className?: string }) {
           rel="noopener noreferrer"
           aria-label={`VOC op ${label}`}
           title={`VOC op ${label}`}
-          className="flex h-10 w-10 items-center justify-center rounded-xl border border-border text-muted hover:border-voc-red hover:text-voc-red-text"
+          className="flex h-10 w-10 items-center justify-center rounded-xl border border-border text-muted hover:border-muted hover:text-foreground"
         >
           <Icon />
         </a>

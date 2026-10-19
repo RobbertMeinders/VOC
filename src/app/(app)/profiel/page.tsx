@@ -60,7 +60,7 @@ export default async function ProfielPage() {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Link
               href={`/bedrijven/${membership.company.id}`}
-              className="flex items-center gap-2 text-sm text-foreground hover:text-voc-red-text"
+              className="flex items-center gap-2 text-sm text-foreground hover:text-petrol"
             >
               <Building2 size={16} className="text-muted" />
               Werkzaam bij <span className="font-medium">{membership.company.name}</span>
@@ -76,7 +76,7 @@ export default async function ProfielPage() {
                 hoofdactie van deze pagina. */}
             <Link
               href={`/bedrijven/${membership.company.id}/bewerken`}
-              className="flex items-center gap-1 text-xs text-muted hover:text-voc-red-text"
+              className="flex items-center gap-1 text-xs text-muted hover:text-petrol"
             >
               <Pencil size={11} />
               Bedrijfsgegevens bewerken

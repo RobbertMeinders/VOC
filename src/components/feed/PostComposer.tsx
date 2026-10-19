@@ -256,7 +256,7 @@ function PostComposerForm({
               type="button"
               onClick={onClose}
               aria-label="Sluiten"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
+              className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]"
             >
               <X size={16} />
             </button>
@@ -272,11 +272,11 @@ function PostComposerForm({
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              className={clsx("p-4", dragActive && "bg-voc-red-light")}
+              className={clsx("p-4", dragActive && "bg-petrol-soft")}
             >
               <input type="hidden" name="type" value={chosen} />
               {dragActive && (
-                <p className="mb-2 text-center text-xs font-medium text-voc-red-text">Zet bestanden hier neer om toe te voegen</p>
+                <p className="mb-2 text-center text-xs font-medium text-petrol">Zet bestanden hier neer om toe te voegen</p>
               )}
 
               <div className="mb-2 flex items-center gap-1.5 text-xs text-muted sm:ml-[52px]">
@@ -303,7 +303,7 @@ function PostComposerForm({
               </div>
 
               <div className="mt-3 sm:ml-[52px]">
-                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-4 text-sm font-medium text-muted hover:border-voc-red hover:text-voc-red-text">
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-4 text-sm font-medium text-muted hover:border-muted hover:text-foreground">
                   <Upload size={22} />
                   Foto&apos;s of PDF toevoegen
                   <input

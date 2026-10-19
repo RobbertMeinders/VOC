@@ -21,9 +21,9 @@ export function NewActivityFlow({ board }: { board: boolean }) {
           <button
             type="button"
             onClick={() => setSource("voc")}
-            className="flex flex-1 items-start gap-3 rounded-2xl border border-border bg-surface p-4 text-left shadow-sm hover:border-voc-red"
+            className="flex flex-1 items-start gap-3 rounded-2xl border border-border bg-surface p-4 text-left shadow-sm hover:border-muted"
           >
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red-text">
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-petrol-soft text-petrol">
               <CalendarDays size={20} />
             </span>
             <span>
@@ -34,7 +34,7 @@ export function NewActivityFlow({ board }: { board: boolean }) {
           <button
             type="button"
             onClick={() => setSource("lid")}
-            className="flex flex-1 items-start gap-3 rounded-2xl border border-border bg-surface p-4 text-left shadow-sm hover:border-voc-red"
+            className="flex flex-1 items-start gap-3 rounded-2xl border border-border bg-surface p-4 text-left shadow-sm hover:border-muted"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/[.06] text-muted dark:bg-white/[.08]">
               <Users size={20} />

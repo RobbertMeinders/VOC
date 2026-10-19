@@ -94,7 +94,7 @@ function SearchPanel({ close }: { close: () => void }) {
               type="button"
               onClick={close}
               aria-label="Sluiten"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]"
             >
               <X size={18} />
             </button>
@@ -126,7 +126,7 @@ function SearchPanel({ close }: { close: () => void }) {
                     ) : item.type === "member" || item.type === "company" ? (
                       <span
                         className={clsx(
-                          "flex h-8 w-8 shrink-0 items-center justify-center bg-voc-red-light text-xs font-medium text-voc-red-text",
+                          "flex h-8 w-8 shrink-0 items-center justify-center bg-petrol-soft text-xs font-medium text-petrol",
                           item.type === "member" ? "rounded-full" : "rounded-lg"
                         )}
                       >
@@ -186,8 +186,8 @@ export function SearchOverlay({ variant }: { variant: "sidebar" | "mobile" }) {
           onClick={toggle}
           aria-label="Zoeken"
           className={clsx(
-            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]",
-            open && "bg-voc-red-light text-voc-red-text"
+            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]",
+            open && "bg-raised text-foreground"
           )}
         >
           <Search size={16} />

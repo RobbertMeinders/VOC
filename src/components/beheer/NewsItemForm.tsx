@@ -66,7 +66,7 @@ export function NewsItemForm({
         aria-label="Tekst"
         defaultValue={item?.body}
         required
-        className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
       />
 
       <div className="flex flex-col gap-1.5">

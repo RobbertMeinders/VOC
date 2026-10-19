@@ -158,10 +158,21 @@ function AppShellBody({
         />
       )}
       <MobileHeader unread={unread} logoUrl={logoUrl} siteName={siteName} />
-      <main id="main-content" tabIndex={-1} className="pb-20 focus:outline-none md:ml-72 md:pb-0">
+      <main id="main-content" tabIndex={-1} className="relative pb-20 focus:outline-none md:ml-72 md:pb-0">
+        {/* Zacht verloop bovenaan het hoofdgebied (sfeerronde-aanvulling):
+            volle breedte naast de zijbalk, niet beperkt tot de gecentreerde
+            inhoudskolom hieronder — vandaar hier op main zelf i.p.v. op de
+            kolom. Was een losse variant per pagina (Agenda's eigen
+            .bg-top-gradient); nu één plek voor alle gewone pagina's én
+            Beheer. */}
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-60"
+          style={{ backgroundImage: "linear-gradient(180deg, var(--petrol-soft) 0%, transparent 100%)" }}
+        />
         <div
           className={clsx(
-            "w-full px-4 py-6",
+            "relative w-full px-4 py-6",
             wide ? "md:px-16 md:py-10" : "mx-auto max-w-2xl md:max-w-6xl md:px-8 md:py-10"
           )}
         >

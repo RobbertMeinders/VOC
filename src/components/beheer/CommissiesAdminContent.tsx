@@ -177,7 +177,7 @@ function CommissionCard({ commission, memberOptions }: { commission: CommissionA
             type="button"
             onClick={() => setEditing((v) => !v)}
             aria-label="Bewerken"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red-text"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-muted hover:text-foreground"
           >
             <Pencil size={13} />
           </button>
@@ -187,7 +187,7 @@ function CommissionCard({ commission, memberOptions }: { commission: CommissionA
             disabled={isPending}
             aria-label={commission.archivedAt ? "Herstellen" : "Archiveren"}
             title={commission.archivedAt ? "Herstellen" : "Archiveren"}
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red-text disabled:opacity-50"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-muted hover:text-foreground disabled:opacity-50"
           >
             {commission.archivedAt ? <ArchiveRestore size={13} /> : <Archive size={13} />}
           </button>
@@ -195,7 +195,7 @@ function CommissionCard({ commission, memberOptions }: { commission: CommissionA
             <DeleteButton
               onDelete={() => deleteCommissionAction(commission.id)}
               confirmMessage={`Weet je zeker dat je ${commission.name} definitief wilt verwijderen? Dit verwijdert ook de ledenlijst en aanmeldingen van deze commissie.`}
-              className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-voc-red"
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-muted"
               size={13}
             />
           )}
@@ -204,8 +204,8 @@ function CommissionCard({ commission, memberOptions }: { commission: CommissionA
             onClick={() => setExpanded((v) => !v)}
             aria-label={expanded ? "Inklappen" : "Leden en aanmeldingen beheren"}
             className={clsx(
-              "flex h-8 w-8 items-center justify-center rounded-full border text-foreground hover:border-voc-red hover:text-voc-red-text",
-              expanded ? "border-voc-red bg-voc-red-light text-voc-red-text" : "border-border bg-surface"
+              "flex h-8 w-8 items-center justify-center rounded-full border text-foreground hover:border-muted hover:text-foreground",
+              expanded ? "border-foreground/20 bg-raised text-foreground" : "border-border bg-surface"
             )}
           >
             <ChevronDown size={14} className={clsx("transition-transform", expanded && "rotate-180")} />
@@ -246,7 +246,7 @@ function CommissionCard({ commission, memberOptions }: { commission: CommissionA
                       type="button"
                       disabled={isPending}
                       onClick={() => handleDecide(application.id, true)}
-                      className="rounded-full bg-voc-red px-3 py-1 text-xs font-medium text-white hover:bg-voc-red-dark disabled:opacity-50"
+                      className="rounded-full bg-status-success px-3 py-1 text-xs font-medium text-white hover:opacity-90 disabled:opacity-50"
                     >
                       Goedkeuren
                     </button>
@@ -254,7 +254,7 @@ function CommissionCard({ commission, memberOptions }: { commission: CommissionA
                       type="button"
                       disabled={isPending}
                       onClick={() => handleDecide(application.id, false)}
-                      className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted hover:text-voc-red-text disabled:opacity-50"
+                      className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted hover:text-foreground disabled:opacity-50"
                     >
                       Afwijzen
                     </button>
@@ -281,7 +281,7 @@ function CommissionCard({ commission, memberOptions }: { commission: CommissionA
                       disabled={isPending}
                       onClick={() => handleRemoveMember(member.profileId)}
                       aria-label="Verwijderen uit commissie"
-                      className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:text-voc-red-text disabled:opacity-50"
+                      className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:text-foreground disabled:opacity-50"
                     >
                       <X size={14} />
                     </button>
@@ -328,7 +328,7 @@ export function CommissiesAdminContent({ commissions, memberOptions }: { commiss
         <button
           type="button"
           onClick={() => setShowNewForm(true)}
-          className="flex items-center justify-center gap-1.5 self-start rounded-full border border-border bg-surface px-3.5 py-2 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red-text"
+          className="flex items-center justify-center gap-1.5 self-start rounded-full border border-border bg-surface px-3.5 py-2 text-sm font-medium text-foreground hover:border-muted hover:text-foreground"
         >
           <Plus size={15} />
           Nieuwe commissie

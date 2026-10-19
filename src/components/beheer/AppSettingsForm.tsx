@@ -70,7 +70,7 @@ function LogoUpload({ currentLogoUrl }: { currentLogoUrl: string | null }) {
           </form>
           {(currentLogoUrl || state.logoUrl) && (
             <form action={removeAppLogoAction}>
-              <button type="submit" className="text-xs font-medium text-muted hover:text-voc-red-text">
+              <button type="submit" className="text-xs font-medium text-muted hover:text-petrol">
                 Terug naar het standaardlogo
               </button>
             </form>
@@ -140,7 +140,7 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
             rows={16}
             defaultValue={settings.privacy_content}
             required
-            className="rounded-lg border border-input-border bg-surface px-3 py-2 font-mono text-xs text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+            className="rounded-lg border border-input-border bg-surface px-3 py-2 font-mono text-xs text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
           />
         </div>
 

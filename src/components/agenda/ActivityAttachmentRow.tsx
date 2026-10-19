@@ -16,7 +16,7 @@ export function ActivityAttachmentRow({
 }) {
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-sm">
-      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-voc-red-light text-voc-red-text">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-petrol-soft text-petrol">
         <FileText size={18} />
       </div>
       <p className="min-w-0 flex-1 truncate text-sm font-medium text-foreground">{attachment.file_name}</p>
@@ -25,7 +25,7 @@ export function ActivityAttachmentRow({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:border-voc-red"
+          className="rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:border-muted"
         >
           Downloaden
         </a>

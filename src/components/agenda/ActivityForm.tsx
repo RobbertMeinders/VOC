@@ -88,7 +88,7 @@ function NotifyChangePanel({ activityId, suggestedMessage }: { activityId: strin
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         rows={2}
-        className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
       />
       <div className="flex items-center gap-2">
         <Button
@@ -238,7 +238,7 @@ export function ActivityForm({
           name="description"
           rows={4}
           defaultValue={activity?.description ?? ""}
-          className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+          className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
         />
       </div>
 

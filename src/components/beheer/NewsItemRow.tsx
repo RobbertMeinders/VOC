@@ -47,7 +47,7 @@ export function NewsItemRow({
           disabled={isFirst || isPending}
           title="Omhoog"
           aria-label="Naar boven verplaatsen"
-          className="flex h-6 w-6 items-center justify-center rounded text-muted hover:bg-black/[.04] hover:text-voc-red-text disabled:opacity-25 disabled:hover:bg-transparent dark:hover:bg-white/[.08]"
+          className="flex h-6 w-6 items-center justify-center rounded text-muted hover:bg-black/[.04] hover:text-foreground disabled:opacity-25 disabled:hover:bg-transparent dark:hover:bg-white/[.08]"
         >
           <ChevronUp size={16} />
         </button>
@@ -57,7 +57,7 @@ export function NewsItemRow({
           disabled={isLast || isPending}
           title="Omlaag"
           aria-label="Naar beneden verplaatsen"
-          className="flex h-6 w-6 items-center justify-center rounded text-muted hover:bg-black/[.04] hover:text-voc-red-text disabled:opacity-25 disabled:hover:bg-transparent dark:hover:bg-white/[.08]"
+          className="flex h-6 w-6 items-center justify-center rounded text-muted hover:bg-black/[.04] hover:text-foreground disabled:opacity-25 disabled:hover:bg-transparent dark:hover:bg-white/[.08]"
         >
           <ChevronDown size={16} />
         </button>
@@ -75,7 +75,7 @@ export function NewsItemRow({
         onClick={() => setEditing(true)}
         title="Bewerken"
         aria-label="Bewerken"
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
+        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]"
       >
         <Pencil size={16} />
       </button>

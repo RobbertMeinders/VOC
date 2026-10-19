@@ -16,6 +16,7 @@ import { ActivityDetailActionsMenu } from "@/components/agenda/ActivityDetailAct
 import { ActivityAttachmentRow } from "@/components/agenda/ActivityAttachmentRow";
 import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
 import { ApproveActivityForm } from "@/components/agenda/ApproveActivityForm";
+import { StatusPill } from "@/components/ui/StatusPill";
 import { deleteActivityAction, decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
 import { logEvent } from "@/lib/events/log";
 import type { Database } from "@/lib/types/database";
@@ -186,27 +187,26 @@ export async function ActivityDetailContent({ id }: { id: string }) {
                 </span>
               )}
               {activity.status === "pending" && (
-                <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
-                  <Clock size={11} />
+                <StatusPill tone="warning" icon={Clock}>
                   Ter goedkeuring
-                </span>
+                </StatusPill>
               )}
+              {/* "Afgewezen" is geen echte fout meer (rood blijft voorbehouden
+                  aan "Afgelast" en echte fouten) — neutraal i.p.v. rood. */}
               {activity.status === "rejected" && (
-                <span className="flex items-center gap-1 rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red-text">
-                  <XCircle size={11} />
+                <StatusPill tone="neutral" icon={XCircle}>
                   Afgewezen
-                </span>
+                </StatusPill>
               )}
               {activity.status === "cancelled" && (
-                <span className="flex items-center gap-1 rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red-text">
-                  <XCircle size={11} />
+                <StatusPill tone="danger" icon={XCircle}>
                   Afgelast
-                </span>
+                </StatusPill>
               )}
             </div>
           )}
           {activity.status === "rejected" && activity.rejection_reason && (
-            <p className="mb-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+            <p className="mb-2 rounded-lg bg-status-neutral-soft px-3 py-2 text-sm text-status-neutral">
               {activity.rejection_reason}
             </p>
           )}
@@ -268,7 +268,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
             )}
             <a
               href={`/agenda/${activity.id}/ics`}
-              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-voc-red-text"
+              className="mt-3 inline-flex items-center gap-1.5 text-xs font-medium text-muted hover:text-foreground"
             >
               <Download size={13} />
               Zet in je agenda
@@ -343,7 +343,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
         <div className="flex flex-wrap items-center gap-2">
           <Link
             href={`/agenda/${activity.id}/bewerken`}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red"
+            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-muted"
           >
             <Pencil size={14} />
             Bewerken
@@ -364,7 +364,7 @@ export async function ActivityDetailContent({ id }: { id: string }) {
         <DeleteButton
           onDelete={deleteActivityAction.bind(null, activity.id)}
           confirmMessage="Weet je zeker dat je deze inzending wilt intrekken?"
-          className="flex items-center gap-1.5 self-start rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red-text hover:border-voc-red"
+          className="flex items-center gap-1.5 self-start rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red-text hover:border-muted"
         />
       )}
     </div>

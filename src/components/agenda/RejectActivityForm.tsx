@@ -60,7 +60,7 @@ export function RejectActivityForm({
         rows={3}
         required
         placeholder="Toelichting voor de indiener…"
-        className="mt-2 w-full resize-none rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        className="mt-2 w-full resize-none rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
       />
       <div className="mt-2 flex items-center gap-2">
         <button

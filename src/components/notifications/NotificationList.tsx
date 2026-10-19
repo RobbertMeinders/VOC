@@ -82,7 +82,7 @@ export function NotificationList({ notifications: initialNotifications }: { noti
             title="Verwijderen"
             aria-label="Verwijderen"
             onClick={() => handleDelete(n.id)}
-            className="mt-0.5 text-muted hover:text-voc-red-text"
+            className="mt-0.5 text-muted hover:text-foreground"
           >
             <X size={14} />
           </button>

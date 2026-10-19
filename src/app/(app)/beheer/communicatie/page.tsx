@@ -49,7 +49,7 @@ async function NieuwsbrievenTab() {
         <form action={createCommunicationAction} className="flex-1 sm:flex-none">
           <button
             type="submit"
-            className="flex w-full items-center justify-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark sm:w-auto"
+            className="flex w-full items-center justify-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06] sm:w-auto"
           >
             <Plus size={16} />
             Nieuwe nieuwsbrief

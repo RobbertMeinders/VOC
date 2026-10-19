@@ -60,10 +60,10 @@ export function LineTrend({
         stroke="var(--border)"
         strokeWidth={1}
       />
-      <path d={areaPath} fill="var(--voc-red)" opacity={0.08} />
-      <path d={linePath} fill="none" stroke="var(--voc-red)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
+      <path d={areaPath} fill="var(--chart-primary)" opacity={0.08} />
+      <path d={linePath} fill="none" stroke="var(--chart-primary)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
       {points.map((p, i) => (
-        <circle key={p.month} cx={x(i)} cy={y(p.value)} r={3} fill="var(--voc-red)">
+        <circle key={p.month} cx={x(i)} cy={y(p.value)} r={3} fill="var(--chart-primary)">
           <title>{`${p.label}: ${p.value}${suffix}`}</title>
         </circle>
       ))}
@@ -171,8 +171,8 @@ export function Funnel({ steps }: { steps: { label: string; value: number }[] })
           <span className="w-24 shrink-0 text-xs text-muted">{s.label}</span>
           <div className="h-6 flex-1 rounded-md bg-black/[.04] dark:bg-white/[.06]">
             <div
-              className="h-full rounded-md bg-voc-red"
-              style={{ width: `${Math.max((s.value / max) * 100, s.value > 0 ? 3 : 0)}%` }}
+              className="h-full rounded-md"
+              style={{ backgroundColor: "var(--chart-primary)", width: `${Math.max((s.value / max) * 100, s.value > 0 ? 3 : 0)}%` }}
             />
           </div>
           <span className="w-12 shrink-0 text-right text-sm font-semibold text-foreground">{s.value}</span>

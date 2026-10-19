@@ -3,26 +3,19 @@
 import { useState } from "react";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { ActionMenu, type ActionMenuItem } from "@/components/ui/ActionMenu";
+import { StatusPill } from "@/components/ui/StatusPill";
 import { isInvitationExpired, type Invitation } from "./InvitationList";
 import { extendInvitationAction, revokeInvitationAction, sendInvitationEmailAction } from "@/app/(app)/beheer/uitnodigingen/actions";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 
 function StatusBadge({ invitation }: { invitation: Invitation }) {
   if (isInvitationExpired(invitation)) {
-    return <span className="rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red-text">Verlopen</span>;
+    return <StatusPill tone="warning">Verlopen</StatusPill>;
   }
   if (invitation.last_sent_at) {
-    return (
-      <span className="rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-500/10 dark:text-green-400">
-        Verstuurd {new Date(invitation.last_sent_at).toLocaleDateString("nl-NL")}
-      </span>
-    );
+    return <StatusPill tone="success">Verstuurd {new Date(invitation.last_sent_at).toLocaleDateString("nl-NL")}</StatusPill>;
   }
-  return (
-    <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-xs font-medium text-muted dark:bg-white/[.08]">
-      Niet verstuurd
-    </span>
-  );
+  return <StatusPill tone="neutral">Niet verstuurd</StatusPill>;
 }
 
 export function InvitationRow({

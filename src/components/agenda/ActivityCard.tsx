@@ -110,12 +110,12 @@ export function ActivityCard({
     );
   }
 
-  // Redesign: tijdlijnkaart — foto (indien aanwezig) als smalle band
-  // bovenaan i.p.v. een vierkante thumbnail naast de tekst, met een
-  // gekleurde linkerrand per soort (rood = VOC, petrol = extern). De
-  // datumkolom zelf staat ernaast, in de aanroeper (agenda/page.tsx), zodat
-  // deze kaart niet hoeft te weten of 'ie in een tijdlijn staat — alleen tijd
-  // (+ plaats) hierbinnen, anders staat de datum er dubbel.
+  // Redesign (sfeerronde-aanvulling): tijdlijnkaart — foto als vierkante
+  // thumbnail links i.p.v. een band bovenaan, zodat kaarten zonder foto er
+  // (met het kalender-tegeltje) gelijk mee uitlijnen. Gekleurde linkerrand
+  // per soort (rood = VOC, petrol = extern) blijft. De datumkolom zelf staat
+  // ernaast, in de aanroeper (agenda/page.tsx) — hierbinnen daarom alleen
+  // tijd + plaats op één regel, anders staat de datum er dubbel.
   //
   // Live QA: een border-left met een conditionele kleur (actief/niet, VOC/
   // extern) bleek in de praktijk onzichtbaar op een element dat ook
@@ -126,30 +126,30 @@ export function ActivityCard({
   return (
     <Link
       href={`/agenda/${activity.id}`}
-      className="animate-rise-in relative block overflow-hidden rounded-2xl bg-surface shadow-sm transition-all duration-500 ease-out hover:-translate-y-0.5 hover:shadow-md"
+      className="animate-rise-in relative flex items-start gap-3 overflow-hidden rounded-2xl bg-surface p-3 shadow-sm transition-all duration-500 ease-out hover:-translate-y-0.5 hover:shadow-md"
     >
       <span
         aria-hidden
         className={clsx("absolute inset-y-0 left-0 z-10 w-1", isOfficial ? "bg-voc-red" : "bg-petrol")}
       />
-      {imageUrl && (
-        <div className="relative h-14 w-full">
-          <Image src={imageUrl} alt="" fill sizes="(min-width: 640px) 700px, 100vw" className="object-cover" />
+      {imageUrl ? (
+        <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl sm:h-[88px] sm:w-[88px]">
+          <Image src={imageUrl} alt="" fill sizes="88px" className="object-cover" />
+        </div>
+      ) : (
+        <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-xl bg-petrol-soft text-petrol sm:h-[88px] sm:w-[88px]">
+          <CalendarDays size={28} />
         </div>
       )}
-      <div className={clsx("min-w-0", isSubmitted ? "p-3.5" : "p-4")}>
+      <div className="min-w-0 flex-1">
         <p className={clsx("line-clamp-2 font-semibold leading-snug text-foreground", isSubmitted ? "text-sm" : "text-base")}>
           {activity.title}
         </p>
-        <p className="mt-1 text-sm text-muted">{formatActivityTimeOnly(activity.starts_at)}</p>
-        {/* Ingebracht mag compacter: de locatieregel weg (staat nog op de
-            detailpagina). */}
-        {activity.location && !isSubmitted && (
-          <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted">
-            <MapPin size={14} className="shrink-0" />
-            {activity.location}
-          </p>
-        )}
+        <p className="mt-1 truncate text-sm text-muted">
+          {formatActivityTimeOnly(activity.starts_at)}
+          {/* Ingebracht mag compacter: de plaats weg (staat nog op de detailpagina). */}
+          {activity.location && !isSubmitted ? ` · ${activity.location}` : ""}
+        </p>
         {badges}
       </div>
     </Link>

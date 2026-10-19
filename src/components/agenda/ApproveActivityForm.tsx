@@ -19,10 +19,12 @@ export function ApproveActivityForm({
   const [notifyEmail, setNotifyEmail] = useState(false);
   const [isPending, startTransition] = useTransition();
 
+  // "Goedkeuren" is een positieve actie, geen fout/verwijderen — rood past
+  // daar niet bij (rood op dieet); status-success past bij "dit is akkoord".
   const buttonClass =
     size === "xs"
-      ? "rounded-full bg-voc-red px-3 py-1.5 text-xs font-medium text-white hover:bg-voc-red-dark disabled:opacity-60"
-      : "rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark disabled:opacity-60";
+      ? "rounded-full bg-status-success px-3 py-1.5 text-xs font-medium text-white hover:opacity-90 disabled:opacity-60"
+      : "rounded-full bg-status-success px-3 py-1.5 text-sm font-medium text-white hover:opacity-90 disabled:opacity-60";
 
   if (!open) {
     return (

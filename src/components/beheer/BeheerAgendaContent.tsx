@@ -133,7 +133,7 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
         action={
           <Link
             href="/agenda/nieuw"
-            className="flex items-center justify-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
+            className="flex items-center justify-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
           >
             <Plus size={16} />
             Nieuwe activiteit
@@ -143,7 +143,7 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
           <Link
             href="/agenda/nieuw"
             aria-label="Nieuwe activiteit"
-            className="flex h-14 w-14 items-center justify-center rounded-full bg-voc-red text-white shadow-lg hover:bg-voc-red-dark"
+            className="flex h-14 w-14 items-center justify-center rounded-full border border-border bg-surface text-foreground shadow-lg hover:bg-black/[.03] dark:hover:bg-white/[.06]"
           >
             <Plus size={24} />
           </Link>

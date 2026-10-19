@@ -135,7 +135,7 @@ function BoardMemberRowItem({ member }: { member: BoardMemberRow }) {
             type="button"
             onClick={() => setEditing((v) => !v)}
             aria-label="Functie bewerken"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red-text"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-muted hover:text-foreground"
           >
             <Pencil size={13} />
           </button>
@@ -144,7 +144,7 @@ function BoardMemberRowItem({ member }: { member: BoardMemberRow }) {
             onClick={handleRemove}
             disabled={isPending}
             aria-label="Verwijderen uit bestuur"
-            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-voc-red disabled:opacity-50"
+            className="flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-muted disabled:opacity-50"
           >
             <X size={14} />
           </button>

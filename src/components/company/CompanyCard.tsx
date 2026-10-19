@@ -25,7 +25,7 @@ export function CompanyCard({ company }: { company: CompanyListItem }) {
     <Link
       href={company.href ?? `/bedrijven/${company.id}`}
       onClick={company.onClick}
-      className="animate-rise-in flex min-w-0 items-center gap-4 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-500 ease-out hover:scale-[1.008] hover:border-voc-red hover:shadow-md"
+      className="animate-rise-in flex min-w-0 items-center gap-4 rounded-2xl border border-border bg-surface p-4 shadow-sm transition-all duration-500 ease-out hover:scale-[1.008] hover:border-muted hover:shadow-md"
     >
       <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={80} />
       <div className="min-w-0 flex-1">

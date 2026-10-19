@@ -53,7 +53,7 @@ export function BulkImportForm() {
   return (
     <div className="flex flex-col gap-4">
       <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
-        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-8 text-sm font-medium text-muted hover:border-voc-red hover:text-voc-red-text">
+        <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-8 text-sm font-medium text-muted hover:border-muted hover:text-foreground">
           <Upload size={18} />
           CSV-bestand kiezen
           <input
@@ -71,7 +71,7 @@ export function BulkImportForm() {
           Verwachte kolommen (in elke volgorde): voornaam, achternaam, email, telefoon, bedrijf, bezoekersadres,
           postcode, vestigingsplaats. Een bedrijf dat nog niet bestaat wordt automatisch aangemaakt met het
           opgegeven adres.{" "}
-          <a href="/voorbeeld-leden-import.csv" download className="underline hover:text-voc-red-text">
+          <a href="/voorbeeld-leden-import.csv" download className="underline hover:text-petrol">
             Voorbeeldbestand downloaden
           </a>
           .
@@ -112,7 +112,7 @@ export function BulkImportForm() {
                         type="button"
                         onClick={() => removeRow(index)}
                         aria-label="Rij verwijderen"
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-voc-red-light hover:text-voc-red-text"
+                        className="flex h-8 w-8 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]"
                       >
                         <Trash2 size={14} />
                       </button>

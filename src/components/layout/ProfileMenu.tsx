@@ -143,7 +143,7 @@ function MenuPanel({
               type="button"
               onClick={onClose}
               aria-label="Sluiten"
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]"
             >
               <X size={18} />
             </button>
@@ -276,7 +276,12 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, companyName, 
         onClick={toggle}
         className={clsx(
           "flex h-14 w-full flex-col items-center justify-center gap-0.5 text-xs font-medium",
-          active || open ? "text-voc-red-text" : "text-muted"
+          // "active" (op een profiel-/account-route) is de echte BottomNav-
+          // actieve-staat en blijft rood ("rood op dieet": actief
+          // navigatie-item). "open" (het paneel staat open, ongeacht de
+          // route) is geen navigatie-actief-staat en wordt neutraal i.p.v.
+          // rood (live QA-feedback).
+          active ? "text-voc-red-text" : open ? "text-foreground" : "text-muted"
         )}
       >
         <Avatar
@@ -284,7 +289,7 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, companyName, 
           lastName={profile.last_name}
           avatarUrl={avatarUrl}
           size={26}
-          className={clsx(active && "ring-2 ring-voc-red")}
+          className={clsx(active ? "ring-2 ring-voc-red" : open && "ring-2 ring-border")}
         />
         Profiel
       </button>

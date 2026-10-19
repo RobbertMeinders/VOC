@@ -113,7 +113,7 @@ function CompanyPicker({ selected, onSelect }: { selected: CompanyOption | null;
                   onSelect(company);
                   setQuery("");
                 }}
-                className="block w-full px-3 py-2 text-left text-sm hover:bg-voc-red-light hover:text-voc-red-text"
+                className="block w-full px-3 py-2 text-left text-sm hover:bg-black/[.04] dark:hover:bg-white/[.08]"
               >
                 {company.name}
                 {company.city && <span className="text-muted"> · {company.city}</span>}

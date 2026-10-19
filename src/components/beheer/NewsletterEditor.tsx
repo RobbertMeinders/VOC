@@ -64,7 +64,7 @@ function newBlockId(): string {
 }
 
 function textAreaClass() {
-  return "w-full rounded-lg border border-input-border bg-surface px-3.5 py-3 text-base text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20";
+  return "w-full rounded-lg border border-input-border bg-surface px-3.5 py-3 text-base text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20";
 }
 
 function inputSizeClass() {
@@ -264,7 +264,7 @@ function BlockShell({
               onClick={onRemove}
               title="Verwijderen"
               aria-label="Verwijderen"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
+              className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]"
             >
               <Trash2 size={18} />
             </button>
@@ -976,7 +976,7 @@ export function NewsletterEditor({
                     type="datetime-local"
                     value={scheduledAtInput}
                     onChange={(e) => setScheduledAtInput(e.target.value)}
-                    className="h-11 rounded-lg border border-input-border bg-surface px-3 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+                    className="h-11 rounded-lg border border-input-border bg-surface px-3 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
                   />
                 </div>
                 <Button type="button" variant="secondary" onClick={handleSchedule} disabled={schedulePending || !scheduledAtInput}>

@@ -131,7 +131,7 @@ export function HamburgerMenu({ logoUrl, siteName }: { logoUrl: string | null; s
         aria-label="Menu"
         className={clsx(
           "flex h-9 w-9 items-center justify-center rounded-full text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.08]",
-          (active || open) && "bg-voc-red-light text-voc-red-text"
+          (active || open) && "bg-raised text-foreground"
         )}
       >
         <Menu size={20} />

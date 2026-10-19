@@ -62,7 +62,7 @@ export function NotificationRuleRow({ type, initial, isRoleBased }: { type: Conf
                   className={
                     "rounded-full border px-2.5 py-1 text-xs font-medium disabled:opacity-60 " +
                     (active
-                      ? "border-voc-red bg-voc-red text-white"
+                      ? "border-foreground bg-foreground text-background"
                       : "border-border text-muted hover:bg-black/[.04] dark:hover:bg-white/[.06]")
                   }
                 >

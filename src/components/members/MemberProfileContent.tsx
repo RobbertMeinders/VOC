@@ -137,13 +137,13 @@ export async function MemberProfileContent({ id }: { id: string }) {
               <Link
                 href="/profiel"
                 aria-label="Profiel aanpassen"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red-text sm:hidden"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-muted hover:text-foreground sm:hidden"
               >
                 <Pencil size={14} />
               </Link>
               <Link
                 href="/profiel"
-                className="hidden shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-voc-red hover:text-voc-red-text sm:flex"
+                className="hidden shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-muted hover:text-foreground sm:flex"
               >
                 <Pencil size={14} />
                 Profiel aanpassen
@@ -204,7 +204,7 @@ export async function MemberProfileContent({ id }: { id: string }) {
           <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij</h2>
           <Link
             href={`/bedrijven/${membership.company.id}`}
-            className="flex items-center gap-3 rounded-xl border border-border p-3 hover:border-voc-red"
+            className="flex items-center gap-3 rounded-xl border border-border p-3 hover:border-muted"
           >
             <CompanyLogo logoUrl={logoUrl} name={membership.company.name} size={44} />
             <div className="min-w-0">

@@ -35,7 +35,7 @@ export function DocumentUploadForm({ categories }: { categories: string[] }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
+        className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
       >
         <Upload size={16} />
         Uploaden
@@ -50,7 +50,7 @@ export function DocumentUploadForm({ categories }: { categories: string[] }) {
         name="description"
         rows={2}
         placeholder="Korte omschrijving (optioneel)"
-        className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+        className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
       />
       <div>
         <Input name="category" placeholder="Categorie (optioneel)" list="document-categories" />

@@ -193,7 +193,7 @@ function CommentLikeRow({
         type="button"
         onClick={handleToggle}
         disabled={isPending}
-        className={clsx("text-xs font-medium", liked ? "text-voc-red-text" : "text-muted hover:text-voc-red-text")}
+        className={clsx("text-xs font-medium", liked ? "text-voc-red-text" : "text-muted hover:text-foreground")}
       >
         Leuk
       </button>
@@ -203,7 +203,7 @@ function CommentLikeRow({
           type="button"
           onClick={onOpenLikers}
           aria-label="Bekijk wie dit leuk vindt"
-          className={clsx("flex items-center gap-1", count > 0 ? "text-voc-red-text" : "text-muted hover:text-voc-red-text")}
+          className={clsx("flex items-center gap-1", count > 0 ? "text-voc-red-text" : "text-muted hover:text-foreground")}
         >
           <ThumbsUp key={String(liked)} size={13} className={clsx(count > 0 && "fill-voc-red", liked && "animate-pop")} />
           {count > 0 && <span className="text-xs">{count}</span>}

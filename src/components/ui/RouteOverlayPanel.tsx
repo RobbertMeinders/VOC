@@ -149,7 +149,7 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
             type="button"
             onClick={close}
             aria-label="Sluiten"
-            className="mb-3 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-voc-red hover:text-voc-red-text"
+            className="mb-3 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-muted hover:text-foreground"
           >
             <X size={18} />
           </button>

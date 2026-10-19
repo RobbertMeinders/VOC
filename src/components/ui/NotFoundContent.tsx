@@ -17,7 +17,7 @@ export function NotFoundContent() {
       <div className="flex flex-wrap items-center justify-center gap-3">
         <Link
           href="/"
-          className="flex items-center gap-1.5 rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red-dark"
+          className="flex items-center gap-1.5 rounded-full border border-border px-4 py-2 text-sm font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         >
           <Home size={16} />
           Home

@@ -135,7 +135,7 @@ export function AttendeeList({
                   type="button"
                   onClick={() => setShowAll(false)}
                   aria-label="Sluiten"
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.08]"
+                  className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]"
                 >
                   <X size={16} />
                 </button>

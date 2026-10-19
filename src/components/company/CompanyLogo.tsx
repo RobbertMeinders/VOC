@@ -80,7 +80,7 @@ export function CompanyLogo({
           />
         </>
       ) : (
-        <Building2 size={Math.round(size * 0.45)} className="text-voc-red-text" />
+        <Building2 size={Math.round(size * 0.45)} className="text-petrol" />
       )}
     </div>
   );

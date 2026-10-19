@@ -40,7 +40,7 @@ export function ProspectRow({ prospect }: { prospect: Prospect }) {
               );
             })
           }
-          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-voc-red hover:text-voc-red-text disabled:opacity-60"
+          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-muted hover:text-foreground disabled:opacity-60"
         >
           <UserPlus size={14} />
           Uitnodigen

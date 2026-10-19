@@ -376,17 +376,6 @@ body {
   border-color: var(--border);
 }
 
-/* Redesign-besluit 4: zacht verloop bovenaan de inhoud op Home, Agenda,
-   Community, het beheerdashboard en lege toestanden — een lichte
-   petroltint die naar de achtergrond toe verloopt, geen vlak blok. Eigen
-   class i.p.v. een Tailwind-utility: dit is een samengestelde
-   (meerlaagse) achtergrond, geen los kleurtoken. Spaarzaam gebruiken (zie
-   stijl-kleurenpalet.md), niet overal. */
-.bg-top-gradient {
-  background: linear-gradient(180deg, var(--petrol-soft) 0%, transparent 100%) 0 0 / 100% 220px no-repeat,
-    var(--background);
-}
-
 /* Verberg scrollbar op de mobiele bottom navigation zonder functionaliteit te verliezen */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

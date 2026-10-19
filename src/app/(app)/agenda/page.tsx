@@ -125,64 +125,58 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="mx-auto w-full md:max-w-3xl">
-      {/* Zacht verloop bovenaan de inhoud (redesign-besluit 4) — geen
-          edge-to-edge bleed hier (dat vereist exact dezelfde marge als de
-          omliggende AppShell-padding, die per pagina-breedte verschilt);
-          dit blijft daardoor een subtiele, iets minder exacte variant. */}
-      <div className="bg-top-gradient -mx-4 -mt-6 rounded-b-3xl px-4 pt-6 md:-mx-8 md:-mt-10 md:px-8 md:pt-10">
-        <MarkSectionReadOnView section="agenda" />
-        <div className="mb-4 flex items-center justify-between">
-          <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Agenda</h1>
-          <Link
-            href="/agenda/nieuw"
-            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
-          >
-            <Plus size={16} />
-            Activiteit
-          </Link>
-        </div>
+      <MarkSectionReadOnView section="agenda" />
+      <div className="mb-4 flex items-center justify-between">
+        <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Agenda</h1>
+        <Link
+          href="/agenda/nieuw"
+          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+        >
+          <Plus size={16} />
+          Activiteit
+        </Link>
+      </div>
 
-        <div className="mb-4">
-          <WeekStrip activities={(allActivities ?? []).map((a) => ({ starts_at: a.starts_at, source: a.source }))} />
-        </div>
+      <div className="mb-4">
+        <WeekStrip activities={(allActivities ?? []).map((a) => ({ starts_at: a.starts_at, source: a.source }))} />
+      </div>
 
-        <div className="mb-4 flex gap-1.5 overflow-x-auto">
-          {TYPE_TABS.map((tab) => (
-            <Chip key={tab.label} href={tab.value ? `/agenda?type=${tab.value}` : "/agenda"} active={(type ?? undefined) === tab.value}>
-              {tab.label}
-            </Chip>
+      <div className="mb-4 flex gap-1.5 overflow-x-auto">
+        {TYPE_TABS.map((tab) => (
+          <Chip key={tab.label} href={tab.value ? `/agenda?type=${tab.value}` : "/agenda"} active={(type ?? undefined) === tab.value}>
+            {tab.label}
+          </Chip>
+        ))}
+      </div>
+
+      {upcoming.length > 0 ? (
+        <div className="flex flex-col gap-6">
+          {upcomingByMonth.map((group) => (
+            <div key={group.label} className="flex flex-col gap-3">
+              <h2 className="font-display pl-[56px] text-sm font-bold text-muted">{group.label}</h2>
+              {renderTimelineGroup(group.items)}
+            </div>
           ))}
         </div>
+      ) : (
+        <ComingSoon icon={CalendarDays} title="Geen activiteiten gepland" description="Er zijn momenteel geen activiteiten." />
+      )}
 
-        {upcoming.length > 0 ? (
-          <div className="flex flex-col gap-6">
-            {upcomingByMonth.map((group) => (
-              <div key={group.label} className="flex flex-col gap-3">
-                <h2 className="font-display pl-[56px] text-sm font-bold text-muted">{group.label}</h2>
-                {renderTimelineGroup(group.items)}
-              </div>
-            ))}
-          </div>
-        ) : (
-          <ComingSoon icon={CalendarDays} title="Geen activiteiten gepland" description="Er zijn momenteel geen activiteiten." />
-        )}
-
-        {/* Redesign: eerdere activiteiten ingeklapt — een native <details>
-            i.p.v. een client component: geen JS nodig voor simpel
-            open/dicht klappen. */}
-        {past.length > 0 && (
-          <details className="group mt-8">
-            <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-muted">
-              <ChevronDown size={16} className="transition-transform duration-200 group-open:rotate-180" />
-              Eerdere activiteiten ({past.length})
-            </summary>
-            {/* Lichtjes grijzer dan de rest, niet extreem, en blijft ook zo —
-                geen kleur-restore bij hover (dat voelde als een onnodige
-                knipper-animatie voor iets dat sowieso al voorbij is). */}
-            <div className="mt-3 opacity-80 grayscale-[65%]">{renderTimelineGroup(past)}</div>
-          </details>
-        )}
-      </div>
+      {/* Redesign: eerdere activiteiten ingeklapt — een native <details>
+          i.p.v. een client component: geen JS nodig voor simpel
+          open/dicht klappen. */}
+      {past.length > 0 && (
+        <details className="group mt-8">
+          <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-muted">
+            <ChevronDown size={16} className="transition-transform duration-200 group-open:rotate-180" />
+            Eerdere activiteiten ({past.length})
+          </summary>
+          {/* Lichtjes grijzer dan de rest, niet extreem, en blijft ook zo —
+              geen kleur-restore bij hover (dat voelde als een onnodige
+              knipper-animatie voor iets dat sowieso al voorbij is). */}
+          <div className="mt-3 opacity-80 grayscale-[65%]">{renderTimelineGroup(past)}</div>
+        </details>
+      )}
     </div>
   );
 }

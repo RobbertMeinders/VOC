@@ -66,7 +66,7 @@ export function ContactMemberButton({ recipientId, recipientName }: { recipientI
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Onderwerp"
             maxLength={150}
-            className="w-full rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+            className="w-full rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
           />
           <textarea
             value={message}
@@ -74,7 +74,7 @@ export function ContactMemberButton({ recipientId, recipientName }: { recipientI
             placeholder="Bericht"
             rows={4}
             maxLength={4000}
-            className="w-full rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground focus:border-voc-red focus:outline-none focus:ring-2 focus:ring-voc-red/20"
+            className="w-full rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
           />
           {error && (
             <p role="alert" className="text-xs text-voc-red-text">
