@@ -31,12 +31,12 @@ export function Avatar({
     );
   }
 
+  // Redesign: avatar-initialen waren rood, worden petrol-soft/petrol — dit
+  // ene component wordt door de hele app gedeeld (leden, berichten,
+  // reacties, navigatie, enz.), dus geldt daarmee overal in één keer.
   return (
     <div
-      className={clsx(
-        "flex shrink-0 items-center justify-center rounded-full bg-voc-red-light font-semibold text-voc-red-text",
-        className
-      )}
+      className={clsx("flex shrink-0 items-center justify-center rounded-full bg-petrol-soft font-semibold text-petrol", className)}
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {initials(firstName, lastName)}

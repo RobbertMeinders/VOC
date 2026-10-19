@@ -215,17 +215,29 @@ function PostComposerForm({
 
   // Compact veld i.p.v. het volledige formulier — pas bij klikken opent het
   // grotere, gedimde overlay eronder. Voorkomt dat de feed standaard met een
-  // groot invoerformulier begint.
+  // groot invoerformulier begint. Redesign-besluit 7: op mobiel vervangt een
+  // rode zwevende knop rechtsonder dit opstelveld; op desktop blijft het
+  // gewoon bovenaan de feed staan.
   if (!open) {
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="flex w-full items-center gap-3 rounded-2xl border border-border bg-surface p-3 text-left shadow-sm hover:border-voc-red/40"
-      >
-        <Avatar firstName={author.first_name} lastName={author.last_name} avatarUrl={author.avatarUrl} size={36} />
-        <span className="text-sm text-muted">Wat wil je delen met het netwerk?</span>
-      </button>
+      <>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="hidden w-full items-center gap-3 rounded-2xl border border-border bg-surface p-3 text-left shadow-sm hover:border-foreground/20 sm:flex"
+        >
+          <Avatar firstName={author.first_name} lastName={author.last_name} avatarUrl={author.avatarUrl} size={36} />
+          <span className="text-sm text-muted">Wat wil je delen met het netwerk?</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="fixed bottom-[calc(env(safe-area-inset-bottom)+4.5rem)] right-4 z-30 flex h-[46px] items-center gap-2 rounded-full bg-voc-red pl-4 pr-5 text-sm font-semibold text-white shadow-lg hover:bg-voc-red-dark sm:hidden"
+        >
+          <Pencil size={16} />
+          Bericht
+        </button>
+      </>
     );
   }
 

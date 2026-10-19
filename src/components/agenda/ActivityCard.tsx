@@ -26,47 +26,43 @@ export function ActivityCard({
   const isOfficial = activity.source === "voc";
   const isSubmitted = activity.source === "lid";
 
-  // Ingebracht is even breed als een officiële activiteit (zelfde
-  // beeldverhouding-taal), maar de kaart zelf is lager (minder padding, geen
-  // "ingebracht door"-regel — wie het was staat nog op de detailpagina). De
-  // afbeelding krijgt daarom geen eigen vaste hoogte: die rekt (via flex
-  // items-stretch, de default) automatisch mee tot precies de hoogte die het
-  // tekstblok ernaast al inneemt, wat dat ook is — i.p.v. een losse
-  // schatting die zelf weer niet klopt zodra de tekst wat korter/langer is.
-  const imageWidth = 112;
-
+  // Redesign: de soort activiteit (VOC/extern) staat nu al in de gekleurde
+  // linkerrand van de kaart (zie hieronder) — de losse rode "VOC-activiteit"-
+  // badge zou dat dubbelop zeggen, dus wordt neutraal grijs i.p.v. gevuld
+  // rood. Statusbadges (afgelast/wachtlijst/aangemeld) volgen de nieuwe
+  // status-tokens.
   const badges = (
     <div className="mt-2 flex flex-wrap items-center gap-2">
       {isOfficial && (
-        <span className="rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red-text">
+        <span className="rounded-full bg-status-neutral-soft px-2 py-0.5 text-xs font-medium text-status-neutral">
           VOC-activiteit
         </span>
       )}
       {isSubmitted && (
-        <span className="rounded-full bg-black/[.06] px-2 py-0.5 text-xs font-medium text-muted dark:bg-white/[.08]">
+        <span className="rounded-full bg-status-neutral-soft px-2 py-0.5 text-xs font-medium text-status-neutral">
           Externe activiteit
         </span>
       )}
       {activity.status === "pending" && (
-        <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+        <span className="flex items-center gap-1 rounded-full bg-status-warning-soft px-2 py-0.5 text-xs font-medium text-status-warning">
           <Clock size={11} />
           Ter goedkeuring
         </span>
       )}
       {activity.status === "cancelled" && (
-        <span className="flex items-center gap-1 rounded-full bg-voc-red-light px-2 py-0.5 text-xs font-medium text-voc-red-text">
+        <span className="flex items-center gap-1 rounded-full bg-danger-soft px-2 py-0.5 text-xs font-medium text-danger-text">
           <XCircle size={11} />
           Afgelast
         </span>
       )}
       {isRegistered && !isWaitlisted && (
-        <span className="flex items-center gap-1 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-500/10 dark:text-green-400">
+        <span className="flex items-center gap-1 rounded-full bg-status-success-soft px-2 py-0.5 text-xs font-medium text-status-success">
           <CheckCircle2 size={11} />
           Je bent aangemeld
         </span>
       )}
       {isWaitlisted && (
-        <span className="flex items-center gap-1 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+        <span className="flex items-center gap-1 rounded-full bg-status-warning-soft px-2 py-0.5 text-xs font-medium text-status-warning">
           <Clock size={11} />
           Op de wachtlijst
         </span>
@@ -88,14 +84,14 @@ export function ActivityCard({
     return (
       <Link
         href={`/agenda/${activity.id}`}
-        className="animate-rise-in overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-all duration-500 ease-out hover:scale-[1.005] hover:border-voc-red hover:shadow-md"
+        className="animate-rise-in overflow-hidden rounded-2xl border border-border bg-surface shadow-sm transition-all duration-500 ease-out hover:scale-[1.005] hover:border-foreground/20 hover:shadow-md"
       >
         {imageUrl ? (
           <div className="relative h-44 w-full sm:h-52">
             <Image src={imageUrl} alt={activity.title} fill sizes="(min-width: 640px) 700px, 100vw" className="object-cover" />
           </div>
         ) : (
-          <div className="flex h-44 w-full items-center justify-center bg-voc-red-light text-voc-red-text sm:h-52">
+          <div className="flex h-44 w-full items-center justify-center bg-petrol-soft text-petrol sm:h-52">
             <CalendarDays size={48} />
           </div>
         )}
@@ -114,53 +110,31 @@ export function ActivityCard({
     );
   }
 
+  // Redesign: tijdlijnkaart — foto (indien aanwezig) als smalle band
+  // bovenaan i.p.v. een vierkante thumbnail naast de tekst, met een
+  // gekleurde linkerrand per soort (rood = VOC, petrol = extern). De
+  // datumkolom zelf staat ernaast, in de aanroeper (agenda/page.tsx), zodat
+  // deze kaart niet hoeft te weten of 'ie in een tijdlijn staat.
   return (
     <Link
       href={`/agenda/${activity.id}`}
       className={clsx(
-        "animate-rise-in flex gap-4 rounded-2xl border border-border bg-surface shadow-sm transition-all duration-500 ease-out hover:scale-[1.008] hover:border-voc-red hover:shadow-md",
-        isSubmitted ? "p-4" : "p-5"
+        "animate-rise-in block overflow-hidden rounded-2xl border-l-4 bg-surface shadow-sm transition-all duration-500 ease-out hover:-translate-y-0.5 hover:shadow-md",
+        isOfficial ? "border-l-voc-red" : "border-l-petrol"
       )}
     >
-      {isSubmitted ? (
-        imageUrl ? (
-          <div className="relative shrink-0 self-stretch overflow-hidden rounded-xl" style={{ width: imageWidth }}>
-            <Image src={imageUrl} alt={activity.title} fill sizes="112px" className="object-cover" />
-          </div>
-        ) : (
-          <div
-            className="flex shrink-0 items-center justify-center self-stretch rounded-xl bg-voc-red-light text-voc-red-text"
-            style={{ width: imageWidth }}
-          >
-            <CalendarDays size={26} />
-          </div>
-        )
-      ) : imageUrl ? (
-        <Image
-          src={imageUrl}
-          alt={activity.title}
-          width={imageWidth}
-          height={imageWidth}
-          className="shrink-0 self-start rounded-xl object-cover"
-          style={{ height: imageWidth, width: imageWidth }}
-        />
-      ) : (
-        <div
-          className="flex shrink-0 items-center justify-center self-start rounded-xl bg-voc-red-light text-voc-red-text"
-          style={{ height: imageWidth, width: imageWidth }}
-        >
-          <CalendarDays size={34} />
+      {imageUrl && (
+        <div className="relative h-14 w-full">
+          <Image src={imageUrl} alt="" fill sizes="(min-width: 640px) 700px, 100vw" className="object-cover" />
         </div>
       )}
-      <div className="min-w-0 flex-1">
-        <p className={clsx("line-clamp-2 font-semibold leading-snug text-foreground", isSubmitted ? "text-base" : "text-lg")}>
+      <div className={clsx("min-w-0", isSubmitted ? "p-3.5" : "p-4")}>
+        <p className={clsx("line-clamp-2 font-semibold leading-snug text-foreground", isSubmitted ? "text-sm" : "text-base")}>
           {activity.title}
         </p>
         <p className="mt-1 text-sm text-muted">{formatActivityDate(activity.starts_at)}</p>
         {/* Ingebracht mag compacter: de locatieregel weg (staat nog op de
-            detailpagina) — de afbeelding rekt via self-stretch toch al mee
-            met de hoogte van dit tekstblok, dus dit maakt meteen ook de
-            hele kaart lager. */}
+            detailpagina). */}
         {activity.location && !isSubmitted && (
           <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted">
             <MapPin size={14} className="shrink-0" />

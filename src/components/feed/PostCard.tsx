@@ -442,9 +442,9 @@ export function PostCard({
             href={attachment.url!}
             target="_blank"
             rel="noopener noreferrer"
-            className="mt-3 flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-foreground hover:border-voc-red"
+            className="mt-3 flex items-center gap-2 rounded-lg border border-border px-3 py-2 text-sm text-foreground hover:border-foreground/30"
           >
-            <FileText size={16} className="text-voc-red-text" />
+            <FileText size={16} className="text-petrol" />
             <span className="truncate">{attachment.fileName}</span>
           </a>
         ))}
@@ -471,7 +471,7 @@ export function PostCard({
           onClick={() => setCommentsOpen((o) => !o)}
           aria-label={commentsOpen ? "Reacties verbergen" : "Reacties weergeven"}
           aria-expanded={commentsOpen}
-          className="flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs text-muted hover:bg-black/[.04] hover:text-voc-red-text dark:hover:bg-white/[.06]"
+          className="flex shrink-0 items-center gap-1 rounded-full px-2 py-1 text-xs text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.06]"
         >
           <MessageCircle size={16} />
           {post.comments.length > 0 && post.comments.length}
@@ -494,7 +494,7 @@ export function PostCard({
             <button
               type="button"
               onClick={() => setShowAllComments(true)}
-              className="rounded-lg py-1.5 text-center text-xs font-medium text-voc-red-text hover:underline"
+              className="rounded-lg py-1.5 text-center text-xs font-medium text-petrol hover:underline"
             >
               Nog {remainingComments} {remainingComments === 1 ? "reactie" : "reacties"} bekijken
             </button>

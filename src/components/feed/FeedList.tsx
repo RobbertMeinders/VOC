@@ -3,17 +3,29 @@
 import { useEffect, useState, useTransition } from "react";
 import { useSearchParams } from "next/navigation";
 import { MessageSquare } from "lucide-react";
-import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/client";
 import { authenticateRealtime } from "@/lib/realtime/authenticate";
 import { getCommentAction, getPostAction, loadMoreFeedPostsAction, logPostViewAction } from "@/app/(app)/actions";
 import { FEED_PAGE_SIZE } from "@/lib/feed/pagination";
 import { useInfiniteScroll } from "@/lib/dom/useInfiniteScroll";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { Chip } from "@/components/ui/Chip";
 import { PostComposer } from "./PostComposer";
 import { PostCard } from "./PostCard";
 import { FEED_FILTER_TYPES, POST_TYPE_LABELS } from "@/lib/feed/postType";
 import type { FeedAuthor, FeedComment, FeedPost, FeedPostType } from "@/lib/feed/types";
+
+// Kleurpuntje per filterchip (redesign-besluit: "filters met een
+// kleurstip") — dezelfde labeltokens als de badge op de kaart zelf
+// (postType.ts), hier als losse waarde omdat Chip een CSS-kleur verwacht,
+// geen Tailwind-klasse.
+const FILTER_DOT_COLOR: Record<FeedPostType, string> = {
+  vraag: "var(--label-vraag-text)",
+  aanbod: "var(--label-aanbod-text)",
+  nieuws: "var(--label-nieuws-text)",
+  voorstellen: "var(--label-voorstellen-text)",
+  overig: "var(--label-overig-text)",
+};
 
 type Filter = "alle" | FeedPostType;
 
@@ -155,28 +167,13 @@ export function FeedList({
       <PostComposer author={currentAuthor} onCreated={upsertPost} autoOpenIntro={autoOpenIntro} />
 
       <div className="flex flex-wrap gap-1.5">
-        <button
-          type="button"
-          onClick={() => setFilter("alle")}
-          className={clsx(
-            "rounded-full px-2.5 py-1 text-xs font-medium",
-            filter === "alle" ? "bg-voc-red text-white" : "bg-black/[.06] text-muted hover:bg-black/[.1] dark:bg-white/[.08]"
-          )}
-        >
+        <Chip onClick={() => setFilter("alle")} active={filter === "alle"}>
           Alles
-        </button>
+        </Chip>
         {FEED_FILTER_TYPES.map((type) => (
-          <button
-            key={type}
-            type="button"
-            onClick={() => setFilter(type)}
-            className={clsx(
-              "rounded-full px-2.5 py-1 text-xs font-medium",
-              filter === type ? "bg-voc-red text-white" : "bg-black/[.06] text-muted hover:bg-black/[.1] dark:bg-white/[.08]"
-            )}
-          >
+          <Chip key={type} onClick={() => setFilter(type)} active={filter === type} dotColor={FILTER_DOT_COLOR[type]}>
             {POST_TYPE_LABELS[type]}
-          </button>
+          </Chip>
         ))}
       </div>
 

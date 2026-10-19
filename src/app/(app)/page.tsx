@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import Image from "next/image";
-import { CalendarDays, MapPin } from "lucide-react";
+import { CalendarDays, FileText, Pencil, Search } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
-import { formatActivityDate } from "@/lib/format/date";
-import { hasIntroductionPost } from "@/lib/feed/queries";
-import { ProfilePhotoPrompt } from "@/components/home/ProfilePhotoPrompt";
-import { IntroductionPrompt } from "@/components/feed/IntroductionPrompt";
+import { getSignedStorageUrls } from "@/lib/supabase/storage";
+import { formatActivityDate, formatTodayLabel, getGreeting } from "@/lib/format/date";
+import { Avatar } from "@/components/ui/Avatar";
 import { NewsHeroCarousel } from "@/components/home/NewsHeroCarousel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import type { Database } from "@/lib/types/database";
@@ -17,22 +14,26 @@ export const metadata: Metadata = { title: "Home" };
 
 type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
 type NewsItemRow = Database["public"]["Tables"]["news_items"]["Row"];
+type NewMemberRow = {
+  id: string;
+  first_name: string;
+  last_name: string;
+  avatar_url: string | null;
+  avatar_thumb_url: string | null;
+};
+
+const QUICK_ACTIONS = [
+  { href: "/community", label: "Bericht", icon: Pencil },
+  { href: "/zoeken", label: "Lid zoeken", icon: Search },
+  { href: "/agenda", label: "Agenda", icon: CalendarDays },
+  { href: "/documenten", label: "Documenten", icon: FileText },
+];
 
 export default async function HomePage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  // Performance-audit #5: myRegistrationRows (verderop) had alleen
-  // profile.id nodig, niet het resultaat van deze eerste golf — meteen hier
-  // mee starten i.p.v. pas in de tweede Promise.all.
-  const [
-    { data: activities },
-    { data: newsItems },
-    { count: companyMemberCount },
-    { data: myRegistrationRows },
-    { data: pendingCompanyRequest },
-    hasIntroduced,
-  ] = await Promise.all([
+  const [{ data: activities }, { data: newsItems }, { data: myRegistrationRows }, { data: newMembers }] = await Promise.all([
     supabase
       .from("activities")
       .select("*")
@@ -42,48 +43,28 @@ export default async function HomePage() {
       .limit(1)
       .returns<ActivityRow[]>(),
     supabase.from("news_items").select("*").order("position", { ascending: true }).limit(3).returns<NewsItemRow[]>(),
-    supabase.from("company_members").select("id", { count: "exact", head: true }).eq("profile_id", profile.id),
-    // UX-review punt 7/8: "Snelle toegang" herhaalde gewoon het hoofdmenu;
-    // vervangen door iets persoonlijks — de eigen, nog komende
-    // aanmeldingen.
     supabase
       .from("activity_registrations")
       .select("is_waitlisted, activity:activities(*)")
       .eq("profile_id", profile.id)
       .returns<{ is_waitlisted: boolean; activity: ActivityRow | null }[]>(),
-    // Voorkomt dat de onboarding-prompt hieronder "voeg je bedrijf toe"
-    // blijft tonen terwijl er al een aanvraag in behandeling is (zie
-    // dezelfde query op /profiel) — zonder dit wist je niet of nogmaals
-    // klikken zin had.
+    // Redesign fase 4: "Nieuw in het netwerk" — de meest recent aangemaakte
+    // actieve profielen, zichzelf uitgesloten. Geen aparte "zichtbaar in
+    // netwerk"-instelling: wie actief is, staat net zo goed al gewoon in de
+    // ledenlijst (/leden) zelf.
     supabase
-      .from("company_membership_requests")
-      .select("id")
-      .eq("profile_id", profile.id)
-      .eq("status", "pending")
-      .limit(1)
-      .maybeSingle(),
-    hasIntroductionPost(supabase, profile.id),
+      .from("profiles")
+      .select("id, first_name, last_name, avatar_url, avatar_thumb_url")
+      .eq("is_active", true)
+      .neq("id", profile.id)
+      .order("created_at", { ascending: false })
+      .limit(5)
+      .returns<NewMemberRow[]>(),
   ]);
 
   const nextActivity = activities?.[0] ?? null;
 
-  // UX-review punt 23: functie en bedrijf staan bij registratie in het
-  // formulier, maar zijn daar niet verplicht (de uitnodigende bestuurder
-  // vult ze soms niet in, en het lid kan ze bij registratie ook leeg
-  // laten) — deze prompt keek eerder alleen naar de profielfoto en miste
-  // dat scenario. Nog steeds laagdrempelig/wegklikbaar, geen verplichte
-  // checklist.
-  const missingProfileInfo = !profile.avatar_url || !profile.job_title || (companyMemberCount ?? 0) === 0;
-  const showPhotoPrompt = !profile.onboarding_dismissed_at && missingProfileInfo;
-  // Introductiestap: eigen, losstaande weggeklikt-vlag (zie
-  // dismissIntroductionPromptAction) — niet gekoppeld aan showPhotoPrompt
-  // hierboven, dus blijft onafhankelijk zichtbaar/wegklikbaar.
-  const showIntroductionPrompt = !hasIntroduced && !profile.introduction_prompt_dismissed_at;
-
-  const [nextActivityImageUrl, myRegistration, newsImageUrls] = await Promise.all([
-    nextActivity
-      ? getSignedStorageUrl("activity-images", nextActivity.image_thumb_url ?? nextActivity.image_url)
-      : Promise.resolve(null),
+  const [myRegistration, newsImageUrls, newMemberAvatarUrls] = await Promise.all([
     nextActivity
       ? supabase
           .from("activity_registrations")
@@ -97,13 +78,17 @@ export default async function HomePage() {
       "news-images",
       (newsItems ?? []).map((item) => item.image_url)
     ),
+    getSignedStorageUrls(
+      supabase,
+      "avatars",
+      (newMembers ?? []).flatMap((m) => [m.avatar_url, m.avatar_thumb_url])
+    ),
   ]);
 
   const now = new Date();
-  const myUpcomingRegistrations = (myRegistrationRows ?? [])
-    .filter((r): r is { is_waitlisted: boolean; activity: ActivityRow } => r.activity !== null && new Date(r.activity.starts_at) >= now)
-    .sort((a, b) => new Date(a.activity.starts_at).getTime() - new Date(b.activity.starts_at).getTime())
-    .slice(0, 3);
+  const upcomingRegistrationCount = (myRegistrationRows ?? []).filter(
+    (r): r is { is_waitlisted: boolean; activity: ActivityRow } => r.activity !== null && new Date(r.activity.starts_at) >= now
+  ).length;
 
   const newsSlides = (newsItems ?? []).map((item) => ({
     id: item.id,
@@ -113,110 +98,115 @@ export default async function HomePage() {
     imageUrl: item.image_url ? newsImageUrls.get(item.image_url) ?? null : null,
   }));
 
+  // Geen cijfers verzinnen: alleen de eigen aankomende aanmeldingen zijn
+  // hier als getal beschikbaar (geen "nieuwe berichten sinds laatste
+  // bezoek"-teller op dit niveau van de app) — zonder data blijft de
+  // begroeting gewoon leeg, geen placeholder-tekst.
+  const statusLine =
+    upcomingRegistrationCount > 0
+      ? `${upcomingRegistrationCount} ${upcomingRegistrationCount === 1 ? "aankomende aanmelding" : "aankomende aanmeldingen"}`
+      : null;
+
   return (
     <div className="flex flex-col gap-6">
-      <div>
-        <h1 className="text-xl font-semibold text-foreground">Welkom terug, {profile.first_name}</h1>
-      </div>
-
-      {showPhotoPrompt && (
-        <ProfilePhotoPrompt
-          missingPhoto={!profile.avatar_url}
-          missingJobTitle={!profile.job_title}
-          missingCompany={(companyMemberCount ?? 0) === 0}
-          companyRequestPending={pendingCompanyRequest !== null}
-        />
-      )}
-
-      {showIntroductionPrompt && <IntroductionPrompt />}
-
-      {newsSlides.length > 0 && (
-        <section>
-          <SectionHeader title="Nieuws" href="/nieuws" linkLabel="Alle nieuws" />
-          <NewsHeroCarousel slides={newsSlides} />
-        </section>
-      )}
-
-      {myUpcomingRegistrations.length > 0 && (
-        <section>
-          <SectionHeader title="Mijn aanmeldingen" href="/agenda?type=mijn-aanmeldingen" linkLabel="Alle aanmeldingen" />
-          <div className="flex flex-col gap-2">
-            {myUpcomingRegistrations.map(({ activity, is_waitlisted }) => (
-              <Link
-                key={activity.id}
-                href={`/agenda/${activity.id}`}
-                className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm hover:border-voc-red"
-              >
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-foreground">{activity.title}</p>
-                  <p className="text-xs text-muted">{formatActivityDate(activity.starts_at)}</p>
-                </div>
-                <span
-                  className={
-                    is_waitlisted
-                      ? "shrink-0 rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
-                      : "shrink-0 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-500/10 dark:text-green-400"
-                  }
-                >
-                  {is_waitlisted ? "Wachtlijst" : "Aangemeld"}
-                </span>
-              </Link>
-            ))}
+      {/* Welkomstblok: donkerpetrol, geen decoratie/glaseffect (redesign-
+          besluit). Op desktop een brede banner (begroeting links, de
+          activiteitkaart rechts); op mobiel gestapeld. */}
+      <div className="animate-rise-in rounded-3xl p-5 shadow-sm sm:p-8" style={{ backgroundImage: "var(--hero-gradient)" }}>
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
+          <div className="min-w-0">
+            <p className="text-xs font-medium uppercase tracking-wide text-white/60">{formatTodayLabel()}</p>
+            <h1 className="font-display mt-1 text-2xl font-extrabold tracking-[-0.02em] text-white sm:text-[1.75rem]">
+              {getGreeting()}, {profile.first_name}
+            </h1>
+            {statusLine && <p className="mt-1 text-sm text-white/70">{statusLine}</p>}
           </div>
-        </section>
-      )}
 
-      <section>
-        <SectionHeader title="Eerstvolgende activiteit" href="/agenda" linkLabel="Hele agenda" />
-        {nextActivity ? (
-          <Link
-            href={`/agenda/${nextActivity.id}`}
-            className="flex gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm hover:border-voc-red sm:gap-4 sm:p-5"
-          >
-            {nextActivityImageUrl ? (
-              <Image
-                src={nextActivityImageUrl}
-                alt={nextActivity.title}
-                width={96}
-                height={96}
-                className="h-16 w-16 shrink-0 rounded-xl object-cover sm:h-24 sm:w-24"
-              />
-            ) : (
-              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-xl bg-voc-red-light text-voc-red-text sm:h-24 sm:w-24">
-                <CalendarDays size={24} className="sm:hidden" />
-                <CalendarDays size={30} className="hidden sm:block" />
+          {nextActivity && (
+            <Link
+              href={`/agenda/${nextActivity.id}`}
+              className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-sm hover:-translate-y-px sm:w-80 sm:shrink-0"
+            >
+              <div className="flex h-[46px] w-[46px] shrink-0 flex-col items-center justify-center rounded-xl bg-voc-red leading-none text-white">
+                <span className="text-[9px] font-bold uppercase tracking-wide opacity-90">
+                  {new Intl.DateTimeFormat("nl-NL", { month: "short", timeZone: "Europe/Amsterdam" }).format(new Date(nextActivity.starts_at))}
+                </span>
+                <span className="font-display mt-0.5 text-xl font-extrabold">
+                  {new Intl.DateTimeFormat("nl-NL", { day: "numeric", timeZone: "Europe/Amsterdam" }).format(new Date(nextActivity.starts_at))}
+                </span>
               </div>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="line-clamp-2 text-base font-semibold leading-snug text-foreground sm:text-lg">
-                {nextActivity.title}
-              </p>
-              <p className="mt-1 text-sm text-muted">{formatActivityDate(nextActivity.starts_at)}</p>
-              {nextActivity.location && (
-                <p className="mt-0.5 flex items-center gap-1 truncate text-sm text-muted">
-                  <MapPin size={14} />
-                  {nextActivity.location}
-                </p>
-              )}
-              {myRegistration.data && (
+              <div className="min-w-0 flex-1">
+                <p className="line-clamp-2 text-sm font-semibold leading-snug text-foreground">{nextActivity.title}</p>
+                <p className="truncate text-xs text-muted">{formatActivityDate(nextActivity.starts_at)}</p>
+              </div>
+              {myRegistration.data ? (
                 <span
                   className={
                     myRegistration.data.is_waitlisted
-                      ? "mt-2 inline-block rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400"
-                      : "mt-2 inline-block rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700 dark:bg-green-500/10 dark:text-green-400"
+                      ? "shrink-0 rounded-full bg-status-warning-soft px-2.5 py-1 text-xs font-medium text-status-warning"
+                      : "shrink-0 rounded-full bg-status-success-soft px-2.5 py-1 text-xs font-medium text-status-success"
                   }
                 >
-                  {myRegistration.data.is_waitlisted ? "Op de wachtlijst" : "Je bent aangemeld"}
+                  {myRegistration.data.is_waitlisted ? "Wachtlijst" : "Aangemeld"}
                 </span>
+              ) : (
+                <span className="shrink-0 rounded-full bg-voc-red px-3.5 py-1.5 text-xs font-medium text-white">Aanmelden</span>
               )}
+            </Link>
+          )}
+        </div>
+      </div>
+
+      <div className="grid gap-6 lg:grid-cols-[1fr_320px] lg:items-start">
+        <div className="flex flex-col gap-6 lg:order-2">
+          <section>
+            <h2 className="font-display mb-2 text-base font-bold text-foreground">Snel naar</h2>
+            <div className="grid grid-cols-4 gap-2">
+              {QUICK_ACTIONS.map(({ href, label, icon: Icon }) => (
+                <Link key={href} href={href} className="flex flex-col items-center gap-1.5 text-center text-[11px] font-medium text-foreground">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-surface text-petrol shadow-sm">
+                    <Icon size={18} />
+                  </span>
+                  {label}
+                </Link>
+              ))}
             </div>
-          </Link>
-        ) : (
-          <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
-            <p className="text-sm text-muted">Er staat nog geen activiteit gepland.</p>
-          </div>
-        )}
-      </section>
+          </section>
+
+          {newMembers && newMembers.length > 0 && (
+            <section>
+              <SectionHeader title="Nieuw in het netwerk" href="/leden" linkLabel="Alle leden" />
+              <div className="flex gap-3 overflow-x-auto pb-1">
+                {newMembers.map((member) => {
+                  const path = member.avatar_thumb_url ?? member.avatar_url;
+                  const avatarUrl = path ? (newMemberAvatarUrls.get(path) ?? null) : null;
+                  return (
+                    <Link key={member.id} href={`/leden/${member.id}`} className="flex shrink-0 flex-col items-center gap-1.5 text-center">
+                      <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={avatarUrl} size={44} />
+                      <span className="max-w-[56px] truncate text-[11px] text-muted">{member.first_name}</span>
+                    </Link>
+                  );
+                })}
+              </div>
+            </section>
+          )}
+        </div>
+
+        <div className="lg:order-1">
+          {newsSlides.length > 0 ? (
+            <section>
+              <SectionHeader title="Uit de vereniging" href="/nieuws" linkLabel="Alle nieuws" />
+              <NewsHeroCarousel slides={newsSlides} />
+            </section>
+          ) : (
+            !nextActivity && (
+              <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+                <p className="text-sm text-muted">Er staat nog geen activiteit gepland.</p>
+              </div>
+            )
+          )}
+        </div>
+      </div>
     </div>
   );
 }

@@ -31,7 +31,7 @@ export function FilterChipGroup({ filter }: { filter: ListToolbarFilter }) {
         onClick={() => filter.onChange("")}
         className={clsx(
           "rounded-full px-2.5 py-1 text-xs font-medium",
-          !filter.value ? "bg-voc-red text-white" : "bg-black/[.06] text-muted hover:text-foreground dark:bg-white/[.08]"
+          !filter.value ? "bg-foreground text-background" : "bg-black/[.06] text-muted hover:text-foreground dark:bg-white/[.08]"
         )}
       >
         Alle
@@ -44,7 +44,7 @@ export function FilterChipGroup({ filter }: { filter: ListToolbarFilter }) {
           className={clsx(
             "rounded-full px-2.5 py-1 text-xs font-medium",
             filter.value === option.value
-              ? "bg-voc-red text-white"
+              ? "bg-foreground text-background"
               : "bg-black/[.06] text-muted hover:text-foreground dark:bg-white/[.08]"
           )}
         >
@@ -102,7 +102,7 @@ export function FilterPanelGroup({ filter }: { filter: ListToolbarFilter }) {
                   }}
                   className={clsx(
                     "rounded-lg px-3 py-2 text-left text-sm",
-                    !filter.value ? "bg-voc-red-light text-voc-red-text" : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                    !filter.value ? "bg-foreground text-background" : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
                   )}
                 >
                   Alle
@@ -118,7 +118,7 @@ export function FilterPanelGroup({ filter }: { filter: ListToolbarFilter }) {
                     className={clsx(
                       "rounded-lg px-3 py-2 text-left text-sm",
                       filter.value === option.value
-                        ? "bg-voc-red-light text-voc-red-text"
+                        ? "bg-foreground text-background"
                         : "text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
                     )}
                   >
@@ -222,7 +222,7 @@ export function ListToolbar({
               onSearchChange("");
               for (const filter of filters) filter.onChange("");
             }}
-            className="text-xs font-medium text-voc-red-text hover:underline"
+            className="text-xs font-medium text-petrol hover:underline"
           >
             Alles wissen
           </button>

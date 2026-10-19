@@ -1,15 +1,25 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarDays, CalendarPlus } from "lucide-react";
+import { CalendarDays, CalendarPlus, ChevronDown } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { formatMonthLabel, splitUpcomingAndPast } from "@/lib/format/date";
 import { isBoard } from "@/lib/auth/roles";
 import { ActivityCard } from "@/components/agenda/ActivityCard";
+import { WeekStrip } from "@/components/agenda/WeekStrip";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { Chip } from "@/components/ui/Chip";
 import { MarkSectionReadOnView } from "@/components/notifications/MarkSectionReadOnView";
 import type { Database } from "@/lib/types/database";
+
+function dayParts(iso: string) {
+  const date = new Date(iso);
+  return {
+    day: new Intl.DateTimeFormat("nl-NL", { day: "numeric", timeZone: "Europe/Amsterdam" }).format(date),
+    weekday: new Intl.DateTimeFormat("nl-NL", { weekday: "short", timeZone: "Europe/Amsterdam" }).format(date).toUpperCase(),
+  };
+}
 
 export const metadata: Metadata = { title: "Agenda" };
 
@@ -75,7 +85,7 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
     }
   }
 
-  function renderCard(activity: ActivityRow, hero = false) {
+  function renderCard(activity: ActivityRow) {
     const myStatus = myRegistrationByActivity.get(activity.id);
     const imagePath = activity.image_thumb_url ?? activity.image_url;
     return (
@@ -86,70 +96,94 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
         registrationCount={registrationCounts.get(activity.id) ?? 0}
         isRegistered={myStatus !== undefined}
         isWaitlisted={myStatus === true}
-        hero={hero}
       />
+    );
+  }
+
+  // Redesign fase 4: tijdlijn — elke kaart krijgt een eigen datumkolom
+  // (groot cijfer in de kopletter + weekdag) ernaast, met een verticale
+  // lijn die de hele groep verbindt. z-10 + bg-background op de datumkolom
+  // zodat die lijn er zichtbaar áchter loopt i.p.v. er dwars doorheen.
+  function renderTimelineGroup(items: ActivityRow[]) {
+    return (
+      <div className="relative flex flex-col gap-3">
+        <div className="absolute bottom-2 left-[21px] top-2 w-px bg-border" aria-hidden />
+        {items.map((activity) => {
+          const { day, weekday } = dayParts(activity.starts_at);
+          return (
+            <div key={activity.id} className="relative flex gap-2.5">
+              <div className="z-10 flex w-11 shrink-0 flex-col items-center bg-background pt-1 leading-none">
+                <span className="font-display text-xl font-extrabold tracking-[-0.02em] text-foreground">{day}</span>
+                <span className="text-[9px] font-bold tracking-wide text-muted">{weekday}</span>
+              </div>
+              <div className="min-w-0 flex-1">{renderCard(activity)}</div>
+            </div>
+          );
+        })}
+      </div>
     );
   }
 
   return (
     <div className="mx-auto w-full md:max-w-3xl">
-      <MarkSectionReadOnView section="agenda" />
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Agenda</h1>
-        <Link
-          href="/agenda/nieuw"
-          className="flex items-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
-        >
-          <CalendarPlus size={16} />
-          {isBoard(profile.role) ? "Nieuwe activiteit" : "Agenda activiteit toevoegen"}
-        </Link>
-      </div>
+      {/* Zacht verloop bovenaan de inhoud (redesign-besluit 4) — geen
+          edge-to-edge bleed hier (dat vereist exact dezelfde marge als de
+          omliggende AppShell-padding, die per pagina-breedte verschilt);
+          dit blijft daardoor een subtiele, iets minder exacte variant. */}
+      <div className="bg-top-gradient -mx-4 -mt-6 rounded-b-3xl px-4 pt-6 md:-mx-8 md:-mt-10 md:px-8 md:pt-10">
+        <MarkSectionReadOnView section="agenda" />
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Agenda</h1>
+          <Link
+            href="/agenda/nieuw"
+            className="flex items-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-sm font-medium text-white hover:bg-voc-red-dark"
+          >
+            <CalendarPlus size={16} />
+            {isBoard(profile.role) ? "Nieuwe activiteit" : "Agenda activiteit toevoegen"}
+          </Link>
+        </div>
 
-      <div className="mb-4 flex overflow-x-auto rounded-lg border border-border bg-surface p-1">
-        {TYPE_TABS.map((tab) => {
-          const active = (type ?? undefined) === tab.value;
-          return (
-            <Link
-              key={tab.label}
-              href={tab.value ? `/agenda?type=${tab.value}` : "/agenda"}
-              className={
-                active
-                  ? "shrink-0 rounded-md bg-voc-red px-3 py-1.5 text-sm font-medium text-white"
-                  : "shrink-0 rounded-md px-3 py-1.5 text-sm font-medium text-muted hover:text-foreground"
-              }
-            >
+        <div className="mb-4">
+          <WeekStrip activities={(allActivities ?? []).map((a) => ({ starts_at: a.starts_at, source: a.source }))} />
+        </div>
+
+        <div className="mb-4 flex gap-1.5 overflow-x-auto">
+          {TYPE_TABS.map((tab) => (
+            <Chip key={tab.label} href={tab.value ? `/agenda?type=${tab.value}` : "/agenda"} active={(type ?? undefined) === tab.value}>
               {tab.label}
-            </Link>
-          );
-        })}
-      </div>
-
-      {upcoming.length > 0 ? (
-        <div className="flex flex-col gap-6">
-          {upcomingByMonth.map((group, groupIndex) => (
-            <div key={group.label} className="flex flex-col gap-3">
-              <h2 className="text-sm font-semibold text-muted">{group.label}</h2>
-              {group.items.map((activity, i) => renderCard(activity, groupIndex === 0 && i === 0))}
-            </div>
+            </Chip>
           ))}
         </div>
-      ) : (
-        <ComingSoon
-          icon={CalendarDays}
-          title="Geen activiteiten gepland"
-          description="Er zijn momenteel geen activiteiten."
-        />
-      )}
 
-      {past.length > 0 && (
-        <div className="mt-8">
-          <h2 className="mb-3 text-sm font-semibold text-muted">Eerdere activiteiten</h2>
-          {/* Lichtjes grijzer dan de rest, niet extreem, en blijft ook zo —
-              geen kleur-restore bij hover (dat voelde als een onnodige
-              knipper-animatie voor iets dat sowieso al voorbij is). */}
-          <div className="flex flex-col gap-3 opacity-80 grayscale-[65%]">{past.map((activity) => renderCard(activity))}</div>
-        </div>
-      )}
+        {upcoming.length > 0 ? (
+          <div className="flex flex-col gap-6">
+            {upcomingByMonth.map((group) => (
+              <div key={group.label} className="flex flex-col gap-3">
+                <h2 className="font-display pl-[56px] text-sm font-bold text-muted">{group.label}</h2>
+                {renderTimelineGroup(group.items)}
+              </div>
+            ))}
+          </div>
+        ) : (
+          <ComingSoon icon={CalendarDays} title="Geen activiteiten gepland" description="Er zijn momenteel geen activiteiten." />
+        )}
+
+        {/* Redesign: eerdere activiteiten ingeklapt — een native <details>
+            i.p.v. een client component: geen JS nodig voor simpel
+            open/dicht klappen. */}
+        {past.length > 0 && (
+          <details className="group mt-8">
+            <summary className="flex cursor-pointer list-none items-center gap-1.5 text-sm font-semibold text-muted">
+              <ChevronDown size={16} className="transition-transform duration-200 group-open:rotate-180" />
+              Eerdere activiteiten ({past.length})
+            </summary>
+            {/* Lichtjes grijzer dan de rest, niet extreem, en blijft ook zo —
+                geen kleur-restore bij hover (dat voelde als een onnodige
+                knipper-animatie voor iets dat sowieso al voorbij is). */}
+            <div className="mt-3 opacity-80 grayscale-[65%]">{renderTimelineGroup(past)}</div>
+          </details>
+        )}
+      </div>
     </div>
   );
 }

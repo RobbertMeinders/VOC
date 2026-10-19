@@ -88,6 +88,29 @@ export function formatRelativeTime(iso: string): string {
   }).format(date);
 }
 
+// Home-welkomstblok: "Maandag 19 oktober" — zonder jaar/tijd, dat hoort hier
+// niet (het is een kop, geen tijdstempel). Zelfde Europe/Amsterdam-pin als
+// de rest van dit bestand, hier extra relevant: dit draait server-side bij
+// elke paginaweergave (geen client-only Date.now() zoals formatRelativeTime).
+export function formatTodayLabel(): string {
+  const label = new Intl.DateTimeFormat("nl-NL", { timeZone: NL_TIMEZONE, weekday: "long", day: "numeric", month: "long" }).format(
+    new Date()
+  );
+  return label.charAt(0).toUpperCase() + label.slice(1);
+}
+
+// Tijdstip-afhankelijke begroeting voor het welkomstblok — expliciet op
+// Europe/Amsterdam i.p.v. de serverklok zelf, anders zou een server buiten
+// Europa 's ochtends voor Nederlandse leden al "Goedenavond" tonen.
+export function getGreeting(): string {
+  const hour = Number(
+    new Intl.DateTimeFormat("nl-NL", { timeZone: NL_TIMEZONE, hour: "numeric", hourCycle: "h23" }).format(new Date())
+  );
+  if (hour < 12) return "Goedemorgen";
+  if (hour < 18) return "Goedemiddag";
+  return "Goedenavond";
+}
+
 /**
  * Split activities into upcoming (soonest first) and past (most recent
  * first). Pulled out of the page component because calling `Date.now()`

@@ -15,9 +15,11 @@ import {
   Users,
   X,
 } from "lucide-react";
+import { clsx } from "clsx";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { StatTile } from "@/components/ui/StatTile";
 import { AccessRequestRow, type AccessRequest } from "@/components/invitations/AccessRequestRow";
 import { ApproveActivityForm } from "@/components/agenda/ApproveActivityForm";
 import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
@@ -216,24 +218,23 @@ export default async function BeheerPage() {
       </div>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {kerncijfers.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Link
-              key={stat.label}
-              href={stat.href}
-              className="rounded-xl border border-border bg-surface p-4 shadow-sm transition-colors hover:border-voc-red"
-            >
-              <Icon size={16} className="mb-2 text-muted" />
-              <p className="text-2xl font-semibold text-foreground">{stat.value}</p>
-              <p className="text-xs text-muted">{stat.label}</p>
-            </Link>
-          );
-        })}
+        {kerncijfers.map((stat) => (
+          <Link key={stat.label} href={stat.href} className="block hover:-translate-y-px">
+            <StatTile label={stat.label} value={stat.value} />
+          </Link>
+        ))}
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
-        <h2 className="mb-3 text-sm font-semibold text-foreground">Wacht op jou</h2>
+      {/* Redesign: "Wacht op jou" springt eruit als er iets wacht
+          (danger-soft vlak, zie "opvallende melding bovenaan") i.p.v. een
+          gewone kaart — de bestaande, per categorie uitgewerkte acties
+          eronder blijven intact (geen functionaliteit inleveren voor één
+          generieke knop die het ontwerp laat zien). */}
+      <div className={clsx("rounded-2xl p-4 shadow-sm", hasWaitingWork ? "bg-danger-soft" : "border border-border bg-surface")}>
+        <h2 className={clsx("mb-3 flex items-center gap-1.5 text-sm font-semibold", hasWaitingWork ? "text-danger-text" : "text-foreground")}>
+          {hasWaitingWork && <Flag size={14} />}
+          Wacht op jou
+        </h2>
 
         {!hasWaitingWork && (
           <ComingSoon icon={CheckCircle2} title="Niets te doen." />
@@ -262,7 +263,7 @@ export default async function BeheerPage() {
             <div className="flex flex-col gap-2">
               {pendingActivities!.map((activity) => (
                 <div key={activity.id} className="rounded-xl border border-border p-3">
-                  <Link href={`/agenda/${activity.id}`} className="text-sm font-medium text-foreground hover:text-voc-red-text">
+                  <Link href={`/agenda/${activity.id}`} className="text-sm font-medium text-foreground hover:text-petrol">
                     {activity.title}
                   </Link>
                   <p className="text-xs text-muted">
@@ -320,7 +321,7 @@ export default async function BeheerPage() {
                       {request.profile.first_name} {request.profile.last_name}
                     </span>{" "}
                     wil gekoppeld worden aan{" "}
-                    <Link href={`/bedrijven/${request.company.id}`} className="font-medium hover:text-voc-red-text hover:underline">
+                    <Link href={`/bedrijven/${request.company.id}`} className="font-medium hover:text-petrol hover:underline">
                       {request.company.name}
                     </Link>
                   </p>
@@ -334,7 +335,7 @@ export default async function BeheerPage() {
                       <button
                         type="submit"
                         aria-label="Goedkeuren"
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-voc-red-light text-voc-red-text hover:bg-voc-red hover:text-white"
+                        className="flex h-8 w-8 items-center justify-center rounded-full bg-status-success-soft text-status-success hover:bg-status-success hover:text-white"
                       >
                         <Check size={16} />
                       </button>
@@ -390,7 +391,7 @@ export default async function BeheerPage() {
             {expiringInvitations!.length > WAITING_WORK_PREVIEW && (
               <Link
                 href="/beheer/instroom?tab=uitnodigingen"
-                className="mt-2 flex items-center gap-1 text-xs font-medium text-voc-red-text hover:underline"
+                className="mt-2 flex items-center gap-1 text-xs font-medium text-petrol hover:underline"
               >
                 Bekijk alles ({expiringInvitations!.length})
                 <ArrowRight size={12} />
@@ -403,7 +404,7 @@ export default async function BeheerPage() {
       <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-foreground">Komende activiteiten</h2>
-          <Link href="/beheer/agenda" className="flex items-center gap-1 text-xs font-medium text-voc-red-text hover:underline">
+          <Link href="/beheer/agenda" className="flex items-center gap-1 text-xs font-medium text-petrol hover:underline">
             Hele agenda
             <ArrowRight size={13} />
           </Link>
@@ -417,7 +418,7 @@ export default async function BeheerPage() {
                 <Link
                   key={activity.id}
                   href={`/agenda/${activity.id}`}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-border p-3 hover:border-voc-red"
+                  className="flex items-center justify-between gap-3 rounded-xl border border-border p-3 hover:border-foreground/20"
                 >
                   <div className="min-w-0">
                     <p className="truncate text-sm font-medium text-foreground">{activity.title}</p>
@@ -443,7 +444,7 @@ export default async function BeheerPage() {
               <Users size={14} />
               Nieuwe leden
             </h2>
-            <Link href="/beheer/leden" className="flex items-center gap-1 text-xs font-medium text-voc-red-text hover:underline">
+            <Link href="/beheer/leden" className="flex items-center gap-1 text-xs font-medium text-petrol hover:underline">
               Alle leden
               <ArrowRight size={13} />
             </Link>
@@ -459,7 +460,7 @@ export default async function BeheerPage() {
                     </span>
                     <span className="flex shrink-0 items-center gap-2">
                       {incomplete && (
-                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-500/10 dark:text-amber-400">
+                        <span className="rounded-full bg-status-warning-soft px-2 py-0.5 text-xs font-medium text-status-warning">
                           Profiel incompleet
                         </span>
                       )}
@@ -480,7 +481,7 @@ export default async function BeheerPage() {
               <MessageSquare size={14} />
               Community
             </h2>
-            <Link href="/community" className="flex items-center gap-1 text-xs font-medium text-voc-red-text hover:underline">
+            <Link href="/community" className="flex items-center gap-1 text-xs font-medium text-petrol hover:underline">
               Naar de feed
               <ArrowRight size={13} />
             </Link>
@@ -506,7 +507,7 @@ export default async function BeheerPage() {
             <Megaphone size={14} />
             Nieuwsbrieven
           </h2>
-          <Link href="/beheer/communicatie" className="flex items-center gap-1 text-xs font-medium text-voc-red-text hover:underline">
+          <Link href="/beheer/communicatie" className="flex items-center gap-1 text-xs font-medium text-petrol hover:underline">
             Alle communicatie
             <ArrowRight size={13} />
           </Link>

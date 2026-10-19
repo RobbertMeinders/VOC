@@ -6,10 +6,12 @@ import { ChevronRight } from "lucide-react";
 export function SectionHeader({ title, href, linkLabel }: { title: string; href: string; linkLabel: string }) {
   return (
     <div className="mb-2 flex items-baseline justify-between gap-2">
-      <h2 className="min-w-0 truncate text-sm font-semibold text-foreground">{title}</h2>
+      {/* Redesign: sectiekoppen in de kopletter (16px/gewicht 700); de
+          tekstlink was rood, wordt petrol (rood is schaars geworden). */}
+      <h2 className="font-display min-w-0 truncate text-base font-bold text-foreground">{title}</h2>
       <Link
         href={href}
-        className="flex shrink-0 items-center gap-0.5 whitespace-nowrap text-sm font-medium text-voc-red-text hover:underline"
+        className="flex shrink-0 items-center gap-0.5 whitespace-nowrap text-sm font-medium text-petrol hover:underline"
       >
         {linkLabel}
         <ChevronRight size={14} />

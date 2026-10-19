@@ -130,7 +130,7 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
                 draggable={false}
               />
             ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-voc-red">
+              <div className="absolute inset-0 flex items-center justify-center bg-petrol-deep">
                 <Megaphone size={72} className="text-white/20" />
               </div>
             )}
@@ -150,10 +150,13 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
               }}
               className="absolute inset-x-0 bottom-0 block p-4 sm:p-6"
             >
-              <span className="inline-block rounded-full bg-voc-red px-2.5 py-1 text-xs font-semibold text-white">
+              {/* Redesign: statuslabel wit i.p.v. gevuld rood. */}
+              <span className="inline-block rounded-full bg-white px-2.5 py-1 text-xs font-semibold text-petrol-deep">
                 Nieuws
               </span>
-              <p className="mt-2 line-clamp-2 text-xl font-bold leading-tight text-white sm:text-3xl">{slide.title}</p>
+              <p className="font-display mt-2 line-clamp-2 text-xl font-extrabold tracking-[-0.02em] leading-tight text-white sm:text-3xl">
+                {slide.title}
+              </p>
               {slide.subtitle && (
                 <p className="mt-1 line-clamp-1 text-sm font-medium text-white/90 sm:text-base">{slide.subtitle}</p>
               )}
