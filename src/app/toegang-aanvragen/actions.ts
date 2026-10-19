@@ -56,6 +56,11 @@ export async function submitAccessRequestAction(
   });
 
   if (error) {
+    // Tot nu toe ging de echte Postgres-foutmelding nergens heen — alleen
+    // deze generieke tekst naar de bezoeker, dus geen enkel spoor om een
+    // "versturen lukt niet"-melding ooit te kunnen verklaren. Komt nu in de
+    // Vercel-functielogs terecht (console.error), net als elders in de app.
+    console.error("[toegang-aanvragen] submitAccessRequestAction insert failed:", error);
     return { error: "Versturen is niet gelukt. Probeer het opnieuw." };
   }
 

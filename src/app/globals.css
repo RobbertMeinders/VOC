@@ -19,6 +19,13 @@
 }
 
 :root {
+  /* Zonder dit blijven native formulierelementen (checkbox, select,
+     datumkiezer) en de scrollbar gewoon de OS-voorkeur volgen, ook waar al
+     deze CSS-variabelen al licht blijven — een embed-pagina oogde daardoor
+     als "half donker" bij een bezoeker met een donker systeemthema, terwijl
+     de rest van de pagina (terecht) wit bleef. Volgt hieronder dezelfde
+     licht/donker-logica als de class- en variabele-overrides. */
+  color-scheme: light;
   --background: #f7f7f8;
   --surface: #ffffff;
   --foreground: #17171a;
@@ -166,6 +173,7 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
+    color-scheme: dark;
     --background: #0f0f12;
     --surface: #1a1a1e;
     --foreground: #f2f2f3;
@@ -219,6 +227,7 @@
 }
 
 :root[data-theme="dark"] {
+  color-scheme: dark;
   --background: #0f0f12;
   --surface: #1a1a1e;
   --foreground: #f2f2f3;
@@ -272,6 +281,7 @@
    wat de van :root geërfde donkere waarden overschrijft zonder het
    component zelf theme-specifieke classes te hoeven geven. */
 [data-theme="light"] {
+  color-scheme: light;
   --background: #f7f7f8;
   --surface: #ffffff;
   --foreground: #17171a;

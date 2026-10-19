@@ -8,7 +8,7 @@ import { FieldError } from "@/components/ui/FieldError";
 import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
 import { submitAccessRequestAction, type AccessRequestState } from "@/app/toegang-aanvragen/actions";
 import { useFieldValidation } from "@/lib/validation/useFieldValidation";
-import { validateEmail, validateUrl } from "@/lib/validation/fields";
+import { validateEmail, validateUrl, normalizeUrl } from "@/lib/validation/fields";
 
 const initialState: AccessRequestState = {};
 
@@ -128,7 +128,10 @@ export function AccessRequestForm() {
           autoComplete="url"
           placeholder="https://"
           invalid={Boolean(errors.website)}
-          onBlur={(e) => validateField("website", e.target.value)}
+          onBlur={(e) => {
+            e.target.value = normalizeUrl(e.target.value);
+            validateField("website", e.target.value);
+          }}
         />
         <FieldError message={errors.website} />
       </div>

@@ -88,9 +88,22 @@ function renderImageBlock(block: Extract<NewsletterBlock, { type: "image" }>): s
   </td></tr>`;
 }
 
+// Tabel met de achtergrondkleur op de <td> i.p.v. alleen op de <a> —
+// robuuster: Outlook (Word-rendering-engine) negeert border-radius en kan
+// een losse, enkel-op-de-link gestylede "knop" laten inzakken tot een kale
+// onderstreepte link. Met de kleur ook op de cel blijft er overal een
+// gevulde knopvorm staan, desnoods met rechte in plaats van ronde hoeken.
+function renderButton(url: string, label: string, align: NewsletterAlign | undefined): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" align="${align === "right" ? "right" : align === "center" ? "center" : "left"}" style="margin:0;">
+    <tr><td style="border-radius:${BUTTON_RADIUS};background:${COLORS.green};">
+      <a href="${escapeHtml(url)}" style="display:inline-block;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:12px 24px;font-family:${FONT};">${escapeHtml(label)}</a>
+    </td></tr>
+  </table>`;
+}
+
 function renderButtonBlock(block: Extract<NewsletterBlock, { type: "button" }>): string {
   return `<tr><td align="${block.align ?? "left"}" style="padding:0 24px 28px;${alignStyle(block.align)}">
-    <a href="${escapeHtml(block.url)}" style="display:inline-block;background:${COLORS.green};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:12px 24px;border-radius:${BUTTON_RADIUS};font-family:${FONT};">${escapeHtml(block.label)}</a>
+    ${renderButton(block.url, block.label, block.align)}
   </td></tr>`;
 }
 
@@ -125,7 +138,7 @@ function renderEventBlock(block: Extract<NewsletterBlock, { type: "event" }>): s
       ${dateLine}
       ${locationLine}
       ${description}
-      <a href="${escapeHtml(block.linkUrl)}" style="display:inline-block;margin-top:14px;background:${COLORS.green};color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:10px 20px;border-radius:${BUTTON_RADIUS};font-family:${FONT};">${escapeHtml(block.buttonLabel || "Bekijk activiteit")}</a>
+      <div style="margin-top:14px;">${renderButton(block.linkUrl, block.buttonLabel || "Bekijk activiteit", "left")}</div>
     </div>
   </td></tr>`;
 }
@@ -134,10 +147,16 @@ function renderEventBlock(block: Extract<NewsletterBlock, { type: "event" }>): s
 // elders in de app) — hier gedupliceerd omdat de React-iconcomponent daar
 // niet herbruikbaar is in e-mailveilige HTML. De iconbestanden zelf staan
 // als losse SVG's in public/brand/ (zelfde aanpak als het logo hierboven).
+// .png i.p.v. .svg: SVG-ondersteuning in e-mailclients is onbetrouwbaar (met
+// name de radiale kleurverloop-gradient van het Instagram-icoon viel vaak
+// terug op een rafelige/verkeerde kleur) — een gerasterde PNG wordt overal
+// consistent getoond. Alleen voor deze drie footer-icoontjes; de React-
+// variant in de rest van de app (VocSocialLinks.tsx) gebruikt deze
+// bestanden niet en blijft ongewijzigd.
 const VOC_SOCIAL_LINKS = [
-  { href: "https://www.linkedin.com/company/veendam/", label: "LinkedIn", icon: "social-linkedin.svg" },
-  { href: "https://www.facebook.com/vocveendam", label: "Facebook", icon: "social-facebook.svg" },
-  { href: "https://www.instagram.com/vocveendam/", label: "Instagram", icon: "social-instagram.svg" },
+  { href: "https://www.linkedin.com/company/veendam/", label: "LinkedIn", icon: "social-linkedin.png" },
+  { href: "https://www.facebook.com/vocveendam", label: "Facebook", icon: "social-facebook.png" },
+  { href: "https://www.instagram.com/vocveendam/", label: "Instagram", icon: "social-instagram.png" },
 ];
 
 // Vast maar uitzetbaar (communications.show_header) — het beeldmerk

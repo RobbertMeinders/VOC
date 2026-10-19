@@ -65,7 +65,13 @@ function buildEmbedCode(origin: string, embed: (typeof EMBEDS)[number]): string 
 `
       : "";
 
-  return `<iframe id="${id}" src="${src}" width="100%" height="${embed.startHeight}" style="border:0;" allow="clipboard-write; web-share" title="VOC ${embed.label}"></iframe>
+  // storage-access: zonder deze toestemming op de iframe zelf weigert de
+  // browser elke aanroep van document.requestStorageAccess() in de embed
+  // (de "Al ingelogd op deze browser?"-knop bij Agenda), stil en zonder dat
+  // daar vanuit de embed iets aan te doen is — de pop-up-login blijft dan de
+  // enige werkende weg. Bestaande, al op de website geplakte embedcodes
+  // moeten hiervoor wel opnieuw gekopieerd en geplakt worden.
+  return `<iframe id="${id}" src="${src}" width="100%" height="${embed.startHeight}" style="border:0;" allow="clipboard-write; web-share; storage-access" title="VOC ${embed.label}"></iframe>
 <script>
 (function () {
   var iframe = document.getElementById("${id}");

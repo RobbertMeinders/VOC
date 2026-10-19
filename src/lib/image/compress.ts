@@ -8,6 +8,13 @@
 const MAX_DIMENSION = 1920;
 const JPEG_QUALITY = 0.82;
 
+// Nieuwsbriefafbeeldingen tonen hoogstens 552px breed (zie render.ts) — de
+// generieke 1920px hierboven is bedoeld voor foto's die veel groter op het
+// scherm komen (activiteitdetail, feed) en leverde in de nieuwsbrief een
+// nodeloos groot bestand op (tot 3,5x meer pixels dan ooit getoond worden).
+// 1100px is ruim genoeg voor een scherp beeld op een 2x-scherm.
+export const NEWSLETTER_IMAGE_DIMENSION = 1100;
+
 // Performance-audit #1: avatars/logo's worden in lijsten (ledenlijst,
 // bedrijvengids, Beheer-overzichten) als icoon van 32-72px getoond, maar tot
 // nu toe altijd op volle (tot 1920px) grootte gedownload — dat was 75-90% van
@@ -46,7 +53,7 @@ async function resizeToCanvas(file: File, maxDimension: number, quality: number)
   }
 }
 
-export async function compressImageFile(file: File): Promise<File> {
+export async function compressImageFile(file: File, maxDimension: number = MAX_DIMENSION): Promise<File> {
   // GIF (animatie) en SVG (vector) mogen niet door canvas gerasterd worden —
   // dat verliest precies waarom je dat formaat koos.
   if (!file.type.startsWith("image/") || file.type === "image/gif" || file.type === "image/svg+xml") {
@@ -54,7 +61,7 @@ export async function compressImageFile(file: File): Promise<File> {
   }
 
   try {
-    const result = await resizeToCanvas(file, MAX_DIMENSION, JPEG_QUALITY);
+    const result = await resizeToCanvas(file, maxDimension, JPEG_QUALITY);
     if (!result || result.blob.size >= file.size) {
       return file;
     }
@@ -99,11 +106,11 @@ export async function createThumbnailFile(
  * back onto `input.files`, so a normal form submit (and useActionState) picks
  * up the smaller file without any other wiring.
  */
-export async function compressInputFile(input: HTMLInputElement): Promise<File | null> {
+export async function compressInputFile(input: HTMLInputElement, maxDimension: number = MAX_DIMENSION): Promise<File | null> {
   const file = input.files?.[0];
   if (!file) return null;
 
-  const compressed = await compressImageFile(file);
+  const compressed = await compressImageFile(file, maxDimension);
   if (compressed !== file) {
     const transfer = new DataTransfer();
     transfer.items.add(compressed);

@@ -31,7 +31,7 @@ import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
 import { Chip } from "@/components/ui/Chip";
 import { FileSelectButton } from "@/components/ui/FileSelectButton";
-import { compressInputFile } from "@/lib/image/compress";
+import { compressInputFile, NEWSLETTER_IMAGE_DIMENSION } from "@/lib/image/compress";
 import {
   updateCommunicationAction,
   uploadNewsletterImageAction,
@@ -198,7 +198,7 @@ function BlockImageUpload({ onUploaded }: { onUploaded: (url: string) => void })
         required
         label="Afbeelding kiezen"
         onChange={async (e) => {
-          await compressInputFile(e.target);
+          await compressInputFile(e.target, NEWSLETTER_IMAGE_DIMENSION);
         }}
       />
       <UploadButtonSmall />

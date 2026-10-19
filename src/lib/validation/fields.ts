@@ -7,6 +7,18 @@
 const URL_PATTERN = /^https?:\/\/\S+\.\S+$/i;
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+// Vult zelf https:// aan i.p.v. een ingevulde link zonder schema af te
+// keuren — een bezoeker van het "lid worden"-formulier (embed op de
+// website) typt vaak gewoon "vocveendam.nl" en moet daar niet voor worden
+// teruggestuurd. Laat een waarde met een afwijkend schema (bv. "mailto:")
+// expliciet met rust; die hoort hier toch al niet in thuis, en validateUrl
+// vangt 'm alsnog af.
+export function normalizeUrl(value: string): string {
+  const trimmed = value.trim();
+  if (!trimmed || /^[a-z][a-z0-9+.-]*:/i.test(trimmed)) return trimmed;
+  return `https://${trimmed}`;
+}
+
 export function validateUrl(value: string, required = false): string | undefined {
   const trimmed = value.trim();
   if (!trimmed) return required ? "Dit veld is verplicht." : undefined;
