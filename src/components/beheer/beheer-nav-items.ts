@@ -81,7 +81,10 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     title: "Instellingen",
     items: [
       { href: "/beheer/vereniging", label: "Vereniging", icon: Handshake },
-      { href: "/beheer/instellingen", label: "Portaalinstellingen", icon: SlidersHorizontal, adminOnly: true },
+      // Niet langer adminOnly: Notificatieregels op deze pagina is ook voor
+      // bestuursleden (zie instellingen/page.tsx, dat de overige, wél
+      // beheerder-only secties zelf gate't op profile.role).
+      { href: "/beheer/instellingen", label: "Portaalinstellingen", icon: SlidersHorizontal },
       { href: "/beheer/embed-codes", label: "Website-koppeling", icon: Globe, adminOnly: true },
     ],
   },

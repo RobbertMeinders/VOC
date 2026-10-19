@@ -42,13 +42,13 @@ export async function updateNotificationRuleAction(
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
 
-  revalidatePath("/beheer/communicatie");
+  revalidatePath("/beheer/instellingen");
   return {};
 }
 
 export type UpdateAllNotificationChannelsState = { error?: string };
 
-// Hoofdschakelaar boven de tabel (NotificatieregelsTab): zet de "status"
+// Hoofdschakelaar boven de tabel (Portaalinstellingen): zet de "status"
 // (enabled) van élke regel in één keer aan/uit — dezelfde kolom als de
 // losse schakelaar in de Status-kolom per regel. Bewust NIET channel_push/
 // channel_email: die zet je per regel individueel in, en als de
@@ -72,6 +72,6 @@ export async function updateAllNotificationChannelsAction(enabled: boolean): Pro
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
 
-  revalidatePath("/beheer/communicatie");
+  revalidatePath("/beheer/instellingen");
   return {};
 }

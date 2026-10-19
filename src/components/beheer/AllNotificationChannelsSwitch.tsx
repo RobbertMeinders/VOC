@@ -3,9 +3,9 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Switch } from "@/components/ui/Switch";
-import { updateAllNotificationChannelsAction } from "@/app/(app)/beheer/communicatie/notificatieregels-actions";
+import { updateAllNotificationChannelsAction } from "@/app/(app)/beheer/instellingen/notificatieregels-actions";
 
-// Boven de tabel in NotificatieregelsTab: één schakelaar voor de status
+// Boven de tabel op Portaalinstellingen: één schakelaar voor de status
 // (enabled) van élke regel tegelijk, voor "ik wil nu even helemaal niets
 // laten versturen" — zonder de kanaalkeuze per regel te overschrijven (zie
 // notificatieregels-actions.ts). router.refresh() ná een gelukte wijziging,

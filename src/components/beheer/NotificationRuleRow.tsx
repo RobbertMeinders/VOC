@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Switch } from "@/components/ui/Switch";
-import { updateNotificationRuleAction } from "@/app/(app)/beheer/communicatie/notificatieregels-actions";
+import { updateNotificationRuleAction } from "@/app/(app)/beheer/instellingen/notificatieregels-actions";
 import { ASSIGNABLE_ROLES, NOTIFICATION_TYPE_LABELS, type ConfigurableNotificationType } from "@/lib/notifications/type-labels";
 import type { Database, UserRole } from "@/lib/types/database";
 

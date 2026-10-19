@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
+import { Chip } from "@/components/ui/Chip";
 import { FileSelectButton } from "@/components/ui/FileSelectButton";
 import { compressInputFile } from "@/lib/image/compress";
 import {
@@ -624,6 +625,13 @@ export function NewsletterEditor({
     Array.isArray(communication.content) ? (communication.content as unknown as NewsletterBlock[]) : []
   );
   const [previewDevice, setPreviewDevice] = useState<"desktop" | "mobile">("desktop");
+  // B4 (nieuwsbriefsysteem-plan): drie tabbladen i.p.v. alles onder elkaar —
+  // Ontvangers (de doelgroepkaart) en Verzendingen (inplannen/versturen)
+  // stonden voorheen allebei gewoon in de linkerkolom van "Inhoud". Puur CSS
+  // (hidden) i.p.v. de secties voorwaardelijk te unmounten: de editorstate
+  // (subject/blocks/...) en het opslaan-formulier blijven zo intact bij het
+  // wisselen van tabblad.
+  const [activeEditorTab, setActiveEditorTab] = useState<"inhoud" | "ontvangers" | "verzendingen">("inhoud");
   const [testSendPending, setTestSendPending] = useState(false);
   const [testSendResult, setTestSendResult] = useState<{ error?: string; success?: boolean } | null>(null);
 
@@ -808,7 +816,20 @@ export function NewsletterEditor({
   const readOnly = communication.status !== "concept";
 
   return (
-    <div className="grid gap-6 lg:grid-cols-2">
+    <div className="flex flex-col gap-4">
+      <div className="flex gap-1.5 overflow-x-auto">
+        <Chip active={activeEditorTab === "inhoud"} onClick={() => setActiveEditorTab("inhoud")}>
+          Inhoud
+        </Chip>
+        <Chip active={activeEditorTab === "ontvangers"} onClick={() => setActiveEditorTab("ontvangers")}>
+          Ontvangers
+        </Chip>
+        <Chip active={activeEditorTab === "verzendingen"} onClick={() => setActiveEditorTab("verzendingen")}>
+          Verzendingen
+        </Chip>
+      </div>
+
+      <div className={activeEditorTab === "inhoud" ? "grid gap-6 lg:grid-cols-2" : "hidden"}>
       <div className="flex flex-col gap-6">
         <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
           <div className="flex flex-col gap-4">
@@ -951,7 +972,46 @@ export function NewsletterEditor({
             </div>
           )}
         </form>
+      </div>
 
+      <div className="lg:sticky lg:top-4 lg:self-start">
+        <div className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-foreground">Voorbeeld</p>
+            <div className="flex gap-1.5">
+              <PreviewToggleButton active={previewDevice === "desktop"} onClick={() => setPreviewDevice("desktop")}>
+                <Laptop size={13} />
+                Desktop
+              </PreviewToggleButton>
+              <PreviewToggleButton active={previewDevice === "mobile"} onClick={() => setPreviewDevice("mobile")}>
+                <Smartphone size={13} />
+                Mobiel
+              </PreviewToggleButton>
+            </div>
+          </div>
+          <div className="flex justify-center rounded-xl bg-black/[.03] p-3 dark:bg-white/[.04]">
+            <iframe
+              title="Voorbeeld nieuwsbrief"
+              srcDoc={previewHtml}
+              sandbox=""
+              className={`h-[min(78vh,900px)] rounded-lg border border-border bg-white transition-[width] dark:ring-1 dark:ring-white/10 ${
+                previewDevice === "desktop" ? "w-full" : "w-[390px]"
+              }`}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-3 border-t border-border pt-3">
+            <Button type="button" variant="secondary" onClick={handleTestSend} disabled={testSendPending}>
+              <Send size={16} />
+              {testSendPending ? "Versturen…" : "Testmail versturen naar mij"}
+            </Button>
+            {testSendResult?.success && <p className="text-sm text-status-success">Testmail verstuurd.</p>}
+            {testSendResult?.error && <p className="text-sm text-voc-red-text">{testSendResult.error}</p>}
+          </div>
+        </div>
+      </div>
+      </div>
+
+      <div className={activeEditorTab === "ontvangers" ? "flex flex-col gap-4" : "hidden"}>
         <AudiencePicker
           communicationId={communication.id}
           recipientFilter={communication.recipient_filter}
@@ -962,7 +1022,9 @@ export function NewsletterEditor({
           extraProfileIds={extraProfileIds}
           extraContactIds={extraContactIds}
         />
+      </div>
 
+      <div className={activeEditorTab === "verzendingen" ? "flex flex-col gap-4" : "hidden"}>
         {communication.status === "ingepland" && (
           <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
             <p className="text-sm font-medium text-foreground">Ingepland</p>
@@ -1039,42 +1101,6 @@ export function NewsletterEditor({
             )}
           </div>
         )}
-      </div>
-
-      <div className="lg:sticky lg:top-4 lg:self-start">
-        <div className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-4 shadow-sm">
-          <div className="flex items-center justify-between">
-            <p className="text-sm font-medium text-foreground">Voorbeeld</p>
-            <div className="flex gap-1.5">
-              <PreviewToggleButton active={previewDevice === "desktop"} onClick={() => setPreviewDevice("desktop")}>
-                <Laptop size={13} />
-                Desktop
-              </PreviewToggleButton>
-              <PreviewToggleButton active={previewDevice === "mobile"} onClick={() => setPreviewDevice("mobile")}>
-                <Smartphone size={13} />
-                Mobiel
-              </PreviewToggleButton>
-            </div>
-          </div>
-          <div className="flex justify-center rounded-xl bg-black/[.03] p-3 dark:bg-white/[.04]">
-            <iframe
-              title="Voorbeeld nieuwsbrief"
-              srcDoc={previewHtml}
-              sandbox=""
-              className={`h-[min(78vh,900px)] rounded-lg border border-border bg-white transition-[width] dark:ring-1 dark:ring-white/10 ${
-                previewDevice === "desktop" ? "w-full" : "w-[390px]"
-              }`}
-            />
-          </div>
-          <div className="flex flex-wrap items-center gap-3 border-t border-border pt-3">
-            <Button type="button" variant="secondary" onClick={handleTestSend} disabled={testSendPending}>
-              <Send size={16} />
-              {testSendPending ? "Versturen…" : "Testmail versturen naar mij"}
-            </Button>
-            {testSendResult?.success && <p className="text-sm text-status-success">Testmail verstuurd.</p>}
-            {testSendResult?.error && <p className="text-sm text-voc-red-text">{testSendResult.error}</p>}
-          </div>
-        </div>
       </div>
     </div>
   );
