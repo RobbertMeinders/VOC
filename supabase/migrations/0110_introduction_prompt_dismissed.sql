@@ -7,8 +7,13 @@
 -- introductiebericht heeft geplaatst, wordt niet hier opgeslagen maar
 -- afgeleid uit feed_posts (type = 'voorstellen') — dat blijft zo de enige
 -- bron van waarheid, ook als het bericht buiten deze stap om geplaatst is.
+-- if not exists: deze migratie is eerder al gedeeltelijk uitgevoerd (deze
+-- kolom bestond al, de rest van het bestand — de functie-herdefinities en
+-- de grant — nog niet), waardoor een kale ALTER TABLE hier zou vastlopen
+-- en niets daarna nog zou uitvoeren. Zo is het bestand in zijn geheel
+-- veilig opnieuw te draaien, ongeacht hoever de vorige poging kwam.
 alter table public.profiles
-  add column introduction_prompt_dismissed_at timestamptz;
+  add column if not exists introduction_prompt_dismissed_at timestamptz;
 
 -- Bijvangst tijdens het bouwen van deze stap: 0085_image_thumbnails.sql
 -- herdefinieerde get_member_profile/get_members_directory (nodig voor
