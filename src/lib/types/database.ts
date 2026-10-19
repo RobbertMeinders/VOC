@@ -513,6 +513,42 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["communication_contact_sends"]["Row"]>;
         Relationships: [];
       };
+      communication_deliveries: {
+        Row: {
+          id: string;
+          communication_id: string;
+          profile_id: string | null;
+          contact_id: string | null;
+          email: string;
+          status: "wachten" | "verstuurd" | "mislukt" | "overgeslagen";
+          failure_reason: string | null;
+          attempt_id: string | null;
+          provider_id: string | null;
+          sent_at: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["communication_deliveries"]["Row"]> & {
+          communication_id: string;
+          email: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["communication_deliveries"]["Row"]>;
+        Relationships: [];
+      };
+      communication_send_attempts: {
+        Row: {
+          id: string;
+          communication_id: string;
+          kind: "eerste_verzending" | "nasturen" | "opnieuw_proberen";
+          started_by: string | null;
+          started_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["communication_send_attempts"]["Row"]> & {
+          communication_id: string;
+          kind: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["communication_send_attempts"]["Row"]>;
+        Relationships: [];
+      };
       notifications: {
         Row: {
           id: string;
@@ -1008,6 +1044,26 @@ export interface Database {
       claim_newsletter_send: {
         Args: { p_communication_id: string };
         Returns: boolean;
+      };
+      claim_newsletter_deliveries: {
+        Args: { p_communication_id: string; p_kind: string };
+        Returns: { delivery_id: string; profile_id: string | null; contact_id: string | null; email: string; attempt_id: string }[];
+      };
+      mark_newsletter_delivery_sent: {
+        Args: { p_delivery_id: string; p_provider_id?: string | null };
+        Returns: undefined;
+      };
+      mark_newsletter_delivery_failed: {
+        Args: { p_delivery_id: string; p_reason: string };
+        Returns: undefined;
+      };
+      mark_newsletter_delivery_skipped: {
+        Args: { p_delivery_id: string; p_reason: string };
+        Returns: undefined;
+      };
+      finalize_newsletter_send_v2: {
+        Args: { p_communication_id: string };
+        Returns: { total: number; sent: number; failed: number; skipped: number }[];
       };
     };
     Enums: {

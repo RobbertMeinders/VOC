@@ -204,9 +204,10 @@ export type AudienceState = { error?: string; success?: boolean };
 // dat geen probleem is. Blijft bewust altijd aanroepbaar, ook als de
 // campagne al (deels) verstuurd is — zie 0089_newsletter_audience_targeting
 // en de "extra versturen"-sectie in NewsletterEditor: wie al een
-// notifications-/communication_contact_sends-rij heeft, krijgt 'm bij de
-// eerstvolgende "Versturen"-klik hoe dan ook niet dubbel (unique constraint
-// + claim-RPC's slaan al-geclaimde ontvangers over).
+// communication_deliveries-rij met status 'verstuurd' heeft (zie 0116), komt
+// bij de eerstvolgende "Versturen"-klik hoe dan ook niet dubbel aan de beurt
+// (unique constraint op e-mailadres + claim_newsletter_deliveries slaat
+// al-verstuurde ontvangers over).
 export async function updateCommunicationAudienceAction(
   communicationId: string,
   recipientFilter: "alle_actieve_leden" | "lijsten",
@@ -368,18 +369,28 @@ export async function uploadNewsletterImageAction(
 
 export type SendNewsletterState = { error?: string; total?: number; sent?: number; failed?: number; done?: boolean };
 
-// De daadwerkelijke verzending (fase 8, "Verzendarchitectuur" sectie J).
-// Kernregel: nooit een halve verzending als succesvol rapporteren. Elke
-// ontvanger krijgt zijn eigen notifications-rij (claim_newsletter_recipients,
-// 0067_newsletter_send.sql) die hier, direct na de individuele
-// verzend-aanroep, pas als verstuurd wordt gemarkeerd — nooit vooraf, nooit
-// in bulk. Breekt deze functie halverwege af (bv. door een functie-timeout
-// bij een groot ledenaantal), dan staat alles wat al écht verstuurd is ook
-// al als zodanig vastgelegd; nogmaals op "Versturen" klikken (of "Opnieuw
-// proberen" na een gedeeltelijke mislukking) berekent via dezelfde
-// claim-aanroep vanzelf opnieuw wie nog een lege emailed_at heeft en
-// verstuurt alléén aan hen — nooit een dubbele e-mail aan wie al iets
-// ontving.
+// Welk soort poging dit is (communication_send_attempts.kind, 0116) — puur
+// afgeleid van de status vóór deze klik, voor de geschiedenis in de
+// Verzendingen-tab: 'verzonden' betekent nasturen naar een later
+// toegevoegde ontvanger, 'verzenden_mislukt'/'versturen' (vastgelopen)
+// betekent opnieuw proberen, al het overige is de eerste verzending.
+function sendKind(status: string): "eerste_verzending" | "nasturen" | "opnieuw_proberen" {
+  if (status === "verzonden") return "nasturen";
+  if (status === "verzenden_mislukt" || status === "versturen") return "opnieuw_proberen";
+  return "eerste_verzending";
+}
+
+// De daadwerkelijke verzending. Kernregel: nooit een halve verzending als
+// succesvol rapporteren. Elke ontvanger krijgt zijn eigen
+// communication_deliveries-rij (claim_newsletter_deliveries, 0116) die hier,
+// direct na de individuele verzend-aanroep, pas als verstuurd/mislukt wordt
+// gemarkeerd — nooit vooraf, nooit in bulk. Breekt deze functie halverwege
+// af (bv. door een functie-timeout bij een groot ledenaantal), dan staat
+// alles wat al écht verstuurd is ook al als zodanig vastgelegd; nogmaals op
+// "Versturen" klikken (of "Opnieuw proberen" na een gedeeltelijke
+// mislukking) claimt via dezelfde functie vanzelf opnieuw wie nog geen
+// geslaagde verzending heeft en verstuurt alléén aan hen — nooit een
+// dubbele e-mail aan wie al iets ontving.
 export async function sendNewsletterAction(communicationId: string): Promise<SendNewsletterState> {
   await requireBoard();
   const supabase = await createClient();
@@ -390,9 +401,10 @@ export async function sendNewsletterAction(communicationId: string): Promise<Sen
   }
   // Geen blanco weigering meer bij status 'verzonden' (N3/D6): dat blokkeerde
   // "nasturen" naar een later toegevoegde ontvanger. claim_newsletter_send
-  // (0113) staat 'verzonden' nu ook toe als startstatus, en de claim-RPC's
-  // slaan iedereen die al een geslaagde verzending heeft toch al over —
-  // zie performNewsletterSend voor de volledige uitleg van dat patroon.
+  // (0113) staat 'verzonden' nu ook toe als startstatus, en
+  // claim_newsletter_deliveries slaat iedereen die al een geslaagde
+  // verzending heeft toch al over — zie performNewsletterSend voor de
+  // volledige uitleg van dat patroon.
   if (!communication.subject.trim()) {
     return { error: "Onderwerp is verplicht voor je kunt versturen." };
   }
@@ -403,12 +415,14 @@ export async function sendNewsletterAction(communicationId: string): Promise<Sen
 
   let total: number;
   let sent: number;
+  let failed: number;
+  let skipped: number;
   try {
-    const result = await performNewsletterSend(supabase, communication);
+    const result = await performNewsletterSend(supabase, communication, sendKind(communication.status));
     if (result.alreadySending) {
       return { error: "Deze nieuwsbrief wordt al verstuurd (mogelijk net via de ingeplande verzending). Probeer het straks opnieuw." };
     }
-    ({ total, sent } = result);
+    ({ total, sent, failed, skipped } = result);
   } catch (cause) {
     // performNewsletterSend gooit een specifieke boodschap als het
     // markeren-als-verstuurd blijft mislukken (N4) — die is belangrijker om
@@ -426,7 +440,7 @@ export async function sendNewsletterAction(communicationId: string): Promise<Sen
   revalidatePath("/beheer/communicatie");
   revalidatePath("/beheer/statistieken");
 
-  return { total, sent, failed: total - sent, done: total > 0 && sent >= total };
+  return { total, sent, failed, done: total > 0 && sent + skipped >= total };
 }
 
 export type ScheduleNewsletterState = { error?: string; success?: boolean };

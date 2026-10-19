@@ -32,7 +32,7 @@ export async function GET(request: Request) {
   const results: { id: string; total: number; sent: number }[] = [];
   for (const communication of due ?? []) {
     try {
-      const result = await performNewsletterSend(supabase, communication);
+      const result = await performNewsletterSend(supabase, communication, "eerste_verzending");
       results.push({ id: communication.id, ...result });
     } catch (cause) {
       console.error("[cron] send-scheduled-campaigns failed for", communication.id, cause);

@@ -24,7 +24,7 @@ function profileName(p: Profile): string {
 // verstuurd is — in tegenstelling tot onderwerp/inhoud, die op slot gaan
 // zodra readOnly waar is. "Specifieke lijst(en)" vervangt "alle actieve
 // leden" als hoofddoelgroep; de losse extra ontvangers hieronder gelden
-// altijd bovenop welk hoofdfilter dan ook (zie claim_newsletter_recipients)
+// altijd bovenop welk hoofdfilter dan ook (zie claim_newsletter_deliveries)
 // en zijn tegelijk het hele "nasturen naar één nieuw/extern persoon"- en
 // "simpelweg testen"-mechanisme.
 export function AudiencePicker({

@@ -24,11 +24,15 @@ export default async function BeheerNotificatiesPage() {
   const supabase = await createClient();
 
   // E-mail-open-events worden niet verzameld (de eigen SMTP-mailbox levert
-  // geen open-tracking) — alleen push-opens ophalen.
+  // geen open-tracking) — alleen push-opens ophalen. Nieuwsbriefregels horen
+  // hier niet meer in thuis (B1, nieuwsbriefsysteem-plan): die heeft nu zijn
+  // eigen, rijkere geschiedenis op het tabblad Verzendingen van de
+  // nieuwsbrief zelf (communication_deliveries, zie NewsletterEditor).
   const [{ data: notifications }, { data: openEvents }] = await Promise.all([
     supabase
       .from("notifications")
       .select("*")
+      .neq("type", "newsletter")
       .order("created_at", { ascending: false })
       .limit(LOG_LIMIT)
       .returns<Notification[]>(),

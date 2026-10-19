@@ -8,12 +8,9 @@ type Communication = Database["public"]["Tables"]["communications"]["Row"];
 export type NewsletterRecipientPreview = { willReceive: number; excludedUnsubscribed: number };
 
 // Telt, zonder iets te wijzigen, hoeveel mensen een klik op "Versturen" nu
-// zou bereiken — dezelfde filters als claim_newsletter_recipients/
-// claim_newsletter_contact_recipients (0089), maar read-only, zodat de
-// bevestiging in de editor een echt aantal kan tonen (N4) i.p.v. alleen
-// "naar de gekozen doelgroep". Ontdubbelen tussen leden en contacten met
-// hetzelfde adres hoort bij N5/D3 (een latere stap) en gebeurt hier dus nog
-// niet — dit telt, net als de bestaande claim-RPC's vandaag, elke rij apart.
+// zou bereiken — dezelfde filters en dezelfde ontdubbeling op e-mailadres
+// (leden gaan voor) als claim_newsletter_deliveries (0116), maar read-only,
+// zodat de bevestiging in de editor een echt aantal kan tonen (N4/N5).
 export async function previewNewsletterRecipients(
   supabase: SupabaseClient<Database>,
   communication: Pick<Communication, "id" | "recipient_filter">
@@ -38,15 +35,19 @@ export async function previewNewsletterRecipients(
     listContactIds = new Set((lc ?? []).map((r) => r.contact_id));
   }
 
-  const [{ data: profiles }, { data: contacts }, { data: sentProfileRows }, { data: sentContactRows }] = await Promise.all([
-    supabase.from("profiles").select("id, is_active, email_campaigns"),
-    supabase.from("contacts").select("id, opted_out"),
-    supabase.from("notifications").select("profile_id").eq("communication_id", communication.id).not("emailed_at", "is", null),
-    supabase.from("communication_contact_sends").select("contact_id").eq("communication_id", communication.id).not("emailed_at", "is", null),
+  const [{ data: profiles }, { data: contacts }, { data: existingDeliveries }] = await Promise.all([
+    supabase.from("profiles").select("id, is_active, email, email_campaigns"),
+    supabase.from("contacts").select("id, email, opted_out"),
+    supabase.from("communication_deliveries").select("email, status").eq("communication_id", communication.id),
   ]);
-  const alreadySentProfileIds = new Set((sentProfileRows ?? []).map((r) => r.profile_id));
-  const alreadySentContactIds = new Set((sentContactRows ?? []).map((r) => r.contact_id));
+  // Wie al een geslaagde verzending heeft (vorige poging), telt niet mee als
+  // "zou nu ontvangen" — alleen nieuwe en nog-niet-gelukte ontvangers.
+  const alreadySentEmails = new Set((existingDeliveries ?? []).filter((d) => d.status === "verstuurd").map((d) => d.email));
 
+  // Leden eerst: bepaalt welk e-mailadres "bezet" is, zodat een contact met
+  // hetzelfde adres (D3) niet nog eens meetelt — exact dezelfde volgorde als
+  // claim_newsletter_deliveries.
+  const seenEmails = new Set<string>();
   let willReceive = 0;
   let excludedUnsubscribed = 0;
 
@@ -55,7 +56,10 @@ export async function previewNewsletterRecipients(
     const matchesFilter =
       communication.recipient_filter === "alle_actieve_leden" ? true : listProfileIds.has(profile.id) || extraProfileIds.has(profile.id);
     if (!matchesFilter) continue;
-    if (alreadySentProfileIds.has(profile.id)) continue;
+    const email = profile.email.trim().toLowerCase();
+    if (seenEmails.has(email)) continue;
+    seenEmails.add(email);
+    if (alreadySentEmails.has(email)) continue;
     if (!profile.email_campaigns) {
       excludedUnsubscribed++;
       continue;
@@ -66,7 +70,10 @@ export async function previewNewsletterRecipients(
   for (const contact of contacts ?? []) {
     const matchesFilter = listContactIds.has(contact.id) || extraContactIds.has(contact.id);
     if (!matchesFilter) continue;
-    if (alreadySentContactIds.has(contact.id)) continue;
+    const email = contact.email.trim().toLowerCase();
+    if (seenEmails.has(email)) continue; // al bezet door een lid met hetzelfde adres
+    seenEmails.add(email);
+    if (alreadySentEmails.has(email)) continue;
     if (contact.opted_out) {
       excludedUnsubscribed++;
       continue;

@@ -616,74 +616,52 @@ export type NewsletterBreakdownRow = {
   subject: string;
   sentAt: string | null;
   sent: number;
-  opened: number;
-  clicked: number;
+  failed: number;
 };
 
 export type NewsletterStats = {
   totalNewsletters: number;
   totalSent: number;
-  totalOpened: number;
-  totalClicked: number;
-  openRatePercentage: number | null;
-  clickRatePercentage: number | null;
+  totalFailed: number;
   newsletters: NewsletterBreakdownRow[];
 };
 
 // Alle-tijd, net als getNotificationBreakdown — een nieuwsbrief verschijnt
 // hooguit een paar keer per maand, dus een periodefilter voegt hier weinig
-// toe. Groepeert via notifications.communication_id (één rij per ontvanger,
-// 0065_communications.sql) i.p.v. een eigen teller op communications zelf,
-// zodat open/klik-cijfers altijd uit dezelfde events-bron komen als de
-// E-mail- en Push-tabbladen.
+// toe. Groepeert via communication_deliveries (0116, B1/N5: één rij per
+// ontvanger, leden én contacten samen) i.p.v. notifications alleen, dat
+// externe contacten niet meetelde. Geen open/klik-percentages meer: SMTP
+// levert die data niet (geen webhook, zie de analyse) — die kolommen stonden
+// er altijd op 0 en zijn weggehaald i.p.v. een dode meting te tonen.
 export async function getNewsletterStats(): Promise<NewsletterStats> {
   const supabase = await createClient();
   return cachedQuery("statistieken-nieuwsbrief", TTL_MS, async () => {
-    const [{ data: communications }, { data: notifications }, { data: openEvents }, { data: clickEvents }] = await Promise.all([
+    const [{ data: communications }, { data: deliveries }] = await Promise.all([
       supabase
         .from("communications")
         .select("id, subject, status, sent_at")
         .eq("status", "verzonden")
         .order("sent_at", { ascending: false }),
-      supabase.from("notifications").select("id, communication_id").not("communication_id", "is", null),
-      supabase.from("events").select("target_id").eq("event_type", "notification_opened").contains("metadata", { channel: "email" }),
-      supabase.from("events").select("target_id").eq("event_type", "notification_clicked").contains("metadata", { channel: "email" }),
+      supabase.from("communication_deliveries").select("communication_id, status"),
     ]);
 
-    const openedIds = new Set((openEvents ?? []).map((e) => e.target_id).filter((id): id is string => Boolean(id)));
-    const clickedIds = new Set((clickEvents ?? []).map((e) => e.target_id).filter((id): id is string => Boolean(id)));
-
-    const notificationIdsByCommunication = new Map<string, string[]>();
-    for (const n of notifications ?? []) {
-      if (!n.communication_id) continue;
-      const list = notificationIdsByCommunication.get(n.communication_id) ?? [];
-      list.push(n.id);
-      notificationIdsByCommunication.set(n.communication_id, list);
+    const deliveriesByCommunication = new Map<string, { sent: number; failed: number }>();
+    for (const d of deliveries ?? []) {
+      const row = deliveriesByCommunication.get(d.communication_id) ?? { sent: 0, failed: 0 };
+      if (d.status === "verstuurd" || d.status === "overgeslagen") row.sent += 1;
+      if (d.status === "mislukt") row.failed += 1;
+      deliveriesByCommunication.set(d.communication_id, row);
     }
 
     const newsletters: NewsletterBreakdownRow[] = (communications ?? []).map((c) => {
-      const notificationIds = notificationIdsByCommunication.get(c.id) ?? [];
-      return {
-        id: c.id,
-        subject: c.subject,
-        sentAt: c.sent_at,
-        sent: notificationIds.length,
-        opened: notificationIds.filter((id) => openedIds.has(id)).length,
-        clicked: notificationIds.filter((id) => clickedIds.has(id)).length,
-      };
+      const row = deliveriesByCommunication.get(c.id) ?? { sent: 0, failed: 0 };
+      return { id: c.id, subject: c.subject, sentAt: c.sent_at, sent: row.sent, failed: row.failed };
     });
-
-    const totalSent = newsletters.reduce((sum, n) => sum + n.sent, 0);
-    const totalOpened = newsletters.reduce((sum, n) => sum + n.opened, 0);
-    const totalClicked = newsletters.reduce((sum, n) => sum + n.clicked, 0);
 
     return {
       totalNewsletters: newsletters.length,
-      totalSent,
-      totalOpened,
-      totalClicked,
-      openRatePercentage: totalSent ? Math.round((totalOpened / totalSent) * 100) : null,
-      clickRatePercentage: totalSent ? Math.round((totalClicked / totalSent) * 100) : null,
+      totalSent: newsletters.reduce((sum, n) => sum + n.sent, 0),
+      totalFailed: newsletters.reduce((sum, n) => sum + n.failed, 0),
       newsletters,
     };
   });

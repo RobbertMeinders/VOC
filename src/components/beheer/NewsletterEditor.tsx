@@ -45,6 +45,7 @@ import {
 } from "@/app/(app)/beheer/communicatie/actions";
 import { renderNewsletterHtml, renderFooterUnsubscribeLine, UNSUBSCRIBE_LINE_TOKEN } from "@/lib/newsletter/render";
 import { AudiencePicker } from "@/components/beheer/AudiencePicker";
+import { NewsletterDeliveriesTable } from "@/components/beheer/NewsletterDeliveriesTable";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 import { useToast } from "@/lib/ui/ToastContext";
 import { formatActivityDate } from "@/lib/format/date";
@@ -581,6 +582,7 @@ export function NewsletterEditor({
   activities,
   activeMemberCount,
   sentCount,
+  failedCount,
   orgName,
   logoUrl,
   lists,
@@ -590,11 +592,16 @@ export function NewsletterEditor({
   extraProfileIds,
   extraContactIds,
   recipientPreview,
+  deliveries,
+  attempts,
+  recipientNames,
+  attemptStarterNames,
 }: {
   communication: Communication;
   activities: ActivityOption[];
   activeMemberCount: number;
   sentCount: number;
+  failedCount: number;
   orgName: string;
   logoUrl: string | null;
   lists: ContactListOption[];
@@ -604,6 +611,10 @@ export function NewsletterEditor({
   extraProfileIds: string[];
   extraContactIds: string[];
   recipientPreview: { willReceive: number; excludedUnsubscribed: number };
+  deliveries: Database["public"]["Tables"]["communication_deliveries"]["Row"][];
+  attempts: Database["public"]["Tables"]["communication_send_attempts"]["Row"][];
+  recipientNames: Record<string, string>;
+  attemptStarterNames: Record<string, string>;
 }) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -644,7 +655,7 @@ export function NewsletterEditor({
   }
 
   const [sendPending, setSendPending] = useState(false);
-  const [sendResult, setSendResult] = useState<{ error?: string; total?: number; sent?: number } | null>(null);
+  const [sendResult, setSendResult] = useState<{ error?: string; total?: number; sent?: number; failed?: number; done?: boolean } | null>(null);
 
   // Alleen bij status 'concept' zijn de velden hierboven nog bewerkbaar
   // (readOnly hierna), dus alleen dan kan er iets onopgeslagen openstaan.
@@ -670,7 +681,7 @@ export function NewsletterEditor({
     const confirmMessage = isExtra
       ? "Dit verstuurt alleen naar wie in de huidige doelgroep nog geen e-mail ontving (bv. een nieuw toegevoegde ontvanger)."
       : isRetry
-        ? `Opnieuw proberen te versturen aan de ${(communication.total_recipients ?? activeMemberCount) - sentCount} ontvangers die 'm nog niet ontvingen.`
+        ? `Opnieuw proberen voor ${failedCount} mislukte ontvanger${failedCount === 1 ? "" : "s"}.`
         : isStuck
           ? "Een vorige verzending leek vast te zijn gelopen. Dit probeert opnieuw te versturen aan iedereen die nog geen e-mail ontving."
           : recipientSummary;
@@ -1054,7 +1065,7 @@ export function NewsletterEditor({
               {communication.status === "verzonden"
                 ? "Stuur alsnog naar wie je hierboven als extra ontvanger toevoegt (bv. een nieuw lid, of jezelf om te testen)."
                 : communication.status === "verzenden_mislukt"
-                  ? `${sentCount} van ${communication.total_recipients ?? activeMemberCount} ontvangers ontvingen 'm al - de rest nog niet.`
+                  ? `${sentCount} van ${communication.total_recipients ?? activeMemberCount} ontvangers ontvingen 'm al. Opnieuw proberen voor ${failedCount} mislukte ontvanger${failedCount === 1 ? "" : "s"}.`
                   : communication.status === "versturen"
                     ? "Deze nieuwsbrief staat al een tijd op 'versturen'. Mogelijk is een eerdere poging vastgelopen — probeer het hieronder opnieuw."
                     : recipientSummary}
@@ -1072,9 +1083,9 @@ export function NewsletterEditor({
               </Button>
               {sendResult?.error && <p className="text-sm text-voc-red-text">{sendResult.error}</p>}
               {sendResult && sendResult.total !== undefined && sendResult.sent !== undefined && (
-                <p className={`text-sm ${sendResult.sent >= sendResult.total ? "text-status-success" : "text-voc-red-text"}`}>
+                <p className={`text-sm ${sendResult.done ? "text-status-success" : "text-voc-red-text"}`}>
                   {sendResult.sent} van {sendResult.total} verzonden
-                  {sendResult.sent < sendResult.total && " - probeer het later opnieuw voor de rest."}
+                  {!sendResult.done && ` - ${sendResult.failed ?? 0} mislukt, probeer het later opnieuw voor de rest.`}
                 </p>
               )}
             </div>
@@ -1101,6 +1112,13 @@ export function NewsletterEditor({
             )}
           </div>
         )}
+
+        <NewsletterDeliveriesTable
+          deliveries={deliveries}
+          attempts={attempts}
+          recipientNames={recipientNames}
+          attemptStarterNames={attemptStarterNames}
+        />
       </div>
     </div>
   );

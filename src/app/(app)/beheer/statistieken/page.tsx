@@ -359,8 +359,7 @@ async function NewsletterTab() {
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <StatCard label="Verzonden nieuwsbrieven" value={stats.totalNewsletters} />
         <StatCard label="Totaal verstuurd" value={stats.totalSent} />
-        <StatCard label="Open rate" value={stats.openRatePercentage === null ? "-" : `${stats.openRatePercentage}%`} />
-        <StatCard label="Klik rate" value={stats.clickRatePercentage === null ? "-" : `${stats.clickRatePercentage}%`} />
+        <StatCard label="Totaal mislukt" value={stats.totalFailed} />
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
@@ -369,10 +368,7 @@ async function NewsletterTab() {
             <tr className="border-b border-border text-xs text-muted">
               <th className="px-4 py-2 font-medium">Nieuwsbrief</th>
               <th className="px-4 py-2 text-center font-medium">Verzonden</th>
-              <th className="px-4 py-2 text-center font-medium">Geopend</th>
-              <th className="px-4 py-2 text-center font-medium">%</th>
-              <th className="px-4 py-2 text-center font-medium">Geklikt</th>
-              <th className="px-4 py-2 text-center font-medium">%</th>
+              <th className="px-4 py-2 text-center font-medium">Mislukt</th>
               <th className="px-4 py-2 font-medium">Verzonden op</th>
             </tr>
           </thead>
@@ -381,20 +377,13 @@ async function NewsletterTab() {
               <tr key={n.id} className="border-b border-border last:border-0">
                 <td className="max-w-[220px] truncate px-4 py-2 text-foreground">{n.subject}</td>
                 <td className="px-4 py-2 text-center text-muted">{n.sent}</td>
-                <td className="px-4 py-2 text-center text-muted">{n.opened}</td>
-                <td className="px-4 py-2 text-center text-muted">
-                  {n.sent > 0 ? formatPercentage((n.opened / n.sent) * 100) : "-"}
-                </td>
-                <td className="px-4 py-2 text-center text-muted">{n.clicked}</td>
-                <td className="px-4 py-2 text-center text-muted">
-                  {n.sent > 0 ? formatPercentage((n.clicked / n.sent) * 100) : "-"}
-                </td>
+                <td className="px-4 py-2 text-center text-muted">{n.failed}</td>
                 <td className="px-4 py-2 text-muted">{n.sentAt ? formatDate(n.sentAt) : "-"}</td>
               </tr>
             ))}
             {stats.newsletters.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-sm text-muted">
+                <td colSpan={4} className="px-4 py-6 text-center text-sm text-muted">
                   Nog geen nieuwsbrieven verstuurd.
                 </td>
               </tr>

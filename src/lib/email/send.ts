@@ -46,7 +46,11 @@ export function isEmailConfigured(): boolean {
   return Boolean(process.env.SMTP_HOST && process.env.EMAIL_FROM);
 }
 
-type SendResult = { error?: string; providerId?: string };
+// skipped: true onderscheidt een bewuste, door beleid genegeerde verzending
+// (de EMAIL_ALLOWLIST hieronder) van een echte verzendfout — de nieuwsbrief-
+// verzendlus (send.ts) gebruikt dit om zo'n ontvanger als "overgeslagen"
+// i.p.v. "mislukt" te boeken.
+type SendResult = { error?: string; providerId?: string; skipped?: boolean };
 
 // Extra, expliciet slot bovenop SMTP_HOST/EMAIL_FROM: EMAIL_ALLOWLIST (kommagescheiden
 // adressen) begrenst waar mail écht naartoe mag, ongeacht welke ontvanger een
@@ -83,7 +87,7 @@ async function sendMail(
   headers?: Record<string, string>
 ): Promise<SendResult> {
   if (!isRecipientAllowed(to)) {
-    return { error: "Overgeslagen: dit e-mailadres staat niet op de EMAIL_ALLOWLIST." };
+    return { error: "Overgeslagen: dit e-mailadres staat niet op de EMAIL_ALLOWLIST.", skipped: true };
   }
 
   const transporter = getTransporter();
