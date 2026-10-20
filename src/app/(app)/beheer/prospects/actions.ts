@@ -3,10 +3,14 @@
 import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { sendTemplatedEmail } from "@/lib/email/send";
+import { sendTemplatedEmail, invitationGreeting } from "@/lib/email/send";
 import type { Database } from "@/lib/types/database";
 
 export type ProspectStatus = Database["public"]["Tables"]["prospects"]["Row"]["status"];
+
+// Zelfde geldigheidsduur als createInvitationAction (beheer/uitnodigingen/
+// actions.ts).
+const INVITATION_VALIDITY_MS = 14 * 24 * 60 * 60 * 1000;
 
 export async function updateProspectStatusAction(prospectId: string, status: ProspectStatus): Promise<{ error?: string }> {
   const board = await requireBoard();
@@ -97,9 +101,18 @@ export async function createInvitationFromProspectAction(prospectId: string): Pr
   revalidatePath("/beheer/instroom");
 
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
-  const { error: emailError } = await sendTemplatedEmail("uitnodiging", prospect.email, { link });
+  const { error: emailError } = await sendTemplatedEmail("uitnodiging", prospect.email, {
+    link,
+    greeting: invitationGreeting(firstName),
+  });
   if (!emailError) {
-    await supabase.from("invitations").update({ last_sent_at: new Date().toISOString() }).eq("token", invitation.token);
+    // BUGFIX: zelfde ontbrekende expires_at-update als in beheer/aanvragen/
+    // actions.ts — zonder dit bleef de link van elke via een prospect
+    // aangemaakte uitnodiging permanent "ongeldig".
+    await supabase
+      .from("invitations")
+      .update({ last_sent_at: new Date().toISOString(), expires_at: new Date(Date.now() + INVITATION_VALIDITY_MS).toISOString() })
+      .eq("token", invitation.token);
   }
 
   return { success: true, emailSent: !emailError };

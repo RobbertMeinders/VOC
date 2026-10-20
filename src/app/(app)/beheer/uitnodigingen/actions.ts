@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { sendTemplatedEmail } from "@/lib/email/send";
+import { sendTemplatedEmail, invitationGreeting } from "@/lib/email/send";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import type { UserRole } from "@/lib/types/database";
 
@@ -91,7 +91,7 @@ export async function createInvitationAction(
   }
 
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
-  const { error: emailError } = await sendTemplatedEmail("uitnodiging", email, { link });
+  const { error: emailError } = await sendTemplatedEmail("uitnodiging", email, { link, greeting: invitationGreeting(firstName) });
   if (!emailError) {
     await supabase
       .from("invitations")
@@ -164,7 +164,7 @@ export async function sendInvitationEmailAction(id: string): Promise<{ error?: s
 
   const { data: invitation } = await supabase
     .from("invitations")
-    .select("token, email, status")
+    .select("token, email, status, first_name")
     .eq("id", id)
     .maybeSingle();
 
@@ -176,7 +176,7 @@ export async function sendInvitationEmailAction(id: string): Promise<{ error?: s
   }
 
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
-  const { error } = await sendTemplatedEmail("uitnodiging", invitation.email, { link });
+  const { error } = await sendTemplatedEmail("uitnodiging", invitation.email, { link, greeting: invitationGreeting(invitation.first_name) });
   if (!error) {
     await supabase
       .from("invitations")
@@ -202,7 +202,7 @@ export async function bulkSendInvitationEmailsAction(ids: string[]): Promise<Bul
 
   const { data: invitations } = await supabase
     .from("invitations")
-    .select("id, token, email, status")
+    .select("id, token, email, status, first_name")
     .in("id", ids)
     .eq("status", "pending");
 
@@ -215,7 +215,7 @@ export async function bulkSendInvitationEmailsAction(ids: string[]): Promise<Bul
   const sentIds: string[] = [];
   for (const invitation of withEmail) {
     const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
-    const { error } = await sendTemplatedEmail("uitnodiging", invitation.email, { link });
+    const { error } = await sendTemplatedEmail("uitnodiging", invitation.email, { link, greeting: invitationGreeting(invitation.first_name) });
     if (!error) {
       succeeded += 1;
       sentIds.push(invitation.id);

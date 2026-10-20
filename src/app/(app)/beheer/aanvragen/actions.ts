@@ -3,10 +3,18 @@
 import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { sendTemplatedEmail } from "@/lib/email/send";
+import { sendTemplatedEmail, invitationGreeting } from "@/lib/email/send";
 import { geocodeAddress } from "@/lib/geo/geocode";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 
+// Zelfde geldigheidsduur als createInvitationAction (beheer/uitnodigingen/
+// actions.ts) — de uitnodigingsmail noemt deze termijn ook letterlijk.
+const INVITATION_VALIDITY_MS = 14 * 24 * 60 * 60 * 1000;
+
+// Robbert: "ik kan een aanvraag niet afwijzen" — in de UI (AccessRequestRow)
+// heet deze knop nu "Afwijzen" i.p.v. het vage "Afgehandeld", al blijft het
+// onderliggende gedrag en de statuswaarde ('handled') ongewijzigd: dit is de
+// enige "nee, geen lidmaatschap"-actie die er is.
 export async function markAccessRequestHandledAction(id: string) {
   await requireBoard();
   const supabase = await createClient();
@@ -113,9 +121,22 @@ export async function createInvitationFromAccessRequestAction(requestId: string)
   revalidatePath("/beheer/instroom");
 
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
-  const { error: emailError } = await sendTemplatedEmail("uitnodiging", request.email, { link });
+  const { error: emailError } = await sendTemplatedEmail("uitnodiging", request.email, {
+    link,
+    greeting: invitationGreeting(request.first_name),
+  });
   if (!emailError) {
-    await supabase.from("invitations").update({ last_sent_at: new Date().toISOString() }).eq("token", invitation.token);
+    // BUGFIX: deze actie zette expires_at nooit, terwijl 0081 de kolom juist
+    // NULL ("nog niet verstuurd") maakte totdat een actie 'm bij een
+    // geslaagde verzending zet — zie createInvitationAction (beheer/
+    // uitnodigingen/actions.ts) voor hetzelfde patroon. Zonder deze regel
+    // bleef expires_at voor élke via een toegangsaanvraag aangemaakte
+    // uitnodiging permanent NULL, en get_invitation_preview beoordeelt een
+    // NULL expires_at altijd als ongeldig — de link werkte dus nooit.
+    await supabase
+      .from("invitations")
+      .update({ last_sent_at: new Date().toISOString(), expires_at: new Date(Date.now() + INVITATION_VALIDITY_MS).toISOString() })
+      .eq("token", invitation.token);
   }
 
   return { success: true, emailSent: !emailError, emailError };

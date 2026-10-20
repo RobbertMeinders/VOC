@@ -2,7 +2,7 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
-import { Check, UserPlus } from "lucide-react";
+import { Check, X } from "lucide-react";
 import type { Database } from "@/lib/types/database";
 import {
   markAccessRequestHandledAction,
@@ -22,8 +22,8 @@ function InviteButton() {
       disabled={pending}
       className="flex items-center gap-1.5 rounded-full bg-voc-red px-3 py-1.5 text-xs font-medium text-white hover:bg-voc-red-dark disabled:opacity-60"
     >
-      <UserPlus size={14} />
-      {pending ? "Bezig…" : "Uitnodigen"}
+      <Check size={14} />
+      {pending ? "Bezig…" : "Accepteren"}
     </button>
   );
 }
@@ -87,10 +87,15 @@ export function AccessRequestRow({ request }: { request: AccessRequest }) {
         <form action={markAccessRequestHandledAction.bind(null, request.id)}>
           <button
             type="submit"
-            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            onClick={(e) => {
+              if (!window.confirm(`Aanvraag van ${request.name} afwijzen? Dit meldt de aanvrager niets, 'm.a.w. hij/zij hoort hier verder niks van.`)) {
+                e.preventDefault();
+              }
+            }}
+            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:border-danger hover:text-danger-text"
           >
-            <Check size={14} />
-            Afgehandeld
+            <X size={14} />
+            Afwijzen
           </button>
         </form>
       </div>

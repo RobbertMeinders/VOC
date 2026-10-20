@@ -8,6 +8,16 @@ import { escapeHtml } from "@/lib/text/escape-html";
 
 export { escapeHtml };
 
+// Gedeeld door elke plek die de "uitnodiging"-mail verstuurt (aanvragen/
+// prospects/uitnodigingen — vijf aanroepplekken in totaal): een voornaam is
+// er niet altijd (de kale, handmatige uitnodiging via Beheer -> Uitnodigingen
+// vraagt die niet verplicht), dus de template zelf gebruikt nooit rechtstreeks
+// {{first_name}} (geen conditionals in renderTemplate) — de aanroeper kiest
+// hier de juiste aanhef.
+export function invitationGreeting(firstName?: string | null): string {
+  return firstName ? `Beste ${firstName},` : "Hallo,";
+}
+
 // Verstuurt via de SMTP-mailbox van de eigen hosting (bijv. info@vocveendam.nl)
 // i.p.v. een los account bij een externe e-maildienst (Resend e.d.) — geen
 // extra accountje, geen aparte factuur, en geen limiet bovenop wat de hosting
