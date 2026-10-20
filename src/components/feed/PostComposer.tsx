@@ -58,6 +58,7 @@ export function PostComposer({
   author,
   onCreated,
   autoOpenIntro = false,
+  autoOpen = false,
 }: {
   author: FeedAuthor;
   onCreated: (post: FeedPost) => void;
@@ -68,6 +69,11 @@ export function PostComposer({
   // (hieronder, via setFormKey) zichzelf steeds opnieuw openen, want de
   // prop zelf verandert niet (die volgt de URL, niet of er al gesloten is).
   autoOpenIntro?: boolean;
+  // Vanuit Home's "Bericht"-snelknop (?nieuw=1, zie FeedList) — opent de
+  // composer direct, mét de PostTypeChooser-stap (geen type voorgekozen,
+  // anders dan autoOpenIntro hierboven). Zonder dit ging die knop alleen
+  // naar de feed, en moest je daar nog zelf op het opstelveld klikken.
+  autoOpen?: boolean;
 }) {
   const [formKey, setFormKey] = useState(0);
 
@@ -76,6 +82,7 @@ export function PostComposer({
       key={formKey}
       author={author}
       autoOpenIntro={formKey === 0 && autoOpenIntro}
+      autoOpen={formKey === 0 && autoOpen}
       onCreated={(post) => {
         onCreated(post);
         setFormKey((k) => k + 1);
@@ -91,15 +98,17 @@ export function PostComposer({
 function PostComposerForm({
   author,
   autoOpenIntro,
+  autoOpen,
   onCreated,
   onClose,
 }: {
   author: FeedAuthor;
   autoOpenIntro: boolean;
+  autoOpen: boolean;
   onCreated: (post: FeedPost) => void;
   onClose: () => void;
 }) {
-  const [open, setOpen] = useState(autoOpenIntro);
+  const [open, setOpen] = useState(autoOpenIntro || autoOpen);
   const [state, formAction] = useActionState(createPostAction, initialState);
   const [previews, setPreviews] = useState<Preview[]>([]);
   const [dragActive, setDragActive] = useState(false);

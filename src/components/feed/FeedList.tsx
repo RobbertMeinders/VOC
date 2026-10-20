@@ -52,6 +52,11 @@ export function FeedList({
   // — opent de bestaande composer meteen met "Even voorstellen" gekozen
   // i.p.v. een aparte invoerflow (zie PostComposer).
   const autoOpenIntro = searchParams.get("intro") === "1";
+  // Diepe link vanuit Home's "Bericht"-snelknop — opent de composer meteen
+  // (met de PostTypeChooser-stap, geen type voorgekozen), i.p.v. alleen
+  // naar de feed te navigeren waar je zelf nog op het opstelveld moest
+  // klikken.
+  const autoOpen = searchParams.get("nieuw") === "1";
   const visiblePosts = filter === "alle" ? posts : posts.filter((p) => p.type === filter);
 
   function loadMore() {
@@ -164,7 +169,7 @@ export function FeedList({
 
   return (
     <div className="flex flex-col gap-4">
-      <PostComposer author={currentAuthor} onCreated={upsertPost} autoOpenIntro={autoOpenIntro} />
+      <PostComposer author={currentAuthor} onCreated={upsertPost} autoOpenIntro={autoOpenIntro} autoOpen={autoOpen} />
 
       <div className="flex flex-wrap gap-1.5">
         <Chip onClick={() => setFilter("alle")} active={filter === "alle"}>

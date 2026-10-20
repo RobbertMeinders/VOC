@@ -27,7 +27,7 @@ type NewMemberRow = {
 };
 
 const QUICK_ACTIONS = [
-  { href: "/community", label: "Bericht", icon: SquarePen },
+  { href: "/community?nieuw=1", label: "Bericht", icon: SquarePen },
   { href: "/leden?focus=1", label: "Lid zoeken", icon: UserRoundSearch },
   { href: "/agenda?type=mijn-aanmeldingen", label: "Mijn agenda", icon: CalendarCheck },
   { href: "/documenten", label: "Documenten", icon: FileText },
