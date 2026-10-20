@@ -368,7 +368,7 @@ export function PostCard({
     <article
       id={`post-${post.id}`}
       className={clsx(
-        "animate-rise-in scroll-mt-20 rounded-2xl border border-border bg-surface shadow-sm",
+        "animate-rise-in scroll-mt-20 rounded-2xl bg-surface shadow-sm",
         compact ? "p-3" : "p-4"
       )}
     >

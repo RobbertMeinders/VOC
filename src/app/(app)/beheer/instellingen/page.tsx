@@ -39,7 +39,7 @@ export default async function AppSettingsPage() {
 
       {isAdmin && <AppSettingsForm settings={settings} />}
 
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <div className="rounded-2xl bg-surface p-6 shadow-sm">
         <h2 className="mb-1 text-sm font-semibold text-foreground">Notificatieregels</h2>
         <p className="mb-4 text-xs text-muted">
           Per type melding: welke rollen &apos;m krijgen (voor de types die naar bestuur/beheer gaan), via welke kanalen, en of de regel aan
@@ -47,7 +47,7 @@ export default async function AppSettingsPage() {
         </p>
         <div className="flex flex-col gap-4">
           <AllNotificationChannelsSwitch initialEnabled={anyRuleEnabled} />
-          <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
+          <div className="overflow-x-auto rounded-2xl bg-surface shadow-sm">
             <table className="w-full text-left text-sm">
               <thead>
                 <tr className="border-b border-border text-xs text-muted">
@@ -83,7 +83,7 @@ export default async function AppSettingsPage() {
       {isAdmin && (
         // Een los lid uitloggen staat bij dat lid zelf (Leden -> lid ->
         // Beheer) — hier alleen de ingreep die alle leden tegelijk raakt.
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <h2 className="mb-1 text-sm font-semibold text-foreground">Gevaarlijke acties</h2>
           <p className="mb-4 text-xs text-muted">Alleen voor een vermoede gelekte sessie of ander beveiligingsincident.</p>
           <ForceLogoutAllButton />

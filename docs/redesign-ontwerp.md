@@ -202,3 +202,76 @@ Kleurwaarden staan in `docs/stijl-kleurenpalet.md`. Aanvullend:
 - Database, migraties, beveiligingsregels, authenticatie, e-mail- en pushprocessen.
 - Acties die echte leden bereiken (push, publiceren, campagnes).
 - Kaartpinnen in `CompanyMap` mogen naar petrol, maar dat is optioneel.
+
+## Stijlronde "zelfde indeling, nieuwe stijl" (2026-10)
+
+Uitgangsprincipe van deze ronde, en voor elke latere stijlronde die hier
+op doorbouwt: **de indeling blijft precies zoals hij is — alleen de
+uitstraling verandert.** Niets verplaatsen, toevoegen of weghalen zonder
+dat een los, expliciet besluit dat vraagt. Zoeken, meldingen, profiel,
+menu-onderdelen en hun volgorde, en de blokken per pagina blijven op hun
+plek; het doel is dat elke pagina hetzelfde aanvoelt — één geheel.
+
+### Kleuren (alleen het lichte thema)
+Lichtblauw (de petrol-tint in de lichte achtergrond-/kaart-/randkleuren)
+is vervangen door warm zand. Donker thema en de huisstijlkleuren
+(rood/petrol zelf) zijn ongewijzigd. Nieuwe waarden in `globals.css`
+(`:root` en `[data-theme="light"]`):
+
+| Token | Was | Wordt |
+|---|---|---|
+| `--background` | `#f7f7f8` | `#f5f3ef` |
+| `--raised` | `#f1f1f3` | `#ede9e2` |
+| `--border` | `#e4e4e7` | `#e7e2d9` |
+| `--muted` | `#5e5e66` | `#67625b` |
+| `--petrol-soft` | `#e3f0f0` | `#efe9df` (naam blijft, betekent nu "zand") |
+| `--shadow-card` | `0 1px 2px rgb(11 46 51 / .06), 0 4px 12px rgb(11 46 51 / .05)` | `0 1px 2px rgb(40 30 20 / .05), 0 4px 14px rgb(40 30 20 / .05)` |
+
+### Geen verloop meer bovenaan
+Het zachte petrol-verloop bovenaan het hoofdgebied (`AppShell`'s
+`showTopGradient`) is volledig verwijderd — op ledenpagina's én in
+Beheer. De donkerpetrol beheerzijbalk zelf blijft ongewijzigd.
+
+### Kaarten: schaduw, geen rand meer
+De kaartconventie is overal `rounded-2xl bg-surface shadow-card`
+(via Tailwinds — in `globals.css` herdefinieerde — `shadow-sm`), zonder
+`border border-border` ernaast: scheiding van de zandkleurige achtergrond
+gaat voortaan alleen via de schaduw. Zie `components/ui/Card.tsx` en de
+~75 call sites die hetzelfde patroon met de hand typten.
+
+### Sectiekoppen
+Een sectiekop binnen een pagina (bv. "Nieuws", "Agenda", "Nieuw in het
+netwerk") is `font-display text-[19px] font-bold tracking-[-0.015em]`
+(was 16px zonder tracking) — zie `components/ui/SectionHeader.tsx`. De
+paginatitel zelf (`<h1>`, 28–32px) verandert niet.
+
+### Zijbalk (desktop)
+Actief item: `bg-raised` + `font-semibold` + icoon in de voorgrondkleur,
+met een rood streepje van 3px *binnen* het vlak aan de linkerkant
+(afgerond, verticaal ingesprongen) — niet meer een linkerrand die het
+item naar rechts duwt. Inactieve iconen `text-muted`. Scheidingslijnen
+ingesprongen (±10px marge, niet over de volle breedte). Zie
+`components/layout/Sidebar.tsx` en `VerenigingMenu.tsx`.
+
+### Agenda
+De weekstrook is weg (desktop en mobiel) — de datumtegel per activiteit
+doet dat werk al. "+ Activiteit" is nu de rode hoofdknop van het scherm
+(`h-11 px-5`, semibold, lichte rode schaduw) i.p.v. een witte
+outline-knop. Activiteitkaarten krijgen op desktop (`md:`) een iets
+grotere, liggende foto (±120×84) en een titel in `font-display` ±18px.
+
+### Overig uit Robberts feedback, in deze ronde meegenomen
+- Hamburgermenu (mobiel): geen logo meer in het paneel, meer witruimte
+  links bij de items (`px-6` i.p.v. `px-4`), scheidingslijnen minder
+  aanwezig en ingesprongen.
+- Bestuur: op mobiel weer onder elkaar (volle breedte), bedrijfsnamen
+  lopen om i.p.v. af te kappen, "Sinds ..." is weg, meer ruimte tussen
+  functie en bedrijf met nadruk op de functie, foto's `rounded-xl`
+  (`Avatar`'s nieuwe `shape="square"`-optie) in hogere kwaliteit
+  (`quality={90}`).
+- `SegmentedControl` (Lijst/Kalender e.d.): de actieve stand is nu ook
+  `font-semibold`, niet alleen een andere kleur.
+- Beheerdashboard: de agendalijst heeft nu dezelfde datumtegel als op de
+  ledenkant (Home), i.p.v. een losse tekstregel die tegen de rand aan zat.
+- Mobiele Home: meer lucht tussen de blokken (`gap-8` i.p.v. `gap-6`),
+  volgorde ongewijzigd.

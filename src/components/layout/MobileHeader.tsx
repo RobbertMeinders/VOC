@@ -25,7 +25,7 @@ export function MobileHeader({
         <div className="flex items-center gap-1">
           <SearchOverlay variant="mobile" />
           <NotificationCenter count={unread.total} variant="mobile" />
-          <HamburgerMenu logoUrl={logoUrl} siteName={siteName} />
+          <HamburgerMenu />
         </div>
       </div>
     </header>

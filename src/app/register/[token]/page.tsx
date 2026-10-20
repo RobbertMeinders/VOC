@@ -20,14 +20,14 @@ export default async function RegisterPage({ params }: { params: Promise<{ token
         </div>
 
         {error ? (
-          <div className="rounded-2xl border border-border bg-surface p-6 text-center shadow-sm">
+          <div className="rounded-2xl bg-surface p-6 text-center shadow-sm">
             <h1 className="mb-2 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Kan uitnodiging niet controleren</h1>
             <p className="text-sm text-muted">
               Er ging iets mis. Probeer het later opnieuw.
             </p>
           </div>
         ) : !invitation?.valid ? (
-          <div className="rounded-2xl border border-border bg-surface p-6 text-center shadow-sm">
+          <div className="rounded-2xl bg-surface p-6 text-center shadow-sm">
             <h1 className="mb-2 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Uitnodiging niet geldig</h1>
             <p className="text-sm text-muted">
               Deze uitnodigingslink is ongeldig, verlopen of al gebruikt. Vraag het bestuur om een
@@ -35,7 +35,7 @@ export default async function RegisterPage({ params }: { params: Promise<{ token
             </p>
           </div>
         ) : (
-          <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+          <div className="rounded-2xl bg-surface p-6 shadow-sm">
             <h1 className="mb-1 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Welkom bij de VOC</h1>
             <p className="mb-6 text-sm text-muted">
               Je bent uitgenodigd als <span className="font-medium text-foreground">{ROLE_LABELS[invitation.role]}</span>.

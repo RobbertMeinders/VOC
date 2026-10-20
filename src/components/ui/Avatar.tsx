@@ -11,13 +11,21 @@ export function Avatar({
   avatarUrl,
   size = 40,
   className,
+  // Stijlronde (Bestuur): foto's daar niet rond maar afgeronde vierkanten,
+  // in hogere kwaliteit — standaardgedrag (rond, standaardkwaliteit) blijft
+  // voor elke andere aanroeper ongewijzigd.
+  shape = "circle",
+  quality,
 }: {
   firstName: string;
   lastName: string;
   avatarUrl?: string | null;
   size?: number;
   className?: string;
+  shape?: "circle" | "square";
+  quality?: number;
 }) {
+  const roundedClass = shape === "circle" ? "rounded-full" : "rounded-xl";
   if (avatarUrl) {
     return (
       <Image
@@ -25,7 +33,8 @@ export function Avatar({
         alt={`${firstName} ${lastName}`}
         width={size}
         height={size}
-        className={clsx("rounded-full object-cover", className)}
+        quality={quality}
+        className={clsx(roundedClass, "object-cover", className)}
         style={{ width: size, height: size }}
       />
     );
@@ -40,7 +49,7 @@ export function Avatar({
   // in één keer.
   return (
     <div
-      className={clsx("flex shrink-0 items-center justify-center rounded-full bg-raised font-semibold text-foreground", className)}
+      className={clsx("flex shrink-0 items-center justify-center bg-raised font-semibold text-foreground", roundedClass, className)}
       style={{ width: size, height: size, fontSize: size * 0.4 }}
     >
       {initials(firstName, lastName)}

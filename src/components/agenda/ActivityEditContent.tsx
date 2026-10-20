@@ -44,11 +44,11 @@ export async function ActivityEditContent({ id }: { id: string }) {
   return (
     <div className="flex flex-col gap-4">
       <h1 className="text-xl font-semibold text-foreground">Activiteit bewerken</h1>
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <div className="rounded-2xl bg-surface p-6 shadow-sm">
         <ActivityForm activity={activity} action={updateWithId} submitLabel="Opslaan" imageUrl={imageUrl} showTypePicker />
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <div className="rounded-2xl bg-surface p-6 shadow-sm">
         <h2 className="mb-3 text-sm font-semibold text-foreground">Bijlagen</h2>
         {(attachments ?? []).length > 0 && (
           <div className="mb-3 flex flex-col gap-2">

@@ -66,7 +66,7 @@ export default async function OverVerenigingPage() {
           description="Het bestuur heeft deze pagina nog niet gevuld. Kom later nog eens terug."
         />
       ) : (
-        <div className="animate-rise-in rounded-2xl border border-border bg-surface p-6 shadow-sm sm:p-8">
+        <div className="animate-rise-in rounded-2xl bg-surface p-6 shadow-sm sm:p-8">
           <div className="mb-4 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-petrol">
             <Sparkles size={14} />
             Wie we zijn
@@ -88,7 +88,7 @@ export default async function OverVerenigingPage() {
             <Link
               key={href}
               href={href}
-              className="animate-rise-in group flex items-center gap-4 rounded-2xl border border-border bg-surface p-5 shadow-sm transition-all duration-150 hover:border-foreground/20 hover:shadow-md"
+              className="animate-rise-in group flex items-center gap-4 rounded-2xl bg-surface p-5 shadow-sm transition-all duration-150 hover:border-foreground/20 hover:shadow-md"
             >
               <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-petrol-soft text-petrol">
                 <Icon size={24} />

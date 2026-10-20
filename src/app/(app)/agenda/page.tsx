@@ -6,7 +6,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { formatMonthLabel, splitUpcomingAndPast } from "@/lib/format/date";
 import { ActivityCard } from "@/components/agenda/ActivityCard";
-import { WeekStrip } from "@/components/agenda/WeekStrip";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { Chip } from "@/components/ui/Chip";
 import { AnimatedDisclosure } from "@/components/ui/AnimatedDisclosure";
@@ -129,17 +128,16 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
       <MarkSectionReadOnView section="agenda" />
       <div className="mb-4 flex items-center justify-between">
         <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Agenda</h1>
+        {/* Stijlronde: hoofdknop van het scherm, dus rood en met gewicht
+            i.p.v. een witte outline-knop — de grote datum per activiteit
+            hieronder doet het werk van de weekstrook, die is weg. */}
         <Link
           href="/agenda/nieuw"
-          className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+          className="flex h-11 items-center gap-1.5 rounded-full bg-voc-red px-5 text-sm font-semibold text-white shadow-[0_6px_16px_-4px_rgba(232,0,15,0.4)] transition-all duration-150 hover:-translate-y-px hover:bg-voc-red-dark"
         >
-          <Plus size={16} />
+          <Plus size={18} />
           Activiteit
         </Link>
-      </div>
-
-      <div className="mb-4">
-        <WeekStrip activities={(allActivities ?? []).map((a) => ({ starts_at: a.starts_at, source: a.source }))} />
       </div>
 
       <div className="mb-4 flex gap-1.5 overflow-x-auto">

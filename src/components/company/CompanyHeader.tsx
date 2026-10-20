@@ -17,7 +17,7 @@ export function CompanyHeader({
   editHref?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <div className="rounded-2xl bg-surface p-6 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="flex min-w-0 items-start gap-4">
           <CompanyLogo logoUrl={logoUrl} name={company.name} size={64} />

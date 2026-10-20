@@ -9,7 +9,7 @@ export default function AccountDeactivatedPage() {
       <div className="mb-8">
         <Logo />
       </div>
-      <div className="max-w-sm rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <div className="max-w-sm rounded-2xl bg-surface p-6 shadow-sm">
         <h1 className="mb-2 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Je account is gedeactiveerd</h1>
         <p className="text-sm text-muted">
           Het bestuur heeft je toegang tot het ledenportaal tijdelijk stopgezet. Neem contact op met

@@ -46,7 +46,7 @@ export function PushBroadcastForm() {
           }
         });
       }}
-      className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6 shadow-sm"
+      className="flex flex-col gap-4 rounded-2xl bg-surface p-6 shadow-sm"
     >
       <div className="flex flex-col gap-1.5">
         <label htmlFor="push-title" className="text-sm font-medium text-foreground">

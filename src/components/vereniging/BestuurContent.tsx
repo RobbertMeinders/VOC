@@ -84,10 +84,10 @@ export async function BestuurContent() {
     // "verweesd" achter — hiermee centreert die laatste rij juist. Afwerkronde
     // blok 6: kaartbreedte nu per breakpoint berekend (2/3/4 per rij i.p.v.
     // een vaste w-40/w-48) zodat de rij de beschikbare breedte opvult i.p.v.
-    // ruimte over te laten; foto kleiner (64px, was 112px) om daarbij te
-    // passen.
+    // ruimte over te laten. Stijlronde: op mobiel weer onder elkaar (volle
+    // breedte, 1 per rij) i.p.v. 2 per rij — dat voelde te gedrongen.
     <div className="flex flex-wrap justify-center gap-4">
-      {activePositions.map(({ id, title, started_at, profile }) => {
+      {activePositions.map(({ id, title, profile }) => {
         if (!profile) return null;
         const path = profile.avatar_thumb_url ?? profile.avatar_url;
         const avatarUrl = path ? (avatarUrls.get(path) ?? null) : null;
@@ -100,16 +100,27 @@ export async function BestuurContent() {
             // randkleur) geven de kennismakingspagina wat meer leven dan een
             // statische kaart — zelfde soort micro-interactie als elders in
             // de app (bv. de sidebar-items die bij hover opschuiven).
-            className="card-hover-lift animate-rise-in group flex w-[calc(50%-0.5rem)] flex-col items-center gap-3 rounded-2xl border border-border bg-surface px-4 py-6 text-center shadow-sm hover:border-foreground/20 sm:w-[calc(33.333%-0.667rem)] lg:w-[calc(25%-0.75rem)]"
+            className="card-hover-lift animate-rise-in group flex w-full flex-col items-center gap-3 rounded-2xl bg-surface px-4 py-6 text-center shadow-sm hover:border-foreground/20 sm:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.667rem)] lg:w-[calc(25%-0.75rem)]"
           >
-            <Avatar firstName={profile.first_name} lastName={profile.last_name} avatarUrl={avatarUrl} size={64} />
+            <Avatar
+              firstName={profile.first_name}
+              lastName={profile.last_name}
+              avatarUrl={avatarUrl}
+              size={64}
+              shape="square"
+              quality={90}
+            />
             <div className="min-w-0">
               <p className="truncate text-sm font-semibold text-foreground">
                 {profile.first_name} {profile.last_name}
               </p>
-              <p className="truncate text-xs text-muted">{title}</p>
-              {companyName && <p className="truncate text-xs text-muted">{companyName}</p>}
-              <p className="mt-1 truncate text-[11px] text-muted">Sinds {new Date(started_at).getFullYear()}</p>
+              {/* Stijlronde: nadruk op de functie (zelf foreground i.p.v.
+                  muted), meer ruimte naar het bedrijf erna. Bedrijfsnaam mag
+                  omlopen i.p.v. af te kappen — geen truncate meer, anders
+                  verdwijnt een lange naam gedeeltelijk uit beeld. "Sinds
+                  ..." weg: de datum klopte niet. */}
+              <p className="mt-1 truncate text-xs font-medium text-foreground">{title}</p>
+              {companyName && <p className="mt-1.5 text-xs text-muted">{companyName}</p>}
             </div>
           </Link>
         );

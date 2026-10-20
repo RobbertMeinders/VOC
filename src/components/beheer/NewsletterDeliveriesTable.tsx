@@ -67,7 +67,7 @@ export function NewsletterDeliveriesTable({
   return (
     <div className="flex flex-col gap-4">
       {attempts.length > 0 && (
-        <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+        <div className="rounded-2xl bg-surface p-5 shadow-sm">
           <p className="mb-3 text-sm font-medium text-foreground">Pogingen</p>
           <div className="flex flex-col gap-2">
             {attempts.map((attempt) => (
@@ -83,7 +83,7 @@ export function NewsletterDeliveriesTable({
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
+      <div className="overflow-x-auto rounded-2xl bg-surface shadow-sm">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-muted">

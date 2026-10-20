@@ -101,7 +101,7 @@ export default async function RapportagesPage() {
     <div>
       <PageHeader title="Gemelde berichten" />
 
-      <div className="mb-6 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+      <div className="mb-6 rounded-2xl bg-surface p-4 shadow-sm">
         <h2 className="mb-2 text-sm font-semibold text-foreground">Openstaand</h2>
         {openItems.length > 0 ? (
           openItems.map((report) => <ReportRow key={report.id} report={report} />)
@@ -111,7 +111,7 @@ export default async function RapportagesPage() {
       </div>
 
       {resolvedItems.length > 0 && (
-        <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+        <div className="rounded-2xl bg-surface p-4 shadow-sm">
           <h2 className="mb-2 text-sm font-semibold text-foreground">Afgehandeld</h2>
           {resolvedItems.map((report) => (
             <ReportRow key={report.id} report={report} />

@@ -68,7 +68,7 @@ export function PushTemplateForm({ template }: { template: PushTemplate }) {
   }, [state]);
 
   return (
-    <form action={formAction} className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <form action={formAction} className="rounded-2xl bg-surface p-6 shadow-sm">
       <h2 className="text-sm font-semibold text-foreground">{template.key}</h2>
       {template.description && <p className="mb-4 mt-1 text-xs text-muted">{template.description}</p>}
 

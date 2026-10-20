@@ -19,7 +19,6 @@ import {
 } from "lucide-react";
 import { clsx } from "clsx";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
-import { Logo } from "@/components/ui/Logo";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { useOverlay } from "@/lib/ui/OverlayContext";
@@ -79,7 +78,7 @@ function MenuGroup({
   return (
     <div className="flex flex-col gap-0.5 py-2">
       {heading && (
-        <p className="px-4 pb-1 text-[11px] font-bold uppercase tracking-wide" style={{ color: "#9FD3D6" }}>
+        <p className="px-6 pb-1 text-[11px] font-bold uppercase tracking-wide" style={{ color: "#9FD3D6" }}>
           {heading}
         </p>
       )}
@@ -90,8 +89,10 @@ function MenuGroup({
             key={href}
             href={href}
             onClick={onNavigate}
+            // Stijlronde: meer witruimte links (px-6 i.p.v. px-4) — de items
+            // stonden te strak tegen de rand.
             className={clsx(
-              "relative flex items-center gap-3 px-4 py-3 text-sm font-medium text-white",
+              "relative flex items-center gap-3 px-6 py-3 text-sm font-medium text-white",
               active ? "bg-white/10" : "hover:bg-white/5"
             )}
           >
@@ -109,7 +110,7 @@ function MenuGroup({
   );
 }
 
-export function HamburgerMenu({ logoUrl, siteName }: { logoUrl: string | null; siteName: string }) {
+export function HamburgerMenu() {
   const { open, toggle, close } = useOverlay("vereniging");
   const pathname = usePathname();
 
@@ -168,15 +169,11 @@ export function HamburgerMenu({ logoUrl, siteName }: { logoUrl: string | null; s
               if (closing) handleExitComplete();
             }}
           >
-            <div className="flex items-center justify-between border-b border-white/[.12] px-4 py-3">
-              {/* Alleen het logo-icoon — de sitenaam staat al in de gewone
-                  header erboven (MobileHeader), dubbelop in dit paneel.
-                  Afwerkronde blok 6: "Menu" ernaast i.p.v. alleen logo + X,
-                  die kop voelde zonder titel wat leeg. */}
-              <div className="flex items-center gap-2.5">
-                <Logo logoUrl={logoUrl} siteName={siteName} withLabel={false} />
-                <span className="text-sm font-semibold text-white">Menu</span>
-              </div>
+            <div className="flex items-center justify-between border-b border-white/[.12] px-6 py-3">
+              {/* Stijlronde: geen logo meer in dit paneel — de sitenaam/het
+                  logo staat al in de gewone header erboven (MobileHeader),
+                  hier alleen nog de paneeltitel. */}
+              <span className="text-sm font-semibold text-white">Menu</span>
               <button
                 type="button"
                 onClick={requestClose}
@@ -187,9 +184,11 @@ export function HamburgerMenu({ logoUrl, siteName }: { logoUrl: string | null; s
               </button>
             </div>
             <MenuGroup heading="Vereniging" links={VERENIGING_LINKS} pathname={pathname} onNavigate={requestClose} />
-            <div className="border-t border-white/[.12]" />
+            {/* Stijlronde: scheidingslijnen minder aanwezig en ingesprongen
+                i.p.v. een volle, opvallende streep tussen de groepen. */}
+            <div className="mx-6 border-t border-white/[.08]" />
             <MenuGroup heading="Snel naar" links={SNEL_NAAR_LINKS} pathname={pathname} onNavigate={requestClose} />
-            <div className="border-t border-white/[.12]" />
+            <div className="mx-6 border-t border-white/[.08]" />
             <MenuGroup links={OVERIGE_LINKS} pathname={pathname} onNavigate={requestClose} />
           </div>
         </FloatingPortal>

@@ -109,7 +109,7 @@ export async function MemberProfileContent({ id }: { id: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <div className="rounded-2xl bg-surface p-6 shadow-sm">
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-center gap-4">
             <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={avatarUrl} size={64} />
@@ -201,7 +201,7 @@ export async function MemberProfileContent({ id }: { id: string }) {
       {/* Los blok net als "Werkzaam bij dit bedrijf" op de bedrijfspagina,
           i.p.v. genest in de profielkaart hierboven. */}
       {membership?.company && (
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij</h2>
           <Link
             href={`/bedrijven/${membership.company.id}`}
@@ -221,14 +221,14 @@ export async function MemberProfileContent({ id }: { id: string }) {
       )}
 
       {attendedActivities.length > 0 && (
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Bijgewoonde activiteiten</h2>
           <AttendedActivitiesSection memberId={id} activities={attendedActivities} />
         </div>
       )}
 
       {isOwnProfile && posts.length > 0 && (
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Berichten</h2>
           <MemberPostList
             memberId={id}
@@ -241,7 +241,7 @@ export async function MemberProfileContent({ id }: { id: string }) {
       )}
 
       {isBoard(viewer.role) && (
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Beheer</h2>
           <div className="flex flex-col gap-3">
             {isAdmin(viewer.role) && <RoleEditor memberId={member.id} currentRole={member.role} />}

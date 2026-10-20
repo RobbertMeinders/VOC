@@ -80,7 +80,7 @@ function SearchPanel({ close }: { close: () => void }) {
       <div className="fixed inset-x-3 top-[env(safe-area-inset-top)] z-50 mt-4 sm:inset-x-0 sm:top-[30vh] sm:mx-auto sm:w-full sm:max-w-xl sm:px-3 md:left-72">
         {/* Afwerkronde blok 5: lichte schuif + fade i.p.v. de nadrukkelijkere
             "open vouwen"-schaal van gewone dropdowns/menu's. */}
-        <div className="animate-panel-in overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
+        <div className="animate-panel-in overflow-hidden rounded-2xl bg-surface shadow-lg">
           <form onSubmit={handleSubmit} className="flex items-center gap-3 border-b border-border p-4">
             <Search size={20} className="shrink-0 text-muted" />
             <input

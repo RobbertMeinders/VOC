@@ -85,7 +85,7 @@ export function ActivityCard({
     return (
       <Link
         href={activityHref(activity)}
-        className="card-hover-lift animate-rise-in overflow-hidden rounded-2xl border border-border bg-surface shadow-sm hover:border-foreground/20"
+        className="card-hover-lift animate-rise-in overflow-hidden rounded-2xl bg-surface shadow-sm hover:border-foreground/20"
       >
         {imageUrl ? (
           <div className="relative h-44 w-full sm:h-52">
@@ -134,16 +134,23 @@ export function ActivityCard({
         className={clsx("absolute inset-y-0 left-0 z-10 w-1", isOfficial ? "bg-voc-red" : "bg-petrol")}
       />
       {imageUrl ? (
-        <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl sm:h-[88px] sm:w-[88px]">
-          <Image src={imageUrl} alt="" fill sizes="88px" className="object-cover" />
+        // Stijlronde: op desktop iets groter en liggend (±120x84) i.p.v.
+        // vierkant, zelfde als op mobiel/tablet.
+        <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl sm:h-[88px] sm:w-[88px] md:h-[84px] md:w-[120px]">
+          <Image src={imageUrl} alt="" fill sizes="(min-width: 768px) 120px, 88px" className="object-cover" />
         </div>
       ) : (
-        <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-xl bg-petrol-soft text-petrol sm:h-[88px] sm:w-[88px]">
+        <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-xl bg-petrol-soft text-petrol sm:h-[88px] sm:w-[88px] md:h-[84px] md:w-[120px]">
           <CalendarDays size={28} />
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <p className={clsx("line-clamp-2 font-semibold leading-snug text-foreground", isSubmitted ? "text-sm" : "text-base")}>
+        <p
+          className={clsx(
+            "line-clamp-2 font-semibold leading-snug text-foreground md:font-display md:text-[18px] md:tracking-[-0.01em]",
+            isSubmitted ? "text-sm" : "text-base"
+          )}
+        >
           {activity.title}
         </p>
         <p className="mt-1 truncate text-sm text-muted">

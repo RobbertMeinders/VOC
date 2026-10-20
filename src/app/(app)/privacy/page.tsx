@@ -13,7 +13,7 @@ export default async function PrivacyVeiligheidPage() {
       <BackLink href="/instellingen" label="Terug naar Instellingen" />
       <h1 className="mb-4 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Privacy & veiligheid</h1>
 
-      <div className="flex flex-col gap-4 rounded-2xl border border-border bg-surface p-6 shadow-sm sm:p-8">
+      <div className="flex flex-col gap-4 rounded-2xl bg-surface p-6 shadow-sm sm:p-8">
         {renderLiteMarkdown(settings.privacy_content)}
       </div>
     </div>

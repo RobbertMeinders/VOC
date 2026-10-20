@@ -842,7 +842,7 @@ export function NewsletterEditor({
 
       <div className={activeEditorTab === "inhoud" ? "grid gap-6 lg:grid-cols-2" : "hidden"}>
       <div className="flex flex-col gap-6">
-        <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+        <div className="rounded-2xl bg-surface p-5 shadow-sm">
           <div className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
               <label htmlFor="subject-input" className="text-sm font-medium text-foreground">
@@ -986,7 +986,7 @@ export function NewsletterEditor({
       </div>
 
       <div className="lg:sticky lg:top-4 lg:self-start">
-        <div className="flex flex-col gap-2 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+        <div className="flex flex-col gap-2 rounded-2xl bg-surface p-4 shadow-sm">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-foreground">Voorbeeld</p>
             <div className="flex gap-1.5">
@@ -1037,7 +1037,7 @@ export function NewsletterEditor({
 
       <div className={activeEditorTab === "verzendingen" ? "flex flex-col gap-4" : "hidden"}>
         {communication.status === "ingepland" && (
-          <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+          <div className="rounded-2xl bg-surface p-5 shadow-sm">
             <p className="text-sm font-medium text-foreground">Ingepland</p>
             <p className="mt-1 text-sm text-muted">
               Wordt verstuurd aan de gekozen doelgroep op{" "}
@@ -1057,7 +1057,7 @@ export function NewsletterEditor({
           communication.status === "verzenden_mislukt" ||
           communication.status === "verzonden" ||
           communication.status === "versturen") && (
-          <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+          <div className="rounded-2xl bg-surface p-5 shadow-sm">
             <p className="text-sm font-medium text-foreground">
               {communication.status === "verzonden" ? "Extra versturen" : communication.status === "versturen" ? "Vastgelopen?" : "Versturen"}
             </p>

@@ -57,8 +57,10 @@ export function SegmentedControl({ items, className }: { items: SegmentedItem[];
       )}
       {items.map((item, index) => {
         const itemClassName = clsx(
-          "relative z-10 flex-1 rounded-lg px-3 py-1.5 text-center text-sm font-medium transition-colors",
-          item.active ? "text-foreground" : "text-muted hover:text-foreground"
+          "relative z-10 flex-1 rounded-lg px-3 py-1.5 text-center text-sm transition-colors",
+          // Stijlronde: de gekozen stand duidelijker — ook het gewicht van
+          // het label mee laten wisselen, niet alleen de kleur.
+          item.active ? "font-semibold text-foreground" : "font-medium text-muted hover:text-foreground"
         );
         if (item.href) {
           return (

@@ -97,7 +97,7 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <div className="rounded-2xl bg-surface p-6 shadow-sm">
         <h2 className="text-sm font-semibold text-foreground">Logo</h2>
         <p className="mt-1 text-xs text-muted">
           Verschijnt in de zijbalk/mobiele header van de app én bovenaan elke verstuurde nieuwsbrief.
@@ -107,7 +107,7 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
         </div>
       </div>
 
-      <form action={formAction} className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <form action={formAction} className="rounded-2xl bg-surface p-6 shadow-sm">
         <h2 className="text-sm font-semibold text-foreground">Naam</h2>
         <div className="mt-4 flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">

@@ -82,7 +82,7 @@ function StatCard({ label, value }: { label: string; value: string | number }) {
 
 function ChartCard({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+    <div className="rounded-2xl bg-surface p-4 shadow-sm">
       <h2 className="mb-3 text-sm font-semibold text-foreground">{title}</h2>
       {children}
     </div>
@@ -143,7 +143,7 @@ async function CommunityTab({ period }: { period: StatsPeriod }) {
         </ChartCard>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
+      <div className="overflow-x-auto rounded-2xl bg-surface shadow-sm">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-muted">
@@ -222,7 +222,7 @@ async function ActiviteitenTab({ period }: { period: StatsPeriod }) {
         </ChartCard>
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
+      <div className="overflow-x-auto rounded-2xl bg-surface shadow-sm">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-muted">
@@ -273,7 +273,7 @@ function ChannelBreakdownTable({
 }) {
   const filtered = rows.filter((row) => getSent(row) > 0);
   return (
-    <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
+    <div className="overflow-x-auto rounded-2xl bg-surface shadow-sm">
       <table className="w-full text-left text-sm">
         <thead>
           <tr className="border-b border-border text-xs text-muted">
@@ -362,7 +362,7 @@ async function NewsletterTab() {
         <StatCard label="Totaal mislukt" value={stats.totalFailed} />
       </div>
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
+      <div className="overflow-x-auto rounded-2xl bg-surface shadow-sm">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-muted">

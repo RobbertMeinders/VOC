@@ -95,7 +95,7 @@ export function AttendeeList({
   const remaining = attendees.length - visible.length;
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <div className="rounded-2xl bg-surface p-6 shadow-sm">
       <h2 className="mb-3 text-sm font-semibold text-foreground">Wie gaat er ook</h2>
       {canManage && (
         <p className="mb-3 text-xs text-muted">Vink aan wie er aanwezig was.</p>
@@ -128,7 +128,7 @@ export function AttendeeList({
         <FloatingPortal>
           <div className="fixed inset-0 z-40 cursor-pointer bg-black/40 animate-fade-in" onClick={() => setShowAll(false)} />
           <div className="fixed inset-x-4 top-1/2 z-50 -translate-y-1/2 sm:inset-x-auto sm:left-1/2 sm:w-80 sm:-translate-x-1/2 md:left-[calc(50%+8rem)]">
-            <div className="animate-scale-in max-h-[70vh] overflow-hidden rounded-2xl border border-border bg-surface shadow-lg">
+            <div className="animate-scale-in max-h-[70vh] overflow-hidden rounded-2xl bg-surface shadow-lg">
               <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <p className="text-sm font-semibold text-foreground">Wie gaat er ook ({attendees.length})</p>
                 <button

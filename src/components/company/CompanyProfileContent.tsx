@@ -123,7 +123,7 @@ export async function CompanyProfileContent({ id }: { id: string }) {
           leden gekoppeld aan dit bedrijf." zien — een lege sectie verbergen
           is hier duidelijker dan een kale zin tonen. */}
       {members.length > 0 && (
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij dit bedrijf</h2>
           <CompanyMemberList members={members} />
         </div>

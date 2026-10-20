@@ -44,7 +44,7 @@ function ActivityCard({
   return (
     <Link
       href={withEmbedTheme(`/embed/agenda/${activity.id}`, thema)}
-      className={`overflow-hidden rounded-2xl border border-border bg-surface shadow-sm ${
+      className={`overflow-hidden rounded-2xl bg-surface shadow-sm ${
         isPast ? "opacity-80 grayscale-[50%]" : "transition-all duration-500 ease-out hover:scale-[1.008] hover:shadow-md"
       }`}
     >

@@ -44,7 +44,7 @@ function AddBoardMemberForm({ memberOptions }: { memberOptions: MemberOption[] }
   if (memberOptions.length === 0) return null;
 
   return (
-    <form ref={formRef} action={formAction} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+    <form ref={formRef} action={formAction} className="rounded-2xl bg-surface p-4 shadow-sm">
       <h2 className="text-sm font-semibold text-foreground">Bestuurslid toevoegen</h2>
       <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex flex-1 flex-col gap-1.5">

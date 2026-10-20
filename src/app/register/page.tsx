@@ -18,7 +18,7 @@ export default async function BootstrapRegisterPage() {
         </div>
 
         {alreadyInitialized ? (
-          <div className="rounded-2xl border border-border bg-surface p-6 text-center shadow-sm">
+          <div className="rounded-2xl bg-surface p-6 text-center shadow-sm">
             <h1 className="mb-2 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Al geïnitialiseerd</h1>
             <p className="text-sm text-muted">
               Er is al een account aangemaakt op dit ledenportaal. Nieuwe leden hebben een
@@ -29,7 +29,7 @@ export default async function BootstrapRegisterPage() {
             </Link>
           </div>
         ) : (
-          <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+          <div className="rounded-2xl bg-surface p-6 shadow-sm">
             <h1 className="mb-1 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Eerste account aanmaken</h1>
             <p className="mb-6 text-sm text-muted">
               Er bestaat nog geen account op dit ledenportaal. Maak het eerste account aan - dit

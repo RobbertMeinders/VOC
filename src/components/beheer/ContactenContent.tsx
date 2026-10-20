@@ -102,7 +102,7 @@ function ContactsSection({ contacts }: { contacts: Contact[] }) {
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+    <div className="rounded-2xl bg-surface p-5 shadow-sm">
       <p className="text-sm font-medium text-foreground">Contactpersonen</p>
       <p className="mt-0.5 text-sm text-muted">Mensen zonder account die je toch via de nieuwsbrief wilt bereiken.</p>
 
@@ -402,7 +402,7 @@ function ListsSection({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+    <div className="rounded-2xl bg-surface p-5 shadow-sm">
       <p className="text-sm font-medium text-foreground">Lijsten</p>
       <p className="mt-0.5 text-sm text-muted">Herbruikbare groepen leden en contactpersonen, te kiezen als doelgroep op een campagne.</p>
 

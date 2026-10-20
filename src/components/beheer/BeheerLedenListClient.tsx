@@ -132,7 +132,7 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
             </>
           );
           return (
-            <div key={member.id} className="rounded-2xl border border-border bg-surface p-3 shadow-sm">
+            <div key={member.id} className="rounded-2xl bg-surface p-3 shadow-sm">
               {/* Op mobiel gestapelde regels (naam+knoppen, dan de
                   contactgegevens eronder). Vanaf sm (brede beheer-pagina) is
                   dit i.p.v. flex-wrap nu een echt grid met vaste

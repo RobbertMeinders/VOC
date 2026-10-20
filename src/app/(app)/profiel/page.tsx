@@ -106,7 +106,7 @@ export default async function ProfielPage() {
         <CompanyMembershipForm hasCompany={false} />
       )}
 
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <div className="rounded-2xl bg-surface p-6 shadow-sm">
         <ProfileForm profile={profile} avatarUrl={avatarUrl} />
       </div>
 

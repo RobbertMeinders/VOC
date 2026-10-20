@@ -224,7 +224,7 @@ function PostComposerForm({
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="hidden w-full items-center gap-3 rounded-2xl border border-border bg-surface p-3 text-left shadow-sm hover:border-foreground/20 sm:flex"
+          className="hidden w-full items-center gap-3 rounded-2xl bg-surface p-3 text-left shadow-sm hover:border-foreground/20 sm:flex"
         >
           <Avatar firstName={author.first_name} lastName={author.last_name} avatarUrl={author.avatarUrl} size={36} />
           <span className="text-sm text-muted">Wat wil je delen met het netwerk?</span>

@@ -116,7 +116,7 @@ export default async function EmbedCodesPage() {
         {EMBEDS.map((embed) => {
           const code = buildEmbedCode(origin, embed);
           return (
-            <div key={embed.kind} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+            <div key={embed.kind} className="rounded-2xl bg-surface p-4 shadow-sm">
               <p className="text-sm font-semibold text-foreground">{embed.label}</p>
               <p className="mt-0.5 text-xs text-muted">{embed.description}</p>
               <div className="mt-3">

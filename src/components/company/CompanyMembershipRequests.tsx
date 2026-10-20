@@ -42,7 +42,7 @@ export function CompanyMembershipRequests({
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <div className="rounded-2xl bg-surface p-6 shadow-sm">
       <h2 className="mb-1 text-sm font-semibold text-foreground">Openstaande koppelingsaanvragen</h2>
       <p className="mb-4 text-xs text-muted">
         Alleen zichtbaar voor bestaande collega&apos;s bij dit bedrijf en bestuur/beheer.

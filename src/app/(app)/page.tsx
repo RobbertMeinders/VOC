@@ -205,9 +205,11 @@ export default async function HomePage() {
       {/* Mobiel: ongewijzigd t.o.v. voor de afwerkronde-herindeling —
           "Snel naar" als los blok, dan "Nieuw in het netwerk" als rij
           avatarcirkels, dan Nieuws. */}
-      <div className="flex flex-col gap-6 lg:hidden">
+      {/* Stijlronde: iets meer lucht tussen de blokken op mobiel (gap-8
+          i.p.v. gap-6) — de volgorde blijft ongewijzigd. */}
+      <div className="flex flex-col gap-8 lg:hidden">
         <section>
-          <h2 className="font-display mb-2 text-base font-bold text-foreground">Snel naar</h2>
+          <h2 className="font-display mb-2 text-[19px] font-bold tracking-[-0.015em] text-foreground">Snel naar</h2>
           <div className="grid grid-cols-4 gap-2">
             {QUICK_ACTIONS.map(({ href, label, icon: Icon }) => (
               <Link key={href} href={href} className="flex flex-col items-center gap-1.5 text-center text-[11px] font-medium text-foreground">
@@ -245,7 +247,7 @@ export default async function HomePage() {
           </section>
         ) : (
           !nextActivity && (
-            <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+            <div className="rounded-2xl bg-surface p-5 shadow-sm">
               <p className="text-sm text-muted">Er staat nog geen activiteit gepland.</p>
             </div>
           )
@@ -277,7 +279,7 @@ export default async function HomePage() {
           )}
 
           {newsSlides.length === 0 && communityPosts.length === 0 && !nextActivity && (
-            <div className="rounded-2xl border border-border bg-surface p-5 shadow-sm">
+            <div className="rounded-2xl bg-surface p-5 shadow-sm">
               <p className="text-sm text-muted">Er staat nog geen activiteit gepland.</p>
             </div>
           )}
@@ -287,7 +289,7 @@ export default async function HomePage() {
           {laterActivities.length > 0 && (
             <section>
               <SectionHeader title="Agenda" href="/agenda" linkLabel="Agenda" />
-              <div className="flex flex-col divide-y divide-border rounded-2xl border border-border bg-surface shadow-sm">
+              <div className="flex flex-col divide-y divide-border rounded-2xl bg-surface shadow-sm">
                 {laterActivities.map((activity) => (
                   <Link key={activity.id} href={activityHref(activity)} className="flex items-center gap-3 p-3 hover:bg-black/[.03] dark:hover:bg-white/[.05]">
                     <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-xl bg-petrol-soft leading-none text-petrol">
@@ -314,7 +316,7 @@ export default async function HomePage() {
           {newMembersWithCompany.length > 0 && (
             <section>
               <SectionHeader title="Nieuw in het netwerk" href="/leden" linkLabel="Alle leden" />
-              <div className="flex flex-col divide-y divide-border rounded-2xl border border-border bg-surface shadow-sm">
+              <div className="flex flex-col divide-y divide-border rounded-2xl bg-surface shadow-sm">
                 {newMembersWithCompany.map((member) => {
                   const path = member.avatar_thumb_url ?? member.avatar_url;
                   const avatarUrl = path ? (newMemberAvatarUrls.get(path) ?? null) : null;

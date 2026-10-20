@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 function CompanyCardSkeleton() {
   return (
-    <div className="flex min-w-0 items-center gap-4 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+    <div className="flex min-w-0 items-center gap-4 rounded-2xl bg-surface p-4 shadow-sm">
       <Skeleton className="h-20 w-20 shrink-0 rounded-xl" />
       <div className="min-w-0 flex-1">
         <Skeleton className="h-4 w-3/4" />

@@ -61,17 +61,17 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
         <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Bedrijfsgegevens bewerken</h1>
       </div>
       <CompanyEditFormsGuard>
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <CompanyForm company={company} logoUrl={logoUrl} />
         </div>
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <h2 className="mb-1 text-sm font-semibold text-foreground">Factuurgegevens</h2>
           <p className="mb-4 text-xs text-muted">Alleen zichtbaar voor jouw bedrijf en het bestuur.</p>
           <CompanyBillingForm company={company} billing={billing ?? null} />
         </div>
       </CompanyEditFormsGuard>
       {isAdmin(profile.role) && (
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <h2 className="mb-1 text-sm font-semibold text-foreground">Bedrijf verwijderen</h2>
           <p className="mb-3 text-xs text-muted">
             Verwijdert dit bedrijf definitief, inclusief alle koppelingen met leden. Kan niet ongedaan gemaakt worden.

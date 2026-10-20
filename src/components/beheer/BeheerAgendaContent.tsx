@@ -174,7 +174,7 @@ export async function BeheerAgendaContent({ searchParams }: { searchParams?: Pro
           const registrationCount = registrationCounts.get(activity.id) ?? 0;
 
           return (
-          <div key={activity.id} className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+          <div key={activity.id} className="rounded-2xl bg-surface p-4 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-2">
               <div className="min-w-0">
                 <div className="mb-1 flex flex-wrap items-center gap-2">

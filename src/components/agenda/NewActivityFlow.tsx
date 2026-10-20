@@ -21,7 +21,7 @@ export function NewActivityFlow({ board }: { board: boolean }) {
           <button
             type="button"
             onClick={() => setSource("voc")}
-            className="flex flex-1 items-start gap-3 rounded-2xl border border-border bg-surface p-4 text-left shadow-sm hover:border-muted"
+            className="flex flex-1 items-start gap-3 rounded-2xl bg-surface p-4 text-left shadow-sm hover:border-muted"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-petrol-soft text-petrol">
               <CalendarDays size={20} />
@@ -34,7 +34,7 @@ export function NewActivityFlow({ board }: { board: boolean }) {
           <button
             type="button"
             onClick={() => setSource("lid")}
-            className="flex flex-1 items-start gap-3 rounded-2xl border border-border bg-surface p-4 text-left shadow-sm hover:border-muted"
+            className="flex flex-1 items-start gap-3 rounded-2xl bg-surface p-4 text-left shadow-sm hover:border-muted"
           >
             <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-black/[.06] text-muted dark:bg-white/[.08]">
               <Users size={20} />
@@ -64,7 +64,7 @@ export function NewActivityFlow({ board }: { board: boolean }) {
           &larr; Andere keuze
         </button>
       )}
-      <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+      <div className="rounded-2xl bg-surface p-6 shadow-sm">
         <ActivityForm
           action={createActivityAction}
           submitLabel={source === "voc" ? "Activiteit aanmaken" : "Indienen ter goedkeuring"}

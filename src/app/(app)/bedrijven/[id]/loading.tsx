@@ -4,7 +4,7 @@ export default function CompanyProfileLoading() {
   return (
     <div className="mx-auto w-full md:max-w-3xl">
       <div className="flex flex-col gap-6">
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <div className="flex items-start gap-4">
             <Skeleton className="h-16 w-16 shrink-0 rounded-xl" />
             <div className="min-w-0 flex-1">
@@ -15,7 +15,7 @@ export default function CompanyProfileLoading() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <Skeleton className="mb-3 h-4 w-48" />
           <div className="grid gap-3 sm:grid-cols-2">
             {Array.from({ length: 4 }).map((_, i) => (

@@ -43,7 +43,7 @@ async function AanvragenTab() {
     .returns<AccessRequest[]>();
 
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+    <div className="rounded-2xl bg-surface p-4 shadow-sm">
       {requests && requests.length > 0 ? (
         requests.map((request) => <AccessRequestRow key={request.id} request={request} />)
       ) : (
@@ -71,11 +71,11 @@ async function UitnodigingenTab({ canInviteBoard }: { canInviteBoard: boolean })
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+      <div className="rounded-2xl bg-surface p-4 shadow-sm">
         <InviteForm canInviteBoard={canInviteBoard} />
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+      <div className="rounded-2xl bg-surface p-4 shadow-sm">
         <div className="mb-2 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-sm font-semibold text-foreground">Openstaande uitnodigingen</h2>
           {(allInvitations?.length ?? 0) > 0 && (
@@ -107,7 +107,7 @@ async function ProspectsTab() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted">Neem contact op en werk daarna de status bij.</p>
-      <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+      <div className="rounded-2xl bg-surface p-4 shadow-sm">
         {prospects && prospects.length > 0 ? (
           prospects.map((prospect) => <ProspectRow key={prospect.id} prospect={prospect} />)
         ) : (

@@ -135,7 +135,7 @@ export default async function AgendaEmbedDetailPage({
 
         {activity.description && <p className="whitespace-pre-line text-sm text-foreground">{activity.description}</p>}
 
-        <div className="mx-auto mt-2 w-full max-w-md rounded-2xl border border-border bg-surface p-5 shadow-sm">
+        <div className="mx-auto mt-2 w-full max-w-md rounded-2xl bg-surface p-5 shadow-sm">
           {isPast ? (
             <p className="text-sm text-muted">Deze activiteit heeft al plaatsgevonden.</p>
           ) : profile ? (

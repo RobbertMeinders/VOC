@@ -26,11 +26,14 @@
      de rest van de pagina (terecht) wit bleef. Volgt hieronder dezelfde
      licht/donker-logica als de class- en variabele-overrides. */
   color-scheme: light;
-  --background: #f7f7f8;
+  /* Stijlronde "zelfde indeling, nieuwe stijl": lichtblauw (petrol-tint) uit
+     de lichte achtergrond/kaart/randkleuren, warm zand erin. Alleen het
+     lichte thema — donker en de huisstijlkleuren (rood/petrol) ongewijzigd. */
+  --background: #f5f3ef;
   --surface: #ffffff;
   --foreground: #17171a;
-  --muted: #5e5e66;
-  --border: #e4e4e7;
+  --muted: #67625b;
+  --border: #e7e2d9;
   /* Randkleur specifiek voor invoervelden/dropdowns — --border (voor
      kaartranden) is met opzet subtiel en haalt daardoor op een invoerveld
      de WCAG-ondergrens niet (gemeten 1,2–1,3 i.p.v. de vereiste 3); een
@@ -40,13 +43,13 @@
      "Verhoogd" — iets lichter dan --surface, voor een vlak dat zich net
      van een kaart moet onderscheiden (bv. een ingebedde balk/track) zonder
      een losse alfa-overlay per plek te verzinnen. */
-  --raised: #f1f1f3;
+  --raised: #ede9e2;
   /* Redesign: "zware schaduwen" afgewezen, schaduw moet licht zijn. Dit
      overschrijft Tailwinds eigen --shadow-sm (zie @theme inline) — de app
      gebruikt die utility al overal als dé kaartschaduw, dus zo geldt "licht"
      in één keer voor elke kaart zonder honderden call sites los aan te
      passen. In donker vrijwel geen schaduw (scheiding via achtergrondkleur). */
-  --shadow-card: 0 1px 2px rgb(11 46 51 / 0.06), 0 4px 12px rgb(11 46 51 / 0.05);
+  --shadow-card: 0 1px 2px rgb(40 30 20 / 0.05), 0 4px 14px rgb(40 30 20 / 0.05);
 
   /* VOC huisstijl — rood op dieet: alleen nog logo, hoofdknop per scherm,
      actief menu-item, tellers en foutmeldingen. */
@@ -68,7 +71,9 @@
      grafieken, focusring, links en vlakken. */
   --petrol-deep: #0b2e33;
   --petrol: #0e5a63;
-  --petrol-soft: #e3f0f0;
+  /* Naam blijft --petrol-soft (veel call sites), maar de waarde zelf is nu
+     zand i.p.v. lichtblauw-petrol — stijlronde "zelfde indeling, nieuwe stijl". */
+  --petrol-soft: #efe9df;
 
   /* Fouten/waarschuwingen/foutteksten blijven rood (besluit "rood op
      dieet") — eigen naam i.p.v. de voc-red-tokens rechtstreeks hergebruiken,
@@ -282,14 +287,14 @@
    component zelf theme-specifieke classes te hoeven geven. */
 [data-theme="light"] {
   color-scheme: light;
-  --background: #f7f7f8;
+  --background: #f5f3ef;
   --surface: #ffffff;
   --foreground: #17171a;
-  --muted: #5e5e66;
-  --border: #e4e4e7;
+  --muted: #67625b;
+  --border: #e7e2d9;
   --input-border: #8e8e93;
-  --raised: #f1f1f3;
-  --shadow-card: 0 1px 2px rgb(11 46 51 / 0.06), 0 4px 12px rgb(11 46 51 / 0.05);
+  --raised: #ede9e2;
+  --shadow-card: 0 1px 2px rgb(40 30 20 / 0.05), 0 4px 14px rgb(40 30 20 / 0.05);
 
   --voc-red: #e8000f;
   --voc-red-dark: #b8000c;
@@ -297,7 +302,7 @@
   --voc-red-text: #c8000d;
 
   --petrol: #0e5a63;
-  --petrol-soft: #e3f0f0;
+  --petrol-soft: #efe9df;
 
   --danger: var(--voc-red);
   --danger-text: var(--voc-red-text);

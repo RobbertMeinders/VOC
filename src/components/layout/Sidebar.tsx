@@ -42,18 +42,20 @@ export function Sidebar({
       <Link
         key={href}
         href={href}
-        // Afwerkronde blok 3: een rood streepje links (zelfde patroon als
-        // BeheerSidebar) i.p.v. een volle rode pil — ook het actieve item
-        // in de gewone navigatie hoeft geen heel kleurvlak te zijn.
+        // Stijlronde "zelfde indeling, nieuwe stijl": actief item is een
+        // gevuld vlak (bg-raised) met een rood streepje bínnen het vlak
+        // i.p.v. een linkerrand die het item zelf naar rechts duwt — geen
+        // volle rand meer op inactieve items.
         className={clsx(
-          "flex items-center gap-3 rounded-r-lg border-l-[3px] py-2.5 pr-3 text-sm font-medium transition-all duration-150",
-          indented ? "pl-[37px]" : "pl-[9px]",
+          "relative flex items-center gap-3 rounded-lg py-2.5 pr-3 text-sm transition-colors",
+          indented ? "pl-[34px]" : "pl-3",
           active
-            ? "border-l-voc-red bg-black/[.03] text-foreground dark:bg-white/[.06]"
-            : "border-l-transparent text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            ? "bg-raised font-semibold text-foreground"
+            : "font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
-        <Icon size={indented ? 16 : 20} strokeWidth={active ? 2.5 : 2} />
+        {active && <span aria-hidden className="absolute inset-y-1.5 left-1 w-[3px] rounded-full bg-voc-red" />}
+        <Icon size={indented ? 16 : 20} strokeWidth={active ? 2.5 : 2} className={active ? "text-foreground" : "text-muted"} />
         {label}
         {badgeKey && (
           <span className="ml-auto">
@@ -81,13 +83,14 @@ export function Sidebar({
         key={href}
         href={href}
         className={clsx(
-          "flex items-center gap-3 rounded-r-lg border-l-[3px] py-2.5 pl-[9px] pr-3 text-sm font-medium transition-all duration-150",
+          "relative flex items-center gap-3 rounded-lg py-2.5 pl-3 pr-3 text-sm transition-colors",
           active
-            ? "border-l-voc-red bg-black/[.03] text-foreground dark:bg-white/[.06]"
-            : "border-l-transparent text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            ? "bg-raised font-semibold text-foreground"
+            : "font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
-        <Icon size={20} strokeWidth={active ? 2.5 : 2} />
+        {active && <span aria-hidden className="absolute inset-y-1.5 left-1 w-[3px] rounded-full bg-voc-red" />}
+        <Icon size={20} strokeWidth={active ? 2.5 : 2} className={active ? "text-foreground" : "text-muted"} />
         {label}
         {Boolean(badge) && (
           <span className="ml-auto">
@@ -99,7 +102,7 @@ export function Sidebar({
   }
 
   return (
-    <aside className="fixed inset-y-0 left-0 hidden w-72 flex-col border-r border-border bg-surface px-4 py-6 md:flex">
+    <aside className="fixed inset-y-0 left-0 hidden h-dvh w-72 flex-col border-r border-border bg-surface px-4 py-6 md:flex">
       <div className="mb-8 flex items-center justify-between gap-2 px-2">
         <Logo logoUrl={logoUrl} siteName={siteName} />
         <div className="flex shrink-0 items-center gap-0.5">
@@ -122,9 +125,14 @@ export function Sidebar({
         <VerenigingMenu />
       </nav>
 
-      <nav className="mt-2 flex flex-col gap-1 border-t border-border pt-2">{accountItems.map(renderAccountItem)}</nav>
+      {/* Scheidingslijnen ingesprongen (±10px marge) i.p.v. over de volle
+          breedte — op een los div i.p.v. border-t op het inhoud-element
+          zelf, zodat de marge niet ook de inhoud erboven/eronder raakt. */}
+      <div className="mx-[10px] mt-2 border-t border-border" />
+      <nav className="flex flex-col gap-1 pt-2">{accountItems.map(renderAccountItem)}</nav>
 
-      <div className="border-t border-border pt-4">
+      <div className="mx-[10px] border-t border-border" />
+      <div className="pt-4">
         <SidebarProfileMenu profile={profile} avatarUrl={avatarUrl} companyName={companyName} />
       </div>
 

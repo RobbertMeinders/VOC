@@ -175,7 +175,7 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+      <div className="overflow-hidden rounded-2xl bg-surface shadow-sm">
         {imageUrl && (
           // Afwerkronde blok 6: vaste 16:9-verhouding met object-position
           // top i.p.v. een losse max-h — bij een hoge/staande foto werd het
@@ -340,7 +340,7 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
       />
 
       {publicRegistrations && publicRegistrations.length > 0 && (
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <h2 className="mb-1 text-sm font-semibold text-foreground">
             Aangemeld via de website ({publicRegistrations.length})
           </h2>
@@ -361,7 +361,7 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
       )}
 
       {(attachments ?? []).length > 0 && (
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Bijlagen</h2>
           <div className="flex flex-col gap-2">
             {(attachments ?? []).map((attachment) => (
@@ -377,7 +377,7 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
       )}
 
       {isBoard(profile.role) && activity.status === "pending" && (
-        <div className="flex flex-wrap items-center gap-2 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+        <div className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface p-4 shadow-sm">
           <p className="mr-auto text-sm text-muted">Deze activiteit wacht nog op een besluit.</p>
           <ApproveActivityForm
             onApprove={async (notifyPush, notifyEmail) => {

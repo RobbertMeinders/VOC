@@ -52,7 +52,7 @@ export function BulkImportForm() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+      <div className="rounded-2xl bg-surface p-4 shadow-sm">
         <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-8 text-sm font-medium text-muted hover:border-muted hover:text-foreground">
           <Upload size={18} />
           CSV-bestand kiezen
@@ -79,7 +79,7 @@ export function BulkImportForm() {
       </div>
 
       {rows.length > 0 && (
-        <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+        <div className="rounded-2xl bg-surface p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-foreground">{rows.length} rijen gevonden - controleer voor import</h2>
           </div>
@@ -132,7 +132,7 @@ export function BulkImportForm() {
       )}
 
       {result && (
-        <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+        <div className="rounded-2xl bg-surface p-4 shadow-sm">
           {result.imported > 0 && (
             <p className="text-sm text-status-success">
               {result.imported} uitnodiging{result.imported === 1 ? "" : "en"} aangemaakt (nog geen e-mail

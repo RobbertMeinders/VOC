@@ -166,7 +166,7 @@ export function EmailTemplateForm({ template }: { template: EmailTemplate }) {
     // genest zijn. Onderwerp/Inhoud koppelen daarom via het HTML5
     // form="..."-attribuut aan het opslaan-formulier onderaan, ook al staan
     // ze er in de DOM niet direct in.
-    <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+    <div className="rounded-2xl bg-surface p-6 shadow-sm">
       <h2 className="text-sm font-semibold text-foreground">{template.key}</h2>
       {template.description && <p className="mb-4 mt-1 text-xs text-muted">{template.description}</p>}
 

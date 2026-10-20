@@ -50,7 +50,7 @@ export default async function NieuwsPage() {
               <Link
                 key={item.id}
                 href={`/nieuws/${item.id}`}
-                className="flex gap-3 overflow-hidden rounded-2xl border border-border bg-surface p-3 shadow-sm transition-all duration-150 hover:border-muted hover:shadow-md sm:gap-4 sm:p-4"
+                className="flex gap-3 overflow-hidden rounded-2xl bg-surface p-3 shadow-sm transition-all duration-150 hover:border-muted hover:shadow-md sm:gap-4 sm:p-4"
               >
                 {imageUrl && (
                   <Image

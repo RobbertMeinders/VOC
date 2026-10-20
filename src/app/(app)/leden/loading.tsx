@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 function MemberRowSkeleton() {
   return (
-    <div className="flex items-center gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm">
+    <div className="flex items-center gap-3 rounded-2xl bg-surface p-4 shadow-sm">
       <Skeleton className="h-12 w-12 shrink-0 rounded-full" />
       <div className="min-w-0 flex-1">
         <Skeleton className="h-4 w-32" />

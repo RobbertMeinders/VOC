@@ -53,7 +53,7 @@ export default async function BeheerNotificatiesPage() {
         description={`De laatste ${LOG_LIMIT} meldingen.`}
       />
 
-      <div className="overflow-x-auto rounded-2xl border border-border bg-surface shadow-sm">
+      <div className="overflow-x-auto rounded-2xl bg-surface shadow-sm">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-muted">

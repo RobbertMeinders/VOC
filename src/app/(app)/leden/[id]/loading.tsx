@@ -4,7 +4,7 @@ export default function MemberProfileLoading() {
   return (
     <div className="mx-auto w-full md:max-w-3xl">
       <div className="flex flex-col gap-4">
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <div className="flex items-center gap-4">
             <Skeleton className="h-16 w-16 shrink-0 rounded-full" />
             <div>
@@ -20,7 +20,7 @@ export default function MemberProfileLoading() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <Skeleton className="mb-3 h-4 w-28" />
           <div className="flex items-center gap-3 rounded-xl border border-border p-3">
             <Skeleton className="h-11 w-11 shrink-0 rounded-lg" />
@@ -28,7 +28,7 @@ export default function MemberProfileLoading() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-border bg-surface p-6 shadow-sm">
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <Skeleton className="mb-3 h-4 w-40" />
           <Skeleton className="h-4 w-full" />
           <Skeleton className="mt-2 h-4 w-3/4" />

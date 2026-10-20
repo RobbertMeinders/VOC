@@ -39,16 +39,18 @@ export function VerenigingMenu() {
         type="button"
         onClick={toggle}
         aria-expanded={open}
-        // Afwerkronde blok 3: rood streepje links i.p.v. een volle rode pil
-        // (zelfde patroon als de rest van de sidebar, zie Sidebar.tsx).
+        // Stijlronde "zelfde indeling, nieuwe stijl": zelfde patroon als
+        // Sidebar.tsx — gevuld vlak + rood streepje bínnen het vlak i.p.v.
+        // een linkerrand.
         className={clsx(
-          "flex w-full items-center gap-3 rounded-r-lg border-l-[3px] py-2.5 pl-[9px] pr-3 text-sm font-medium transition-all duration-150",
+          "relative flex w-full items-center gap-3 rounded-lg py-2.5 pl-3 pr-3 text-sm transition-colors",
           active || open
-            ? "border-l-voc-red bg-black/[.03] text-foreground dark:bg-white/[.06]"
-            : "border-l-transparent text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            ? "bg-raised font-semibold text-foreground"
+            : "font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
-        <Handshake size={20} strokeWidth={active ? 2.5 : 2} />
+        {(active || open) && <span aria-hidden className="absolute inset-y-1.5 left-1 w-[3px] rounded-full bg-voc-red" />}
+        <Handshake size={20} strokeWidth={active ? 2.5 : 2} className={active || open ? "text-foreground" : "text-muted"} />
         Vereniging
         <ChevronDown size={16} className={clsx("ml-auto transition-transform duration-150", open && "rotate-180")} />
       </button>
@@ -71,13 +73,14 @@ export function VerenigingMenu() {
                   onClick={close}
                   tabIndex={open ? undefined : -1}
                   className={clsx(
-                    "flex items-center gap-3 rounded-r-lg border-l-[3px] py-2.5 pl-[37px] pr-3 text-sm font-medium transition-all duration-150",
+                    "relative flex items-center gap-3 rounded-lg py-2.5 pl-[34px] pr-3 text-sm transition-colors",
                     linkActive
-                      ? "border-l-voc-red bg-black/[.03] text-foreground dark:bg-white/[.06]"
-                      : "border-l-transparent text-foreground hover:translate-x-0.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                      ? "bg-raised font-semibold text-foreground"
+                      : "font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
                   )}
                 >
-                  <Icon size={16} strokeWidth={linkActive ? 2.5 : 2} />
+                  {linkActive && <span aria-hidden className="absolute inset-y-1.5 left-1 w-[3px] rounded-full bg-voc-red" />}
+                  <Icon size={16} strokeWidth={linkActive ? 2.5 : 2} className={linkActive ? "text-foreground" : "text-muted"} />
                   {label}
                 </Link>
               );

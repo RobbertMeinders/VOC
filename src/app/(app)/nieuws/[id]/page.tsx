@@ -38,7 +38,7 @@ export default async function NieuwsDetailPage({ params }: { params: Promise<{ i
     <div>
       <BackLink href="/nieuws" label="Terug naar Nieuws" />
 
-      <article className="overflow-hidden rounded-2xl border border-border bg-surface shadow-sm">
+      <article className="overflow-hidden rounded-2xl bg-surface shadow-sm">
         {imageUrl && (
           <Image src={imageUrl} alt="" width={720} height={400} className="h-56 w-full object-cover sm:h-80" />
         )}

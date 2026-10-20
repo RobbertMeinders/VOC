@@ -35,7 +35,7 @@ export function AllNotificationChannelsSwitch({ initialEnabled }: { initialEnabl
   }
 
   return (
-    <div className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-surface px-4 py-3 shadow-sm">
+    <div className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-3 shadow-sm">
       <div className="min-w-0">
         <p className="text-sm font-medium text-foreground">Alles</p>
         {error && <p className="mt-1 text-xs text-voc-red-text">{error}</p>}

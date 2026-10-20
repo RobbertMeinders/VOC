@@ -16,7 +16,7 @@ export function RecentPostPreview({ post }: { post: FeedPost }) {
   return (
     <Link
       href={`/community?highlight=${post.id}`}
-      className="card-hover-lift flex gap-3 rounded-2xl border border-border bg-surface p-4 shadow-sm hover:border-muted"
+      className="card-hover-lift flex gap-3 rounded-2xl bg-surface p-4 shadow-sm hover:border-muted"
     >
       <Avatar
         firstName={post.author.first_name}

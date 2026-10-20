@@ -425,7 +425,7 @@ export default async function BeheerPage() {
         )}
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+      <div className="rounded-2xl bg-surface p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="text-sm font-semibold text-foreground">Komende activiteiten</h2>
           <Link href="/beheer/agenda" className="flex items-center gap-1 text-xs font-medium text-petrol hover:underline">
@@ -442,16 +442,27 @@ export default async function BeheerPage() {
                 <Link
                   key={activity.id}
                   href={activityHref(activity)}
-                  className="flex items-center justify-between gap-3 rounded-xl border border-border p-3 hover:border-foreground/20"
+                  className="flex items-center gap-3 rounded-xl border border-border p-3 hover:border-foreground/20"
                 >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">{activity.title}</p>
-                    <p className="text-xs text-muted">{formatActivityDate(activity.starts_at)}</p>
+                  {/* Stijlronde: datumtegel i.p.v. een losse tekstregel —
+                      zelfde opbouw als in de ledenkant (Home), zodat de
+                      datum niet meer los/te dicht tegen de rand van de
+                      rij oogt. */}
+                  <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-xl bg-petrol-soft leading-none text-petrol">
+                    <span className="text-[8.5px] font-bold uppercase tracking-wide">
+                      {new Intl.DateTimeFormat("nl-NL", { month: "short", timeZone: "Europe/Amsterdam" }).format(new Date(activity.starts_at))}
+                    </span>
+                    <span className="font-display mt-0.5 text-base font-extrabold">
+                      {new Intl.DateTimeFormat("nl-NL", { day: "numeric", timeZone: "Europe/Amsterdam" }).format(new Date(activity.starts_at))}
+                    </span>
                   </div>
-                  <span className="shrink-0 text-xs text-muted">
-                    {confirmedCount}
-                    {activity.max_participants ? ` / ${activity.max_participants}` : ""} aanmelding{confirmedCount === 1 ? "" : "en"}
-                  </span>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-foreground">{activity.title}</p>
+                    <p className="truncate text-xs text-muted">
+                      {confirmedCount}
+                      {activity.max_participants ? ` / ${activity.max_participants}` : ""} aanmelding{confirmedCount === 1 ? "" : "en"}
+                    </p>
+                  </div>
                 </Link>
               );
             })}
@@ -462,7 +473,7 @@ export default async function BeheerPage() {
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+        <div className="rounded-2xl bg-surface p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
               <Users size={14} />
@@ -499,7 +510,7 @@ export default async function BeheerPage() {
           )}
         </div>
 
-        <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+        <div className="rounded-2xl bg-surface p-4 shadow-sm">
           <div className="mb-3 flex items-center justify-between gap-2">
             <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
               <MessageSquare size={14} />
@@ -525,7 +536,7 @@ export default async function BeheerPage() {
         </div>
       </div>
 
-      <div className="rounded-2xl border border-border bg-surface p-4 shadow-sm">
+      <div className="rounded-2xl bg-surface p-4 shadow-sm">
         <div className="mb-3 flex items-center justify-between gap-2">
           <h2 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
             <Megaphone size={14} />

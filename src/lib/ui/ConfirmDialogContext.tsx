@@ -58,7 +58,7 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
             onClick={() => close(false)}
           >
             <div
-              className="animate-scale-in w-full max-w-sm rounded-2xl border border-border bg-surface p-5 shadow-lg"
+              className="animate-scale-in w-full max-w-sm rounded-2xl bg-surface p-5 shadow-lg"
               onClick={(e) => e.stopPropagation()}
             >
               <h2 className="text-base font-semibold text-foreground">{pending.title}</h2>

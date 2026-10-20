@@ -205,7 +205,7 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
                   <Link
                     key={post.id}
                     href="/community"
-                    className="block rounded-2xl border border-border bg-surface p-4 shadow-sm hover:border-muted"
+                    className="block rounded-2xl bg-surface p-4 shadow-sm hover:border-muted"
                   >
                     <p className="text-sm font-medium text-foreground">
                       {post.author ? `${post.author.first_name} ${post.author.last_name}` : "Onbekend lid"}

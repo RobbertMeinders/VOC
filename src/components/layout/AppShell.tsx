@@ -133,12 +133,6 @@ function AppShellBody({
     if (["/agenda", "/community", "/documenten", "/notificaties", "/nieuws", "/instellingen"].includes(pathname)) return "lijst";
     return "breed";
   })();
-  // Afwerkronde blok 3: het zachte verloop bovenaan hoorde bij overzichten
-  // (je landt er, je bekijkt iets), niet bij een formulier of instellingen —
-  // daar oogde het als decoratie zonder functie. Alleen de overzichtspagina's
-  // zelf, niet hun detail-/bewerk-/nieuw-varianten.
-  const showTopGradient = ["/", "/agenda", "/community", "/leden", "/bedrijven", "/beheer"].includes(pathname);
-
   return (
     // UX-review punt 6: vangnet tegen een gemiste overflow-bug elders die de
     // hele pagina breder dan het scherm maakt — dat liet op mobiel eerder de
@@ -181,19 +175,6 @@ function AppShellBody({
       )}
       <MobileHeader unread={unread} logoUrl={logoUrl} siteName={siteName} />
       <main id="main-content" tabIndex={-1} className="relative pb-20 focus:outline-none md:ml-72 md:pb-0">
-        {/* Zacht verloop bovenaan het hoofdgebied (sfeerronde-aanvulling):
-            volle breedte naast de zijbalk, niet beperkt tot de gecentreerde
-            inhoudskolom hieronder — vandaar hier op main zelf i.p.v. op de
-            kolom. Was een losse variant per pagina (Agenda's eigen
-            .bg-top-gradient); nu één plek voor alle gewone pagina's én
-            Beheer. */}
-        {showTopGradient && (
-          <div
-            aria-hidden
-            className="pointer-events-none absolute inset-x-0 top-0 h-60"
-            style={{ backgroundImage: "linear-gradient(180deg, var(--petrol-soft) 0%, transparent 100%)" }}
-          />
-        )}
         <div
           className={clsx(
             "relative w-full px-4 py-6",
