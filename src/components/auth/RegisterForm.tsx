@@ -106,7 +106,10 @@ export function RegisterForm({
 
       <div className="flex flex-col gap-2">
         <span className="text-sm font-medium text-foreground">Bedrijf</span>
-        <CompanySelector initialSelected={prefilled?.company ?? null} />
+        {/* A (UX-audit): niet langer verplicht — "Later toevoegen" (allowSkip)
+            slaat de account-activatie niet langer vast op het meteen kiezen
+            of aanmaken van een bedrijf. */}
+        <CompanySelector initialSelected={prefilled?.company ?? null} allowSkip />
       </div>
 
       <div className="grid grid-cols-2 gap-4">

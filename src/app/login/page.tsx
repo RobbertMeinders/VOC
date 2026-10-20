@@ -4,6 +4,7 @@ import { Logo } from "@/components/ui/Logo";
 import { LoginForm } from "@/components/auth/LoginForm";
 import { VocSocialLinks } from "@/components/ui/VocSocialLinks";
 import { isEmailConfigured } from "@/lib/email/send";
+import { getAppSettings } from "@/lib/settings/app-settings";
 
 export const metadata: Metadata = { title: "Inloggen" };
 
@@ -14,12 +15,18 @@ export default async function LoginPage({
 }) {
   const { next, deleted } = await searchParams;
   const emailEnabled = isEmailConfigured();
+  // A (UX-audit): logo/titel-consistentie — buiten de app (dit scherm, en de
+  // andere publieke auth-pagina's) viel Logo terug op het harde VOC-merk +
+  // "Ledenportaal" i.p.v. de daadwerkelijk ingestelde logoUrl/site_name
+  // (zoals Sidebar/MobileHeader die al wél doorgeven), ook als die in Beheer
+  // -> Instellingen is aangepast.
+  const appSettings = await getAppSettings();
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex justify-center">
-          <Logo />
+          <Logo logoUrl={appSettings.logo_url} siteName={appSettings.site_name} />
         </div>
         {deleted === "1" && (
           <div className="mb-6 rounded-2xl border border-border bg-surface p-4 text-sm text-muted">

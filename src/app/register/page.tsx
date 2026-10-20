@@ -3,18 +3,22 @@ import Link from "next/link";
 import { Logo } from "@/components/ui/Logo";
 import { BootstrapForm } from "@/components/auth/BootstrapForm";
 import { createClient } from "@/lib/supabase/server";
+import { getAppSettings } from "@/lib/settings/app-settings";
 
 export const metadata: Metadata = { title: "Eerste account aanmaken" };
 
 export default async function BootstrapRegisterPage() {
   const supabase = await createClient();
-  const { data: alreadyInitialized } = await supabase.rpc("has_any_profiles");
+  const [{ data: alreadyInitialized }, appSettings] = await Promise.all([
+    supabase.rpc("has_any_profiles"),
+    getAppSettings(),
+  ]);
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex justify-center">
-          <Logo />
+          <Logo logoUrl={appSettings.logo_url} siteName={appSettings.site_name} />
         </div>
 
         {alreadyInitialized ? (

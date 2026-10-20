@@ -1,13 +1,16 @@
 import type { Metadata } from "next";
 import { Logo } from "@/components/ui/Logo";
+import { getAppSettings } from "@/lib/settings/app-settings";
 
 export const metadata: Metadata = { title: "Account gedeactiveerd" };
 
-export default function AccountDeactivatedPage() {
+export default async function AccountDeactivatedPage() {
+  const appSettings = await getAppSettings();
+
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-12 text-center">
       <div className="mb-8">
-        <Logo />
+        <Logo logoUrl={appSettings.logo_url} siteName={appSettings.site_name} />
       </div>
       <div className="max-w-sm rounded-2xl bg-surface p-6 shadow-sm">
         <h1 className="mb-2 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Je account is gedeactiveerd</h1>

@@ -9,34 +9,51 @@ import { searchCompaniesAction, type CompanyOption } from "@/app/register/[token
 
 /**
  * Drop into any <form> that posts to an action reading these field names:
- * company_mode ("existing" | "new"), company_id, new_company_name,
+ * company_mode ("existing" | "new" | "skip"), company_id, new_company_name,
  * new_company_industry, new_company_city, new_company_website.
  * Shared between the invite-registration form and the profile page's
  * "add/change my company" section.
  */
-export function CompanySelector({ initialSelected = null }: { initialSelected?: CompanyOption | null }) {
-  const [companyMode, setCompanyMode] = useState<"existing" | "new">("existing");
+export function CompanySelector({
+  initialSelected = null,
+  // A (UX-audit): bedrijfsstap-logica — bij registreren verplichtte dit
+  // altijd een bedrijf kiezen of aanmaken, ook als iemand dat nu nog niet
+  // bij de hand heeft. Alleen de registratieflow (RegisterForm) geeft
+  // allowSkip mee; op /profiel (CompanyMembershipForm, iemand koos daar
+  // zelf al bewust voor "bedrijf toevoegen") blijft dit ongewijzigd.
+  allowSkip = false,
+}: {
+  initialSelected?: CompanyOption | null;
+  allowSkip?: boolean;
+}) {
+  const [companyMode, setCompanyMode] = useState<"existing" | "new" | "skip">("existing");
   const [selectedCompany, setSelectedCompany] = useState<CompanyOption | null>(initialSelected);
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex gap-2 text-sm">
+      <div className="flex flex-wrap gap-2 text-sm">
         <Chip onClick={() => setCompanyMode("existing")} active={companyMode === "existing"}>
           Bedrijf zoeken
         </Chip>
         <Chip onClick={() => setCompanyMode("new")} active={companyMode === "new"}>
           Mijn bedrijf toevoegen
         </Chip>
+        {allowSkip && (
+          <Chip onClick={() => setCompanyMode("skip")} active={companyMode === "skip"}>
+            Later toevoegen
+          </Chip>
+        )}
       </div>
 
       <input type="hidden" name="company_mode" value={companyMode} />
 
-      {companyMode === "existing" ? (
+      {companyMode === "existing" && (
         <>
           <input type="hidden" name="company_id" value={selectedCompany?.id ?? ""} />
           <CompanyPicker selected={selectedCompany} onSelect={setSelectedCompany} />
         </>
-      ) : (
+      )}
+      {companyMode === "new" && (
         <div className="flex flex-col gap-3 rounded-lg border border-border p-3">
           <Input name="new_company_name" placeholder="Bedrijfsnaam" required />
           <div className="grid grid-cols-2 gap-3">
@@ -52,6 +69,11 @@ export function CompanySelector({ initialSelected = null }: { initialSelected?: 
           </div>
           <Input name="new_company_website" placeholder="Website (optioneel)" type="url" />
         </div>
+      )}
+      {companyMode === "skip" && (
+        <p className="rounded-lg border border-border px-3 py-2 text-xs text-muted">
+          Geen probleem — je kunt dit later toevoegen via je profiel.
+        </p>
       )}
     </div>
   );
