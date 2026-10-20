@@ -1,0 +1,270 @@
+<title>Automatische berichten</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: proposal intro, then a working mock of Portaalinstellingen → Automatische berichten (list left, editor right). */
+:root{--bg:#f5f3ef;--surface:#fff;--raised:#ede9e2;--line:#e7e2d9;--ink:#17171a;--muted:#67625b;--petrol:#0e5a63;--petrol-soft:#e6efef;--red:#e8000f;--side:#0b2e33;
+  --paper:#ffffff;--paper-ink:#1d1d1f;--paper-muted:#6b6b70;--paper-line:#e6e6e6;
+  --shadow:0 1px 2px rgba(40,30,20,.05),0 4px 14px rgba(40,30,20,.05);
+  --display:"Bricolage Grotesque","Inter",system-ui,sans-serif;--body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#111214;--surface:#1a1b1e;--raised:#26272b;--line:#2e2f33;--ink:#eeeeef;--muted:#a3a3aa;--petrol:#7cc4c8;--petrol-soft:#13292c;--side:#081f23;--shadow:0 1px 2px rgba(0,0,0,.4);color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#111214;--surface:#1a1b1e;--raised:#26272b;--line:#2e2f33;--ink:#eeeeef;--muted:#a3a3aa;--petrol:#7cc4c8;--petrol-soft:#13292c;--side:#081f23;--shadow:0 1px 2px rgba(0,0,0,.4);color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1280px;margin:0 auto;padding-block:28px 64px;display:grid;grid-template-columns:minmax(0,1fr);gap:28px}
+h1,h2,h3{font-family:var(--display);margin:0;letter-spacing:-.02em;text-wrap:balance}
+.intro{display:grid;gap:10px;max-width:78ch}
+.intro h1{font-size:32px;line-height:1.1}
+.intro p{margin:0;color:var(--muted)}
+.keys{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,250px),1fr));gap:12px}
+.keys div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;font-size:14px;color:var(--muted)}
+.keys b{display:block;color:var(--ink);font-family:var(--display);font-size:16px;margin-bottom:2px}
+.ic{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+
+/* mock app */
+.app{display:grid;grid-template-columns:200px minmax(0,1fr);border:1px solid var(--line);border-radius:18px;overflow:hidden;background:var(--bg);font-size:14px}
+.side{background:var(--side);color:rgba(255,255,255,.74);padding:16px 10px;display:flex;flex-direction:column;gap:2px}
+.side .h{font-size:10px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:rgba(255,255,255,.42);padding:12px 10px 4px}
+.side a{display:flex;gap:9px;align-items:center;padding:7px 10px;border-radius:9px;font-size:13px;position:relative}
+.side a.on{background:rgba(255,255,255,.1);color:#fff;font-weight:600}
+.side a.on::before{content:"";position:absolute;left:-10px;top:7px;bottom:7px;width:3px;border-radius:0 3px 3px 0;background:#ff3b45}
+main{padding:24px 26px 30px;display:grid;grid-template-columns:minmax(0,1fr);gap:16px;align-content:start}
+.ph h2{font-size:28px;font-weight:800}
+.ph p{margin:4px 0 0;color:var(--muted);font-size:13.5px}
+.tabs{display:flex;gap:2px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tabs span{padding:9px 12px 11px;font-weight:600;font-size:13.5px;color:var(--muted);position:relative;white-space:nowrap}
+.tabs span.on{color:var(--ink)}
+.tabs span.on::after{content:"";position:absolute;left:10px;right:10px;bottom:-1px;height:3px;border-radius:3px 3px 0 0;background:var(--ink)}
+.split{display:grid;grid-template-columns:280px minmax(0,1fr);gap:18px;align-items:start}
+.list{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);padding:8px;display:grid;gap:2px}
+.list .gh{font-size:11px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;color:var(--muted);padding:10px 10px 4px}
+.list button{all:unset;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;padding:9px 10px;border-radius:10px}
+.list button:hover{background:var(--raised)}
+.list button:focus-visible{outline:2px solid var(--petrol);outline-offset:1px}
+.list button[aria-current="true"]{background:var(--petrol-soft)}
+.list button b{font-weight:600;font-size:13.5px}
+.list button small{grid-column:1;color:var(--muted);font-size:12px}
+.list .ch{grid-row:1/3;grid-column:2;display:flex;gap:4px;align-self:center;color:var(--muted)}
+.list .sig{grid-column:1/-1;margin-top:6px;border-top:1px solid var(--line);padding-top:12px}
+.ed{display:grid;gap:14px;min-width:0}
+.card{background:var(--surface);border-radius:16px;box-shadow:var(--shadow);padding:16px 18px;display:grid;gap:12px;min-width:0}
+.eh{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;flex-wrap:wrap}
+.eh h3{font-size:20px}
+.meta{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--muted)}
+.meta b{color:var(--ink);font-weight:600}
+.chtabs{display:inline-flex;gap:4px;padding:4px;background:var(--raised);border-radius:12px}
+.chtabs button{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border-radius:9px;font-weight:600;font-size:13px;color:var(--muted)}
+.chtabs button[aria-selected="true"]{background:var(--petrol);color:#fff}
+.chtabs button:focus-visible{outline:2px solid var(--petrol);outline-offset:2px}
+.chtabs button[disabled]{opacity:.45;cursor:default}
+.field{display:grid;gap:5px}
+.field label{font-size:12.5px;font-weight:600;color:var(--muted)}
+.field input{font:500 14px var(--body);padding:10px 12px;border:1px solid #c9c2b6;border-radius:10px;background:var(--surface);color:var(--ink)}
+.vars{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-size:12.5px;color:var(--muted)}
+.vars span{background:var(--petrol-soft);color:var(--petrol);font-weight:600;padding:3px 9px;border-radius:999px;cursor:pointer}
+.toolbar{display:flex;gap:4px;flex-wrap:wrap}
+.toolbar span{display:inline-flex;align-items:center;gap:5px;height:32px;padding:0 10px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:12.5px;font-weight:600}
+/* e-mail papier: altijd licht, zoals in een mailprogramma */
+.mailwrap{background:#eceae6;border-radius:14px;padding:18px;display:grid}
+.paper{background:var(--paper);color:var(--paper-ink);border-radius:8px;max-width:600px;width:100%;margin:0 auto;padding:26px 30px;font:15px/1.6 Arial,Helvetica,sans-serif;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.paper .subj{font:700 13px var(--body);color:var(--paper-muted);border-bottom:1px solid var(--paper-line);padding-bottom:10px;margin-bottom:16px}
+.paper .subj b{color:var(--paper-ink)}
+.paper p{margin:0 0 12px}
+.paper [contenteditable]{outline:none;border-radius:4px}
+.paper [contenteditable]:hover{background:#fbf6e9}
+.paper [contenteditable]:focus{background:#fbf6e9;box-shadow:0 0 0 2px #e9d9ac}
+.paper .var{background:#e6efef;color:#0e5a63;font-weight:600;border-radius:4px;padding:0 4px;white-space:nowrap}
+.paper .cta{display:inline-block;background:#e8000f;color:#fff;font-weight:700;padding:11px 20px;border-radius:8px;text-decoration:none;margin:4px 0 16px}
+.paper .sigb{margin-top:18px;padding-top:14px;border-top:1px solid var(--paper-line);display:grid;gap:2px;position:relative}
+.paper .sigb img{width:84px;height:auto;margin:8px 0 6px}
+.paper .sigb .lock{position:absolute;right:0;top:12px;font:600 11px var(--body);color:var(--paper-muted);display:flex;gap:4px;align-items:center}
+.paper .sigb a{color:#1a56c4}
+.paper .foot{margin-top:18px;font-size:12px;color:var(--paper-muted)}
+.push{display:flex;gap:12px;align-items:flex-start;background:#f2f2f4;color:#1d1d1f;border-radius:16px;padding:12px 14px;max-width:380px;margin:0 auto;font-family:-apple-system,system-ui,sans-serif}
+.push img{width:36px;height:36px;border-radius:8px;background:#fff}
+.push b{display:block;font-size:14px}
+.push span{font-size:13.5px}
+.actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.btn{display:inline-flex;align-items:center;gap:6px;height:40px;padding:0 16px;border-radius:11px;font:600 13.5px var(--body);border:1px solid var(--line);background:var(--surface);color:var(--ink)}
+.btn.primary{background:var(--petrol);border-color:var(--petrol);color:#fff}
+.hint{font-size:12.5px;color:var(--muted)}
+.sigset{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr));gap:12px}
+.sigset .opt{border:1px solid var(--line);border-radius:12px;padding:12px 14px;display:grid;gap:4px;font-size:13px}
+.sigset .opt b{font-size:14px}
+.sigset .opt small{color:var(--muted)}
+.pane[hidden]{display:none!important}
+.changes{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;display:grid;gap:10px}
+.changes h2{font-size:21px}
+.changes ul{margin:0;padding-left:20px;display:grid;gap:6px}
+@media (max-width:1000px){.split{grid-template-columns:1fr}.app{grid-template-columns:minmax(0,1fr)}.side{display:none}}
+@media (max-width:560px){main{padding:16px 12px}.paper{padding:18px 16px}.mailwrap{padding:8px}}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></symbol>
+  <symbol id="i-pen" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-cog" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M4.9 4.9 7 7M17 17l2.1 2.1M2 12h3M19 12h3M4.9 19.1 7 17M17 7l2.1-2.1"/></symbol>
+  <symbol id="i-sig" viewBox="0 0 24 24"><path d="M3 17c3-6 5-6 6-2s3 3 5-2 4 1 7 1M3 21h18"/></symbol>
+</svg>
+
+<div class="wrap">
+  <header class="intro">
+    <h1>Automatische berichten, voorstel</h1>
+    <p>Een nieuwe indeling voor de pagina E-mailteksten. Het is een werkend voorbeeld: klik links een bericht aan, wissel tussen E-mail en Pushmelding, en typ direct in de mail. Het blijft een bewerker zonder HTML, maar je ziet de mail zoals een lid hem krijgt, en de handtekening met het VOC-logo staat er altijd onder.</p>
+  </header>
+
+  <div class="keys">
+    <div><b>Op de achtergrond</b>Geen eigen menu-item meer. Het wordt een tabblad in Portaalinstellingen, naast Notificatieregels: wie wat krijgt en wat erin staat, op één plek.</div>
+    <div><b>Per bericht, niet per techniek</b>Elk bericht staat één keer in de lijst, gegroepeerd per moment. E-mail en pushmelding van hetzelfde bericht zitten in hetzelfde scherm. Push staat niet meer los onderaan.</div>
+    <div><b>Altijd een handtekening</b>Eén algemene handtekening met het VOC-logo onder elke mail. Een persoonlijke handtekening (naam, functie, telefoon) alleen waar je die kiest, zoals bij de uitnodiging voor nieuwe leden.</div>
+    <div><b>Uitnodiging in drieën</b>Een nieuw lid, een bestaand lid dat toegang krijgt, en een collega die wordt uitgenodigd krijgen elk hun eigen tekst.</div>
+  </div>
+
+  <div class="app">
+    <aside class="side" aria-label="Beheer-menu">
+      <div class="h">Communicatie</div><a>Nieuwsbrieven</a><a>Contacten &amp; lijsten</a><a>Verzonden meldingen</a><a>Pushbericht</a>
+      <div class="h">Instellingen</div><a>Vereniging</a><a class="on">Portaalinstellingen</a><a>Website-koppeling</a>
+    </aside>
+    <main>
+      <div class="ph"><h2>Portaalinstellingen</h2><p>Naam en logo, wie welke meldingen krijgt, en de teksten van automatische berichten.</p></div>
+      <div class="tabs"><span>Algemeen</span><span>Notificatieregels</span><span class="on">Automatische berichten</span><span>Testfase</span></div>
+      <div class="split">
+        <nav class="list" id="list" aria-label="Berichten"></nav>
+        <section class="ed" id="ed" aria-live="polite"></section>
+      </div>
+    </main>
+  </div>
+
+  <section class="changes">
+    <h2>Wat er verandert ten opzichte van nu</h2>
+    <ul>
+      <li><b>Leesbare namen en een korte uitleg per bericht</b> ("Wanneer", "Naar wie"), in plaats van technische namen als <code>activity_reminder</code> en de oude uitleg over <code>{{link}}</code>.</li>
+      <li><b>Voorbeelden die bij het bericht passen.</b> Nu toont elk bericht "Nieuwe activiteit: Netwerkborrel", ook de herinnering of de reactie op je bericht. Elk bericht krijgt een eigen, realistisch voorbeeld.</li>
+      <li><b>Duidelijk wat het portaal zelf invult.</b> De velden die het portaal invult (naam, activiteit, datum, link) staan als lichte labels in de tekst, met gewone namen. Alles eromheen typ je zelf.</li>
+      <li><b>De knop is een vast blok met een eigen tekst</b> ("Bekijk de activiteit", "Maak je account aan"), in plaats van een ruwe link die nu soms als code in het voorbeeld staat.</li>
+      <li><b>De mail wordt altijd licht getoond</b>, zoals in een mailprogramma. Het donkere thema geeft dan geen zwarte tekst op donker meer.</li>
+      <li><b>Een testmail naar jezelf</b> voordat je opslaat, met een melding of je wijzigingen niet opgeslagen zijn.</li>
+      <li><b>Onderaan elke mail automatisch</b> de regel "Meldingen aanpassen" (en "Afmelden" waar dat moet). Niet te bewerken, zodat het nooit per ongeluk verdwijnt.</li>
+    </ul>
+    <p class="hint" style="margin:0">Voor de bouwer: de uitnodiging splitsen vraagt dat een uitnodiging weet waar hij vandaan komt (toegangsaanvraag, ledenimport of beheer, collega). De handtekeningen worden twee instellingen; de algemene komt automatisch onder elke mail, ook onder bestaande teksten. De nieuwsbrief houdt zijn eigen opmaak, maar krijgt dezelfde algemene handtekening.</p>
+  </section>
+</div>
+
+<script>
+(function(){
+const ICON=n=>`<svg class="ic"><use href="#i-${n}"/></svg>`;
+const V=t=>`<span class="var" contenteditable="false">${t}</span>`;
+const SIG={
+  alg:`<div>Met vriendelijke groet,</div><div style="margin-top:8px"><b>Veendammer Ondernemers Compagnie</b></div><img src="img/logo.png" alt="VOC-logo"><div>info@vocveendam.nl · <a href="#" onclick="return false">vocveendam.nl</a></div>`,
+  pers:`<div>Met vriendelijke groet,</div><div style="margin-top:8px"><b>Robbert Meinders</b><br>Secretaris</div><img src="img/logo.png" alt="VOC-logo"><div>Veendammer Ondernemers Compagnie<br>+31 6 00 00 00 00 | <a href="#" onclick="return false">info@vocveendam.nl</a></div>`
+};
+const W=(k,v)=>`<b>${k}:</b> ${v}`;
+const T=[
+ {g:'Account en toegang',id:'uit-nieuw',n:'Uitnodiging nieuw lid',when:'Een aanvraag via "Word lid" wordt goedgekeurd',to:'De nieuwe aanmelder',sig:'pers',push:false,
+  subj:`Welkom bij de Veendammer Ondernemers Compagnie`,
+  body:[`Beste ${V('voornaam')},`,`Wat fijn dat je lid wordt van de Veendammer Ondernemers Compagnie! Je aanmelding is goedgekeurd en we heten je van harte welkom in ons netwerk van ondernemers uit Veendam en omgeving.`,`Als lid krijg je toegang tot ons ledenportaal. Daar vind je de agenda met netwerkbijeenkomsten, kennissessies en andere activiteiten, meld je je eenvoudig aan en leer je de andere leden en hun bedrijven kennen.`,`Maak via de knop hieronder je account aan; dat duurt maar een paar minuten. Vul daarna ook je profiel aan met een foto en een korte omschrijving van je bedrijf, zodat andere leden je herkennen bij onze bijeenkomsten.`],cta:'Maak je account aan',
+  after:[`De link is 14 dagen geldig. Lukt het niet, of heb je een vraag? Neem gerust contact met mij op.`]},
+ {g:'Account en toegang',id:'uit-bestaand',n:'Uitnodiging bestaand lid',when:'Een lid krijgt toegang tot het portaal (import of via Beheer)',to:'Leden die al lid zijn',sig:'alg',push:false,
+  subj:`Je persoonlijke toegang tot het VOC-ledenportaal`,
+  body:[`Beste ${V('voornaam')},`,`De Veendammer Ondernemers Compagnie heeft een eigen ledenportaal, en als lid kun je daar vanaf nu gebruik van maken.`,`In het portaal vind je de agenda met alle activiteiten van de VOC en meld je je eenvoudig aan. Je ziet welke ondernemers en bedrijven er nog meer lid zijn, en leden delen er ervaringen, vragen en aanbod met elkaar.`,`Aan je lidmaatschap verandert niets; je hoeft alleen nog een account aan te maken. Dat doe je via de knop hieronder.`],cta:'Maak je account aan',
+  after:[`De link is 14 dagen geldig en alleen voor jou bedoeld. Heb je vragen over het portaal? Mail ons gerust via info@vocveendam.nl.`]},
+ {g:'Account en toegang',id:'uit-collega',n:'Uitnodiging collega',when:'Een lid nodigt een collega uit via Mijn bedrijf',to:'De uitgenodigde collega',sig:'alg',push:false,
+  subj:`${V('naam uitnodiger')} nodigt je uit voor het VOC-ledenportaal`,
+  body:[`Beste ${V('voornaam')},`,`${V('naam uitnodiger')} heeft je uitgenodigd voor het ledenportaal van de Veendammer Ondernemers Compagnie. Omdat ${V('bedrijf')} lid is van de VOC, kun jij daar als collega ook gebruik van maken.`,`In het portaal vind je de agenda met netwerkbijeenkomsten en andere activiteiten, meld je je aan en leer je de andere leden kennen. Je account wordt direct aan ${V('bedrijf')} gekoppeld.`],cta:'Maak je account aan',
+  after:[`De link is 14 dagen geldig. Verwachtte je deze uitnodiging niet? Dan kun je deze e-mail gewoon negeren.`]},
+ {g:'Account en toegang',id:'magic',n:'Inloggen zonder wachtwoord',when:'Iemand vraagt een inloglink aan',to:'Het lid zelf',sig:'alg',push:false,
+  subj:`Je inloglink voor het VOC-ledenportaal`,body:[`Beste ${V('voornaam')},`,`Je hebt gevraagd om in te loggen zonder wachtwoord. Met de knop hieronder ben je direct ingelogd in het ledenportaal.`],cta:'Inloggen',
+  after:[`Deze link werkt één keer en is één uur geldig. Is hij verlopen? Vraag dan op de inlogpagina eenvoudig een nieuwe aan.`,`Heb je dit niet zelf aangevraagd? Dan hoef je niets te doen. Zonder deze link kan niemand op je account inloggen.`]},
+ {g:'Account en toegang',id:'reset',n:'Wachtwoord opnieuw instellen',when:'Iemand klikt op "Wachtwoord vergeten"',to:'Het lid zelf',sig:'alg',push:false,
+  subj:`Stel een nieuw wachtwoord in voor het VOC-ledenportaal`,body:[`Beste ${V('voornaam')},`,`We hebben een verzoek ontvangen om het wachtwoord van je account te wijzigen. Via de knop hieronder kies je een nieuw wachtwoord.`],cta:'Nieuw wachtwoord kiezen',
+  after:[`De link is één uur geldig. Kies bij voorkeur een wachtwoord dat je nergens anders gebruikt.`,`Heb je dit niet zelf aangevraagd? Dan kun je deze e-mail negeren; je huidige wachtwoord blijft gewoon geldig.`]},
+ {g:'Account en toegang',id:'email',n:'Nieuw e-mailadres bevestigen',when:'Een lid wijzigt zijn e-mailadres',to:'Het nieuwe e-mailadres',sig:'alg',push:false,
+  subj:`Bevestig je nieuwe e-mailadres`,body:[`Beste ${V('voornaam')},`,`Je hebt in het ledenportaal je e-mailadres gewijzigd naar dit adres. Bevestig de wijziging via de knop hieronder. Daarna ontvang je alle berichten van de VOC op dit adres.`],cta:'E-mailadres bevestigen',
+  after:[`Tot je de wijziging bevestigt, blijft je oude e-mailadres in gebruik. Heb je dit niet zelf gedaan? Neem dan contact met ons op via info@vocveendam.nl.`]},
+ {g:'Activiteiten',id:'nieuw-act',n:'Nieuwe activiteit',when:'Er wordt een activiteit gepubliceerd',to:'Leden met deze melding aan',sig:'alg',push:true,
+  subj:`Nieuwe activiteit: ${V('activiteit')}`,body:[`Beste ${V('voornaam')},`,`Er staat een nieuwe activiteit in de agenda van de VOC: <b>${V('activiteit')}</b>.`,`${W('Wanneer',V('datum en tijd'))}<br>${W('Waar',V('locatie'))}`,`${V('korte omschrijving')}`,`Wil je erbij zijn? Bekijk alle details en meld je direct aan in het ledenportaal. Vol is vol, dus wacht niet te lang.`],cta:'Bekijk en meld je aan',after:[],
+  ptitle:`Nieuwe activiteit: Kennissessie AI`,pbody:`Woensdag 18 november, 16:00 bij Van Berensteyn. Bekijk het programma en meld je aan.`},
+ {g:'Activiteiten',id:'herinnering',n:'Herinnering activiteit',when:'2 dagen voor een activiteit waarvoor je bent aangemeld',to:'Aangemelde leden',sig:'alg',push:true,
+  subj:`Herinnering: ${V('activiteit')} op ${V('datum')}`,body:[`Beste ${V('voornaam')},`,`Over twee dagen is het zover: je bent aangemeld voor <b>${V('activiteit')}</b>.`,`${W('Wanneer',V('datum en tijd'))}<br>${W('Waar',V('locatie'))}`,`In het portaal vind je alle details, zoals het programma en wie er nog meer komen.`,`Kun je onverhoopt toch niet? Meld je dan af via het portaal, zodat iemand van de wachtlijst je plek kan krijgen. We zien je graag!`],cta:'Bekijk de activiteit',after:[],
+  ptitle:`Overmorgen: Kennissessie AI`,pbody:`Je bent aangemeld. Woensdag om 16:00 bij Van Berensteyn. Tot dan!`},
+ {g:'Activiteiten',id:'wachtlijst',n:'Plek vrij (wachtlijst)',when:'Er komt een plek vrij en je schuift door van de wachtlijst',to:'Het lid dat doorschuift',sig:'alg',push:true,
+  subj:`Er is een plek vrij: je bent aangemeld voor ${V('activiteit')}`,body:[`Beste ${V('voornaam')},`,`Goed nieuws! Er is een plek vrijgekomen bij <b>${V('activiteit')}</b>. Omdat je op de wachtlijst stond, ben je nu automatisch aangemeld.`,`${W('Wanneer',V('datum en tijd'))}<br>${W('Waar',V('locatie'))}`,`Kun je inmiddels toch niet meer? Meld je dan af in het portaal, dan gaat de plek naar de volgende op de wachtlijst.`],cta:'Bekijk de activiteit',after:[],
+  ptitle:`Je bent aangemeld voor Kennissessie AI`,pbody:`Er kwam een plek vrij en je stond op de wachtlijst. Tot woensdag!`},
+ {g:'Community en netwerk',id:'reactie',n:'Reactie op je bericht',when:'Iemand reageert op een bericht dat jij plaatste',to:'De schrijver van het bericht',sig:'alg',push:true,
+  subj:`${V('naam')} heeft gereageerd op je bericht`,body:[`Beste ${V('voornaam')},`,`${V('naam')} heeft gereageerd op je bericht "${V('bericht')}" in de community van het ledenportaal:`,`<i>"${V('reactie')}"</i>`,`Reageer terug of bekijk het hele gesprek in het portaal.`],cta:'Bekijk de reactie',after:[],
+  ptitle:`Anneke Hemmen heeft gereageerd`,pbody:`"Leuk initiatief! Ik doe graag mee." Tik om terug te reageren.`},
+ {g:'Community en netwerk',id:'genoemd',n:'Je bent genoemd',when:'Iemand noemt je met @ in een bericht of reactie',to:'Het genoemde lid',sig:'alg',push:true,
+  subj:`${V('naam')} heeft je genoemd in de community`,body:[`Beste ${V('voornaam')},`,`${V('naam')} heeft je genoemd in een bericht in de community van het ledenportaal:`,`<i>"${V('fragment')}"</i>`,`Misschien is er iemand op zoek naar jouw hulp of mening. Bekijk het bericht en reageer direct.`],cta:'Bekijk het bericht',after:[],
+  ptitle:`Henk Beuker heeft je genoemd`,pbody:`"@Robbert, weet jij een goede fotograaf?" Tik om te reageren.`},
+ {g:'Community en netwerk',id:'nieuw-lid',n:'Nieuw lid',when:'Er komt een nieuw lid bij',to:'Leden met deze melding aan',sig:'alg',push:true,
+  subj:`Welkom aan ${V('naam')} van ${V('bedrijf')}`,body:[`Beste ${V('voornaam')},`,`Het netwerk van de VOC is weer gegroeid: ${V('naam')} van ${V('bedrijf')} is nieuw lid.`,`Maak kennis via het profiel in het ledenportaal, of spreek ${V('naam')} aan bij de volgende bijeenkomst. Een warm welkom maakt het verschil!`],cta:'Bekijk het profiel',after:[],
+  ptitle:`Nieuw lid: Hebe Jager`,pbody:`Grodal Expeditie B.V. is nieuw in het netwerk. Tik om kennis te maken.`}
+];
+let sel='uit-nieuw', ch='mail', sigView=false;
+function list(){
+  let h='',g='';
+  T.forEach(t=>{ if(t.g!==g){g=t.g;h+=`<div class="gh">${g}</div>`}
+    h+=`<button data-id="${t.id}" aria-current="${!sigView&&t.id===sel}"><b>${t.n}</b><small>${t.when}</small><span class="ch">${ICON('mail')}${t.push?ICON('bell'):''}</span></button>`;});
+  h+=`<div class="sig"><button data-sig="1" aria-current="${sigView}"><b>Handtekeningen</b><small>Algemeen en persoonlijk</small><span class="ch">${ICON('sig')}</span></button></div>`;
+  document.getElementById('list').innerHTML=h;
+}
+function editor(){
+  const ed=document.getElementById('ed');
+  if(sigView){
+    ed.innerHTML=`<div class="card"><div class="eh"><div><h3>Handtekeningen</h3><div class="meta" style="margin-top:4px">Staan automatisch onder elke mail. Hier pas je ze één keer aan.</div></div></div>
+    <div class="sigset">
+      <div class="opt"><b>Algemeen</b><small>Onder alle automatische mails en de nieuwsbrief</small></div>
+      <div class="opt"><b>Persoonlijk</b><small>Alleen waar je die kiest, zoals de uitnodiging voor nieuwe leden</small></div>
+    </div>
+    <div class="mailwrap"><div class="paper"><div class="subj">Algemene handtekening</div><div class="sigb" style="border:0;margin:0;padding:0" contenteditable="true">${SIG.alg}</div></div></div>
+    <div class="mailwrap"><div class="paper"><div class="subj">Persoonlijke handtekening</div><div class="sigb" style="border:0;margin:0;padding:0" contenteditable="true">${SIG.pers}</div></div></div>
+    <p class="hint" style="margin:0">Het logo is vast: het VOC-logo uit Portaalinstellingen → Algemeen. Naam, functie, telefoon en e-mail pas je hier aan.</p>
+    <div class="actions"><span class="btn">Testmail naar mij</span><span class="btn primary">Opslaan</span></div></div>`;
+    return;
+  }
+  const t=T.find(x=>x.id===sel); if(!t.push&&ch==='push') ch='mail';
+  const sigLabel=t.sig==='pers'?'Persoonlijk (Robbert Meinders, secretaris)':'Algemeen (VOC)';
+  ed.innerHTML=`<div class="card">
+    <div class="eh"><div><h3>${t.n}</h3>
+      <div class="meta" style="margin-top:4px"><span><b>Wanneer:</b> ${t.when}</span><span><b>Naar:</b> ${t.to}</span></div></div>
+      <div class="chtabs" role="tablist" aria-label="Kanaal"><button role="tab" data-ch="mail" aria-selected="${ch==='mail'}">${ICON('mail')}E-mail</button><button role="tab" data-ch="push" aria-selected="${ch==='push'}" ${t.push?'':'disabled title="Dit bericht heeft geen pushmelding"'}>${ICON('bell')}Pushmelding</button></div>
+    </div>
+    <div class="pane" ${ch==='mail'?'':'hidden'}>
+      <div style="display:grid;gap:12px">
+        <div class="vars">Het portaal vult in (klik om in te voegen): ${(t.body.join(' ')+(t.after||[]).join(' ')+t.subj).match(/<span class="var"[^>]*>[^<]+<\/span>/g).filter((v,i,a)=>a.indexOf(v)===i).map(v=>`<span>${v.replace(/<[^>]+>/g,'')}</span>`).join('')}</div>
+        <div class="toolbar"><span><b>B</b></span><span><i>I</i></span><span>Link</span><span>Knoptekst</span><span>Afbeelding</span></div>
+        <div class="mailwrap"><div class="paper">
+          <div class="subj">Onderwerp: <b contenteditable="true">${t.subj}</b></div>
+          ${t.body.map(p=>`<p contenteditable="true">${p}</p>`).join('')}
+          <a class="cta" href="#" onclick="return false"><span contenteditable="true">${t.cta}</span></a>
+          ${(t.after||[]).map(p=>`<p contenteditable="true">${p}</p>`).join('')}
+          <div class="sigb"><span class="lock">${ICON('lock')} Handtekening: ${t.sig==='pers'?'persoonlijk':'algemeen'}</span>${SIG[t.sig]}</div>
+          <div class="foot">Je ontvangt deze e-mail omdat je lid bent van de Veendammer Ondernemers Compagnie. <u>Meldingen aanpassen</u></div>
+        </div></div>
+        <div class="field"><label for="sigsel">Handtekening onder deze mail</label><select id="sigsel" style="font:500 14px var(--body);padding:9px 10px;border-radius:10px;border:1px solid #c9c2b6;background:var(--surface);color:var(--ink);max-width:340px"><option ${t.sig==='alg'?'selected':''}>Algemeen (VOC)</option><option ${t.sig==='pers'?'selected':''}>Persoonlijk (Robbert Meinders, secretaris)</option></select></div>
+      </div>
+    </div>
+    <div class="pane" ${ch==='push'?'':'hidden'}>
+      ${t.push?`<div style="display:grid;gap:12px">
+        <div class="field"><label for="pt">Titel</label><input id="pt" value="${t.ptitle}"></div>
+        <div class="field"><label for="pb">Tekst</label><input id="pb" value="${t.pbody}"></div>
+        <p class="hint" style="margin:0">Zo ziet het eruit op een telefoon. Houd het kort: na ongeveer 90 tekens wordt de tekst afgekapt.</p>
+        <div class="mailwrap"><div class="push"><img src="img/logo.png" alt=""><div><b>${t.ptitle}</b><span>${t.pbody}</span></div></div></div>
+      </div>`:''}
+    </div>
+    <div class="actions"><span class="hint" style="margin-right:auto;align-self:center">Laatst gewijzigd: 14 okt door Robbert Meinders</span><span class="btn">Standaardtekst terugzetten</span><span class="btn">Testmail naar mij</span><span class="btn primary">Opslaan</span></div>
+  </div>`;
+}
+function render(){list();editor()}
+document.addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b) return;
+  if(b.dataset.id){sel=b.dataset.id;sigView=false;render()}
+  else if(b.dataset.sig){sigView=true;render()}
+  else if(b.dataset.ch && !b.disabled){ch=b.dataset.ch;editor()}
+});
+render();
+})();
+</script>
