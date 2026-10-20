@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState, type TouchEvent } from "react";
-import { Building2, LayoutDashboard, LogOut, Settings, User as UserIcon, X } from "lucide-react";
+import { Building2, LayoutDashboard, LogOut, MessageSquareText, Settings, User as UserIcon, X } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
 import { NavBadge } from "./NavBadge";
@@ -24,10 +24,11 @@ type ProfileMenuProps = {
   avatarUrl: string | null;
   companyId: string | null;
   companyName?: string | null;
+  showTestfase?: boolean;
   beheerBadge?: number;
 };
 
-function menuItems(profile: Profile, companyId: string | null) {
+function menuItems(profile: Profile, companyId: string | null, showTestfase: boolean) {
   return [
     // Naar de (publieke) weergave i.p.v. meteen het bewerkformulier — daar
     // staat een "Profiel aanpassen"-knop naar /profiel voor wie wil wijzigen.
@@ -36,6 +37,9 @@ function menuItems(profile: Profile, companyId: string | null) {
     // Privacy & veiligheid staat niet hier — die link staat al op
     // Instellingen zelf, twee ingangen naar dezelfde pagina is overbodig.
     { href: "/instellingen", label: "Instellingen", icon: Settings },
+    // H (onboarding-opdracht): alleen zolang de testfase-schakelaar aan
+    // staat.
+    ...(showTestfase ? [{ href: "/testfase", label: "Feedback geven", icon: MessageSquareText }] : []),
     ...(isBoard(profile.role) ? [{ href: "/beheer", label: "Beheer", icon: LayoutDashboard }] : []),
   ];
 }
@@ -255,10 +259,17 @@ export function SidebarProfileMenu({
 // zelf) dat het volledige accountmenu opent — op mobiel is er geen ruimte
 // voor permanent zichtbare account-links zoals op desktop. Het paneel opent
 // omhoog i.p.v. omlaag, want de knop staat nu onderaan het scherm.
-export function MobileProfileMenu({ profile, avatarUrl, companyId, companyName, beheerBadge }: ProfileMenuProps) {
+export function MobileProfileMenu({
+  profile,
+  avatarUrl,
+  companyId,
+  companyName,
+  showTestfase = false,
+  beheerBadge,
+}: ProfileMenuProps) {
   const { open, toggle, close } = useOverlay("profile");
   const [closing, setClosing] = useState(false);
-  const items = menuItems(profile, companyId);
+  const items = menuItems(profile, companyId, showTestfase);
   const pathname = usePathname();
   const active =
     pathname.startsWith(memberHref(profile)) ||

@@ -25,6 +25,7 @@ export function Sidebar({
   companyName,
   logoUrl,
   siteName,
+  showTestfase,
   beheerWaitingCount,
 }: {
   profile: Profile;
@@ -34,6 +35,7 @@ export function Sidebar({
   companyName: string | null;
   logoUrl: string | null;
   siteName: string;
+  showTestfase: boolean;
   beheerWaitingCount: number;
 }) {
   const pathname = usePathname();
@@ -107,7 +109,14 @@ export function Sidebar({
   return (
     <aside className="fixed inset-y-0 left-0 hidden h-dvh w-72 flex-col border-r border-border bg-surface px-4 py-6 md:flex">
       <div className="mb-8 flex items-center justify-between gap-2 px-2">
-        <Logo logoUrl={logoUrl} siteName={siteName} />
+        <div className="flex min-w-0 items-center gap-1.5">
+          <Logo logoUrl={logoUrl} siteName={siteName} />
+          {/* H (onboarding-opdracht): "klein en rustig" — gewoon kleine
+              muted tekst, geen opvallende gekleurde pil. */}
+          {showTestfase && (
+            <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted">Testversie</span>
+          )}
+        </div>
         <div className="flex shrink-0 items-center gap-0.5">
           <SearchOverlay variant="sidebar" />
           {/* Popover i.p.v. directe navigatie: een snelle blik zonder de

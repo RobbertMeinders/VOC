@@ -6,6 +6,7 @@ import { cache } from "react";
 import { CalendarDays, Clock, Download, ExternalLink, MapPin, Pencil, Users, XCircle } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { getAppSettings } from "@/lib/settings/app-settings";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { isBoard } from "@/lib/auth/roles";
 import { formatActivityDate, formatActivityTimeOnly, formatLastActive } from "@/lib/format/date";
@@ -53,6 +54,7 @@ export async function getActivityTitle(param: string): Promise<string> {
 export async function ActivityDetailContent({ id: routeParam }: { id: string }) {
   const profile = await requireProfile();
   const supabase = await createClient();
+  const appSettings = await getAppSettings();
 
   const activity = await getCachedActivity(routeParam);
   if (!activity) {
@@ -327,6 +329,15 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
             {activity.status !== "cancelled" && activity.registration_deadline && !deadlinePassed && (
               <p className="mt-2 text-xs text-muted">
                 Aanmelden kan tot {formatActivityDate(activity.registration_deadline)}.
+              </p>
+            )}
+            {/* H (onboarding-opdracht): aanmelden via het portaal telt nog
+                niet officieel mee — alleen relevant voor een "echte" VOC-
+                aanmelding, niet als er toch al via de organisator wordt
+                aangemeld (die regel hierboven dekt dat geval al). */}
+            {appSettings.show_testfase && activity.status !== "cancelled" && !activity.external_registration_url && (
+              <p className="mt-2 text-xs text-muted">
+                Testfase: meld je ook aan via de website.
               </p>
             )}
           </div>

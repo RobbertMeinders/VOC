@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   Mail,
   Megaphone,
+  MessageSquareText,
   Newspaper,
   SlidersHorizontal,
   Users,
@@ -43,6 +44,10 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     items: [
       { href: "/beheer", label: "Dashboard", icon: LayoutDashboard },
       { href: "/beheer/statistieken", label: "Statistieken", icon: BarChart3 },
+      // H (onboarding-opdracht): "alleen zichtbaar voor de rol beheerder,
+      // niet voor bestuursleden" — adminOnly, zelfde mechanisme als
+      // E-mailteksten/Pushbericht hieronder.
+      { href: "/beheer/feedback", label: "Feedback", icon: MessageSquareText, adminOnly: true },
     ],
   },
   {

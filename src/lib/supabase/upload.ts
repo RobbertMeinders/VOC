@@ -38,7 +38,7 @@ function sanitizeSvg(svg: string): string {
  */
 export async function uploadImage(
   supabase: SupabaseClient<Database>,
-  bucket: "avatars" | "company-logos" | "activity-images" | "email-assets" | "news-images" | "feed-media",
+  bucket: "avatars" | "company-logos" | "activity-images" | "email-assets" | "news-images" | "feed-media" | "feedback-screenshots",
   folder: string,
   file: File
 ): Promise<ImageUploadResult> {

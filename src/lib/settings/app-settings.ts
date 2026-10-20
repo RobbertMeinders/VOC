@@ -10,6 +10,7 @@ export type AppSettings = {
   org_name: string;
   logo_url: string | null;
   privacy_content: string;
+  show_testfase: boolean;
 };
 
 // Zelfde waarden als de kolom-defaults in 0072_app_settings.sql — terugval
@@ -21,6 +22,7 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
   org_name: "Veendammer Ondernemers Compagnie",
   logo_url: null,
   privacy_content: "",
+  show_testfase: true,
 };
 
 // Neemt een expliciete client i.p.v. zelf createClient() aan te roepen, zodat
@@ -30,7 +32,7 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
 export async function fetchAppSettings(supabase: SupabaseClient<Database>): Promise<AppSettings> {
   const { data } = await supabase
     .from("app_settings")
-    .select("site_name, org_name, logo_url, privacy_content")
+    .select("site_name, org_name, logo_url, privacy_content, show_testfase")
     .eq("id", true)
     .maybeSingle();
   return data ?? APP_SETTINGS_DEFAULTS;

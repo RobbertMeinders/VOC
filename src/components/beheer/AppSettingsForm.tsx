@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useRef } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import Image from "next/image";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Switch } from "@/components/ui/Switch";
 import { FileSelectButton } from "@/components/ui/FileSelectButton";
 import {
   updateAppSettingsAction,
@@ -88,6 +89,7 @@ function LogoUpload({ currentLogoUrl }: { currentLogoUrl: string | null }) {
 
 export function AppSettingsForm({ settings }: { settings: AppSettings }) {
   const [state, formAction] = useActionState(updateAppSettingsAction, initialState);
+  const [showTestfase, setShowTestfase] = useState(settings.show_testfase);
   const toast = useToast();
 
   useEffect(() => {
@@ -124,6 +126,20 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
             <p className="text-xs text-muted">Gebruikt in de voettekst van nieuwsbrieven en automatische e-mailmeldingen.</p>
             <Input id="org_name" name="org_name" defaultValue={settings.org_name} required className="h-11 text-base" />
           </div>
+        </div>
+
+        {/* H (onboarding-opdracht): één schakelaar die het testversie-label,
+            de banner op Home, /testfase, de menulink, de regel bij
+            aanmelden en de welkomststap in één keer aan/uit zet. */}
+        <div className="mt-6 flex items-center justify-between gap-4 border-t border-border pt-5">
+          <div>
+            <p className="text-sm font-medium text-foreground">Testfase tonen</p>
+            <p className="mt-0.5 text-xs text-muted">
+              Toont het &ldquo;Testversie&rdquo;-label, de banner op Home en de /testfase-pagina met feedbackformulier aan leden.
+            </p>
+          </div>
+          <input type="hidden" name="show_testfase" value={showTestfase ? "on" : ""} />
+          <Switch checked={showTestfase} onChange={() => setShowTestfase((v) => !v)} label="Testfase tonen" />
         </div>
 
         <div className="mt-6 flex flex-col gap-1.5 border-t border-border pt-5">

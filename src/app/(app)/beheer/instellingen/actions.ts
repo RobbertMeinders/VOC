@@ -18,6 +18,7 @@ export async function updateAppSettingsAction(
   const siteName = String(formData.get("site_name") ?? "").trim();
   const orgName = String(formData.get("org_name") ?? "").trim();
   const privacyContent = String(formData.get("privacy_content") ?? "").trim();
+  const showTestfase = formData.get("show_testfase") === "on";
 
   if (!siteName || !orgName) {
     return { error: "Naam van het ledenportaal en van de vereniging zijn verplicht." };
@@ -29,7 +30,13 @@ export async function updateAppSettingsAction(
   const supabase = await createClient();
   const { error } = await supabase
     .from("app_settings")
-    .update({ site_name: siteName, org_name: orgName, privacy_content: privacyContent, updated_by: profile.id })
+    .update({
+      site_name: siteName,
+      org_name: orgName,
+      privacy_content: privacyContent,
+      show_testfase: showTestfase,
+      updated_by: profile.id,
+    })
     .eq("id", true);
 
   if (error) {
@@ -38,6 +45,7 @@ export async function updateAppSettingsAction(
 
   revalidatePath("/", "layout");
   revalidatePath("/privacy");
+  revalidatePath("/testfase");
   return { success: true };
 }
 

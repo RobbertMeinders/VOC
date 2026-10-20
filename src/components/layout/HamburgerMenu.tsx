@@ -8,6 +8,7 @@ import {
   FileText,
   Info,
   MapPin,
+  MessageSquareText,
   Menu,
   Newspaper,
   Settings,
@@ -58,6 +59,11 @@ const OVERIGE_LINKS: MenuLink[] = [
   { href: "/instellingen", label: "Instellingen", icon: Settings },
   { href: "/privacy", label: "Privacy & veiligheid", icon: ShieldCheck },
 ];
+
+// H (onboarding-opdracht): alleen zichtbaar zolang de testfase-schakelaar
+// aan staat (showTestfase) — geen losse groep, gewoon als extra item
+// achteraan Overige.
+const FEEDBACK_LINK: MenuLink = { href: "/testfase", label: "Feedback geven", icon: MessageSquareText };
 
 function isLinkActive(pathname: string, href: string): boolean {
   const path = href.split("?")[0];
@@ -110,9 +116,10 @@ function MenuGroup({
   );
 }
 
-export function HamburgerMenu() {
+export function HamburgerMenu({ showTestfase }: { showTestfase: boolean }) {
   const { open, toggle, close } = useOverlay("vereniging");
   const pathname = usePathname();
+  const overigeLinks = showTestfase ? [...OVERIGE_LINKS, FEEDBACK_LINK] : OVERIGE_LINKS;
 
   // Sluiten speelt eerst de omgekeerde schuifanimatie af
   // (animate-slide-out-right) en unmount daarna pas — zelfde "closing"-opzet
@@ -189,7 +196,7 @@ export function HamburgerMenu() {
             <div className="mx-6 border-t border-white/[.08]" />
             <MenuGroup heading="Snel naar" links={SNEL_NAAR_LINKS} pathname={pathname} onNavigate={requestClose} />
             <div className="mx-6 border-t border-white/[.08]" />
-            <MenuGroup links={OVERIGE_LINKS} pathname={pathname} onNavigate={requestClose} />
+            <MenuGroup links={overigeLinks} pathname={pathname} onNavigate={requestClose} />
           </div>
         </FloatingPortal>
       )}

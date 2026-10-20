@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CalendarCheck, FileText, SquarePen, UserRoundSearch } from "lucide-react";
+import { ArrowRight, CalendarCheck, FileText, SquarePen, UserRoundSearch } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { getAppSettings } from "@/lib/settings/app-settings";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { formatActivityDateCompact, formatActivityTimeOnly, formatTodayLabel, getGreeting } from "@/lib/format/date";
 import { Avatar } from "@/components/ui/Avatar";
@@ -39,6 +40,7 @@ const QUICK_ACTIONS = [
 export default async function HomePage() {
   const profile = await requireProfile();
   const supabase = await createClient();
+  const appSettings = await getAppSettings();
 
   const [
     { data: activities },
@@ -227,6 +229,22 @@ export default async function HomePage() {
           )}
         </div>
       </div>
+
+      {/* H (onboarding-opdracht): rustige, niet-wegklikbare banner — bewust
+          géén statuskleur (niet rood), gewoon een neutraal vlak met een
+          link naar /testfase. */}
+      {appSettings.show_testfase && (
+        <Link
+          href="/testfase"
+          className="flex items-center justify-between gap-3 rounded-xl border border-border bg-raised px-4 py-3 text-sm text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+        >
+          <span>Dit is de testversie van het ledenportaal. Nog niet alles werkt zoals straks.</span>
+          <span className="flex shrink-0 items-center gap-1 font-medium text-petrol">
+            Lees wat je moet weten
+            <ArrowRight size={14} />
+          </span>
+        </Link>
+      )}
 
       {/* C (UX-audit): aanspoor om het profiel af te maken — zelfde
           "profiel compleet"-definitie (foto + bedrijf) als de statistieken-

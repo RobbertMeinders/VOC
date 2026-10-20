@@ -48,6 +48,7 @@ export default async function AppLayout({ children, modal }: { children: ReactNo
       companyName={membership?.company?.name ?? null}
       logoUrl={settings.logo_url}
       siteName={settings.site_name}
+      showTestfase={settings.show_testfase}
       beheerWaitingCount={beheerWaitingCounts?.total ?? 0}
       modal={modal}
     >

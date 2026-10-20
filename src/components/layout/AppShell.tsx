@@ -31,6 +31,7 @@ export function AppShell({
   companyName,
   logoUrl,
   siteName,
+  showTestfase,
   beheerWaitingCount,
   children,
   modal,
@@ -42,6 +43,7 @@ export function AppShell({
   companyName: string | null;
   logoUrl: string | null;
   siteName: string;
+  showTestfase: boolean;
   beheerWaitingCount: number;
   children: ReactNode;
   modal?: ReactNode;
@@ -72,6 +74,7 @@ export function AppShell({
                       companyName={companyName}
                       logoUrl={logoUrl}
                       siteName={siteName}
+                      showTestfase={showTestfase}
                       beheerWaitingCount={beheerWaitingCount}
                       modal={modal}
                     >
@@ -96,6 +99,7 @@ function AppShellBody({
   companyName,
   logoUrl,
   siteName,
+  showTestfase,
   beheerWaitingCount,
   children,
   modal,
@@ -107,6 +111,7 @@ function AppShellBody({
   companyName: string | null;
   logoUrl: string | null;
   siteName: string;
+  showTestfase: boolean;
   beheerWaitingCount: number;
   children: ReactNode;
   modal?: ReactNode;
@@ -176,10 +181,11 @@ function AppShellBody({
           companyName={companyName}
           logoUrl={logoUrl}
           siteName={siteName}
+          showTestfase={showTestfase}
           beheerWaitingCount={beheerWaitingCount}
         />
       )}
-      <MobileHeader unread={unread} logoUrl={logoUrl} siteName={siteName} />
+      <MobileHeader unread={unread} logoUrl={logoUrl} siteName={siteName} showTestfase={showTestfase} />
       <main id="main-content" tabIndex={-1} className="relative pb-20 focus:outline-none md:ml-72 md:pb-0">
         <div
           className={clsx(
@@ -201,6 +207,7 @@ function AppShellBody({
         companyId={companyId}
         companyName={companyName}
         unread={unread}
+        showTestfase={showTestfase}
         beheerWaitingCount={beheerWaitingCount}
       />
       {modal}

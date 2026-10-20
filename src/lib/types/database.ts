@@ -710,11 +710,32 @@ export interface Database {
           org_name: string;
           logo_url: string | null;
           privacy_content: string;
+          show_testfase: boolean;
           updated_at: string;
           updated_by: string | null;
         };
         Insert: Partial<Database["public"]["Tables"]["app_settings"]["Row"]>;
         Update: Partial<Database["public"]["Tables"]["app_settings"]["Row"]>;
+        Relationships: [];
+      };
+      testfase_feedback: {
+        Row: {
+          id: string;
+          profile_id: string;
+          type: "probleem" | "idee";
+          message: string;
+          page: string | null;
+          user_agent: string | null;
+          screen_width: number | null;
+          screenshot_path: string | null;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["testfase_feedback"]["Row"]> & {
+          profile_id: string;
+          type: "probleem" | "idee";
+          message: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["testfase_feedback"]["Row"]>;
         Relationships: [];
       };
       board_positions: {

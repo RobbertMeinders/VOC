@@ -13,19 +13,26 @@ export function MobileHeader({
   unread,
   logoUrl,
   siteName,
+  showTestfase,
 }: {
   unread: UnreadNotificationSections;
   logoUrl: string | null;
   siteName: string;
+  showTestfase: boolean;
 }) {
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur md:hidden">
       <div className="flex h-14 items-center justify-between px-4">
-        <Logo logoUrl={logoUrl} siteName={siteName} />
+        <div className="flex min-w-0 items-center gap-1.5">
+          <Logo logoUrl={logoUrl} siteName={siteName} />
+          {showTestfase && (
+            <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted">Testversie</span>
+          )}
+        </div>
         <div className="flex items-center gap-1">
           <SearchOverlay variant="mobile" />
           <NotificationCenter count={unread.total} variant="mobile" />
-          <HamburgerMenu />
+          <HamburgerMenu showTestfase={showTestfase} />
         </div>
       </div>
     </header>
