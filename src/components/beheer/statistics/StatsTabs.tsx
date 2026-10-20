@@ -37,7 +37,10 @@ function StatsTabsInner({ active }: { active: StatsTabKey }) {
   }
 
   return (
-    <div role="tablist" className="flex gap-1 overflow-x-auto">
+    <div
+      role="tablist"
+      className="flex gap-1 overflow-x-auto overflow-y-hidden [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+    >
       {STATS_TABS.map((tab) => (
         <button
           key={tab.key}
@@ -52,7 +55,7 @@ function StatsTabsInner({ active }: { active: StatsTabKey }) {
           )}
         >
           {tab.label}
-          {active === tab.key && <span aria-hidden className="absolute inset-x-3 -bottom-px h-[3px] rounded-t-full bg-foreground" />}
+          {active === tab.key && <span aria-hidden className="absolute inset-x-3 bottom-0 h-[3px] rounded-t-full bg-foreground" />}
         </button>
       ))}
     </div>
