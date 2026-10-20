@@ -15,15 +15,41 @@ import { dismissWelcomeDialogAction } from "@/app/(app)/profiel/actions";
 // ConfirmDialogContext (fixed overlay + gecentreerde kaart), maar hier als
 // losstaand component i.p.v. via die gedeelde context: dit is een eenmalige
 // server-bepaalde weergave, geen herbruikbare bevestigingsvraag.
+// Sessievlag i.p.v. alleen op de servervlag vertrouwen: gaat het opslaan
+// mis (netwerkfout, of de kolom ontbreekt nog omdat migratie 0066 niet is
+// uitgevoerd), dan zou shouldShow bij elke paginalading weer true blijven
+// en de dialoog telkens terugkomen — met deze vlag blijft hij in elk geval
+// dicht voor de rest van de sessie.
+const DISMISS_SESSION_KEY = "voc-welcome-dialog-dismissed";
+
 export function WelcomeDialog({ shouldShow }: { shouldShow: boolean }) {
-  const [dismissed, setDismissed] = useState(false);
+  const [dismissed, setDismissed] = useState(() => {
+    if (typeof window === "undefined") return false;
+    try {
+      return sessionStorage.getItem(DISMISS_SESSION_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
   const [isPending, startTransition] = useTransition();
   const open = shouldShow && !dismissed;
 
   function handleDismiss() {
     setDismissed(true);
+    try {
+      sessionStorage.setItem(DISMISS_SESSION_KEY, "1");
+    } catch {
+      // Privémodus o.i.d.: dan geldt alleen het servervlag nog.
+    }
     startTransition(async () => {
-      await dismissWelcomeDialogAction();
+      try {
+        const result = await dismissWelcomeDialogAction();
+        if (result?.error) {
+          console.error("Welkomstdialoog wegklikken niet opgeslagen:", result.error);
+        }
+      } catch (error) {
+        console.error("Welkomstdialoog wegklikken niet opgeslagen:", error);
+      }
     });
   }
 

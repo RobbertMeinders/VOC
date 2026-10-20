@@ -25,9 +25,6 @@ export function MobileHeader({
       <div className="flex h-14 items-center justify-between px-4">
         <div className="flex min-w-0 items-center gap-1.5">
           <Logo logoUrl={logoUrl} siteName={siteName} />
-          {showTestfase && (
-            <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted">Testversie</span>
-          )}
         </div>
         <div className="flex items-center gap-1">
           <SearchOverlay variant="mobile" />

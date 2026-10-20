@@ -8,6 +8,7 @@ import { DESKTOP_NAV_ITEMS, isNavItemActive, type NavItem } from "./nav-items";
 import { NavBadge } from "./NavBadge";
 import { Logo } from "@/components/ui/Logo";
 import { SidebarProfileMenu } from "./ProfileMenu";
+import { VersionLine } from "./VersionLine";
 import { VerenigingMenu } from "./VerenigingMenu";
 import { NotificationCenter } from "@/components/notifications/NotificationCenter";
 import { SearchOverlay } from "@/components/search/SearchOverlay";
@@ -109,14 +110,7 @@ export function Sidebar({
   return (
     <aside className="fixed inset-y-0 left-0 hidden h-dvh w-72 flex-col border-r border-border bg-surface px-4 py-6 md:flex">
       <div className="mb-8 flex items-center justify-between gap-2 px-2">
-        <div className="flex min-w-0 items-center gap-1.5">
-          <Logo logoUrl={logoUrl} siteName={siteName} />
-          {/* H (onboarding-opdracht): "klein en rustig" — gewoon kleine
-              muted tekst, geen opvallende gekleurde pil. */}
-          {showTestfase && (
-            <span className="shrink-0 text-[10px] font-semibold uppercase tracking-wide text-muted">Testversie</span>
-          )}
-        </div>
+        <Logo logoUrl={logoUrl} siteName={siteName} />
         <div className="flex shrink-0 items-center gap-0.5">
           <SearchOverlay variant="sidebar" />
           {/* Popover i.p.v. directe navigatie: een snelle blik zonder de
@@ -144,7 +138,8 @@ export function Sidebar({
       <nav className="flex flex-col gap-1 pt-2">{accountItems.map(renderAccountItem)}</nav>
 
       <div className="mx-[10px] border-t border-border" />
-      <div className="pt-4">
+      <VersionLine showTestfase={showTestfase} variant="sidebar" />
+      <div className="pt-2">
         <SidebarProfileMenu profile={profile} avatarUrl={avatarUrl} companyName={companyName} />
       </div>
 

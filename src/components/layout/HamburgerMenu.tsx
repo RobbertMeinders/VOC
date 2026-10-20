@@ -23,6 +23,7 @@ import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { useOverlay } from "@/lib/ui/OverlayContext";
+import { VersionLine } from "./VersionLine";
 
 type MenuLink = { href: string; label: string; icon: LucideIcon };
 
@@ -197,6 +198,8 @@ export function HamburgerMenu({ showTestfase }: { showTestfase: boolean }) {
             <MenuGroup heading="Snel naar" links={SNEL_NAAR_LINKS} pathname={pathname} onNavigate={requestClose} />
             <div className="mx-6 border-t border-white/[.08]" />
             <MenuGroup links={overigeLinks} pathname={pathname} onNavigate={requestClose} />
+            <div className="mx-6 border-t border-white/[.08]" />
+            <VersionLine showTestfase={showTestfase} variant="hamburger" />
           </div>
         </FloatingPortal>
       )}

@@ -1,6 +1,14 @@
 import type { NextConfig } from "next";
+import pkg from "./package.json";
 
 const nextConfig: NextConfig = {
+  // Testversie-regel in Sidebar/HamburgerMenu (zie VersionLine): één bron
+  // (package.json "version") i.p.v. het versienummer los her en der te
+  // hardcoden — build-time injectie, dus client components kunnen 'm
+  // gewoon als gewone env-variabele lezen.
+  env: {
+    NEXT_PUBLIC_APP_VERSION: pkg.version,
+  },
   // Don't let `next dev` regenerate AGENTS.md/CLAUDE.md on every run.
   agentRules: false,
   poweredByHeader: false,

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/session";
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { TestfaseFeedbackForm } from "@/components/testfase/TestfaseFeedbackForm";
+import { latestReleaseNote } from "@/lib/release-notes";
 
 export const metadata: Metadata = { title: "Over de testfase" };
 
@@ -17,6 +18,7 @@ export default async function TestfasePage({ searchParams }: { searchParams: Pro
     redirect("/");
   }
   const { van } = await searchParams;
+  const latest = latestReleaseNote();
 
   return (
     <div className="flex flex-col gap-6">
@@ -41,6 +43,20 @@ export default async function TestfasePage({ searchParams }: { searchParams: Pro
           <p className="mt-0.5 text-sm text-muted">staan nog niet live.</p>
         </div>
       </div>
+
+      {latest && (
+        <div className="rounded-2xl bg-surface p-6 shadow-sm">
+          <p className="text-sm font-semibold text-foreground">Wat is er nieuw in versie {latest.version}</p>
+          <ul className="mt-2 flex flex-col gap-1.5">
+            {latest.items.map((item) => (
+              <li key={item} className="flex gap-2 text-sm text-muted">
+                <span aria-hidden className="mt-2 h-1 w-1 shrink-0 rounded-full bg-muted" />
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div>
         <p className="mb-3 text-sm text-foreground">Loopt er iets mis of heb je een idee? Laat het hieronder weten. We lezen alles.</p>
