@@ -59,17 +59,31 @@ function amsterdamParts(date: Date): { year: number; month: number; day: number 
   return { year: get("year"), month: get("month"), day: get("day") };
 }
 
-// Levert de UTC-instant die, bekeken in Amsterdam, leest als de opgegeven
-// kalenderdatum om 00:00 — met één correctieronde (Amsterdam wijkt alleen
-// in een vaste +1/+2-uur-offset van UTC af, dus één ronde volstaat behalve
-// exact op het DST-omslagmoment zelf, verwaarloosbaar voor een
-// beheerrapportage).
+// Foutenrapport M11: de oude correctie vergeleek alleen de Amsterdamse
+// kálenderdatum van de UTC-middernacht-gok met de gewenste datum — UTC-
+// middernacht valt in Amsterdam altijd nog op diezelfde datum (01:00 of
+// 02:00 lokale tijd), dus die vergelijking was altijd 0 en deed in de
+// praktijk niets. Periodegrenzen lagen daardoor steeds op UTC-middernacht
+// i.p.v. Amsterdamse middernacht (acties tussen 00:00-02:00 lokale tijd
+// vielen zo in de verkeerde dag/week/maand).
+//
+// Nu: de daadwerkelijke UTC-offset van Amsterdam op dat moment opvragen
+// (+1 of +2 uur) en die aftrekken — werkt voor élke datum, DST-overgangen
+// inbegrepen, zonder de gok-en-vergelijk-truc.
+function amsterdamOffsetMinutes(date: Date): number {
+  const parts = new Intl.DateTimeFormat("en-US", { timeZone: TZ, timeZoneName: "longOffset" }).formatToParts(date);
+  const offsetPart = parts.find((p) => p.type === "timeZoneName")?.value ?? "GMT+00:00";
+  const match = offsetPart.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/);
+  if (!match) return 0;
+  const sign = match[1] === "-" ? -1 : 1;
+  const hours = Number(match[2]);
+  const minutes = match[3] ? Number(match[3]) : 0;
+  return sign * (hours * 60 + minutes);
+}
+
 function amsterdamMidnightUTC(year: number, month: number, day: number): Date {
   const guess = new Date(Date.UTC(year, month - 1, day, 0, 0, 0));
-  const read = amsterdamParts(guess);
-  const readAsUTC = Date.UTC(read.year, read.month - 1, read.day, 0, 0, 0);
-  const wantedAsUTC = Date.UTC(year, month - 1, day, 0, 0, 0);
-  return new Date(guess.getTime() - (readAsUTC - wantedAsUTC));
+  return new Date(guess.getTime() - amsterdamOffsetMinutes(guess) * 60_000);
 }
 
 function amsterdamStartOfDay(date: Date): Date {
@@ -126,22 +140,27 @@ export function resolvePeriodRange(period: StatsPeriod, now: Date = new Date()):
     return { period, start, end, prevStart, prevEnd, granularity };
   }
 
+  // Foutenrapport L8: prevStart werd hieronder voorheen berekend als
+  // `start - (end - start)` — "end" is altijd "nu" (nooit op een rond
+  // tijdstip), dus die aftrek liet prevStart net als "now" op een
+  // willekeurig moment middenin een dag/week vallen, i.p.v. op dezelfde
+  // Amsterdamse dag-/week-/maandgrens als start zelf. prevEnd is wél
+  // altijd gelijk aan start (die IS al gesnapt), dus prevStart nu met
+  // dezelfde datum-aritmetiek als start zelf berekend — dan hebben beide
+  // grenzen van de vorige periode gegarandeerd dezelfde uitlijning.
   if (period === "12m") {
     const start = addMonths(amsterdamStartOfMonth(now), -11);
-    const spanMs = end.getTime() - start.getTime();
-    return { period, start, end, prevStart: new Date(start.getTime() - spanMs), prevEnd: start, granularity };
+    return { period, start, end, prevStart: addMonths(start, -12), prevEnd: start, granularity };
   }
 
   if (period === "3m") {
     const start = addDaysAmsterdam(amsterdamStartOfWeek(now), -12 * 7);
-    const spanMs = end.getTime() - start.getTime();
-    return { period, start, end, prevStart: new Date(start.getTime() - spanMs), prevEnd: start, granularity };
+    return { period, start, end, prevStart: addDaysAmsterdam(start, -12 * 7), prevEnd: start, granularity };
   }
 
   const days = period === "7d" ? 7 : 30;
   const start = addDaysAmsterdam(amsterdamStartOfDay(now), -(days - 1));
-  const spanMs = end.getTime() - start.getTime();
-  return { period, start, end, prevStart: new Date(start.getTime() - spanMs), prevEnd: start, granularity };
+  return { period, start, end, prevStart: addDaysAmsterdam(start, -days), prevEnd: start, granularity };
 }
 
 function addDaysAmsterdam(startOfDay: Date, days: number): Date {

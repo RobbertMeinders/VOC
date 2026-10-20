@@ -3,7 +3,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { cachedQuery } from "@/lib/cache/queryCache";
 import { activityHref } from "@/lib/agenda/slug";
-import type { PeriodRange, TrendPoint } from "./period";
+import { resolvePeriodRange, type PeriodRange, type TrendPoint } from "./period";
 import {
   getAllPushSubscriptions,
   getActivityRows,
@@ -16,7 +16,11 @@ import {
 
 const TTL_MS = 60_000;
 
-export type FunnelStep = { label: string; value: number };
+// Foutenrapport H1: notSubset markeert een stap die geen echte deelverzameling
+// is van de vorige (bv. "nieuwe leden" telt ook geïmporteerde/uitgenodigde
+// profielen, niet alleen wie via een toegangsaanvraag kwam) — FunnelChart
+// toont dan geen (potentieel >100%) percentage voor die stap.
+export type FunnelStep = { label: string; value: number; notSubset?: boolean };
 
 export type SignalItem = {
   label: string;
@@ -52,20 +56,6 @@ export type OverviewStats = {
   };
 };
 
-async function countActiveMembersInRange(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  start: Date,
-  end: Date
-): Promise<number> {
-  const { count } = await supabase
-    .from("profiles")
-    .select("id", { count: "exact", head: true })
-    .eq("is_active", true)
-    .gte("last_active_at", start.toISOString())
-    .lt("last_active_at", end.toISOString());
-  return count ?? 0;
-}
-
 export async function getOverviewStats(range: PeriodRange): Promise<OverviewStats> {
   const supabase = await createClient();
   return cachedQuery(`statistieken-overzicht-${range.period}`, TTL_MS, async () => {
@@ -74,8 +64,6 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
     const [
       { count: totalMembers },
       { count: totalMembersPrev },
-      activeNow,
-      activePrev,
       { count: aanmeldingen },
       { count: aanmeldingenPrev },
       { data: registrationsForUnique },
@@ -103,8 +91,6 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
     ] = await Promise.all([
       supabase.from("profiles").select("id", { count: "exact", head: true }).lt("created_at", range.end.toISOString()),
       supabase.from("profiles").select("id", { count: "exact", head: true }).lt("created_at", range.prevEnd.toISOString()),
-      countActiveMembersInRange(supabase, range.start, range.end),
-      countActiveMembersInRange(supabase, range.prevStart, range.prevEnd),
       supabase
         .from("activity_registrations")
         .select("id", { count: "exact", head: true })
@@ -145,7 +131,11 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
         .select("id", { count: "exact", head: true })
         .gte("created_at", range.prevStart.toISOString())
         .lt("created_at", range.prevEnd.toISOString()),
-      getActivityRows(supabase, range.start),
+      // Foutenrapport H2/M13: vanaf prevStart i.p.v. range.start ophalen —
+      // dekt meteen ook de vorige periode, dus de losse tweede aanroep
+      // verderop (voorheen prevRows) kan vervallen. Dezelfde dataset wordt
+      // hieronder gebruikt voor zowel de "Actieve leden"-KPI als de trend.
+      getActivityRows(supabase, range.prevStart),
       getAllPushSubscriptions(supabase),
       supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
       supabase
@@ -222,6 +212,28 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
     const newsletterTotal = newsletterDeliveries.length;
     const newsletterPct = newsletterTotal > 0 ? Math.round((newsletterDelivered / newsletterTotal) * 100) : null;
 
+    // Foutenrapport H2: "Actieve leden" rekende voorheen met last_active_at
+    // (één rollend tijdstip, geen geschiedenis) — wie vandaag actief was telt
+    // daardoor nooit mee in de vorige periode, en de vorige periode kwam
+    // altijd op ~0% uit. Nu dezelfde reconstructie als de trendgrafiek
+    // eronder (unieke profile_id's uit events/aanmeldingen/posts/reacties).
+    const activeInRange = new Set(
+      activityRows
+        .filter((r) => {
+          const t = new Date(r.created_at).getTime();
+          return t >= range.start.getTime() && t < range.end.getTime();
+        })
+        .map((r) => r.profile_id)
+    ).size;
+    const activeInPrevRange = new Set(
+      activityRows
+        .filter((r) => {
+          const t = new Date(r.created_at).getTime();
+          return t >= range.prevStart.getTime() && t < range.prevEnd.getTime();
+        })
+        .map((r) => r.profile_id)
+    ).size;
+
     const kpis: OverviewStats["kpis"] = {
       leden: {
         label: "Leden",
@@ -231,9 +243,9 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
       },
       actieveLeden: {
         label: "Actieve leden",
-        value: activeMemberCount ? Math.round((activeNow / activeMemberCount) * 100) : 0,
+        value: activeMemberCount ? Math.round((activeInRange / activeMemberCount) * 100) : 0,
         unit: "%",
-        previousValue: activeMemberCount ? Math.round((activePrev / activeMemberCount) * 100) : 0,
+        previousValue: activeMemberCount ? Math.round((activeInPrevRange / activeMemberCount) * 100) : 0,
       },
       aanmeldingen: {
         label: "Aanmeldingen activiteiten",
@@ -261,13 +273,15 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
 
     // ---- Actieve leden-trend (reconstructie uit timestamped acties, zie
     // shared.ts — last_active_at zelf heeft geen geschiedenis) ----
-    const activityRowsInRange = activityRows.filter((r) => new Date(r.created_at) < range.end);
-    const activeMembersTrend = bucketUniqueSeries(activityRowsInRange, buckets);
+    // Foutenrapport M13: activityRows dekt nu al vanaf prevStart (zie de
+    // getActivityRows-aanroep hierboven), dus geen tweede, overlappende
+    // fetch meer nodig voor de vorige periode — bucketUniqueSeries/
+    // uniqueCountByBucket negeren rijen die buiten alle buckets vallen toch
+    // al, dus dezelfde rijenlijst volstaat voor beide reeksen.
+    const activeMembersTrend = bucketUniqueSeries(activityRows, buckets);
 
-    const prevRows = await getActivityRows(supabase, range.prevStart);
-    const prevRowsInRange = prevRows.filter((r) => new Date(r.created_at) < range.prevEnd);
     const prevBuckets = bucketsFor({ ...range, start: range.prevStart, end: range.prevEnd });
-    const prevSeries = bucketUniqueSeries(prevRowsInRange, prevBuckets);
+    const prevSeries = bucketUniqueSeries(activityRows, prevBuckets);
     const activeMembersTrendPrev: TrendPoint[] = alignPreviousSeries(
       prevSeries.map((p) => p.value),
       buckets
@@ -278,7 +292,11 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
       { label: "Aanmelding via website", value: websiteSignupsCount ?? 0 },
       { label: "Nieuwe prospect", value: prospectsCount ?? 0 },
       { label: "Toegangsaanvraag", value: accessRequestsCount ?? 0 },
-      { label: "Nieuw lid", value: newMembersCount ?? 0 },
+      // Foutenrapport H1: dit telt élk nieuw profiel in de periode, ook
+      // geïmporteerde of rechtstreeks uitgenodigde leden — niet alleen wie
+      // via de stappen hiervoor kwam. Geen echte deelverzameling van
+      // "Toegangsaanvraag", dus geen percentage (kon anders "800%" tonen).
+      { label: "Nieuwe leden (alle bronnen)", value: newMembersCount ?? 0, notSubset: true },
     ];
 
     // ---- Activiteiten in deze periode (bezetting) ----
@@ -332,7 +350,10 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
               sublabel: "Misschien een persoonlijke herinnering",
               count: staleLoginCount ?? 0,
               tone: "warning" as const,
-              href: "/beheer/leden",
+              // Foutenrapport H4: linkte voorheen naar een ongefilterde
+              // ledenlijst — nu een filter die exact dezelfde definitie
+              // gebruikt als hierboven (zie BeheerLedenListClient.tsx).
+              href: "/beheer/leden?signaal=inactief90",
             },
           ]
         : []),
@@ -343,7 +364,7 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
               sublabel: "Geen foto of nog niet aan een bedrijf gekoppeld",
               count: incompleteCount,
               tone: "warning" as const,
-              href: "/beheer/leden",
+              href: "/beheer/leden?signaal=incompleet",
             },
           ]
         : []),
@@ -354,7 +375,7 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
               sublabel: "Goede doelgroep voor de volgende uitnodiging",
               count: neverAttendedCount,
               tone: "neutral" as const,
-              href: "/beheer/leden",
+              href: "/beheer/leden?signaal=nooit",
             },
           ]
         : []),
@@ -373,7 +394,12 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
 
     // ---- Ledenontwikkeling (vaste laatste 12 maanden, los van de
     // periodekeuze — zelfde als het klikbare voorbeeld) ----
-    const twelveMonthsAgo = new Date(Date.now() - 365 * 86400000);
+    // Foutenrapport H3: "nu - 365 dagen" snapt via buildBuckets naar het
+    // begin van die maand, en omdat "nu" meestal niet op de 1e van de maand
+    // valt, ontstonden zo 13 in plaats van 12 maandvakken (dezelfde maand
+    // twee keer, een jaar uit elkaar). resolvePeriodRange("12m") levert al
+    // precies het begin van de maand 11 maanden terug.
+    const twelveMonthsAgo = resolvePeriodRange("12m").start;
     const twelveMoBuckets = bucketsFor({
       period: "12m",
       start: twelveMonthsAgo,

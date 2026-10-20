@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cachedQuery } from "@/lib/cache/queryCache";
 import { activityHref } from "@/lib/agenda/slug";
 import type { PeriodRange } from "./period";
-import { buildBuckets } from "./period";
+import { buildBuckets, resolvePeriodRange } from "./period";
 import type { Kpi, OccupancyRow } from "./shared";
 
 const TTL_MS = 60_000;
@@ -24,7 +24,9 @@ export type ActivitiesStats = {
 export async function getActivitiesStats(range: PeriodRange): Promise<ActivitiesStats> {
   const supabase = await createClient();
   return cachedQuery(`statistieken-activiteiten-${range.period}`, TTL_MS, async () => {
-    const twelveMonthsAgo = new Date(Date.now() - 365 * 86400000);
+    // Foutenrapport H3: "nu - 365 dagen" gaf, na het snappen naar het begin
+    // van de maand in buildBuckets, 13 i.p.v. 12 maandvakken.
+    const twelveMonthsAgo = resolvePeriodRange("12m").start;
 
     const [
       { count: activeMemberCount },

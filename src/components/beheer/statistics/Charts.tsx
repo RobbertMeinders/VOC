@@ -82,7 +82,7 @@ export function LineChart({
   const labelIdx = sparseLabelIndexes(labels.length);
 
   return (
-    <svg viewBox={`0 0 ${CHART_WIDTH} ${height}`} className="w-full" role="img" aria-label="Trendgrafiek">
+    <svg viewBox={`0 0 ${CHART_WIDTH} ${height}`} className="w-full overflow-visible" role="img" aria-label="Trendgrafiek">
       {gridLines.map((v) => (
         <g key={v}>
           <line x1={PADDING.left} x2={CHART_WIDTH - PADDING.right} y1={y(v)} y2={y(v)} stroke="var(--chart-grid)" strokeWidth={1} />
@@ -203,7 +203,7 @@ export function BarChart({
   for (let v = 0; v <= niceMax + 1e-9; v += step) gridLines.push(v);
 
   return (
-    <svg viewBox={`0 0 ${CHART_WIDTH} ${height}`} className="w-full" role="img" aria-label="Staafdiagram">
+    <svg viewBox={`0 0 ${CHART_WIDTH} ${height}`} className="w-full overflow-visible" role="img" aria-label="Staafdiagram">
       {gridLines.map((v) => (
         <g key={v}>
           <line x1={PADDING.left} x2={CHART_WIDTH - PADDING.right} y1={y(v)} y2={y(v)} stroke="var(--chart-grid)" strokeWidth={1} />
@@ -226,7 +226,15 @@ export function BarChart({
               const barH = Math.max(y(0) - barY, v > 0 ? 1 : 0);
               return <rect key={s.name} x={barX} y={barY} width={barWidth} height={barH} rx={2.5} fill={s.color} />;
             })}
-            <ChartTooltip x={center} y={y(Math.max(...series.map((s) => s.values[i] ?? 0))) - 14 - series.length * 15} align="center">
+            {/* Foutenrapport H3: altijd align="center" liet de tooltip van de
+                laatste kolom voorbij de rand van de SVG lopen en afgeknipt
+                raken (standaard overflow:hidden) — zelfde edge-aware align
+                als LineChart hierboven voor de eerste/laatste kolom. */}
+            <ChartTooltip
+              x={center}
+              y={y(Math.max(...series.map((s) => s.values[i] ?? 0))) - 14 - series.length * 15}
+              align={i === 0 ? "start" : i === labels.length - 1 ? "end" : "center"}
+            >
               <span className="font-semibold">{label}</span>
               {series.map((s) => (
                 <span key={s.name} className="flex items-center gap-1.5">
@@ -236,7 +244,13 @@ export function BarChart({
               ))}
             </ChartTooltip>
             {labelIdx.has(i) && (
-              <text x={center} y={height - 6} textAnchor="middle" fontSize={10} fill="var(--muted)">
+              <text
+                x={center}
+                y={height - 6}
+                textAnchor={i === 0 ? "start" : i === labels.length - 1 ? "end" : "middle"}
+                fontSize={10}
+                fill="var(--muted)"
+              >
                 {label}
               </text>
             )}
@@ -309,12 +323,23 @@ export function HorizontalBars({ rows, max: fixedMax }: { rows: BarRow[]; max?: 
 }
 
 // Trechter met percentage t.o.v. de vorige stap.
-export function FunnelChart({ steps }: { steps: { label: string; value: number }[] }) {
-  const max = steps[0]?.value || 1;
+// Foutenrapport H1: de breedte ging voorheen uit van steps[0] als het
+// grootste getal, en het percentage van de vórige stap — klopt geen van
+// beide zodra een latere stap groter is dan de eerste (geen echte trechter),
+// wat zowel een balk van 300-400% breed (horizontale scroll over de hele
+// pagina) als percentages als "800%" opleverde. Nu: breedte geschaald op
+// het werkelijke maximum over alle stappen en geklemd op 100%; percentage
+// altijd t.o.v. stap 1 (ook geklemd), en helemaal niet getoond voor een
+// stap die zelf is gemarkeerd als geen echte deelverzameling (notSubset).
+export function FunnelChart({ steps }: { steps: { label: string; value: number; notSubset?: boolean }[] }) {
+  const max = Math.max(...steps.map((s) => s.value), 1);
+  const first = steps[0]?.value ?? 0;
   return (
     <div className="flex flex-col gap-2.5">
       {steps.map((s, i) => {
-        const width = Math.max((s.value / max) * 100, s.value > 0 ? 4 : 0);
+        const width = Math.min(100, Math.max((s.value / max) * 100, s.value > 0 ? 4 : 0));
+        const showPct = i > 0 && !s.notSubset && first > 0;
+        const pct = showPct ? Math.min(100, Math.round((s.value / first) * 100)) : null;
         return (
           <div key={s.label} className="grid grid-cols-[130px_minmax(0,1fr)_72px] items-center gap-3 text-sm">
             <span className="min-w-0 truncate text-muted">{s.label}</span>
@@ -324,9 +349,7 @@ export function FunnelChart({ steps }: { steps: { label: string; value: number }
             />
             <span className="whitespace-nowrap text-right">
               <span className="font-display text-base font-extrabold tabular-nums text-foreground">{s.value}</span>
-              {i > 0 && steps[i - 1].value > 0 && (
-                <small className="ml-1 text-xs text-muted">{Math.round((s.value / steps[i - 1].value) * 100)}%</small>
-              )}
+              {pct !== null && <small className="ml-1 text-xs text-muted">{pct}%</small>}
             </span>
           </div>
         );

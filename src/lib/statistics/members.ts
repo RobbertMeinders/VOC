@@ -3,7 +3,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { cachedQuery } from "@/lib/cache/queryCache";
 import type { PeriodRange } from "./period";
-import { buildBuckets } from "./period";
+import { buildBuckets, resolvePeriodRange } from "./period";
 import type { Kpi } from "./shared";
 
 const TTL_MS = 60_000;
@@ -30,7 +30,9 @@ export type MembersStats = {
 export async function getMembersStats(range: PeriodRange): Promise<MembersStats> {
   const supabase = await createClient();
   return cachedQuery(`statistieken-leden-${range.period}`, TTL_MS, async () => {
-    const twelveMonthsAgo = new Date(Date.now() - 365 * 86400000);
+    // Foutenrapport H3: "nu - 365 dagen" gaf, na het snappen naar het begin
+    // van de maand in buildBuckets, 13 i.p.v. 12 maandvakken.
+    const twelveMonthsAgo = resolvePeriodRange("12m").start;
 
     const [
       { count: totalMembers },
@@ -124,11 +126,18 @@ export async function getMembersStats(range: PeriodRange): Promise<MembersStats>
 
     // Activatietrechter: all-time, niet periodegebonden — zelfde als het
     // klikbare voorbeeld ("van alle leden").
+    // Foutenrapport H1: "Profiel compleet" en "Actief, 30 dagen" stonden
+    // omgewisseld — "profiel compleet" is geen subset van "actief, 30
+    // dagen" (iemand kan actief zijn zonder compleet profiel), waardoor de
+    // stap daarna een percentage ver boven 100% liet zien. Deze volgorde
+    // (elke stap een logische deelverzameling van de vorige: wie actief
+    // was, had al een account; wie een compleet profiel heeft, moet niet
+    // per se de laatste 30 dagen actief zijn geweest) klopt wel.
     const activatie = [
       { label: "Uitgenodigd", value: invitationsTotal ?? 0 },
       { label: "Account aangemaakt", value: profilesTotal ?? 0 },
-      { label: "Profiel compleet", value: completeCount },
       { label: "Actief, 30 dagen", value: activeLast30 ?? 0 },
+      { label: "Profiel compleet", value: completeCount },
     ];
 
     // Branche/plaats: via het primaire bedrijf van elk actief lid (of het

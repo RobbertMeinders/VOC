@@ -5,6 +5,7 @@ import { cachedQuery } from "@/lib/cache/queryCache";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { BeheerLedenListClient, type BeheerMemberRow } from "@/components/beheer/BeheerLedenListClient";
 import { isAdmin } from "@/lib/auth/roles";
+import { resolvePeriodRange } from "@/lib/statistics/period";
 import type { Database } from "@/lib/types/database";
 
 type ProfileRow = Database["public"]["Tables"]["profiles"]["Row"];
@@ -30,7 +31,13 @@ export async function BeheerLedenContent() {
   // toch alle e-mailadressen/telefoonnummers terug (is_board()-uitzondering
   // in de maskering), maar dit voorkomt dat de query zelf afwijkt van de
   // enige toegestane manier om andermans contactgegevens op te vragen.
-  const [{ data: allProfiles }, { data: memberships }, { data: boardPositions }] = await cachedQuery(
+  // Foutenrapport H4: zelfde "nooit naar een activiteit (12 mnd)"-definitie
+  // als het signaal op Statistieken -> Overzicht (attended=true binnen de
+  // laatste 12 maanden), zodat de signaal-link hier precies dezelfde leden
+  // toont als het bijbehorende aantal daar.
+  const twelveMonthsAgo = resolvePeriodRange("12m").start;
+
+  const [{ data: allProfiles }, { data: memberships }, { data: boardPositions }, { data: attendedRows }] = await cachedQuery(
     "beheer-leden-page-data",
     300_000,
     () =>
@@ -41,8 +48,14 @@ export async function BeheerLedenContent() {
         // Alleen actuele aanstellingen (ended_at is null) — zie
         // 0107_vereniging_bestuur_commissies.sql.
         supabase.from("board_positions").select("profile_id, title").is("ended_at", null).returns<BoardPositionRow[]>(),
+        supabase
+          .from("activity_registrations")
+          .select("profile_id")
+          .eq("attended", true)
+          .gte("created_at", twelveMonthsAgo.toISOString()),
       ])
   );
+  const attendedProfileIds = new Set((attendedRows ?? []).map((r) => r.profile_id));
 
   const companyByProfile = new Map<string, string>();
   for (const membership of memberships ?? []) {
@@ -82,6 +95,8 @@ export async function BeheerLedenContent() {
       is_organization_account: p.is_organization_account,
       companyName: companyByProfile.get(p.id) ?? null,
       boardTitle: boardTitleByProfile.get(p.id) ?? null,
+      last_active_at: p.last_active_at,
+      neverAttended12mo: !attendedProfileIds.has(p.id),
     };
   });
 

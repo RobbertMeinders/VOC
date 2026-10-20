@@ -29,7 +29,19 @@ export type BeheerMemberRow = {
   is_organization_account: boolean;
   companyName: string | null;
   boardTitle: string | null;
+  // Foutenrapport H4: voor de signaal-links vanuit Statistieken -> Overzicht
+  // (zelfde definities als src/lib/statistics/overview.ts's signalen).
+  last_active_at: string | null;
+  neverAttended12mo: boolean;
 };
+
+const SIGNAL_LABELS: Record<string, string> = {
+  incompleet: "Profiel incompleet",
+  nooit: "Nooit naar een activiteit (12 mnd)",
+  inactief90: "Niet ingelogd, 90+ dagen",
+};
+
+const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
 
 function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: BeheerMemberRow[]; viewerId: string; canEditRole: boolean }) {
   const { getInitial, setParam } = useUrlFilterState();
@@ -40,6 +52,10 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
   // verwijderde leden gewoon tussen de actieve leden in de lijst — alleen
   // bewust het Status-filter op "Gedeactiveerd" zetten toont ze nog.
   const [active, setActive] = useState(() => getInitial("active") || "actief");
+  const [signaal, setSignaal] = useState(() => getInitial("signaal"));
+  // Lazy initializer i.p.v. Date.now() rechtstreeks in de useMemo hieronder
+  // aanroepen — die laatste telt als een onzuivere render-aanroep.
+  const [ninetyDaysAgo] = useState(() => Date.now() - NINETY_DAYS_MS);
 
   function handleQueryChange(value: string) {
     setQuery(value);
@@ -55,19 +71,26 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
   }
 
   // UX-review Z4: ook op bedrijfsnaam doorzoekbaar, niet alleen naam/e-mail.
-  const filtered = useMemo(
-    () =>
-      members.filter((member) => {
-        const matchesQuery = matchesSearch(
-          [`${member.first_name} ${member.last_name}`, member.email, member.phone, member.companyName],
-          query
-        );
-        const matchesRole = !role || member.role === role;
-        const matchesActive = !active || (active === "actief" ? member.is_active : !member.is_active);
-        return matchesQuery && matchesRole && matchesActive;
-      }),
-    [members, query, role, active]
-  );
+  const filtered = useMemo(() => {
+    return members.filter((member) => {
+      const matchesQuery = matchesSearch(
+        [`${member.first_name} ${member.last_name}`, member.email, member.phone, member.companyName],
+        query
+      );
+      const matchesRole = !role || member.role === role;
+      const matchesActive = !active || (active === "actief" ? member.is_active : !member.is_active);
+      // Foutenrapport H4: zelfde definities als de signalen op Statistieken ->
+      // Overzicht (zie src/lib/statistics/overview.ts).
+      const matchesSignaal =
+        !signaal ||
+        (signaal === "incompleet" && (!member.avatar_url || !member.companyName)) ||
+        (signaal === "nooit" && member.neverAttended12mo) ||
+        (signaal === "inactief90" &&
+          member.is_active &&
+          (!member.last_active_at || new Date(member.last_active_at).getTime() < ninetyDaysAgo));
+      return matchesQuery && matchesRole && matchesActive && matchesSignaal;
+    });
+  }, [members, query, role, active, signaal, ninetyDaysAgo]);
 
   const filters: ListToolbarFilter[] = [
     {
@@ -91,6 +114,23 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
 
   return (
     <>
+      {signaal && SIGNAL_LABELS[signaal] && (
+        <div className="mb-3 flex items-center justify-between gap-2 rounded-xl bg-status-warning-soft px-3.5 py-2.5 text-sm text-status-warning">
+          <span>
+            Filter vanuit Statistieken: <span className="font-medium">{SIGNAL_LABELS[signaal]}</span>
+          </span>
+          <button
+            type="button"
+            onClick={() => {
+              setSignaal("");
+              setParam("signaal", "");
+            }}
+            className="shrink-0 font-medium underline hover:no-underline"
+          >
+            Wissen
+          </button>
+        </div>
+      )}
       <ListToolbar
         searchValue={query}
         onSearchChange={handleQueryChange}
