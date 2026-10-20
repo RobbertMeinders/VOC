@@ -5,17 +5,17 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { renderTemplate } from "@/lib/template/render";
 import { logPushUnsubscribed } from "@/lib/events/log";
 
-// Notificatietypes met een beheerbaar push_templates-record (0039_
-// notification_templates.sql) — mirror van NOTIFICATION_EMAIL_TEMPLATE_KEYS
-// (src/lib/email/send.ts). Overige types gaan altijd met de rauwe
-// titel/body van de notificatie zelf.
+// Notificatietypes met een beheerbaar push_title/push_body op
+// message_templates (migratie 0129, Automatische berichten) — mirror van
+// NOTIFICATION_MESSAGE_TEMPLATE_KEYS (src/lib/email/send.ts). Overige types
+// gaan altijd met de rauwe titel/body van de notificatie zelf.
 const NOTIFICATION_PUSH_TEMPLATE_KEYS: Record<string, string> = {
-  new_activity: "nieuwe_activiteit",
-  new_member: "nieuw_lid",
-  feed_comment: "feed_reactie",
-  feed_mention: "feed_vermelding",
-  activity_reminder: "activity_reminder",
-  waitlist_promoted: "waitlist_promoted",
+  new_activity: "nieuw-act",
+  new_member: "nieuw-lid",
+  feed_comment: "reactie",
+  feed_mention: "genoemd",
+  activity_reminder: "herinnering",
+  waitlist_promoted: "wachtlijst",
 };
 
 // UX-review punt 2: deze functie bevatte eerder alleen de cron-route zelf
@@ -45,8 +45,9 @@ export async function dispatchPendingPushNotifications(limit = 50): Promise<{ se
     if (!templateKey) return { title: item.title, body: item.body ?? "" };
 
     if (!templateCache.has(templateKey)) {
-      const { data } = await supabase.rpc("get_push_template", { p_key: templateKey });
-      templateCache.set(templateKey, data?.[0] ?? null);
+      const { data } = await supabase.rpc("get_message_template", { p_key: templateKey });
+      const row = data?.[0];
+      templateCache.set(templateKey, row?.push_title && row.push_body ? { title: row.push_title, body: row.push_body } : null);
     }
     const template = templateCache.get(templateKey);
     if (!template) return { title: item.title, body: item.body ?? "" };
