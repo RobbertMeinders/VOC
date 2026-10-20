@@ -1,8 +1,9 @@
+import Image from "next/image";
 import Link from "next/link";
 import { UserCheck } from "lucide-react";
+import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/server";
-import { getSignedStorageUrls } from "@/lib/supabase/storage";
-import { Avatar } from "@/components/ui/Avatar";
+import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { memberHref } from "@/lib/members/slug";
 
@@ -16,7 +17,6 @@ type BoardPositionRow = {
     last_name: string;
     slug: string;
     avatar_url: string | null;
-    avatar_thumb_url: string | null;
   } | null;
 };
 
@@ -32,6 +32,10 @@ function titleRank(title: string): number {
   return index === -1 ? TITLE_ORDER.length : index;
 }
 
+function initials(firstName: string, lastName: string) {
+  return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+}
+
 // Wordt letterlijk hetzelfde gebouwd en getoond op zowel /beheer/vereniging/
 // bestuur (beheer) als /vereniging/bestuur (leden) — alleen de pagina
 // eromheen (kop, eventuele beheerlink) verschilt. Toont uitsluitend
@@ -42,9 +46,7 @@ export async function BestuurContent() {
 
   const { data: positions } = await supabase
     .from("board_positions")
-    .select(
-      "id, title, started_at, profile:profiles!board_positions_profile_id_fkey(id, first_name, last_name, slug, avatar_url, avatar_thumb_url)"
-    )
+    .select("id, title, started_at, profile:profiles!board_positions_profile_id_fkey(id, first_name, last_name, slug, avatar_url)")
     .is("ended_at", null)
     .order("started_at", { ascending: true })
     .returns<BoardPositionRow[]>();
@@ -74,55 +76,82 @@ export async function BestuurContent() {
     }
   }
 
-  const avatarUrls = await getSignedStorageUrls(
-    supabase,
-    "avatars",
-    activePositions.flatMap((p) => [p.profile?.avatar_url, p.profile?.avatar_thumb_url])
+  // Stijlronde (Bestuur-kaarten, "vijf op één rij"): de kaart toont nu een
+  // staande foto op volledig formaat i.p.v. een kleine ronde avatar — de
+  // eerder gebruikte avatar_thumb_url (max 160px breed) oogde daardoor wazig
+  // op een tegel van ~180-200px. Gewoon de originele avatar_url, met next/
+  // image's eigen sizes-gebaseerde optimalisatie voor de juiste resolutie.
+  const avatarUrls = await Promise.all(
+    activePositions.map((p) => getSignedStorageUrl("avatars", p.profile?.avatar_url ?? null))
   );
 
   return (
     // flex-wrap + justify-center i.p.v. een vast grid: bij een niet-rond
-    // aantal bestuursleden (bv. 5) laat een grid de laatste rij links
-    // "verweesd" achter — hiermee centreert die laatste rij juist. Afwerkronde
-    // blok 6: kaartbreedte nu per breakpoint berekend (2/3/4 per rij i.p.v.
-    // een vaste w-40/w-48) zodat de rij de beschikbare breedte opvult i.p.v.
-    // ruimte over te laten. Stijlronde: op mobiel weer onder elkaar (volle
-    // breedte, 1 per rij) i.p.v. 2 per rij — dat voelde te gedrongen.
+    // aantal bestuursleden laat een grid de laatste rij links "verweesd"
+    // achter — flexbox justificeert elke gewrapte regel apart, dus een
+    // oneven laatste kaart staat vanzelf gecentreerd, zonder aparte CSS
+    // daarvoor. Kaartbreedte is vast (geen percentage) op sm+, zodat de rij
+    // precies zoveel bestuursleden toont als er passen (vijf bij een
+    // gangbare contentbreedte) en de rest doorloopt naar een volgende regel.
+    // Op mobiel juist wél een percentage (2 per rij, zie card-tile hieronder).
     <div className="flex flex-wrap justify-center gap-4">
-      {activePositions.map(({ id, title, profile }) => {
+      {activePositions.map(({ id, title, profile }, index) => {
         if (!profile) return null;
-        const path = profile.avatar_thumb_url ?? profile.avatar_url;
-        const avatarUrl = path ? (avatarUrls.get(path) ?? null) : null;
+        const avatarUrl = avatarUrls[index];
         const companyName = companyByProfile.get(profile.id);
         return (
           <Link
             key={id}
             href={memberHref(profile)}
-            // animate-rise-in + een lichte hover-lift (i.p.v. alleen de
-            // randkleur) geven de kennismakingspagina wat meer leven dan een
-            // statische kaart — zelfde soort micro-interactie als elders in
-            // de app (bv. de sidebar-items die bij hover opschuiven).
-            className="card-hover-lift animate-rise-in group flex w-full flex-col items-center gap-3 rounded-2xl bg-surface px-4 py-6 text-center shadow-sm hover:border-foreground/20 sm:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.667rem)] lg:w-[calc(25%-0.75rem)]"
+            // animate-rise-in + een lichte hover-lift geven de
+            // kennismakingspagina wat meer leven dan een statische kaart —
+            // zelfde soort micro-interactie als elders in de app.
+            className="card-hover-lift animate-rise-in group flex w-[calc(50%-0.5rem)] flex-col sm:w-[180px]"
           >
-            <Avatar
-              firstName={profile.first_name}
-              lastName={profile.last_name}
-              avatarUrl={avatarUrl}
-              size={64}
-              shape="square"
-              quality={90}
-            />
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-foreground">
+            {/* De foto is zelf de tegel (geen witte kaart eromheen): rounded-
+                2xl + shadow-sm (--shadow-card), aspect-[3/4] zodat elke tegel
+                — met foto of initialen — exact dezelfde hoogte heeft. */}
+            <div className="relative aspect-[3/4] w-full overflow-hidden rounded-2xl shadow-sm">
+              {avatarUrl ? (
+                <Image
+                  src={avatarUrl}
+                  alt={`${profile.first_name} ${profile.last_name}`}
+                  fill
+                  sizes="(max-width: 640px) 45vw, 200px"
+                  quality={90}
+                  className="object-cover"
+                />
+              ) : (
+                <div
+                  className="flex h-full w-full items-center justify-center"
+                  style={{ backgroundImage: "linear-gradient(160deg, #145f68 0%, #0b2e33 100%)" }}
+                >
+                  <span className="font-display text-6xl font-extrabold text-white/90 sm:text-7xl">
+                    {initials(profile.first_name, profile.last_name)}
+                  </span>
+                </div>
+              )}
+            </div>
+
+            {/* min-h-[2lh] houdt het rode streepje/naam/bedrijf van élke
+                kaart op dezelfde hoogte, ongeacht of de functie op deze kaart
+                op 1 of 2 regels staat (bv. "Algemeen bestuurslid"). */}
+            <div className="mt-2.5 flex flex-col items-center text-center">
+              <p className="flex min-h-[2lh] items-center font-display text-[15px] font-bold leading-tight tracking-[-0.02em] text-foreground sm:text-[18px]">
+                {title}
+              </p>
+              <span aria-hidden className="my-1.5 h-[3px] w-7 shrink-0 rounded-full bg-voc-red" />
+              <p className="text-sm font-semibold text-foreground">
                 {profile.first_name} {profile.last_name}
               </p>
-              {/* Stijlronde: nadruk op de functie (zelf foreground i.p.v.
-                  muted), meer ruimte naar het bedrijf erna. Bedrijfsnaam mag
-                  omlopen i.p.v. af te kappen — geen truncate meer, anders
-                  verdwijnt een lange naam gedeeltelijk uit beeld. "Sinds
-                  ..." weg: de datum klopte niet. */}
-              <p className="mt-1 truncate text-xs font-medium text-foreground">{title}</p>
-              {companyName && <p className="mt-1.5 text-xs text-muted">{companyName}</p>}
+              {companyName && (
+                <p
+                  lang="nl"
+                  className={clsx("mt-0.5 w-full text-[12.5px] text-muted", "[hyphens:auto] [overflow-wrap:break-word]")}
+                >
+                  {companyName}
+                </p>
+              )}
             </div>
           </Link>
         );
