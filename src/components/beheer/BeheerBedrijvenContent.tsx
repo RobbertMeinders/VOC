@@ -123,7 +123,7 @@ export async function BeheerBedrijvenContent() {
           href="/beheer/instroom?tab=koppelingen"
           className="mb-4 flex items-center gap-1.5 rounded-xl bg-petrol-soft px-4 py-3 text-sm font-medium text-petrol hover:underline"
         >
-          {totalPendingRequests} {totalPendingRequests === 1 ? "koppelverzoek wacht" : "koppelverzoeken wachten"} → Bekijken in Aanvragen
+          {totalPendingRequests} {totalPendingRequests === 1 ? "koppelverzoek wacht" : "koppelverzoeken wachten"} · Bekijken in Aanvragen
           <ArrowRight size={14} />
         </Link>
       )}

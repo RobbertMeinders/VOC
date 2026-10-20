@@ -85,6 +85,7 @@ export interface Database {
           instagram_url: string | null;
           facebook_url: string | null;
           is_publicly_visible: boolean;
+          created_by: string | null;
           created_at: string;
           updated_at: string;
         };

@@ -132,7 +132,7 @@ export default async function BeheerPage() {
       .from("company_membership_requests")
       .select("id, company:companies(id, name), profile:profiles!company_membership_requests_profile_id_fkey(id, first_name, last_name)")
       .eq("status", "pending")
-      .order("created_at", { ascending: false })
+      .order("requested_at", { ascending: false })
       .returns<MembershipRequestRow[]>(),
     supabase
       .from("invitations")

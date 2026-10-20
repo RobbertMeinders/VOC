@@ -68,8 +68,12 @@ export function CompanyMembershipRequestRow({
   }
 
   return (
-    <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border py-3 last:border-0">
-      <div className="min-w-0">
+    // Live QA: flex-wrap liet de knoppen bij een lange regel onder de tekst
+    // belanden en bij een korte regel ernaast — nu altijd knoppen rechts
+    // vanaf sm, en altijd gestapeld op mobiel (zelfde patroon als
+    // BeheerBedrijvenListClient's rijen).
+    <div className="flex flex-col gap-3 border-b border-border py-3 last:border-0 sm:flex-row sm:items-start sm:justify-between">
+      <div className="min-w-0 flex-1">
         <p className="text-sm text-foreground">
           <Link href={memberHref(request.profile)} className="font-medium hover:text-petrol hover:underline">
             {request.profile.first_name} {request.profile.last_name}

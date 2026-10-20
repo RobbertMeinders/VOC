@@ -99,17 +99,23 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
               <div className="flex min-w-0 flex-col gap-1.5 sm:grid sm:grid-cols-[minmax(0,1.3fr)_minmax(0,1.6fr)_130px_minmax(0,1.4fr)_150px_auto] sm:items-center sm:gap-x-4 sm:gap-y-0">
                 <div className="flex min-w-0 items-center gap-3">
                   <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={36} />
-                  <Link href={`/bedrijven/${company.id}`} className="min-w-0 hover:opacity-80">
-                    <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-none">{company.name}</p>
-                  </Link>
-                  {company.pendingMembershipRequests > 0 && (
-                    <Link
-                      href="/beheer/instroom?tab=koppelingen"
-                      className="shrink-0 rounded-full bg-petrol-soft px-2 py-0.5 text-[11px] font-medium text-petrol hover:underline"
-                    >
-                      {company.pendingMembershipRequests} koppelverzoek{company.pendingMembershipRequests === 1 ? "" : "en"}
+                  {/* Live QA: het koppelverzoek-label (shrink-0) duwde de
+                      bedrijfsnaam ernaast tot 0 breedte bij een langere naam
+                      — nu onder de naam i.p.v. ernaast, zodat beide hun
+                      eigen regel/breedte houden. */}
+                  <div className="min-w-0 flex-1">
+                    <Link href={`/bedrijven/${company.id}`} className="block min-w-0 hover:opacity-80">
+                      <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-none">{company.name}</p>
                     </Link>
-                  )}
+                    {company.pendingMembershipRequests > 0 && (
+                      <Link
+                        href="/beheer/instroom?tab=koppelingen"
+                        className="mt-0.5 inline-block rounded-full bg-petrol-soft px-2 py-0.5 text-[11px] font-medium text-petrol hover:underline"
+                      >
+                        {company.pendingMembershipRequests} koppelverzoek{company.pendingMembershipRequests === 1 ? "" : "en"}
+                      </Link>
+                    )}
+                  </div>
                   <div className="ml-auto flex shrink-0 items-center gap-2 sm:hidden">{actions}</div>
                 </div>
 
