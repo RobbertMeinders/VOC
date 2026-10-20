@@ -1,10 +1,26 @@
+import type { ReactNode } from "react";
 import type { MonthlyPoint } from "@/lib/statistics/queries";
 
-// Lichte, rustige grafiekjes voor Statistieken — puur SVG, geen library,
-// geen client-interactiviteit nodig (native <title> geeft een tooltip on
-// hover). Bewust maar drie vormen: een lijn (cumulatief/percentage), een
+// Lichte, rustige grafiekjes voor Statistieken — puur SVG, geen library.
+// Stijlronde: de tooltip bij hoveren is een eigen HTML-laagje via
+// <foreignObject>, CSS-only (group-hover, geen client state nodig) — een
+// native SVG <title> toont pas na de ingebouwde OS-vertraging van de
+// browser, en dat was precies waar Robbert direct resultaat wilde zien.
+// Bewust maar drie vormen: een lijn (cumulatief/percentage), een
 // staafdiagram (1-2 reeksen per maand) en een trechter (3 stappen) — geen
 // taartdiagrammen, geen dubbele y-as.
+
+function ChartTooltip({ x, y, children }: { x: number; y: number; children: ReactNode }) {
+  return (
+    <foreignObject x={x - 70} y={Math.max(y, 0)} width={140} height={28} style={{ overflow: "visible" }} className="pointer-events-none">
+      <div className="flex justify-center opacity-0 transition-opacity group-hover:opacity-100">
+        <span className="whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[11px] font-medium text-background shadow-sm">
+          {children}
+        </span>
+      </div>
+    </foreignObject>
+  );
+}
 
 const CHART_HEIGHT = 160;
 const CHART_WIDTH = 640;
@@ -63,9 +79,16 @@ export function LineTrend({
       <path d={areaPath} fill="var(--chart-primary)" opacity={0.08} />
       <path d={linePath} fill="none" stroke="var(--chart-primary)" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
       {points.map((p, i) => (
-        <circle key={p.month} cx={x(i)} cy={y(p.value)} r={3} fill="var(--chart-primary)">
-          <title>{`${p.label}: ${p.value}${suffix}`}</title>
-        </circle>
+        <g key={p.month} className="group">
+          {/* Groter, onzichtbaar hitvlak — het zichtbare puntje (r=3) is te
+              klein om prettig te hoveren. */}
+          <circle cx={x(i)} cy={y(p.value)} r={9} fill="transparent" />
+          <circle cx={x(i)} cy={y(p.value)} r={3} fill="var(--chart-primary)" className="pointer-events-none" />
+          <ChartTooltip x={x(i)} y={y(p.value) - 32}>
+            {p.label}: {p.value}
+            {suffix}
+          </ChartTooltip>
+        </g>
       ))}
       <text x={x(points.length - 1)} y={y(last.value) - 8} textAnchor="end" fontSize={11} fontWeight={600} fill="var(--foreground)">
         {last.value}
@@ -136,17 +159,19 @@ export function BarTrend({
                 const barY = y(v);
                 const barH = PADDING.top + innerH - barY;
                 return (
-                  <rect
-                    key={s.label}
-                    x={barX}
-                    y={barH === 0 ? barY - 1 : barY}
-                    width={barWidth}
-                    height={Math.max(barH, 1)}
-                    rx={2.5}
-                    fill={s.color}
-                  >
-                    <title>{`${m.label} - ${s.label}: ${v}`}</title>
-                  </rect>
+                  <g key={s.label} className="group">
+                    <rect
+                      x={barX}
+                      y={barH === 0 ? barY - 1 : barY}
+                      width={barWidth}
+                      height={Math.max(barH, 1)}
+                      rx={2.5}
+                      fill={s.color}
+                    />
+                    <ChartTooltip x={barX + barWidth / 2} y={(barH === 0 ? barY - 1 : barY) - 30}>
+                      {m.label} - {s.label}: {v}
+                    </ChartTooltip>
+                  </g>
                 );
               })}
               {labelIdx.has(mi) && (
