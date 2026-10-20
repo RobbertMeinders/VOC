@@ -76,9 +76,9 @@ main{padding:24px 26px 30px;display:grid;grid-template-columns:minmax(0,1fr);gap
 .paper [contenteditable]:focus{background:#fbf6e9;box-shadow:0 0 0 2px #e9d9ac}
 .paper .var{background:#e6efef;color:#0e5a63;font-weight:600;border-radius:4px;padding:0 4px;white-space:nowrap}
 .paper .cta{display:inline-block;background:#e8000f;color:#fff;font-weight:700;padding:11px 20px;border-radius:8px;text-decoration:none;margin:4px 0 16px}
-.paper .sigb{margin-top:18px;padding-top:14px;border-top:1px solid var(--paper-line);display:grid;gap:2px;position:relative}
+.paper .sigb{margin-top:22px;display:grid;gap:2px;position:relative}
 .paper .sigb img{width:84px;height:auto;margin:8px 0 6px}
-.paper .sigb .lock{position:absolute;right:0;top:12px;font:600 11px var(--body);color:var(--paper-muted);display:flex;gap:4px;align-items:center}
+.paper .sigb .lock{position:absolute;right:0;top:0;font:600 11px var(--body);color:var(--paper-muted);display:flex;gap:4px;align-items:center}
 .paper .sigb a{color:#1a56c4}
 .paper .foot{margin-top:18px;font-size:12px;color:var(--paper-muted)}
 .push{display:flex;gap:12px;align-items:flex-start;background:#f2f2f4;color:#1d1d1f;border-radius:16px;padding:12px 14px;max-width:380px;margin:0 auto;font-family:-apple-system,system-ui,sans-serif}
@@ -158,15 +158,15 @@ main{padding:24px 26px 30px;display:grid;grid-template-columns:minmax(0,1fr);gap
 const ICON=n=>`<svg class="ic"><use href="#i-${n}"/></svg>`;
 const V=t=>`<span class="var" contenteditable="false">${t}</span>`;
 const SIG={
-  alg:`<div>Met vriendelijke groet,</div><div style="margin-top:8px"><b>Veendammer Ondernemers Compagnie</b></div><img src="img/logo.png" alt="VOC-logo"><div>info@vocveendam.nl · <a href="#" onclick="return false">vocveendam.nl</a></div>`,
-  pers:`<div>Met vriendelijke groet,</div><div style="margin-top:8px"><b>Robbert Meinders</b><br>Secretaris</div><img src="img/logo.png" alt="VOC-logo"><div>Veendammer Ondernemers Compagnie<br>+31 6 00 00 00 00 | <a href="#" onclick="return false">info@vocveendam.nl</a></div>`
+  alg:`<div>Met vriendelijke groet,</div><img src="img/logo.png" alt="VOC-logo"><div>Veendammer Ondernemers Compagnie</div><div><a href="#" onclick="return false">info@vocveendam.nl</a> | <a href="#" onclick="return false">vocveendam.nl</a></div>`,
+  pers:`<div>Met vriendelijke groet,</div><div style="margin-top:8px"><b>Robbert Meinders</b><br>Secretaris</div><img src="img/logo.png" alt="VOC-logo"><div>Veendammer Ondernemers Compagnie</div><div>+31 6 00 00 00 00 | <a href="#" onclick="return false">info@vocveendam.nl</a></div>`
 };
 const W=(k,v)=>`<b>${k}:</b> ${v}`;
 const T=[
  {g:'Account en toegang',id:'uit-nieuw',n:'Uitnodiging nieuw lid',when:'Een aanvraag via "Word lid" wordt goedgekeurd',to:'De nieuwe aanmelder',sig:'pers',push:false,
   subj:`Welkom bij de Veendammer Ondernemers Compagnie`,
-  body:[`Beste ${V('voornaam')},`,`Wat fijn dat je lid wordt van de Veendammer Ondernemers Compagnie! Je aanmelding is goedgekeurd en we heten je van harte welkom in ons netwerk van ondernemers uit Veendam en omgeving.`,`Als lid krijg je toegang tot ons ledenportaal. Daar vind je de agenda met netwerkbijeenkomsten, kennissessies en andere activiteiten, meld je je eenvoudig aan en leer je de andere leden en hun bedrijven kennen.`,`Maak via de knop hieronder je account aan; dat duurt maar een paar minuten. Vul daarna ook je profiel aan met een foto en een korte omschrijving van je bedrijf, zodat andere leden je herkennen bij onze bijeenkomsten.`],cta:'Maak je account aan',
-  after:[`De link is 14 dagen geldig. Lukt het niet, of heb je een vraag? Neem gerust contact met mij op.`]},
+  body:[`Beste ${V('voornaam')},`,`Hartelijk dank voor je aanmelding bij de Veendammer Ondernemers Compagnie. Namens het bestuur heet ik je van harte welkom als lid van ons netwerk!`,`De VOC is het zakelijke netwerk van Veendam, met meer dan 110 aangesloten organisaties. Het hele jaar door organiseren we activiteiten voor onze leden: van netwerkborrels en kennissessies tot sportieve evenementen zoals padel en golf. We hopen je snel bij een van die activiteiten te ontmoeten.`,`Het lidmaatschap loopt per kalenderjaar. De contributie wordt jaarlijks vastgesteld tijdens de Algemene Ledenvergadering en bedraagt momenteel € 200,- exclusief btw. De contributienota ontvang je rond de ALV in het voorjaar.`,`Bij je lidmaatschap hoort ook een account voor ons ledenportaal. Daar vind je de agenda en meld je je aan voor activiteiten. Ook beheer je er je profiel en kom je in contact met andere leden.`,`Vul via de knop hieronder je gegevens in om je account te activeren.`],cta:'Account activeren',
+  after:[`Deze link is 14 dagen geldig. Mocht je vragen hebben, neem dan gerust contact met mij op.`]},
  {g:'Account en toegang',id:'uit-bestaand',n:'Uitnodiging bestaand lid',when:'Een lid krijgt toegang tot het portaal (import of via Beheer)',to:'Leden die al lid zijn',sig:'alg',push:false,
   subj:`Je persoonlijke toegang tot het VOC-ledenportaal`,
   body:[`Beste ${V('voornaam')},`,`De Veendammer Ondernemers Compagnie heeft een eigen ledenportaal, en als lid kun je daar vanaf nu gebruik van maken.`,`In het portaal vind je de agenda met alle activiteiten van de VOC en meld je je eenvoudig aan. Je ziet welke ondernemers en bedrijven er nog meer lid zijn, en leden delen er ervaringen, vragen en aanbod met elkaar.`,`Aan je lidmaatschap verandert niets; je hoeft alleen nog een account aan te maken. Dat doe je via de knop hieronder.`],cta:'Maak je account aan',
