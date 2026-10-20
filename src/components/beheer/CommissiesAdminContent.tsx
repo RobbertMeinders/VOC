@@ -31,7 +31,15 @@ export type CommissionAdminRow = {
   description: string | null;
   archivedAt: string | null;
   members: { profileId: string; firstName: string; lastName: string; avatarUrl: string | null }[];
-  applications: { id: string; profileId: string; firstName: string; lastName: string; avatarUrl: string | null; createdAt: string }[];
+  applications: {
+    id: string;
+    profileId: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl: string | null;
+    createdAt: string;
+    message: string | null;
+  }[];
 };
 export type MemberOption = { id: string; name: string };
 
@@ -237,11 +245,14 @@ function CommissionCard({ commission, memberOptions }: { commission: CommissionA
               <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-muted">Aanmeldingen in behandeling</p>
               <div className="flex flex-col gap-1.5">
                 {commission.applications.map((application) => (
-                  <div key={application.id} className="flex items-center gap-2 rounded-xl border border-border p-2">
+                  <div key={application.id} className="flex items-start gap-2 rounded-xl border border-border p-2">
                     <Avatar firstName={application.firstName} lastName={application.lastName} avatarUrl={application.avatarUrl} size={28} />
-                    <p className="min-w-0 flex-1 truncate text-sm text-foreground">
-                      {application.firstName} {application.lastName}
-                    </p>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm text-foreground">
+                        {application.firstName} {application.lastName}
+                      </p>
+                      {application.message && <p className="mt-0.5 text-xs text-muted">{application.message}</p>}
+                    </div>
                     <button
                       type="button"
                       disabled={isPending}

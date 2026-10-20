@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { Avatar } from "@/components/ui/Avatar";
-import { CommissionApplyButton } from "@/components/vereniging/CommissionApplyButton";
+import { CommissionApplyForm } from "@/components/vereniging/CommissionApplyForm";
 import { VerenigingHero } from "@/components/vereniging/VerenigingHero";
 
 export const metadata: Metadata = { title: "Commissies" };
@@ -43,10 +43,19 @@ export default async function CommissiesPage() {
     (memberships ?? []).flatMap((m) => [m.profile?.avatar_url, m.profile?.avatar_thumb_url])
   );
   const pendingCommissionIds = new Set((ownApplications ?? []).map((a) => a.commission_id));
+  const memberCommissionIds = new Set(
+    (memberships ?? []).filter((m) => m.profile_id === viewer.id).map((m) => m.commission_id)
+  );
+  // UX-feedback: één gedeelde aanmeld-CTA onderaan i.p.v. een losse knop
+  // per kaart — alleen commissies waar de kijker nog geen lid van is en
+  // geen openstaande aanvraag voor heeft, komen in de keuzelijst.
+  const applyOptions = (commissions ?? [])
+    .filter((c) => !memberCommissionIds.has(c.id) && !pendingCommissionIds.has(c.id))
+    .map((c) => ({ id: c.id, name: c.name }));
 
   return (
     <div className="flex flex-col gap-6">
-      <VerenigingHero title="Commissies" description="Meld je aan voor een commissie waar je graag aan meewerkt." />
+      <VerenigingHero title="Commissies" description="Bekijk welke commissies er zijn en wie erin zit." />
 
       {!commissions || commissions.length === 0 ? (
         <ComingSoon icon={UsersRound} title="Nog geen commissies" description="Het bestuur heeft nog geen commissies aangemaakt." />
@@ -67,15 +76,15 @@ export default async function CommissiesPage() {
                     <p className="text-sm font-semibold text-foreground">{commission.name}</p>
                     {commission.description && <p className="mt-0.5 text-xs text-muted">{commission.description}</p>}
                   </div>
-                  <div className="shrink-0">
-                    {isMember ? (
-                      <span className="rounded-full bg-petrol-soft px-3 py-1 text-xs font-medium text-petrol">Lid</span>
-                    ) : isPending ? (
-                      <span className="text-xs font-medium text-muted">Aanvraag in behandeling</span>
-                    ) : (
-                      <CommissionApplyButton commissionId={commission.id} commissionName={commission.name} />
-                    )}
-                  </div>
+                  {(isMember || isPending) && (
+                    <div className="shrink-0">
+                      {isMember ? (
+                        <span className="rounded-full bg-petrol-soft px-3 py-1 text-xs font-medium text-petrol">Lid</span>
+                      ) : (
+                        <span className="text-xs font-medium text-muted">Aanvraag in behandeling</span>
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {members.length > 0 && (
@@ -107,6 +116,8 @@ export default async function CommissiesPage() {
           })}
         </div>
       )}
+
+      <CommissionApplyForm options={applyOptions} />
     </div>
   );
 }

@@ -6,10 +6,13 @@ import { createClient } from "@/lib/supabase/server";
 
 export type ApplyToCommissionState = { error?: string; success?: boolean };
 
-// Geen velden nodig (aanmelden is één klik) — direct aanroepbaar vanuit een
-// click-handler i.p.v. via useActionState/<form action>, dus geen
-// ongebruikte prevState/formData-parameters nodig.
-export async function applyToCommissionAction(commissionId: string): Promise<ApplyToCommissionState> {
+// UX-feedback: één gedeelde aanmeld-CTA i.p.v. een losse knop per
+// commissie — die stuurt nu ook een optionele toelichting mee, die het
+// bestuur bij de beoordeling in Beheer ziet (zie CommissiesAdminContent).
+export async function applyToCommissionAction(
+  commissionId: string,
+  message: string
+): Promise<ApplyToCommissionState> {
   const profile = await requireProfile();
   const supabase = await createClient();
 
@@ -23,9 +26,10 @@ export async function applyToCommissionAction(commissionId: string): Promise<App
     return { error: "Je bent al lid van deze commissie." };
   }
 
+  const trimmedMessage = message.trim();
   const { error } = await supabase
     .from("commission_applications")
-    .insert({ commission_id: commissionId, profile_id: profile.id });
+    .insert({ commission_id: commissionId, profile_id: profile.id, message: trimmedMessage || null });
 
   if (error) {
     // 23505 = unique index op (commission_id, profile_id) where status =

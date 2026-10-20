@@ -113,6 +113,7 @@ type ApplicationRow = {
   commission_id: string;
   profile_id: string;
   created_at: string;
+  message: string | null;
   profile: { id: string; first_name: string; last_name: string; avatar_url: string | null; avatar_thumb_url: string | null } | null;
 };
 
@@ -128,7 +129,7 @@ async function CommissiesTab() {
     supabase
       .from("commission_applications")
       .select(
-        "id, commission_id, profile_id, created_at, profile:profiles!commission_applications_profile_id_fkey(id, first_name, last_name, avatar_url, avatar_thumb_url)"
+        "id, commission_id, profile_id, created_at, message, profile:profiles!commission_applications_profile_id_fkey(id, first_name, last_name, avatar_url, avatar_thumb_url)"
       )
       .eq("status", "in_behandeling")
       .returns<ApplicationRow[]>(),
@@ -174,6 +175,7 @@ async function CommissiesTab() {
           lastName: a.profile!.last_name,
           avatarUrl: resolveAvatar(a.profile),
           createdAt: a.created_at,
+          message: a.message,
         })),
     }));
 
