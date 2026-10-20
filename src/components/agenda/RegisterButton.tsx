@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { CheckCircle2, Clock } from "lucide-react";
+import { clsx } from "clsx";
 import { Button } from "@/components/ui/Button";
 import { registerForActivityAction, unregisterFromActivityAction } from "@/app/(app)/agenda/actions";
 
@@ -62,31 +64,47 @@ export function RegisterButton({
     );
   }
 
+  // Robberts feedback: "Afmelden" stond als hoofdknop zodra je al was
+  // aangemeld — dat las in één oogopslag niet als status, en een
+  // onoplettende tik daarop meldde je meteen af. De status zelf is nu
+  // geen knop meer, alleen een kleine, duidelijk minder opvallende link
+  // eronder meldt je nog af.
+  if (registered) {
+    return (
+      <div className="flex flex-col items-start gap-1.5">
+        <div
+          className={clsx(
+            "flex h-10 items-center gap-1.5 rounded-full px-4 text-sm font-medium",
+            waitlisted ? "bg-status-warning-soft text-status-warning" : "bg-status-success-soft text-status-success"
+          )}
+        >
+          {waitlisted ? <Clock size={15} /> : <CheckCircle2 size={15} />}
+          {waitlisted ? "Je staat op de wachtlijst" : "Je bent aangemeld"}
+        </div>
+        {waitlisted && <p className="text-xs text-muted">Je krijgt bericht zodra er een plek vrijkomt.</p>}
+        <button
+          type="button"
+          onClick={handleClick}
+          disabled={pending}
+          className="text-xs font-medium text-muted underline-offset-2 hover:text-foreground hover:underline disabled:opacity-60"
+        >
+          {pending ? "Bezig…" : waitlisted ? "Wachtlijst verlaten" : externalEvent ? "Niet meer aanwezig" : "Afmelden"}
+        </button>
+        {error && (
+          <p role="alert" className="text-sm text-voc-red-text">
+            {error}
+          </p>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-2">
-      <Button onClick={handleClick} disabled={pending} variant={externalEvent || registered ? "secondary" : "primary"}>
-        {pending
-          ? "Bezig…"
-          : registered
-            ? waitlisted
-              ? "Wachtlijst verlaten"
-              : externalEvent
-                ? "Niet meer aanwezig"
-                : "Afmelden"
-            : isFull
-              ? "Op de wachtlijst"
-              : externalEvent
-                ? "Ik ben hierbij aanwezig"
-                : "Aanmelden"}
+      <Button onClick={handleClick} disabled={pending} variant={externalEvent ? "secondary" : "primary"}>
+        {pending ? "Bezig…" : isFull ? "Op de wachtlijst" : externalEvent ? "Ik ben hierbij aanwezig" : "Aanmelden"}
       </Button>
-      {registered && waitlisted && (
-        <p className="text-xs text-amber-700 dark:text-amber-400">
-          Je staat op de wachtlijst - je krijgt bericht zodra er een plek vrijkomt.
-        </p>
-      )}
-      {!registered && isFull && (
-        <p className="text-xs text-muted">Deze activiteit is vol, maar je kunt je op de wachtlijst zetten.</p>
-      )}
+      {isFull && <p className="text-xs text-muted">Deze activiteit is vol, maar je kunt je op de wachtlijst zetten.</p>}
       {error && (
         <p role="alert" className="text-sm text-voc-red-text">
           {error}

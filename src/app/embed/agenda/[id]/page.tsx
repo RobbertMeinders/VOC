@@ -1,21 +1,24 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, CalendarDays, MapPin, Users } from "lucide-react";
+import { ArrowLeft, CalendarDays, Download, MapPin, Users } from "lucide-react";
 import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/server";
-import { getSignedStorageUrl } from "@/lib/supabase/storage";
+import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { formatActivityDate } from "@/lib/format/date";
 import { getCurrentProfile } from "@/lib/auth/session";
+import { Avatar } from "@/components/ui/Avatar";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
 import { ShareActivityButton } from "@/components/embed/ShareActivityButton";
 import { RegisterButton } from "@/components/agenda/RegisterButton";
 import { MemberOrVisitorRegistration } from "@/components/embed/MemberOrVisitorRegistration";
+import { activityHref } from "@/lib/agenda/slug";
 import { isWebsiteTheme, withEmbedTheme } from "@/lib/embed/theme";
 import { openSans } from "@/lib/fonts/openSans";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
+type AttendeeRow = { id: string; first_name: string; last_name: string; avatar_url: string | null };
 
 export const metadata: Metadata = { title: "VOC Agenda" };
 
@@ -62,7 +65,12 @@ export default async function AgendaEmbedDetailPage({
     getCurrentProfile(),
   ]);
 
-  const [registration, confirmedCount] = profile
+  // Attendees/waitlist alleen voor een gedetecteerde sessie (zie de
+  // toelichting hierboven) — Robberts feedback: een ingelogd lid dat de
+  // embed op de website bekijkt, zag hier minder dan op het portaal zelf
+  // ("wie gaat er ook", "zet in je agenda"). Namen/avatars dus niet voor
+  // een anonieme bezoeker, net als op het portaal.
+  const [registration, confirmedCount, attendees, waitlistCount] = profile
     ? await Promise.all([
         supabase
           .from("activity_registrations")
@@ -77,8 +85,31 @@ export default async function AgendaEmbedDetailPage({
           .eq("activity_id", activity.id)
           .eq("is_waitlisted", false)
           .then((r) => r.count ?? 0),
+        supabase
+          .from("activity_registrations")
+          .select("profile:profiles(id, first_name, last_name, avatar_url)")
+          .eq("activity_id", activity.id)
+          .eq("is_waitlisted", false)
+          .order("created_at", { ascending: true })
+          .returns<{ profile: AttendeeRow | null }[]>()
+          .then((r) => (r.data ?? []).map((row) => row.profile).filter((p): p is AttendeeRow => p !== null)),
+        supabase
+          .from("activity_registrations")
+          .select("id", { count: "exact", head: true })
+          .eq("activity_id", activity.id)
+          .eq("is_waitlisted", true)
+          .then((r) => r.count ?? 0),
       ])
-    : [null, 0];
+    : [null, 0, [] as AttendeeRow[], 0];
+
+  const attendeeAvatarUrls = await getSignedStorageUrls(
+    supabase,
+    "avatars",
+    attendees.map((a) => a.avatar_url)
+  );
+  const VISIBLE_ATTENDEES = 6;
+  const visibleAttendees = attendees.slice(0, VISIBLE_ATTENDEES);
+  const remainingAttendees = attendees.length - visibleAttendees.length;
 
   const isFull = activity.max_participants !== null && confirmedCount >= activity.max_participants;
   const deadlinePassed = activity.registration_deadline ? new Date(activity.registration_deadline) < new Date() : false;
@@ -155,6 +186,52 @@ export default async function AgendaEmbedDetailPage({
                 isFull={isFull}
                 deadlinePassed={deadlinePassed}
               />
+              {/* Zelfde twee dingen als op het portaal zelf (Zet in je
+                  agenda, Wie gaat er ook) — een ingelogd lid dat de embed op
+                  de website bekijkt zag hier tot nu toe minder dan op het
+                  portaal. Geen koppeling naar /leden/[id] zoals op het
+                  portaal: dat zou de iframe laten navigeren naar de volle
+                  portaalpagina, wat in dit kleine ingebedde venster niet
+                  past — hier dus alleen naam + foto, niet doorklikbaar. */}
+              <a
+                href={activityHref(activity, "/ics")}
+                className="inline-flex h-9 w-fit items-center gap-1.5 self-start rounded-full border border-border bg-surface px-3.5 text-xs font-medium text-foreground hover:bg-black/[.03]"
+              >
+                <Download size={13} />
+                Zet in je agenda
+              </a>
+              {(visibleAttendees.length > 0 || waitlistCount > 0) && (
+                <div className="border-t border-border pt-3">
+                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Wie gaat er ook</p>
+                  {visibleAttendees.length > 0 ? (
+                    <div className="flex flex-wrap items-center gap-2">
+                      {visibleAttendees.map((attendee) => (
+                        <div key={attendee.id} className="flex items-center gap-1.5 rounded-full bg-raised py-1 pl-1 pr-2.5">
+                          <Avatar
+                            firstName={attendee.first_name}
+                            lastName={attendee.last_name}
+                            avatarUrl={attendee.avatar_url ? (attendeeAvatarUrls.get(attendee.avatar_url) ?? null) : null}
+                            size={22}
+                          />
+                          <span className="text-xs font-medium text-foreground">{attendee.first_name}</span>
+                        </div>
+                      ))}
+                      {remainingAttendees > 0 && (
+                        <span className="text-xs text-muted">
+                          en {remainingAttendees} {remainingAttendees === 1 ? "ander" : "anderen"}
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-muted">Nog niemand aangemeld.</p>
+                  )}
+                  {waitlistCount > 0 && (
+                    <p className="mt-2 text-xs text-muted">
+                      {waitlistCount} {waitlistCount === 1 ? "persoon" : "personen"} op de wachtlijst.
+                    </p>
+                  )}
+                </div>
+              )}
             </div>
           ) : (
             // Server-side kon geen sessie gedetecteerd worden (het normale
