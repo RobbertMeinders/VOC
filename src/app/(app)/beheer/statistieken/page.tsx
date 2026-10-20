@@ -6,6 +6,8 @@ import { requireBoard } from "@/lib/auth/session";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { StatsTabs, type StatsTabKey } from "@/components/beheer/statistics/StatsTabs";
 import { PeriodMenu } from "@/components/beheer/statistics/PeriodMenu";
+import { StatsNavProvider } from "@/components/beheer/statistics/StatsNavContext";
+import { StatsContentArea } from "@/components/beheer/statistics/StatsContentArea";
 import { KpiTile } from "@/components/beheer/statistics/KpiTile";
 import { LineChart, BarChart, HorizontalBars, FunnelChart, Legend, type BarRow } from "@/components/beheer/statistics/Charts";
 import { SignalsList, IconStatList } from "@/components/beheer/statistics/Lists";
@@ -403,25 +405,29 @@ export default async function StatistiekenPage({
   const range = resolvePeriodRange(period);
 
   return (
-    <div className="flex flex-col gap-4">
-      <PageHeader title="Statistieken" description="Hoe gaat het met de vereniging en het portaal." />
+    <StatsNavProvider>
+      <div className="flex flex-col gap-4">
+        <PageHeader title="Statistieken" description="Hoe gaat het met de vereniging en het portaal." />
 
-      <div className="flex items-end justify-between gap-3 border-b border-border">
-        <StatsTabs active={activeTab} />
-        <div className="pb-2">
-          <PeriodMenu period={period} compare={compare} />
+        <div className="flex items-end justify-between gap-3 border-b border-border">
+          <StatsTabs active={activeTab} />
+          <div className="pb-2">
+            <PeriodMenu period={period} compare={compare} />
+          </div>
         </div>
-      </div>
-      <p className="-mt-2 text-xs text-muted">
-        {formatRangeLabel(range)}
-        {compare ? ` · vergeleken met ${prevPeriodLabel(period)}` : ""}
-      </p>
+        <p className="-mt-2 text-xs text-muted">
+          {formatRangeLabel(range)}
+          {compare ? ` · vergeleken met ${prevPeriodLabel(period)}` : ""}
+        </p>
 
-      {activeTab === "overzicht" && <OverviewTab period={range} compare={compare} />}
-      {activeTab === "leden" && <LedenTab period={range} compare={compare} />}
-      {activeTab === "activiteiten" && <ActiviteitenTab period={range} compare={compare} />}
-      {activeTab === "community" && <CommunityTab period={range} compare={compare} />}
-      {activeTab === "communicatie" && <CommunicatieTab period={range} compare={compare} />}
-    </div>
+        <StatsContentArea>
+          {activeTab === "overzicht" && <OverviewTab period={range} compare={compare} />}
+          {activeTab === "leden" && <LedenTab period={range} compare={compare} />}
+          {activeTab === "activiteiten" && <ActiviteitenTab period={range} compare={compare} />}
+          {activeTab === "community" && <CommunityTab period={range} compare={compare} />}
+          {activeTab === "communicatie" && <CommunicatieTab period={range} compare={compare} />}
+        </StatsContentArea>
+      </div>
+    </StatsNavProvider>
   );
 }

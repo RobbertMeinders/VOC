@@ -1,9 +1,9 @@
 "use client";
 
 import { Suspense } from "react";
-import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { clsx } from "clsx";
+import { useStatsNav } from "./StatsNavContext";
 
 export const STATS_TABS = [
   { key: "overzicht", label: "Overzicht" },
@@ -28,6 +28,7 @@ export function StatsTabs(props: { active: StatsTabKey }) {
 
 function StatsTabsInner({ active }: { active: StatsTabKey }) {
   const searchParams = useSearchParams();
+  const { navigate, isPending } = useStatsNav();
 
   function hrefFor(tab: StatsTabKey): string {
     const params = new URLSearchParams(searchParams.toString());
@@ -38,19 +39,21 @@ function StatsTabsInner({ active }: { active: StatsTabKey }) {
   return (
     <div role="tablist" className="flex gap-1 overflow-x-auto">
       {STATS_TABS.map((tab) => (
-        <Link
+        <button
           key={tab.key}
-          href={hrefFor(tab.key)}
+          type="button"
+          onClick={() => navigate(hrefFor(tab.key))}
           role="tab"
           aria-selected={active === tab.key}
+          disabled={isPending}
           className={clsx(
-            "relative shrink-0 whitespace-nowrap px-3 pb-3 pt-2 text-sm font-semibold transition-colors",
+            "relative shrink-0 whitespace-nowrap px-3 pb-3 pt-2 text-sm font-semibold transition-colors disabled:cursor-wait",
             active === tab.key ? "text-foreground" : "text-muted hover:text-foreground"
           )}
         >
           {tab.label}
           {active === tab.key && <span aria-hidden className="absolute inset-x-3 -bottom-px h-[3px] rounded-t-full bg-foreground" />}
-        </Link>
+        </button>
       ))}
     </div>
   );

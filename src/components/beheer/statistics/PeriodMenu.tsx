@@ -1,13 +1,14 @@
 "use client";
 
 import { Suspense, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { Check, ChevronDown } from "lucide-react";
 import { clsx } from "clsx";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { useFixedAnchor } from "@/lib/dom/useFixedAnchor";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { PERIOD_OPTIONS, type StatsPeriod } from "@/lib/statistics/period";
+import { useStatsNav } from "./StatsNavContext";
 
 const MENU_WIDTH = 248;
 
@@ -23,9 +24,9 @@ export function PeriodMenu(props: { period: StatsPeriod; compare: boolean }) {
 }
 
 function PeriodMenuInner({ period, compare }: { period: StatsPeriod; compare: boolean }) {
-  const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const { navigate: goTo, isPending } = useStatsNav();
   const [open, setOpen] = useState(false);
   const { anchorRef, rect } = useFixedAnchor<HTMLButtonElement>(open);
   useEscapeKey(open, () => setOpen(false));
@@ -34,7 +35,7 @@ function PeriodMenuInner({ period, compare }: { period: StatsPeriod; compare: bo
     const params = new URLSearchParams(searchParams.toString());
     if (next.periode) params.set("periode", next.periode);
     if (next.vergelijk !== undefined) params.set("vergelijk", next.vergelijk ? "1" : "0");
-    router.push(`${pathname}?${params.toString()}`);
+    goTo(`${pathname}?${params.toString()}`);
   }
 
   const currentLabel = PERIOD_OPTIONS.find((p) => p.key === period)?.label ?? period;
@@ -47,7 +48,8 @@ function PeriodMenuInner({ period, compare }: { period: StatsPeriod; compare: bo
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
-        className="flex h-9 items-center gap-2 rounded-xl border border-border bg-surface px-3.5 text-sm font-semibold text-foreground hover:border-muted"
+        disabled={isPending}
+        className="flex h-9 items-center gap-2 rounded-xl border border-border bg-surface px-3.5 text-sm font-semibold text-foreground hover:border-muted disabled:cursor-wait disabled:opacity-60"
       >
         {currentLabel}
         <ChevronDown size={15} className={clsx("text-muted transition-transform duration-150", open && "rotate-180")} />
@@ -67,6 +69,7 @@ function PeriodMenuInner({ period, compare }: { period: StatsPeriod; compare: bo
                 type="button"
                 role="menuitemradio"
                 aria-checked={p.key === period}
+                disabled={isPending}
                 onClick={() => {
                   navigate({ periode: p.key });
                   setOpen(false);
