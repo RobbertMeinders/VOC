@@ -31,6 +31,7 @@ export function AppShell({
   companyName,
   logoUrl,
   siteName,
+  beheerWaitingCount,
   children,
   modal,
 }: {
@@ -41,6 +42,7 @@ export function AppShell({
   companyName: string | null;
   logoUrl: string | null;
   siteName: string;
+  beheerWaitingCount: number;
   children: ReactNode;
   modal?: ReactNode;
 }) {
@@ -70,6 +72,7 @@ export function AppShell({
                       companyName={companyName}
                       logoUrl={logoUrl}
                       siteName={siteName}
+                      beheerWaitingCount={beheerWaitingCount}
                       modal={modal}
                     >
                       {children}
@@ -93,6 +96,7 @@ function AppShellBody({
   companyName,
   logoUrl,
   siteName,
+  beheerWaitingCount,
   children,
   modal,
 }: {
@@ -103,6 +107,7 @@ function AppShellBody({
   companyName: string | null;
   logoUrl: string | null;
   siteName: string;
+  beheerWaitingCount: number;
   children: ReactNode;
   modal?: ReactNode;
 }) {
@@ -171,6 +176,7 @@ function AppShellBody({
           companyName={companyName}
           logoUrl={logoUrl}
           siteName={siteName}
+          beheerWaitingCount={beheerWaitingCount}
         />
       )}
       <MobileHeader unread={unread} logoUrl={logoUrl} siteName={siteName} />
@@ -189,7 +195,14 @@ function AppShellBody({
           {children}
         </div>
       </main>
-      <BottomNav profile={profile} avatarUrl={avatarUrl} companyId={companyId} companyName={companyName} unread={unread} />
+      <BottomNav
+        profile={profile}
+        avatarUrl={avatarUrl}
+        companyId={companyId}
+        companyName={companyName}
+        unread={unread}
+        beheerWaitingCount={beheerWaitingCount}
+      />
       {modal}
     </div>
   );

@@ -114,16 +114,18 @@
   --hero-gradient: radial-gradient(120% 80% at 100% 0%, #1b6a73 0%, transparent 55%),
     linear-gradient(165deg, #0b2e33 0%, #0e4249 100%);
 
-  /* Primaire reeks in grafieken (Statistieken, beheerdashboard) — was rood,
-     wordt petrol (rood op dieet). Tweede reeks (--chart-secondary) blijft
-     ongewijzigd, al gevalideerd tegen --voc-red; bij gelegenheid opnieuw
-     controleren nu de primaire reeks petrol is i.p.v. rood. */
-  --chart-primary: var(--petrol);
-  /* Tweede serie in grafieken met 2 reeksen (Statistieken) — nooit gebruikt
-     als losse merkkleur, alleen als begeleiding naast --chart-primary.
-     Gevalideerd met dataviz-skill's validate_palette.js (CVD-veilig,
-     zelfde waarde werkt voor licht én donker). */
-  --chart-secondary: #3b82f6;
+  /* Statistieken-herbouw: eigen, specifiek voor grafieken gevalideerd kleurpaar
+     i.p.v. --petrol/een losse blauwtint hergebruiken — --petrol zelf is in
+     donker vrij licht (voor leesbare iconen/tekst), wat als lijnkleur in een
+     grafiek juist te weinig contrast met --surface gaf. Op kleurenblindheid
+     gecontroleerd paar, aangeleverd door de review-sessie. */
+  --chart-primary: #0a8f9c;
+  --chart-secondary: #d46a1f;
+  /* Vorige periode (vergelijkingslijn, gestippeld) — bewust grijs i.p.v. een
+     derde merkkleur: dit is geen eigen "reeks" maar een naslag-context naast
+     de eigenlijke data. */
+  --chart-compare: #a8a29a;
+  --chart-grid: #ece8e1;
 }
 
 @theme inline {
@@ -169,6 +171,8 @@
 
   --color-chart-primary: var(--chart-primary);
   --color-chart-secondary: var(--chart-secondary);
+  --color-chart-compare: var(--chart-compare);
+  --color-chart-grid: var(--chart-grid);
 
   --font-sans: var(--font-inter);
   --font-display: var(--font-bricolage), var(--font-inter), system-ui, sans-serif;
@@ -207,6 +211,11 @@
     --danger: var(--voc-red);
     --danger-text: var(--voc-red-text);
     --danger-soft: var(--voc-red-light);
+
+    --chart-primary: #2a9fab;
+    --chart-secondary: #d9722b;
+    --chart-compare: #6f6f76;
+    --chart-grid: #26272b;
 
     --status-success: #6ee7a0;
     --status-success-soft: #13271d;
@@ -254,6 +263,11 @@
   --danger: var(--voc-red);
   --danger-text: var(--voc-red-text);
   --danger-soft: var(--voc-red-light);
+
+  --chart-primary: #2a9fab;
+  --chart-secondary: #d9722b;
+  --chart-compare: #6f6f76;
+  --chart-grid: #26272b;
 
   --status-success: #6ee7a0;
   --status-success-soft: #13271d;

@@ -14,12 +14,14 @@ export function BottomNav({
   companyId,
   companyName,
   unread,
+  beheerWaitingCount,
 }: {
   profile: Profile;
   avatarUrl: string | null;
   companyId: string | null;
   companyName: string | null;
   unread: UnreadNotificationSections;
+  beheerWaitingCount: number;
 }) {
   const pathname = usePathname();
 
@@ -63,7 +65,7 @@ export function BottomNav({
             avatarUrl={avatarUrl}
             companyId={companyId}
             companyName={companyName}
-            beheerBadge={unread.beheer}
+            beheerBadge={beheerWaitingCount}
           />
         </li>
       </ul>

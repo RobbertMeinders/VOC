@@ -7,7 +7,7 @@ import { requireBoard, requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { uploadDocument } from "@/lib/supabase/uploadDocument";
-import { invalidateActivityStatsCache } from "@/lib/statistics/queries";
+import { invalidateActivityStatsCache } from "@/lib/statistics/shared";
 import { logAuditAction } from "@/lib/audit/log";
 import { sendRawHtmlEmail, escapeHtml } from "@/lib/email/send";
 import { dispatchPendingPushNotifications } from "@/lib/notifications/dispatch-push";

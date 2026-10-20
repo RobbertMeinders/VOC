@@ -25,6 +25,7 @@ export function Sidebar({
   companyName,
   logoUrl,
   siteName,
+  beheerWaitingCount,
 }: {
   profile: Profile;
   unread: UnreadNotificationSections;
@@ -33,6 +34,7 @@ export function Sidebar({
   companyName: string | null;
   logoUrl: string | null;
   siteName: string;
+  beheerWaitingCount: number;
 }) {
   const pathname = usePathname();
 
@@ -74,7 +76,7 @@ export function Sidebar({
     { href: memberHref(profile), label: "Mijn profiel", icon: UserIcon },
     ...(companyId ? [{ href: `/bedrijven/${companyId}`, label: "Mijn bedrijf", icon: Building2 }] : []),
     { href: "/instellingen", label: "Instellingen", icon: Settings },
-    ...(isBoard(profile.role) ? [{ href: "/beheer", label: "Beheer", icon: LayoutDashboard, badge: unread.beheer }] : []),
+    ...(isBoard(profile.role) ? [{ href: "/beheer", label: "Beheer", icon: LayoutDashboard, badge: beheerWaitingCount }] : []),
   ];
 
   function renderAccountItem({ href, label, icon: Icon, badge }: (typeof accountItems)[number]) {
@@ -95,7 +97,7 @@ export function Sidebar({
         {label}
         {Boolean(badge) && (
           <span className="ml-auto">
-            <NavBadge count={badge!} label={`${badge} openstaande melding(en) in beheer`} />
+            <NavBadge count={badge!} label={`${badge} item(s) wachten op jou in beheer`} />
           </span>
         )}
       </Link>

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
 import { ArrowLeft, ChevronDown } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
+import { NavBadge } from "@/components/layout/NavBadge";
 import { BEHEER_SECTIONS, type BeheerNavItem } from "./beheer-nav-items";
 
 // Permanent zij-menu voor alle /beheer/*-pagina's (zie BeheerLayout) i.p.v.
@@ -15,7 +16,16 @@ import { BEHEER_SECTIONS, type BeheerNavItem } from "./beheer-nav-items";
 // onhandig (geen sectiekoppen zichtbaar, veel heen-en-weer scrollen om iets
 // te vinden) — daarom daar in plaats daarvan een knop met de huidige
 // sectie die de volledige, gegroepeerde lijst inline uitklapt.
-export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
+export function BeheerSidebar({
+  isAdmin,
+  badges = {},
+}: {
+  isAdmin: boolean;
+  // Per href het aantal openstaande items (zelfde tellingen als "Wacht op
+  // jou" op het dashboard, zie lib/beheer/waitingCounts.ts) — alleen items
+  // die hier een sleutel in hebben tonen een badge.
+  badges?: Record<string, number>;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -41,6 +51,7 @@ export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
   function renderMobileItem(item: BeheerNavItem, onNavigate?: () => void) {
     const active = isActive(item.href);
     const Icon = item.icon;
+    const badge = badges[item.href];
     return (
       <Link
         key={item.href}
@@ -53,6 +64,11 @@ export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
       >
         <Icon size={16} strokeWidth={active ? 2.5 : 2} />
         {item.label}
+        {Boolean(badge) && (
+          <span className="ml-auto">
+            <NavBadge count={badge!} label={`${badge} item(s) wachten op jou`} />
+          </span>
+        )}
       </Link>
     );
   }
@@ -64,6 +80,7 @@ export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
   function renderDesktopItem(item: BeheerNavItem) {
     const active = isActive(item.href);
     const Icon = item.icon;
+    const badge = badges[item.href];
     return (
       <Link
         key={item.href}
@@ -75,6 +92,11 @@ export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
       >
         <Icon size={16} strokeWidth={active ? 2.5 : 2} />
         {item.label}
+        {Boolean(badge) && (
+          <span className="ml-auto">
+            <NavBadge count={badge!} label={`${badge} item(s) wachten op jou`} />
+          </span>
+        )}
       </Link>
     );
   }
@@ -122,8 +144,13 @@ export function BeheerSidebar({ isAdmin }: { isAdmin: boolean }) {
           hoogte van de kolom te verliezen. Redesign-besluit 8: donkerpetrol
           vlak i.p.v. een gewone lichte kolom — zodat je in Beheer altijd
           meteen ziet dat je niet meer in het ledenportaal zelf zit. */}
+      {/* h-dvh naast inset-y-0: zonder expliciete hoogte liet dit vlak op het
+          live portaal halverwege de pagina los van de onderkant van het
+          scherm, waarna de lichte --background erachter zichtbaar werd —
+          zelfde combinatie als de gewone Sidebar (Sidebar.tsx) hierboven,
+          die dit probleem niet had. */}
       <nav
-        className="fixed inset-y-0 left-0 hidden w-72 flex-col gap-5 overflow-y-auto px-3 py-6 md:flex"
+        className="fixed inset-y-0 left-0 hidden h-dvh w-72 flex-col gap-5 overflow-y-auto px-3 py-6 md:flex"
         style={{ backgroundImage: "var(--hero-gradient)" }}
       >
         <Link
