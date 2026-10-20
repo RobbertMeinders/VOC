@@ -2,8 +2,7 @@ import "server-only";
 
 import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
-import { createClient } from "@/lib/supabase/server";
-import { renderTemplate } from "@/lib/template/render";
+import { renderMessageEmail } from "@/lib/templates/message-render";
 import { escapeHtml } from "@/lib/text/escape-html";
 
 export { escapeHtml };
@@ -121,17 +120,22 @@ async function sendMail(
   }
 }
 
-// Notificatietypes met een beheerbaar email_templates-record (0039_
-// notification_templates.sql) — de overige types (moderatie, de uitkomst
+// Notificatietypes met een beheerbaar message_templates-record (migratie
+// 0129, Automatische berichten) — de overige types (moderatie, de uitkomst
 // van je eigen aanvraag/inzending, …) hebben geen template en gaan altijd
-// als kale mail (zie sendRawNotificationEmail hieronder).
-const NOTIFICATION_EMAIL_TEMPLATE_KEYS: Record<string, string> = {
-  new_activity: "nieuwe_activiteit",
-  new_member: "nieuw_lid",
-  feed_comment: "feed_reactie",
-  feed_mention: "feed_vermelding",
-  activity_reminder: "activity_reminder",
-  waitlist_promoted: "waitlist_promoted",
+// als kale mail (zie sendRawNotificationEmail hieronder). Deze zes gebruiken
+// nog steeds alleen de generieke title/body/link van de notifications-rij
+// zelf, niet de rijkere variabelen die message_templates voor de overige
+// berichten wél heeft — de notifications-tabel heeft geen losse kolommen
+// per {{var}}, dat vraagt een stapel triggerfuncties om aan te passen en is
+// bewust niet in deze ronde meegenomen.
+const NOTIFICATION_MESSAGE_TEMPLATE_KEYS: Record<string, string> = {
+  new_activity: "nieuw-act",
+  new_member: "nieuw-lid",
+  feed_comment: "reactie",
+  feed_mention: "genoemd",
+  activity_reminder: "herinnering",
+  waitlist_promoted: "wachtlijst",
 };
 
 // Zelfde bewoording/stijl als de campagne-voettekst (render.ts) — een
@@ -144,38 +148,6 @@ const NOTIFICATION_EMAIL_TEMPLATE_KEYS: Record<string, string> = {
 function notificationPreferencesFooter(): string {
   const siteUrl = (process.env.SITE_URL ?? "").replace(/\/$/, "");
   return `<p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je ontvangt dit als lid van de Veendammer Ondernemers Compagnie. <a href="${escapeHtml(`${siteUrl}/instellingen`)}" style="color:#6b6b72;">Voorkeuren aanpassen</a></p>`;
-}
-
-/**
- * Renders a board-editable template (see email_templates /
- * get_email_template()) and sends it via SMTP. Used both from
- * authenticated contexts (uitnodigingen) and anonymous ones (wachtwoord
- * vergeten) — the template is read through a security definer RPC so an
- * anonymous caller can still read the (non-secret) template content.
- */
-export async function sendTemplatedEmail(
-  templateKey: string,
-  to: string,
-  variables: Record<string, string>,
-  options?: { includePreferencesFooter?: boolean }
-): Promise<SendResult> {
-  const supabase = await createClient();
-  const { data: templates, error: templateError } = await supabase.rpc("get_email_template", {
-    p_key: templateKey,
-  });
-  const template = templates?.[0];
-
-  if (templateError || !template) {
-    return { error: `E-mailtemplate '${templateKey}' kon niet worden geladen.` };
-  }
-
-  // Subject is platte tekst (geen HTML-rendering), dus ongewijzigde
-  // variabelen; de HTML-body krijgt elke variabele HTML-geëscaped.
-  const subject = renderTemplate(template.subject, variables);
-  const escapedVariables = Object.fromEntries(Object.entries(variables).map(([key, value]) => [key, escapeHtml(value)]));
-  const html = renderTemplate(template.body_html, escapedVariables) + (options?.includePreferencesFooter ? notificationPreferencesFooter() : "");
-
-  return sendMail(to, subject, html);
 }
 
 // Kale e-mail zonder board-beheerde content — fallback voor
@@ -242,8 +214,8 @@ export async function sendMemberContactEmail(params: {
 /**
  * Verstuurt een notificatie (uit de notifications-tabel) als e-mail —
  * gebruikt door /api/cron/send-email-notifications. Rendert het
- * bijbehorende beheerbare template (email_templates, zie
- * NOTIFICATION_EMAIL_TEMPLATE_KEYS) als dat bestaat, anders een kale mail
+ * bijbehorende beheerbare bericht (message_templates, zie
+ * NOTIFICATION_MESSAGE_TEMPLATE_KEYS) als dat bestaat, anders een kale mail
  * met de rauwe titel/body — zodat notificatietypes zonder eigen template
  * (moderatie, de uitkomst van je eigen aanvraag/inzending, …) gewoon
  * blijven werken.
@@ -255,19 +227,18 @@ export async function sendNotificationEmail(
   const siteUrl = process.env.SITE_URL ?? "";
   const linkUrl = notification.link ? `${siteUrl}${notification.link}` : "";
 
-  const templateKey = NOTIFICATION_EMAIL_TEMPLATE_KEYS[notification.type];
+  const templateKey = NOTIFICATION_MESSAGE_TEMPLATE_KEYS[notification.type];
   if (templateKey) {
-    const result = await sendTemplatedEmail(
+    const rendered = await renderMessageEmail(
       templateKey,
-      to,
-      {
-        title: notification.title,
-        body: notification.body ?? "",
-        link: linkUrl,
-      },
+      linkUrl,
+      { title: notification.title, body: notification.body ?? "" },
       { includePreferencesFooter: true }
     );
-    if (!result.error) return result;
+    if (rendered) {
+      const result = await sendMail(to, rendered.subject, rendered.html);
+      if (!result.error) return result;
+    }
   }
 
   return sendRawNotificationEmail(to, notification.title, notification.body, linkUrl);

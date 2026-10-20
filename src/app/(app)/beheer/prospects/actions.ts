@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { sendTemplatedEmail, invitationGreeting } from "@/lib/email/send";
+import { isEmailConfigured, sendRawHtmlEmail, invitationGreeting } from "@/lib/email/send";
+import { renderMessageEmail } from "@/lib/templates/message-render";
 import type { Database } from "@/lib/types/database";
 
 export type ProspectStatus = Database["public"]["Tables"]["prospects"]["Row"]["status"];
@@ -86,6 +87,7 @@ export async function createInvitationFromProspectAction(prospectId: string): Pr
       first_name: firstName || null,
       last_name: lastName || null,
       company_id: companyId,
+      source: "nieuw_lid",
     })
     .select("token")
     .single();
@@ -101,10 +103,10 @@ export async function createInvitationFromProspectAction(prospectId: string): Pr
   revalidatePath("/beheer/instroom");
 
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
-  const { error: emailError } = await sendTemplatedEmail("uitnodiging", prospect.email, {
-    link,
-    greeting: invitationGreeting(firstName),
-  });
+  const rendered = isEmailConfigured() ? await renderMessageEmail("uit-nieuw", link, { greeting: invitationGreeting(firstName) }) : null;
+  const { error: emailError } = rendered
+    ? await sendRawHtmlEmail(prospect.email, rendered.subject, rendered.html)
+    : { error: "E-mail versturen is niet geconfigureerd." };
   if (!emailError) {
     // BUGFIX: zelfde ontbrekende expires_at-update als in beheer/aanvragen/
     // actions.ts — zonder dit bleef de link van elke via een prospect

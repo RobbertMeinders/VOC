@@ -9,6 +9,8 @@ import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { geocodeAddress } from "@/lib/geo/geocode";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
+import { isEmailConfigured, sendRawHtmlEmail, invitationGreeting } from "@/lib/email/send";
+import { renderMessageEmail } from "@/lib/templates/message-render";
 import type { Database } from "@/lib/types/database";
 
 export type UpdateCompanyState = { error?: string; success?: boolean };
@@ -351,5 +353,87 @@ export async function updateCompanyBillingAction(
   invalidateQuery("beheer-bedrijven-page-billing");
   revalidatePath(`/bedrijven/${companyId}/bewerken`);
   revalidatePath("/beheer/bedrijven");
+  return { success: true };
+}
+
+export type InviteColleagueState = { error?: string; success?: boolean };
+
+const INVITATION_VALIDITY_MS = 14 * 24 * 60 * 60 * 1000;
+
+// Automatische berichten, uitnodiging-in-drieën: een bestaand, actief
+// gekoppeld lid van dit bedrijf (of bestuur/beheer) mag een collega
+// uitnodigen. invitations.company_id wordt hier gezet door iemand die al
+// bij dit bedrijf hoort — handle_new_user (migratie 0126) koppelt daarom
+// direct door als de registrant dit voorgestelde bedrijf aanhoudt, zonder
+// tussenkomst van een koppelverzoek.
+export async function inviteColleagueAction(
+  companyId: string,
+  _prevState: InviteColleagueState,
+  formData: FormData
+): Promise<InviteColleagueState> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  if (!isBoard(profile.role)) {
+    const { count } = await supabase
+      .from("company_members")
+      .select("id", { count: "exact", head: true })
+      .eq("company_id", companyId)
+      .eq("profile_id", profile.id);
+    if (!count) {
+      return { error: "Je bent zelf niet gekoppeld aan dit bedrijf." };
+    }
+  }
+
+  const email = String(formData.get("email") ?? "").trim();
+  const firstName = String(formData.get("first_name") ?? "").trim();
+  if (!email) {
+    return { error: "Vul een e-mailadres in." };
+  }
+  if (!isEmailConfigured()) {
+    return { error: "E-mail versturen is niet geconfigureerd." };
+  }
+
+  const { data: company } = await supabase.from("companies").select("name").eq("id", companyId).maybeSingle();
+  if (!company) {
+    return { error: "Bedrijf niet gevonden." };
+  }
+
+  const { data: invitation, error } = await supabase
+    .from("invitations")
+    .insert({
+      email,
+      role: "lid",
+      invited_by: profile.id,
+      first_name: firstName || null,
+      company_id: companyId,
+      source: "collega",
+      expires_at: new Date(Date.now() + INVITATION_VALIDITY_MS).toISOString(),
+    })
+    .select("token")
+    .single();
+
+  if (error || !invitation) {
+    return { error: "Uitnodigen is niet gelukt. Probeer het opnieuw." };
+  }
+
+  const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
+  const rendered = await renderMessageEmail("uit-collega", link, {
+    greeting: invitationGreeting(firstName),
+    naam_uitnodiger: `${profile.first_name} ${profile.last_name}`,
+    bedrijf: company.name,
+  });
+  const { error: emailError } = rendered
+    ? await sendRawHtmlEmail(email, rendered.subject, rendered.html)
+    : { error: "Sjabloon ontbreekt." };
+
+  if (!emailError) {
+    await supabase.from("invitations").update({ last_sent_at: new Date().toISOString() }).eq("token", invitation.token);
+  }
+
+  revalidatePath(`/bedrijven/${companyId}`);
+  if (emailError) {
+    return { error: `Uitnodiging aangemaakt, maar de e-mail versturen is niet gelukt (${emailError}).` };
+  }
   return { success: true };
 }

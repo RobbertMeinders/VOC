@@ -59,6 +59,19 @@ export function InviteForm({ canInviteBoard }: { canInviteBoard: boolean }) {
           <FieldError message={errors.email} />
         </div>
 
+        <div>
+          <label htmlFor="source" className="mb-1.5 block text-sm font-medium text-foreground">
+            Soort uitnodiging
+          </label>
+          {/* Automatische berichten, uitnodiging-in-drieën: bepaalt welke
+              welkomstmail wordt verstuurd ("uit-nieuw" vs "uit-bestaand",
+              zie message_templates). */}
+          <Select id="source" name="source" defaultValue="nieuw_lid" className="h-10 w-48 pl-3">
+            <option value="nieuw_lid">Nieuw lid</option>
+            <option value="bestaand_lid">Bestaand lid, toegang geven</option>
+          </Select>
+        </div>
+
         {canInviteBoard && (
           <div>
             <label htmlFor="role" className="mb-1.5 block text-sm font-medium text-foreground">

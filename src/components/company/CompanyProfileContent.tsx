@@ -8,6 +8,7 @@ import { CompanyHeader } from "@/components/company/CompanyHeader";
 import { CompanyLocationMap } from "@/components/company/CompanyLocationMap";
 import { CompanyMemberList, type CompanyMember } from "@/components/company/CompanyMemberList";
 import { CompanyMembershipRequests, type PendingMembershipRequest } from "@/components/company/CompanyMembershipRequests";
+import { InviteColleagueForm } from "@/components/company/InviteColleagueForm";
 import type { Database } from "@/lib/types/database";
 
 type Company = Database["public"]["Tables"]["companies"]["Row"];
@@ -124,6 +125,7 @@ export async function CompanyProfileContent({ id }: { id: string }) {
           deze actie makkelijk te missen als je hier via de notificatie
           binnenkomt en de kaart+ledenlijst het scherm al vullen. */}
       {canManage && <CompanyMembershipRequests companyId={id} requests={pendingRequests} />}
+      {canManage && <InviteColleagueForm companyId={id} />}
 
       {/* UX-review V6: deze kaart liet op bijna elk bedrijf alleen "Nog geen
           leden gekoppeld aan dit bedrijf." zien — een lege sectie verbergen

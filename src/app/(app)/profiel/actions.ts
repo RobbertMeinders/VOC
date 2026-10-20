@@ -6,7 +6,8 @@ import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { sendTemplatedEmail } from "@/lib/email/send";
+import { sendRawHtmlEmail, invitationGreeting } from "@/lib/email/send";
+import { renderMessageEmail } from "@/lib/templates/message-render";
 import { isEmailRateLimited } from "@/lib/auth/rate-limit";
 import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { invalidateQuery } from "@/lib/cache/queryCache";
@@ -342,9 +343,14 @@ export async function changeEmailAction(_prevState: ChangeEmailState, formData: 
 
     const siteUrl = (process.env.SITE_URL ?? "").replace(/\/$/, "");
     const buildLink = (token: string) => `${siteUrl}/auth/confirm?token_hash=${token}&type=email_change&next=/instellingen`;
+    const greeting = invitationGreeting(profile.first_name);
+    const [currentRendered, newRendered] = await Promise.all([
+      renderMessageEmail("email", buildLink(currentToken), { greeting }),
+      renderMessageEmail("email", buildLink(newToken), { greeting }),
+    ]);
     await Promise.all([
-      sendTemplatedEmail("email_wijzigen", profile.email, { link: buildLink(currentToken) }),
-      sendTemplatedEmail("email_wijzigen", email, { link: buildLink(newToken) }),
+      currentRendered ? sendRawHtmlEmail(profile.email, currentRendered.subject, currentRendered.html) : null,
+      newRendered ? sendRawHtmlEmail(email, newRendered.subject, newRendered.html) : null,
     ]);
   } catch {
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };

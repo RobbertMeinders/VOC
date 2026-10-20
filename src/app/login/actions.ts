@@ -4,7 +4,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isEmailConfigured, sendTemplatedEmail } from "@/lib/email/send";
+import { isEmailConfigured, sendRawHtmlEmail, invitationGreeting } from "@/lib/email/send";
+import { renderMessageEmail } from "@/lib/templates/message-render";
 import { isEmailRateLimited, isPasswordLoginRateLimited, recordFailedPasswordLoginAttempt } from "@/lib/auth/rate-limit";
 import { REMEMBERED_MAX_AGE, REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
 import { safeRedirectPath } from "@/lib/url/safeRedirect";
@@ -96,7 +97,9 @@ export async function signInWithMagicLinkAction(
       if (hashedToken) {
         const next = safeRedirectPath(redirectTo);
         const link = `${process.env.SITE_URL ?? ""}/auth/confirm?token_hash=${hashedToken}&type=magiclink&next=${encodeURIComponent(next)}`;
-        await sendTemplatedEmail("inloggen_magic_link", email, { link });
+        const { data: matchedProfile } = await admin.from("profiles").select("first_name").eq("email", email).maybeSingle();
+        const rendered = await renderMessageEmail("magic", link, { greeting: invitationGreeting(matchedProfile?.first_name) });
+        if (rendered) await sendRawHtmlEmail(email, rendered.subject, rendered.html);
       }
     } catch {
       // Zie wachtwoord-vergeten/actions.ts — geen enumeratie van bestaande

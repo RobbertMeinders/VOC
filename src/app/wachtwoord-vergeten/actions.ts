@@ -1,7 +1,8 @@
 "use server";
 
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isEmailConfigured, sendTemplatedEmail } from "@/lib/email/send";
+import { isEmailConfigured, sendRawHtmlEmail, invitationGreeting } from "@/lib/email/send";
+import { renderMessageEmail } from "@/lib/templates/message-render";
 import { isEmailRateLimited } from "@/lib/auth/rate-limit";
 
 export type ForgotPasswordState = { submitted?: boolean; error?: string };
@@ -31,7 +32,9 @@ export async function requestPasswordResetAction(
 
       if (hashedToken) {
         const link = `${process.env.SITE_URL ?? ""}/auth/confirm?token_hash=${hashedToken}&type=recovery&next=/wachtwoord-instellen`;
-        await sendTemplatedEmail("wachtwoord_reset", email, { link });
+        const { data: matchedProfile } = await admin.from("profiles").select("first_name").eq("email", email).maybeSingle();
+        const rendered = await renderMessageEmail("reset", link, { greeting: invitationGreeting(matchedProfile?.first_name) });
+        if (rendered) await sendRawHtmlEmail(email, rendered.subject, rendered.html);
       }
     } catch {
       // Bestaat het e-mailadres niet, dan faalt generateLink — dat lekken we

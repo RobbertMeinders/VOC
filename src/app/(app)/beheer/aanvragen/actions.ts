@@ -3,7 +3,8 @@
 import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { sendTemplatedEmail, invitationGreeting } from "@/lib/email/send";
+import { isEmailConfigured, sendRawHtmlEmail, invitationGreeting } from "@/lib/email/send";
+import { renderMessageEmail } from "@/lib/templates/message-render";
 import { geocodeAddress } from "@/lib/geo/geocode";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 
@@ -112,6 +113,7 @@ export async function createInvitationFromAccessRequestAction(requestId: string)
       phone: request.phone,
       job_title: request.job_title,
       company_id: companyId,
+      source: "nieuw_lid",
     })
     .select("token")
     .single();
@@ -125,10 +127,10 @@ export async function createInvitationFromAccessRequestAction(requestId: string)
   revalidatePath("/beheer/instroom");
 
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
-  const { error: emailError } = await sendTemplatedEmail("uitnodiging", request.email, {
-    link,
-    greeting: invitationGreeting(request.first_name),
-  });
+  const rendered = isEmailConfigured() ? await renderMessageEmail("uit-nieuw", link, { greeting: invitationGreeting(request.first_name) }) : null;
+  const { error: emailError } = rendered
+    ? await sendRawHtmlEmail(request.email, rendered.subject, rendered.html)
+    : { error: "E-mail versturen is niet geconfigureerd." };
   if (!emailError) {
     // BUGFIX: deze actie zette expires_at nooit, terwijl 0081 de kolom juist
     // NULL ("nog niet verstuurd") maakte totdat een actie 'm bij een

@@ -3,9 +3,35 @@
 import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { sendTemplatedEmail, invitationGreeting } from "@/lib/email/send";
+import { isEmailConfigured, sendRawHtmlEmail, invitationGreeting } from "@/lib/email/send";
+import { renderMessageEmail } from "@/lib/templates/message-render";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import type { UserRole } from "@/lib/types/database";
+
+type InvitationSource = "nieuw_lid" | "bestaand_lid" | "collega";
+
+function templateKeyForSource(source: InvitationSource): "uit-nieuw" | "uit-bestaand" | "uit-collega" {
+  if (source === "bestaand_lid") return "uit-bestaand";
+  if (source === "collega") return "uit-collega";
+  return "uit-nieuw";
+}
+
+async function sendInvitationTemplateEmail(
+  source: InvitationSource,
+  to: string,
+  token: string,
+  firstName: string | null
+): Promise<{ error?: string }> {
+  if (!isEmailConfigured()) {
+    return { error: "E-mail versturen is niet geconfigureerd." };
+  }
+  const link = `${process.env.SITE_URL ?? ""}/register/${token}`;
+  const rendered = await renderMessageEmail(templateKeyForSource(source), link, { greeting: invitationGreeting(firstName) });
+  if (!rendered) {
+    return { error: "Sjabloon ontbreekt." };
+  }
+  return sendRawHtmlEmail(to, rendered.subject, rendered.html);
+}
 
 // UX-review punt 17: mirror van de bedrijf-opzoek/aanmaak-logica in
 // createInvitationFromAccessRequestAction (beheer/aanvragen/actions.ts) —
@@ -54,6 +80,7 @@ export async function createInvitationAction(
   const role = String(formData.get("role") ?? "lid") as UserRole;
   const firstName = String(formData.get("first_name") ?? "").trim();
   const lastName = String(formData.get("last_name") ?? "").trim();
+  const source: InvitationSource = formData.get("source") === "bestaand_lid" ? "bestaand_lid" : "nieuw_lid";
 
   if (role !== "lid" && profile.role !== "beheerder") {
     return { error: "Alleen een beheerder kan bestuursleden of beheerders uitnodigen." };
@@ -75,6 +102,7 @@ export async function createInvitationAction(
       first_name: firstName || null,
       last_name: lastName || null,
       company_id: companyId,
+      source,
       expires_at: email ? null : new Date(Date.now() + DEFAULT_VALIDITY_MS).toISOString(),
     })
     .select("token")
@@ -90,8 +118,7 @@ export async function createInvitationAction(
     return { success: true };
   }
 
-  const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
-  const { error: emailError } = await sendTemplatedEmail("uitnodiging", email, { link, greeting: invitationGreeting(firstName) });
+  const { error: emailError } = await sendInvitationTemplateEmail(source, email, invitation.token, firstName || null);
   if (!emailError) {
     await supabase
       .from("invitations")
@@ -170,7 +197,7 @@ export async function sendInvitationEmailAction(id: string): Promise<{ error?: s
 
   const { data: invitation } = await supabase
     .from("invitations")
-    .select("token, email, status, first_name")
+    .select("token, email, status, first_name, source")
     .eq("id", id)
     .maybeSingle();
 
@@ -181,8 +208,7 @@ export async function sendInvitationEmailAction(id: string): Promise<{ error?: s
     return { error: "Deze uitnodiging heeft geen e-mailadres." };
   }
 
-  const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
-  const { error } = await sendTemplatedEmail("uitnodiging", invitation.email, { link, greeting: invitationGreeting(invitation.first_name) });
+  const { error } = await sendInvitationTemplateEmail(invitation.source, invitation.email, invitation.token, invitation.first_name);
   if (!error) {
     await supabase
       .from("invitations")
@@ -208,7 +234,7 @@ export async function bulkSendInvitationEmailsAction(ids: string[]): Promise<Bul
 
   const { data: invitations } = await supabase
     .from("invitations")
-    .select("id, token, email, status, first_name")
+    .select("id, token, email, status, first_name, source")
     .in("id", ids)
     .eq("status", "pending");
 
@@ -220,8 +246,7 @@ export async function bulkSendInvitationEmailsAction(ids: string[]): Promise<Bul
   let succeeded = 0;
   const sentIds: string[] = [];
   for (const invitation of withEmail) {
-    const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
-    const { error } = await sendTemplatedEmail("uitnodiging", invitation.email, { link, greeting: invitationGreeting(invitation.first_name) });
+    const { error } = await sendInvitationTemplateEmail(invitation.source, invitation.email, invitation.token, invitation.first_name);
     if (!error) {
       succeeded += 1;
       sentIds.push(invitation.id);

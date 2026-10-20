@@ -159,6 +159,7 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
     phone: string | null;
     company_id: string | null;
     imported: true;
+    source: "bestaand_lid";
   }[] = [];
 
   for (const { row, data } of validRows) {
@@ -181,6 +182,7 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
       phone: data.phone || null,
       company_id: data.companyName ? (companyByName.get(data.companyName.toLowerCase()) ?? null) : null,
       imported: true,
+      source: "bestaand_lid",
     });
   }
 
