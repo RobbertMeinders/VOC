@@ -8,7 +8,7 @@ import { getAppSettings } from "@/lib/settings/app-settings";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 
-export const metadata: Metadata = { title: "Over de VOC" };
+export const metadata: Metadata = { title: "Over de vereniging" };
 
 const LINKS = [
   { href: "/vereniging/bestuur", label: "Bestuur", description: "Wie er in het bestuur zit", icon: UserCheck },
@@ -42,7 +42,7 @@ export default async function OverVerenigingPage() {
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/15 to-transparent" />
       <div className="absolute inset-x-0 bottom-0 p-5 sm:p-8">
         <p className="text-xs font-medium uppercase tracking-wide text-white/80">{appSettings.org_name}</p>
-        <h1 className="mt-1 font-display text-2xl font-extrabold tracking-[-0.03em] text-white sm:text-3xl">Over de VOC</h1>
+        <h1 className="mt-1 font-display text-2xl font-extrabold tracking-[-0.03em] text-white sm:text-3xl">Over de vereniging</h1>
       </div>
     </div>
   ) : (
@@ -51,7 +51,7 @@ export default async function OverVerenigingPage() {
       style={{ backgroundImage: "var(--hero-gradient)" }}
     >
       <p className="text-xs font-medium uppercase tracking-wide text-white/75">{appSettings.org_name}</p>
-      <h1 className="mt-1 font-display text-2xl font-extrabold tracking-[-0.03em] text-white sm:text-3xl">Over de VOC</h1>
+      <h1 className="mt-1 font-display text-2xl font-extrabold tracking-[-0.03em] text-white sm:text-3xl">Over de vereniging</h1>
     </div>
   );
 

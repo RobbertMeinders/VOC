@@ -15,7 +15,21 @@ type SegmentedItem = {
 // actieve stand, net als de periodekeuze op beheer/statistieken. Anders
 // dan Chip (losse filter-chips, actief = inkt): dit is één samenhangend
 // geheel voor "kies één van deze twee/drie standen".
-export function SegmentedControl({ items, className }: { items: SegmentedItem[]; className?: string }) {
+//
+// Ontwerpfeedback (netwerk-schakelaar-petrol.png): voor een keuze die er
+// echt toe doet (welke volledig andere lijst je ziet, niet alleen een
+// weergavevoorkeur) is de neutrale surface-pil te onopvallend — de
+// "petrol"-variant vult de actieve stand met --petrol en witte tekst i.p.v.
+// surface+inkt. Rood blijft gereserveerd voor acties, dus niet hier.
+export function SegmentedControl({
+  items,
+  className,
+  variant = "subtle",
+}: {
+  items: SegmentedItem[];
+  className?: string;
+  variant?: "subtle" | "petrol";
+}) {
   const activeIndex = Math.max(
     0,
     items.findIndex((item) => item.active)
@@ -51,7 +65,10 @@ export function SegmentedControl({ items, className }: { items: SegmentedItem[];
       {indicator && (
         <div
           aria-hidden
-          className="absolute inset-y-1 rounded-lg bg-surface shadow-sm transition-[transform,width] duration-200 ease-out motion-reduce:transition-none"
+          className={clsx(
+            "absolute inset-y-1 rounded-lg transition-[transform,width] duration-200 ease-out motion-reduce:transition-none",
+            variant === "petrol" ? "bg-petrol shadow-sm" : "bg-surface shadow-sm"
+          )}
           style={{ width: indicator.width, transform: `translateX(${indicator.left}px)` }}
         />
       )}
@@ -60,7 +77,11 @@ export function SegmentedControl({ items, className }: { items: SegmentedItem[];
           "relative z-10 flex-1 rounded-lg px-3 py-1.5 text-center text-sm transition-colors",
           // Stijlronde: de gekozen stand duidelijker — ook het gewicht van
           // het label mee laten wisselen, niet alleen de kleur.
-          item.active ? "font-semibold text-foreground" : "font-medium text-muted hover:text-foreground"
+          item.active
+            ? variant === "petrol"
+              ? "font-semibold text-white dark:text-petrol-deep"
+              : "font-semibold text-foreground"
+            : "font-medium text-muted hover:text-foreground"
         );
         if (item.href) {
           return (

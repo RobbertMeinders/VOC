@@ -18,7 +18,7 @@ export const metadata: Metadata = { title: "Vereniging" };
 // /beheer/instroom. Oude routes (over-ons/bestuur/commissies) redirecten
 // hierheen.
 const TABS = [
-  { key: "over-ons", label: "Over de VOC", icon: Info },
+  { key: "over-ons", label: "Over de vereniging", icon: Info },
   { key: "bestuur", label: "Bestuur", icon: UserCheck },
   { key: "commissies", label: "Commissies", icon: UsersRound },
 ] as const;
@@ -30,7 +30,7 @@ async function OverOnsTab() {
   return (
     <div className="flex flex-col gap-4">
       <p className="text-sm text-muted">
-        Inhoud voor de pagina Over de VOC die leden via Vereniging in de hoofdnavigatie bereiken. Leeg laten betekent: dit onderdeel
+        Inhoud voor de pagina Over de vereniging die leden via Vereniging in de hoofdnavigatie bereiken. Leeg laten betekent: dit onderdeel
         staat nog niet op de pagina.
       </p>
       <OrgProfileForm orgProfile={orgProfile} headerImageUrl={headerImageUrl} />

@@ -86,7 +86,10 @@ export default async function LedenPage() {
   return (
     <div>
       <h1 className="mb-3 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Netwerk</h1>
-      <NetworkTabs />
+      {/* companies hierboven is ongefilterd opgehaald (alleen voor de
+          branche-lijst), dus de lengte is meteen het totaal aantal
+          bedrijven — geen aparte telquery nodig. */}
+      <NetworkTabs ledenCount={members.length} bedrijvenCount={companies?.length ?? 0} />
 
       <MemberListClient members={withAvatars} branches={branches} />
     </div>

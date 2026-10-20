@@ -53,6 +53,7 @@ export function BedrijvenView({
           dezelfde lijst). */}
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <SegmentedControl
+          variant="petrol"
           items={[
             {
               key: "lijst",

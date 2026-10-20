@@ -15,7 +15,7 @@ export default async function BedrijvenPage() {
   // Zichtbaarheid is voor elk actief lid identiek (companies_members_select
   // kent geen per-gebruiker variatie), dus dit resultaat delen tussen
   // leden/requests is veilig.
-  const [{ data: companies }, { data: memberships }] = await cachedQuery("bedrijven-page-data", 60_000, () =>
+  const [{ data: companies }, { data: memberships }, { count: ledenCount }] = await cachedQuery("bedrijven-page-data", 60_000, () =>
     Promise.all([
       supabase
         .from("companies")
@@ -24,6 +24,13 @@ export default async function BedrijvenPage() {
       // UX-review Z4: bedrijven ook doorzoekbaar op de namen van de mensen
       // die er werken — alleen gebruikt om op te matchen, niet getoond.
       supabase.from("company_members").select("company_id, profile:profiles(first_name, last_name)").returns<MembershipRow[]>(),
+      // Alleen voor het aantal op de Leden-schakelaar hiernaast — head-only
+      // telling i.p.v. de volledige ledenlijst ophalen.
+      supabase
+        .from("profiles")
+        .select("id", { count: "exact", head: true })
+        .eq("is_organization_account", false)
+        .eq("is_active", true),
     ])
   );
 
@@ -67,7 +74,7 @@ export default async function BedrijvenPage() {
   return (
     <div>
       <h1 className="mb-3 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Netwerk</h1>
-      <NetworkTabs />
+      <NetworkTabs ledenCount={ledenCount ?? 0} bedrijvenCount={companies?.length ?? 0} />
 
       <BedrijvenListClient items={items} branches={branches} />
     </div>

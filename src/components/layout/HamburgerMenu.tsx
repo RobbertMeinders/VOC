@@ -36,7 +36,7 @@ type MenuLink = { href: string; label: string; icon: LucideIcon };
 // deze groep, hoort als eerste in beeld i.p.v. onderaan.
 const VERENIGING_LINKS: MenuLink[] = [
   { href: "/nieuws", label: "Nieuws", icon: Newspaper },
-  { href: "/vereniging/over-ons", label: "Over de VOC", icon: Info },
+  { href: "/vereniging/over-ons", label: "Over de vereniging", icon: Info },
   { href: "/vereniging/bestuur", label: "Bestuur", icon: UserCheck },
   { href: "/vereniging/commissies", label: "Commissies", icon: UsersRound },
   { href: "/documenten", label: "Documenten", icon: FileText },

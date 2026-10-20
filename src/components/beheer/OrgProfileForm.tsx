@@ -92,7 +92,7 @@ export function OrgProfileForm({ orgProfile, headerImageUrl }: { orgProfile: Org
     <div className="flex flex-col gap-4">
       <div className="rounded-2xl bg-surface p-6 shadow-sm">
         <h2 className="text-sm font-semibold text-foreground">Headerfoto</h2>
-        <p className="mt-1 text-xs text-muted">Verschijnt bovenaan de pagina Over de VOC. Optioneel. Zonder foto blijft het bij tekst.</p>
+        <p className="mt-1 text-xs text-muted">Verschijnt bovenaan de pagina Over de vereniging. Optioneel. Zonder foto blijft het bij tekst.</p>
         <div className="mt-4">
           <HeaderImageUpload currentImageUrl={headerImageUrl} />
         </div>
@@ -100,7 +100,7 @@ export function OrgProfileForm({ orgProfile, headerImageUrl }: { orgProfile: Org
 
       <form action={formAction} className="rounded-2xl bg-surface p-6 shadow-sm">
         <FormSections>
-          <FormSection label="Introductie" description="Een korte, uitnodigende opening bovenaan de pagina Over de VOC.">
+          <FormSection label="Introductie" description="Een korte, uitnodigende opening bovenaan de pagina Over de vereniging.">
             <textarea
               name="intro_text"
               rows={4}

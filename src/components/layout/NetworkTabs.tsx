@@ -16,13 +16,16 @@ const TABS = [
 // met de lichtere filter-pills eronder. Vanaf lg (echte desktopbreedte, niet
 // al bij sm/tablet) nog een extra stap groter — op een brede pagina oogde
 // hij anders verdwaald tussen de kop en alle witruimte eromheen.
-// Redesign-besluit 5: geen gevuld rood meer — de "track met een
-// surface+schaduw-pil op de actieve stand" van SegmentedControl, maar hier
-// rechtstreeks gestyled i.p.v. via dat component, want dit heeft eigen
-// iconen en responsive maten die SegmentedControl bewust niet aanbiedt
-// (die blijft de simpele, generieke variant).
-export function NetworkTabs() {
+// Ontwerpfeedback (netwerk-schakelaar-petrol.png): de actieve stand is nu
+// een gevuld petrol-vlak met witte tekst/icoon i.p.v. de neutrale
+// surface-pil — dit is dé bepalende keuze op de pagina (welke volledig
+// andere lijst je ziet), dus mag opvallender dan de subtiele, generieke
+// SegmentedControl. Rood blijft gereserveerd voor acties. Het aantal achter
+// elk label staat als klein pilletje — wit/20% op de actieve stand, een
+// zachte vlakkleur op de inactieve.
+export function NetworkTabs({ ledenCount, bedrijvenCount }: { ledenCount: number; bedrijvenCount: number }) {
   const pathname = usePathname();
+  const counts: Record<string, number> = { "/leden": ledenCount, "/bedrijven": bedrijvenCount };
 
   return (
     <div className="mb-4 flex rounded-xl bg-raised p-1 sm:inline-flex lg:rounded-2xl lg:p-1.5">
@@ -35,11 +38,19 @@ export function NetworkTabs() {
             href={tab.href}
             className={clsx(
               "flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold sm:flex-none sm:px-4 sm:py-2.5 sm:text-[0.9375rem] lg:gap-2 lg:rounded-xl lg:px-6 lg:py-3 lg:text-base",
-              active ? "bg-surface text-foreground shadow-sm" : "text-muted hover:text-foreground"
+              active ? "bg-petrol text-white shadow-sm dark:text-petrol-deep" : "text-muted hover:text-foreground"
             )}
           >
             <Icon className="h-4 w-4 lg:h-[18px] lg:w-[18px]" />
             {tab.label}
+            <span
+              className={clsx(
+                "rounded-full px-1.5 py-0.5 text-xs font-semibold tabular-nums",
+                active ? "bg-white/20 text-white dark:bg-black/10 dark:text-petrol-deep" : "bg-black/[.06] dark:bg-white/10"
+              )}
+            >
+              {counts[tab.href]}
+            </span>
           </Link>
         );
       })}

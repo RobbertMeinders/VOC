@@ -35,9 +35,7 @@ export function ActivityCard({
   const badges = (
     <div className="mt-2 flex flex-wrap items-center gap-2">
       {isOfficial && (
-        <span className="rounded-full bg-status-neutral-soft px-2 py-0.5 text-xs font-medium text-status-neutral">
-          VOC
-        </span>
+        <span className="rounded-full bg-danger-soft px-2 py-0.5 text-xs font-medium text-danger-text">VOC</span>
       )}
       {isSubmitted && (
         <span className="rounded-full bg-status-neutral-soft px-2 py-0.5 text-xs font-medium text-status-neutral">
@@ -59,7 +57,7 @@ export function ActivityCard({
       {isRegistered && !isWaitlisted && (
         <span className="flex items-center gap-1 rounded-full bg-status-success-soft px-2 py-0.5 text-xs font-medium text-status-success">
           <CheckCircle2 size={11} />
-          Je bent aangemeld
+          Aangemeld
         </span>
       )}
       {isWaitlisted && (
@@ -134,20 +132,21 @@ export function ActivityCard({
         className={clsx("absolute inset-y-0 left-0 z-10 w-1", isOfficial ? "bg-voc-red" : "bg-petrol")}
       />
       {imageUrl ? (
-        // Stijlronde: op desktop iets groter en liggend (±120x84) i.p.v.
-        // vierkant, zelfde als op mobiel/tablet.
-        <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl sm:h-[88px] sm:w-[88px] md:h-[84px] md:w-[120px]">
-          <Image src={imageUrl} alt="" fill sizes="(min-width: 768px) 120px, 88px" className="object-cover" />
+        // Ontwerpfeedback (agenda-desktop/mobiel.png): vaste ±72x72 op
+        // mobiel, ±120x84 (liggend) vanaf desktop — geen tussenliggende
+        // sm-stap meer.
+        <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl md:h-[84px] md:w-[120px]">
+          <Image src={imageUrl} alt="" fill sizes="(min-width: 768px) 120px, 72px" className="object-cover" />
         </div>
       ) : (
-        <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-xl bg-petrol-soft text-petrol sm:h-[88px] sm:w-[88px] md:h-[84px] md:w-[120px]">
+        <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-xl bg-petrol-soft text-petrol md:h-[84px] md:w-[120px]">
           <CalendarDays size={28} />
         </div>
       )}
       <div className="min-w-0 flex-1">
         <p
           className={clsx(
-            "line-clamp-2 font-semibold leading-snug text-foreground md:font-display md:text-[18px] md:tracking-[-0.01em]",
+            "line-clamp-2 font-display leading-snug tracking-[-0.01em] text-foreground md:text-[18px]",
             isSubmitted ? "text-sm" : "text-base"
           )}
         >
