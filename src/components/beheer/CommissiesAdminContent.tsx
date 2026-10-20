@@ -176,7 +176,7 @@ function CommissionCard({ commission, memberOptions }: { commission: CommissionA
           </div>
           {commission.description && <p className="mt-0.5 truncate text-xs text-muted">{commission.description}</p>}
           <p className="mt-1 text-xs text-muted">
-            {commission.members.length} lid{commission.members.length === 1 ? "" : "en"}
+            {commission.members.length} {commission.members.length === 1 ? "lid" : "leden"}
           </p>
         </div>
 

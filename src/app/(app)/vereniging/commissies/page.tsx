@@ -47,12 +47,17 @@ export default async function CommissiesPage() {
   const memberCommissionIds = new Set(
     (memberships ?? []).filter((m) => m.profile_id === viewer.id).map((m) => m.commission_id)
   );
-  // UX-feedback: één gedeelde aanmeld-CTA onderaan i.p.v. een losse knop
-  // per kaart — alleen commissies waar de kijker nog geen lid van is en
-  // geen openstaande aanvraag voor heeft, komen in de keuzelijst.
-  const applyOptions = (commissions ?? [])
-    .filter((c) => !memberCommissionIds.has(c.id) && !pendingCommissionIds.has(c.id))
-    .map((c) => ({ id: c.id, name: c.name }));
+  // UX-feedback (review-sessie): een commissie waar de kijker al lid van is
+  // of een lopende aanvraag voor heeft, verdween eerder stilletjes uit de
+  // keuzelijst — voor een bestuurslid dat net een commissie had aangemaakt
+  // en zelf al lid was, zag dat eruit als "de nieuwe commissie ontbreekt".
+  // Nu blijft elke commissie zichtbaar, de twee gevallen hierboven alleen
+  // als uitgegrijsde optie met een reden i.p.v. onzichtbaar.
+  const applyOptions = (commissions ?? []).map((c) => ({
+    id: c.id,
+    name: c.name,
+    disabledReason: memberCommissionIds.has(c.id) ? "je bent al lid" : pendingCommissionIds.has(c.id) ? "aanvraag in behandeling" : undefined,
+  }));
 
   return (
     <div className="flex flex-col gap-6">

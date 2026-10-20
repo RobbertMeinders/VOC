@@ -9,17 +9,20 @@ import { useToast } from "@/lib/ui/ToastContext";
 
 // UX-feedback: één gedeelde aanmeld-CTA i.p.v. een losse aanmeldknop per
 // commissie-kaart — minder nadruk op "kies een vakje", meer op "wil je
-// bijdragen? meld je aan, waarvoor dan ook". `options` bevat alleen
-// commissies waar de kijker nog geen lid van is en geen openstaande
-// aanvraag voor heeft (zie commissies/page.tsx).
-export function CommissionApplyForm({ options }: { options: { id: string; name: string }[] }) {
+// bijdragen? meld je aan, waarvoor dan ook". `options` bevat élke commissie
+// (zie commissies/page.tsx) — een commissie waar de kijker al lid van is of
+// een lopende aanvraag voor heeft, staat er nog gewoon in maar dan als
+// uitgegrijsde, niet-kiesbare optie met een reden erbij. Eerder verdween die
+// optie stilletjes uit de lijst, wat op "de commissie ontbreekt" leek i.p.v.
+// "je bent 'm al lid" (review-feedback).
+export function CommissionApplyForm({ options }: { options: { id: string; name: string; disabledReason?: string }[] }) {
   const [commissionId, setCommissionId] = useState("");
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
   const toast = useToast();
 
-  if (options.length === 0) return null;
+  if (options.every((o) => o.disabledReason)) return null;
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -66,8 +69,9 @@ export function CommissionApplyForm({ options }: { options: { id: string; name: 
               Kies een commissie…
             </option>
             {options.map((option) => (
-              <option key={option.id} value={option.id}>
+              <option key={option.id} value={option.id} disabled={Boolean(option.disabledReason)}>
                 {option.name}
+                {option.disabledReason ? ` (${option.disabledReason})` : ""}
               </option>
             ))}
           </Select>
