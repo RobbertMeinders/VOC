@@ -364,14 +364,22 @@
 }
 
 /* Robberts feedback: op de praktijkwebsite bleek toch een vlaagje van
-   <body>'s eigen --background (het zandkleurige lichte thema) zichtbaar —
-   die blijft namelijk gewoon staan, want data-theme="light" hierboven is
-   alleen op de wrapper-div gezet, nooit op <body> zelf (met opzet, zie
-   die toelichting), en de wrapper dekt niet gegarandeerd élke pixel af
-   (bv. een moment vóórdat EmbedAutoHeight de werkelijke hoogte heeft
-   doorgegeven). :has() laat <body> hier wél meteen zelf transparant
-   worden zodra er ergens een website-thema-embed in zit, zonder de
-   gedeelde root layout per route te hoeven aanpassen. */
+   <body>'s eigen --background zichtbaar — die blijft namelijk gewoon
+   staan, want data-theme="light" hierboven is alleen op de wrapper-div
+   gezet, nooit op <body> zelf (met opzet, zie die toelichting), en de
+   wrapper dekt niet gegarandeerd élke pixel af (bv. een moment vóórdat
+   EmbedAutoHeight de werkelijke hoogte heeft doorgegeven). Dat vlaagje
+   volgde daardoor gewoon het OS-donker-thema van de bezoeker mee — op elke
+   embed-pagina, niet alleen met ?thema=website. :has() laat <body> hier
+   dus altijd (ongeacht ?thema) de lichte achtergrond afdwingen zodra er
+   ergens een embed-wrapper in zit, zonder de gedeelde root layout per
+   route te hoeven aanpassen; bij het website-thema specifiek mag die
+   verderop zelfs helemaal verdwijnen (transparant, zodat de achtergrond
+   van de WordPress-pagina zelf doorschijnt) — de regel hieronder wint dan
+   omdat hij later staat en dezelfde specificiteit heeft. */
+body:has([data-theme="light"]) {
+  background: #f5f3ef;
+}
 body:has([data-embed-theme="website"]) {
   background: transparent;
 }
