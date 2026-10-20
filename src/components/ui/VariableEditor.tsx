@@ -2,6 +2,7 @@
 
 import { forwardRef, useEffect, useImperativeHandle, useRef, type ClipboardEvent } from "react";
 import { clsx } from "clsx";
+import { sanitizeEmailHtml } from "@/lib/html/sanitize";
 
 // Stijlronde: Robbert wilde direct in het voorbeeld kunnen typen i.p.v. een
 // los HTML-veld naast een losse preview, met knoppen om een variabele
@@ -94,7 +95,13 @@ export const VariableEditor = forwardRef<
   useEffect(() => {
     const el = elRef.current;
     if (!el) return;
-    el.innerHTML = tokensToEditableHtml(initialValue, variables, mode);
+    const seeded = tokensToEditableHtml(initialValue, variables, mode);
+    // Opgeslagen HTML komt rechtstreeks in de echte beheerpagina terecht
+    // (geen gesandboxte <iframe> meer zoals de vorige preview) — dus ook
+    // al bestaande inhoud (van vóór deze opschoning, of hoe dan ook
+    // ontstaan) loopt hier door de sanitizer, niet alleen nieuw geplakte
+    // tekst (zie handlePaste hieronder).
+    el.innerHTML = mode === "html" ? sanitizeEmailHtml(seeded) : seeded;
     // Zonder dit voegt Chrome bij Enter een <div> per regel toe i.p.v. <br> —
     // editableHtmlToTokens hierboven verwacht platte tekst met <br>'s.
     if (mode === "text") document.execCommand("defaultParagraphSeparator", false, "br");
@@ -143,7 +150,11 @@ export const VariableEditor = forwardRef<
     },
     insertHtml(html: string) {
       const wrapper = document.createElement("span");
-      wrapper.innerHTML = html;
+      // Ook hier opschonen (zie sanitizeEmailHtml): de aanroeper van deze
+      // methode is vandaag alleen het logo-uploadje (eigen, veilige <img>),
+      // maar insertHtml is een generieke API die later ook ergens anders
+      // met minder gecontroleerde HTML aangeroepen kan worden.
+      wrapper.innerHTML = sanitizeEmailHtml(html);
       const fragment = document.createDocumentFragment();
       let lastNode: Node | null = null;
       while (wrapper.firstChild) {
@@ -154,10 +165,15 @@ export const VariableEditor = forwardRef<
     },
   }));
 
+  // Platte tekst plakken i.p.v. meegeplakte opmaak van elders — ook in
+  // mode "html": dit veld is een eenvoudig e-mailbericht ("geen HTML-
+  // editor" was Robberts eigen uitgangspunt), niet een rich-text-document
+  // waar willekeurige, mogelijk kwaadaardige markup (bv. een
+  // <img onerror=...> uit een geplakte webpagina) zomaar in terecht mag
+  // komen — dit rendert immers rechtstreeks, zonder sandbox, in de echte
+  // beheerpagina (zie sanitizeEmailHtml hierboven voor de rest van de
+  // opschoning).
   function handlePaste(e: ClipboardEvent) {
-    if (mode !== "text") return;
-    // Platte tekst plakken i.p.v. meegeplakte opmaak van elders — dit veld
-    // is een pushbericht/onderwerp, geen rich-text-document.
     e.preventDefault();
     document.execCommand("insertText", false, e.clipboardData.getData("text/plain"));
   }
