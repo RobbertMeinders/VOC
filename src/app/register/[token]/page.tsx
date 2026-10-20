@@ -18,7 +18,7 @@ export default async function RegisterPage({ params }: { params: Promise<{ token
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-2xl">
         {/* A (UX-audit): logo/titel-consistentie — zelfde logoUrl/site_name
             als de rest van de app i.p.v. hier terug te vallen op het harde
             VOC-merk + "Ledenportaal", ook al is dit de eerste pagina die een

@@ -22,38 +22,48 @@ export function CompanySelector({
   // allowSkip mee; op /profiel (CompanyMembershipForm, iemand koos daar
   // zelf al bewust voor "bedrijf toevoegen") blijft dit ongewijzigd.
   allowSkip = false,
+  // Robberts feedback: komt het bedrijf al vast mee met de uitnodiging (bv.
+  // een collega-uitnodiging, of een handmatige uitnodiging waar het bestuur
+  // al een bedrijf koos), dan hoeft er niets meer gekozen te worden — geen
+  // "Bedrijf zoeken/Mijn bedrijf toevoegen/Later toevoegen"-keuze, gewoon
+  // het ene bedrijf, met "Wijzig" als enige ontsnapping (zie CompanyPicker)
+  // voor het geval dat toch niet klopt.
+  lockPrefilled = false,
 }: {
   initialSelected?: CompanyOption | null;
   allowSkip?: boolean;
+  lockPrefilled?: boolean;
 }) {
   const [companyMode, setCompanyMode] = useState<"existing" | "new" | "skip">("existing");
   const [selectedCompany, setSelectedCompany] = useState<CompanyOption | null>(initialSelected);
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex flex-wrap gap-2 text-sm">
-        <Chip onClick={() => setCompanyMode("existing")} active={companyMode === "existing"}>
-          Bedrijf zoeken
-        </Chip>
-        <Chip onClick={() => setCompanyMode("new")} active={companyMode === "new"}>
-          Mijn bedrijf toevoegen
-        </Chip>
-        {allowSkip && (
-          <Chip onClick={() => setCompanyMode("skip")} active={companyMode === "skip"}>
-            Later toevoegen
+      {!lockPrefilled && (
+        <div className="flex flex-wrap gap-2 text-sm">
+          <Chip onClick={() => setCompanyMode("existing")} active={companyMode === "existing"}>
+            Bedrijf zoeken
           </Chip>
-        )}
-      </div>
+          <Chip onClick={() => setCompanyMode("new")} active={companyMode === "new"}>
+            Mijn bedrijf toevoegen
+          </Chip>
+          {allowSkip && (
+            <Chip onClick={() => setCompanyMode("skip")} active={companyMode === "skip"}>
+              Later toevoegen
+            </Chip>
+          )}
+        </div>
+      )}
 
-      <input type="hidden" name="company_mode" value={companyMode} />
+      <input type="hidden" name="company_mode" value={lockPrefilled ? "existing" : companyMode} />
 
-      {companyMode === "existing" && (
+      {(lockPrefilled || companyMode === "existing") && (
         <>
           <input type="hidden" name="company_id" value={selectedCompany?.id ?? ""} />
           <CompanyPicker selected={selectedCompany} onSelect={setSelectedCompany} />
         </>
       )}
-      {companyMode === "new" && (
+      {!lockPrefilled && companyMode === "new" && (
         <div className="flex flex-col gap-3 rounded-lg border border-border p-3">
           <Input name="new_company_name" placeholder="Bedrijfsnaam" required />
           <div className="grid grid-cols-2 gap-3">
@@ -70,7 +80,7 @@ export function CompanySelector({
           <Input name="new_company_website" placeholder="Website (optioneel)" type="url" />
         </div>
       )}
-      {companyMode === "skip" && (
+      {!lockPrefilled && companyMode === "skip" && (
         <p className="rounded-lg border border-border px-3 py-2 text-xs text-muted">
           Geen probleem — je kunt dit later toevoegen via je profiel.
         </p>

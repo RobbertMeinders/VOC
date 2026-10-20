@@ -108,8 +108,11 @@ export function RegisterForm({
         <span className="text-sm font-medium text-foreground">Bedrijf</span>
         {/* A (UX-audit): niet langer verplicht — "Later toevoegen" (allowSkip)
             slaat de account-activatie niet langer vast op het meteen kiezen
-            of aanmaken van een bedrijf. */}
-        <CompanySelector initialSelected={prefilled?.company ?? null} allowSkip />
+            of aanmaken van een bedrijf. Komt er al een bedrijf mee met de
+            uitnodiging, dan is er niets te kiezen (lockPrefilled, Robberts
+            feedback) — alleen zonder voorgesteld bedrijf blijft de volledige
+            keuze (zoeken/toevoegen/later) nodig. */}
+        <CompanySelector initialSelected={prefilled?.company ?? null} allowSkip lockPrefilled={Boolean(prefilled?.company)} />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
