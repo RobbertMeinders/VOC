@@ -15,11 +15,13 @@ import type { Database } from "@/lib/types/database";
 
 type Notification = Database["public"]["Tables"]["notifications"]["Row"];
 
-// Robberts verzoek: naar rechts vegen om een melding te verwijderen. Drempel
-// om te verwijderen vs. gewoon een tikje bewegen (zoals bij RouteOverlayPanel's
+// Naar links vegen om een melding te verwijderen. Drempel om te
+// verwijderen vs. gewoon een tikje bewegen (zoals bij RouteOverlayPanel's
 // naar-beneden-vegen, zelfde patroon maar dan horizontaal).
 const SWIPE_THRESHOLD = 70;
 const SWIPE_MAX = 96;
+// Zelfde vloeiende easing als RouteOverlayPanel's sleep-animatie.
+const SWIPE_EASING = "cubic-bezier(0.16, 1, 0.3, 1)";
 // Alles hieronder is "per ongeluk bewogen tijdens een tik", niet een echte
 // veeg — zonder dit onderdrukt elke kleine trilling tijdens een tik ook de
 // navigatie naar de melding.
@@ -91,8 +93,13 @@ function NotificationRow({
 }) {
   const [dragX, setDragX] = useState(0);
   const [dragging, setDragging] = useState(false);
+  // Na het loslaten voorbij de drempel: de rij vliegt eerst vloeiend verder
+  // naar links en verdwijnt pas daarna (onTransitionEnd) echt uit de lijst
+  // — in plaats van abrupt te verdwijnen zodra de vinger loslaat.
+  const [removing, setRemoving] = useState(false);
   const touchStartX = useRef(0);
   const didDrag = useRef(false);
+  const rowRef = useRef<HTMLDivElement>(null);
 
   function handleTouchStart(e: TouchEvent) {
     touchStartX.current = e.touches[0].clientX;
@@ -102,15 +109,17 @@ function NotificationRow({
 
   function handleTouchMove(e: TouchEvent) {
     const delta = e.touches[0].clientX - touchStartX.current;
-    if (delta <= 0) return;
-    if (delta > DRAG_CLICK_GUARD) didDrag.current = true;
-    setDragX(Math.min(delta, SWIPE_MAX));
+    if (delta >= 0) return;
+    if (delta < -DRAG_CLICK_GUARD) didDrag.current = true;
+    setDragX(Math.max(delta, -SWIPE_MAX));
   }
 
   function handleTouchEnd() {
     setDragging(false);
-    if (dragX > SWIPE_THRESHOLD) {
-      onDelete();
+    if (dragX < -SWIPE_THRESHOLD) {
+      const width = rowRef.current?.offsetWidth ?? SWIPE_MAX * 4;
+      setRemoving(true);
+      setDragX(-width);
       return;
     }
     setDragX(0);
@@ -128,10 +137,11 @@ function NotificationRow({
 
   return (
     <div className="relative overflow-hidden rounded-xl">
-      <div className="absolute inset-y-0 left-0 flex w-20 items-center justify-center rounded-l-xl bg-voc-red text-white" aria-hidden>
+      <div className="absolute inset-y-0 right-0 flex w-20 items-center justify-center rounded-r-xl bg-voc-red text-white" aria-hidden>
         <Trash2 size={18} />
       </div>
       <div
+        ref={rowRef}
         className={clsx(
           "relative flex items-start gap-3 rounded-xl border border-border p-3 shadow-sm",
           // Afwerkronde blok 3: een hele petrol-soft kaart per ongelezen
@@ -141,12 +151,16 @@ function NotificationRow({
         )}
         style={{
           transform: `translateX(${dragX}px)`,
-          transition: dragging ? "none" : "transform 0.2s ease-out",
+          opacity: removing ? 0 : 1,
+          transition: dragging ? "none" : `transform 0.3s ${SWIPE_EASING}, opacity 0.3s ${SWIPE_EASING}`,
           touchAction: "pan-y",
         }}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
+        onTransitionEnd={() => {
+          if (removing) onDelete();
+        }}
       >
         <Bell size={16} className={clsx("mt-0.5 shrink-0", n.is_read ? "text-muted" : "text-petrol")} />
         <Link href={n.link ?? "/"} onClick={handleLinkClick} className="min-w-0 flex-1">
