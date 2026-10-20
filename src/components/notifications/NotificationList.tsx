@@ -111,7 +111,14 @@ function NotificationRow({
     const delta = e.touches[0].clientX - touchStartX.current;
     if (delta >= 0) return;
     if (delta < -DRAG_CLICK_GUARD) didDrag.current = true;
-    setDragX(Math.max(delta, -SWIPE_MAX));
+    // Robberts feedback: een harde Math.max-klem liet de rij bij SWIPE_MAX
+    // abrupt stilvallen terwijl de vinger nog bewoog — voelde "geforceerd".
+    // Nu rekbandweerstand voorbij die grens (net als iOS' overscroll-bounce):
+    // de rij blijft meebewegen, alleen steeds trager, i.p.v. in één keer te
+    // pletter te lopen tegen een muur.
+    const distance = -delta;
+    const resisted = distance <= SWIPE_MAX ? distance : SWIPE_MAX + (distance - SWIPE_MAX) * 0.25;
+    setDragX(-resisted);
   }
 
   function handleTouchEnd() {
