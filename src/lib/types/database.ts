@@ -49,6 +49,7 @@ export interface Database {
           publicly_visible: boolean;
           onboarding_dismissed_at: string | null;
           introduction_prompt_dismissed_at: string | null;
+          welcome_dialog_dismissed_at: string | null;
           created_at: string;
           updated_at: string;
         };

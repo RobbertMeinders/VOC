@@ -8,6 +8,7 @@ import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { formatActivityDateCompact, formatActivityTimeOnly, formatTodayLabel, getGreeting } from "@/lib/format/date";
 import { Avatar } from "@/components/ui/Avatar";
 import { ProfilePhotoPrompt } from "@/components/home/ProfilePhotoPrompt";
+import { WelcomeDialog } from "@/components/home/WelcomeDialog";
 import { NewsHeroCarousel } from "@/components/home/NewsHeroCarousel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { RecentPostPreview } from "@/components/feed/RecentPostPreview";
@@ -157,6 +158,12 @@ export default async function HomePage() {
 
   return (
     <div className="flex flex-col gap-6">
+      {/* B (onboarding-opdracht): eenmalige eerste-login dialoog — render
+          altijd (hooks/portal-logica zit in het component zelf), zichtbaar
+          zolang de testfase-schakelaar aan staat en dit lid 'm nog niet
+          heeft weggeklikt. */}
+      <WelcomeDialog shouldShow={appSettings.show_testfase && !profile.welcome_dialog_dismissed_at} />
+
       {/* Welkomstblok: donkerpetrol, geen decoratie/glaseffect (redesign-
           besluit). Op desktop een brede banner (begroeting links, de
           activiteitkaart rechts); op mobiel gestapeld. */}

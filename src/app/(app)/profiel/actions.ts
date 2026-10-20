@@ -187,6 +187,25 @@ export async function dismissIntroductionPromptAction(): Promise<{ error?: strin
   return {};
 }
 
+// B (onboarding-opdracht): eerste-login welkomstdialoog, zie WelcomeDialog
+// (Home) — toont precies één keer, net als de andere "weggeklikt"-vlaggen
+// hierboven.
+export async function dismissWelcomeDialogAction(): Promise<{ error?: string }> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ welcome_dialog_dismissed_at: new Date().toISOString() })
+    .eq("id", profile.id);
+
+  if (error) {
+    return { error: "Wegklikken is niet gelukt. Probeer het opnieuw." };
+  }
+  revalidatePath("/");
+  return {};
+}
+
 export async function updatePubliclyVisibleAction(visible: boolean): Promise<{ error?: string }> {
   const profile = await requireProfile();
   const supabase = await createClient();
