@@ -203,11 +203,16 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
                       <Skeleton className="h-2.5 w-16" />
                     </div>
                   ))}
-                {!loading && notifications?.length === 0 && (
-                  <p className="py-6 text-center text-sm text-muted">Geen meldingen.</p>
-                )}
-                {!loading && notifications && notifications.length > 0 && (
-                  <NotificationList notifications={notifications} />
+                {/* F1 (UX-audit): emptyState i.p.v. hier zelf op de eenmalig
+                    geladen `notifications`-lengte te beslissen — die blijft na
+                    een verwijdering binnen NotificationList ongewijzigd, dus
+                    bleef deze sheet na het wegvegen van de laatste melding
+                    leeg i.p.v. "Geen meldingen." te tonen. */}
+                {!loading && notifications && (
+                  <NotificationList
+                    notifications={notifications}
+                    emptyState={<p className="py-6 text-center text-sm text-muted">Geen meldingen.</p>}
+                  />
                 )}
               </div>
             </div>

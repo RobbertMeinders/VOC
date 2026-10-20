@@ -31,14 +31,14 @@ export default async function NotificatiesPage() {
     <div>
       <h1 className="mb-4 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Meldingen</h1>
 
-      {notifications && notifications.length > 0 ? (
-        <NotificationList notifications={notifications} />
-      ) : (
-        <ComingSoon
-          icon={Bell}
-          title="Je hebt geen nieuwe meldingen."
-        />
-      )}
+      {/* F1 (UX-audit): emptyState i.p.v. hier zelf op de server-opgehaalde
+          lengte te beslissen — anders blijft deze lege-staat na het
+          wegvegen/verwijderen van de laatste melding ten onrechte weg (zie
+          NotificationList voor de volledige toelichting). */}
+      <NotificationList
+        notifications={notifications ?? []}
+        emptyState={<ComingSoon icon={Bell} title="Je hebt geen nieuwe meldingen." />}
+      />
     </div>
   );
 }

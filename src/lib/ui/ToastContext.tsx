@@ -9,14 +9,20 @@ import { FloatingPortal } from "@/components/ui/FloatingPortal";
 // dat buiten beeld. Eén toastsysteem i.p.v. elk formulier zijn eigen
 // succesregel: rechtsonder op desktop, boven de bottom nav op mobiel.
 export type ToastVariant = "success" | "error";
+// F1 (UX-audit): een optionele actieknop (bv. "Ongedaan maken" bij het
+// verwijderen van een melding) — met een eigen, langere zichtbaarheidsduur
+// dan een gewone bevestigingstoast, anders is de knop alweer verdwenen
+// voordat iemand 'm kan gebruiken.
+export type ToastAction = { label: string; onClick: () => void };
 
-type ToastItem = { id: number; message: string; variant: ToastVariant };
+type ToastItem = { id: number; message: string; variant: ToastVariant; action?: ToastAction };
 
-type ToastFn = (message: string, variant?: ToastVariant) => void;
+type ToastFn = (message: string, variant?: ToastVariant, action?: ToastAction) => void;
 
 const ToastContext = createContext<ToastFn | null>(null);
 
 const AUTO_DISMISS_MS = 4000;
+const AUTO_DISMISS_WITH_ACTION_MS = 6000;
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
@@ -27,10 +33,10 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const showToast = useCallback<ToastFn>(
-    (message, variant = "success") => {
+    (message, variant = "success", action) => {
       const id = nextId.current++;
-      setToasts((prev) => [...prev, { id, message, variant }]);
-      setTimeout(() => dismiss(id), AUTO_DISMISS_MS);
+      setToasts((prev) => [...prev, { id, message, variant, action }]);
+      setTimeout(() => dismiss(id), action ? AUTO_DISMISS_WITH_ACTION_MS : AUTO_DISMISS_MS);
     },
     [dismiss]
   );
@@ -52,7 +58,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 ) : (
                   <XCircle size={18} className="shrink-0 text-voc-red-text" />
                 )}
-                <span className="min-w-0">{t.message}</span>
+                <span className="min-w-0 flex-1">{t.message}</span>
+                {t.action && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      t.action?.onClick();
+                      dismiss(t.id);
+                    }}
+                    className="shrink-0 text-sm font-semibold text-petrol hover:underline"
+                  >
+                    {t.action.label}
+                  </button>
+                )}
               </div>
             ))}
           </div>

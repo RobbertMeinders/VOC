@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRef, useState, type MouseEvent, type TouchEvent } from "react";
+import { useRef, useState, type MouseEvent, type ReactNode, type TouchEvent } from "react";
 import { Bell, Trash2, X } from "lucide-react";
 import { clsx } from "clsx";
 import { formatActivityDateShort } from "@/lib/format/date";
@@ -11,6 +11,7 @@ import {
   markNotificationReadAction,
 } from "@/app/(app)/notificaties/actions";
 import { useMarkAllNotificationsRead, useMarkNotificationRead } from "@/lib/notifications/useUnreadCount";
+import { useToast } from "@/lib/ui/ToastContext";
 import type { Database } from "@/lib/types/database";
 
 type Notification = Database["public"]["Tables"]["notifications"]["Row"];
@@ -26,8 +27,28 @@ const SWIPE_EASING = "cubic-bezier(0.16, 1, 0.3, 1)";
 // veeg — zonder dit onderdrukt elke kleine trilling tijdens een tik ook de
 // navigatie naar de melding.
 const DRAG_CLICK_GUARD = 6;
+// F1 (UX-audit): verwijderen is nu ongedaan te maken — de rij verdwijnt al
+// meteen uit beeld (optimistisch, net als voorheen), maar de server-
+// verwijdering wordt pas na dit venster echt uitgevoerd. Zelfde duur als de
+// actietoast hieronder (ToastContext), anders is de knop alweer weg
+// voordat het venster sluit.
+const UNDO_WINDOW_MS = 6000;
 
-export function NotificationList({ notifications: initialNotifications }: { notifications: Notification[] }) {
+export function NotificationList({
+  notifications: initialNotifications,
+  emptyState = null,
+}: {
+  notifications: Notification[];
+  // F1 (UX-audit): de aanroepers (/notificaties, de mobiele sheet) bepaalden
+  // voorheen zelf, op basis van hun eigen (server-opgehaalde of eenmalig
+  // geladen) kopie, of ze deze lijst óf hun eigen "geen meldingen"-tekst
+  // toonden — maar verwijderen gebeurt alleen in de lokale state hierbinnen,
+  // dus na het weggooien van de laatste melding bleef die buitenste check
+  // hangen op "er zijn er nog" en toonde deze lijst gewoon niks i.p.v. de
+  // lege-staat. Nu geeft deze component zelf zijn lege staat weer, zodra zijn
+  // eigen (wél live bijgewerkte) lijst leeg raakt.
+  emptyState?: ReactNode;
+}) {
   // Local, optimistic copy: the server action's revalidatePath only refreshes
   // this page on its *next* load, but clicking a notification navigates away
   // immediately — so without local state the read/deleted status only ever
@@ -41,6 +62,11 @@ export function NotificationList({ notifications: initialNotifications }: { noti
   // te wachten op de Realtime-round-trip.
   const markReadGlobally = useMarkNotificationRead();
   const markAllReadGlobally = useMarkAllNotificationsRead();
+  const toast = useToast();
+  // Nog niet definitief verwijderd — timeout + waar de rij terug moet als
+  // "Ongedaan maken" wordt aangeklikt. Een ref i.p.v. state: wijzigingen
+  // hierin hoeven zelf geen re-render te veroorzaken.
+  const pendingDeletes = useRef(new Map<string, { timeout: ReturnType<typeof setTimeout>; item: Notification; index: number }>());
 
   function handleOpen(notification: Notification) {
     if (notification.is_read) return;
@@ -50,9 +76,34 @@ export function NotificationList({ notifications: initialNotifications }: { noti
   }
 
   function handleDelete(notificationId: string) {
+    const index = notifications.findIndex((n) => n.id === notificationId);
+    const item = notifications[index];
+    if (!item) return;
     setNotifications((current) => current.filter((n) => n.id !== notificationId));
-    markReadGlobally(notificationId);
-    void deleteNotificationAction(notificationId);
+
+    // Het badge-aantal/de server-rij pas écht bijwerken zodra het venster
+    // verstreken is — bij "Ongedaan maken" is er dan niets te herstellen.
+    const timeout = setTimeout(() => {
+      pendingDeletes.current.delete(notificationId);
+      markReadGlobally(notificationId);
+      void deleteNotificationAction(notificationId);
+    }, UNDO_WINDOW_MS);
+    pendingDeletes.current.set(notificationId, { timeout, item, index });
+
+    toast("Melding verwijderd.", "success", {
+      label: "Ongedaan maken",
+      onClick: () => {
+        const pending = pendingDeletes.current.get(notificationId);
+        if (!pending) return;
+        clearTimeout(pending.timeout);
+        pendingDeletes.current.delete(notificationId);
+        setNotifications((current) => {
+          const next = [...current];
+          next.splice(Math.min(pending.index, next.length), 0, pending.item);
+          return next;
+        });
+      },
+    });
   }
 
   function handleMarkAllRead() {
@@ -63,6 +114,8 @@ export function NotificationList({ notifications: initialNotifications }: { noti
     setNotifications((current) => current.map((n) => ({ ...n, is_read: true })));
     void markAllNotificationsReadAction();
   }
+
+  if (notifications.length === 0) return <>{emptyState}</>;
 
   return (
     <div className="flex flex-col gap-2">
