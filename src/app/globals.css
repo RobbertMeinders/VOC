@@ -349,6 +349,19 @@
   background: transparent;
 }
 
+/* Robberts feedback: op de praktijkwebsite bleek toch een vlaagje van
+   <body>'s eigen --background (het zandkleurige lichte thema) zichtbaar —
+   die blijft namelijk gewoon staan, want data-theme="light" hierboven is
+   alleen op de wrapper-div gezet, nooit op <body> zelf (met opzet, zie
+   die toelichting), en de wrapper dekt niet gegarandeerd élke pixel af
+   (bv. een moment vóórdat EmbedAutoHeight de werkelijke hoogte heeft
+   doorgegeven). :has() laat <body> hier wél meteen zelf transparant
+   worden zodra er ergens een website-thema-embed in zit, zonder de
+   gedeelde root layout per route te hoeven aanpassen. */
+body:has([data-embed-theme="website"]) {
+  background: transparent;
+}
+
 /* Portaal-knoppen zijn een pil (rounded-full); de website gebruikt 3px
    hoeken — een descendant-selector raakt hier wél alle knoppen binnen de
    embed, want die zijn met opzet allemaal rounded-full (geen vierkante

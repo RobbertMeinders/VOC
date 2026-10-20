@@ -167,8 +167,18 @@ function MenuPanel({
         </div>
 
         <form action={signOutAction} className="border-t border-border py-1.5">
+          {/* Dit paneel schuift omhoog vanaf de profielknop onderaan het
+              scherm — "Uitloggen" komt daardoor ongeveer op dezelfde
+              schermpositie te staan als waar je net de profielknop
+              aantikte. Een snelle, bijna-gelijktijdige dubbele tik (de knop
+              openen, meteen nog een keer tikken) raakte zo per ongeluk
+              deze knop. De bevestiging staat op een andere plek op het
+              scherm, dus een reflexmatige tweede tik raakt die niet. */}
           <button
             type="submit"
+            onClick={(e) => {
+              if (!window.confirm("Weet je zeker dat je wilt uitloggen?")) e.preventDefault();
+            }}
             className="flex w-full items-center gap-3 px-5 py-3.5 text-left text-sm font-medium text-voc-red-text hover:bg-black/[.04] dark:hover:bg-white/[.06]"
           >
             <LogOut size={19} />
