@@ -1,6 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { uploadImage } from "@/lib/supabase/upload";
 import { isEmailRateLimited } from "@/lib/auth/rate-limit";
 
 export type AccessRequestState = { error?: string; success?: boolean };
@@ -21,6 +23,8 @@ export async function submitAccessRequestAction(
   const website = String(formData.get("website") ?? "").trim();
   const message = String(formData.get("message") ?? "").trim();
   const consent = formData.get("consent") === "on";
+  const logoFile = formData.get("logo");
+  const logoThumbFile = formData.get("logo_thumb");
 
   if (!firstName || !lastName || !email) {
     return { error: "Vul je voornaam, achternaam en e-mailadres in." };
@@ -39,29 +43,63 @@ export async function submitAccessRequestAction(
   const supabase = await createClient();
   // `name` blijft not null en gevuld — bestaande code (notificatietrigger,
   // beheerscherm) leest nog steeds dit ene veld.
-  const { error } = await supabase.from("access_requests").insert({
-    name: `${firstName} ${lastName}`,
-    first_name: firstName,
-    last_name: lastName,
-    email,
-    phone: phone || null,
-    company_name: companyName || null,
-    job_title: jobTitle || null,
-    address: address || null,
-    postal_code: postalCode || null,
-    city: city || null,
-    website: website || null,
-    message: message || null,
-    consent_at: new Date().toISOString(),
-  });
+  const { data: inserted, error } = await supabase
+    .from("access_requests")
+    .insert({
+      name: `${firstName} ${lastName}`,
+      first_name: firstName,
+      last_name: lastName,
+      email,
+      phone: phone || null,
+      company_name: companyName || null,
+      job_title: jobTitle || null,
+      address: address || null,
+      postal_code: postalCode || null,
+      city: city || null,
+      website: website || null,
+      message: message || null,
+      consent_at: new Date().toISOString(),
+    })
+    .select("id")
+    .single();
 
-  if (error) {
+  if (error || !inserted) {
     // Tot nu toe ging de echte Postgres-foutmelding nergens heen — alleen
     // deze generieke tekst naar de bezoeker, dus geen enkel spoor om een
     // "versturen lukt niet"-melding ooit te kunnen verklaren. Komt nu in de
     // Vercel-functielogs terecht (console.error), net als elders in de app.
     console.error("[toegang-aanvragen] submitAccessRequestAction insert failed:", error);
     return { error: "Versturen is niet gelukt. Probeer het opnieuw." };
+  }
+
+  // D: logo meteen meesturen bij een nieuw bedrijf. De aanmelder is
+  // anoniem/niet ingelogd en er bestaat op dit moment nog geen company_id om
+  // de gewone company-logos-RLS (board-only insert, of per-lid scoped op een
+  // bestaand bedrijf) te laten matchen — vandaar de service-role-client naar
+  // een tijdelijke, aan deze aanvraag gebonden map. Puur best-effort: een
+  // mislukte logo-upload mag de geslaagde aanvraag zelf nooit blokkeren.
+  if (logoFile instanceof File && logoFile.size > 0) {
+    try {
+      const admin = createAdminClient();
+      const folder = `pending/${inserted.id}`;
+      const logoResult = await uploadImage(admin, "company-logos", folder, logoFile);
+      if (!("error" in logoResult)) {
+        let logoThumbPath: string | null = null;
+        if (logoThumbFile instanceof File && logoThumbFile.size > 0) {
+          const thumbResult = await uploadImage(admin, "company-logos", folder, logoThumbFile);
+          if (!("error" in thumbResult)) logoThumbPath = thumbResult.path;
+        }
+        // Met de admin-client: access_requests heeft geen anon-update-policy
+        // (alleen bestuur/beheer, zie access_requests_board_update), dus de
+        // gewone sessie-client zou deze update stilletjes 0 rijen laten raken.
+        await admin
+          .from("access_requests")
+          .update({ logo_path: logoResult.path, logo_thumb_path: logoThumbPath })
+          .eq("id", inserted.id);
+      }
+    } catch (cause) {
+      console.error("[toegang-aanvragen] logo-upload mislukt:", cause);
+    }
   }
 
   return { success: true };

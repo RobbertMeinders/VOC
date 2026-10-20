@@ -1,7 +1,8 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { FieldError } from "@/components/ui/FieldError";
@@ -9,6 +10,7 @@ import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
 import { submitAccessRequestAction, type AccessRequestState } from "@/app/toegang-aanvragen/actions";
 import { useFieldValidation } from "@/lib/validation/useFieldValidation";
 import { validateEmail, validateUrl, normalizeUrl } from "@/lib/validation/fields";
+import { compressInputFile, createThumbnailFile } from "@/lib/image/compress";
 
 const initialState: AccessRequestState = {};
 
@@ -27,6 +29,8 @@ export function AccessRequestForm() {
     email: (value) => validateEmail(value, true),
     website: (value) => validateUrl(value),
   });
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const logoThumbInputRef = useRef<HTMLInputElement>(null);
 
   if (state.success) {
     return (
@@ -65,6 +69,47 @@ export function AccessRequestForm() {
           Bedrijfsnaam
         </label>
         <Input id="company_name" name="company_name" autoComplete="organization" />
+      </div>
+      <div className="flex items-center gap-3">
+        <div className="relative flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-dashed border-input-border bg-surface">
+          {logoPreview ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logoPreview} alt="" className="h-full w-full object-contain" />
+          ) : (
+            <Camera size={18} className="text-muted" />
+          )}
+          <label
+            htmlFor="logo"
+            className="absolute -bottom-1 -right-1 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-petrol text-white shadow-sm hover:opacity-90"
+          >
+            <Camera size={12} />
+          </label>
+          <input
+            id="logo"
+            name="logo"
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/svg+xml,image/avif"
+            className="sr-only"
+            onChange={async (e) => {
+              const input = e.target;
+              const compressed = await compressInputFile(input);
+              if (!compressed) return;
+              setLogoPreview(URL.createObjectURL(compressed));
+
+              const thumbInput = logoThumbInputRef.current;
+              if (thumbInput) {
+                const thumb = await createThumbnailFile(compressed);
+                const transfer = new DataTransfer();
+                if (thumb) transfer.items.add(thumb);
+                thumbInput.files = transfer.files;
+              }
+            }}
+          />
+          <input ref={logoThumbInputRef} type="file" name="logo_thumb" className="hidden" tabIndex={-1} aria-hidden="true" />
+        </div>
+        <p className="text-xs text-muted">
+          Nieuw bedrijf? Stuur het logo meteen mee — dan staat het al klaar zodra je account geactiveerd wordt.
+        </p>
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="address" className="text-sm font-medium text-foreground">

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isEmailConfigured, sendRawHtmlEmail, invitationGreeting } from "@/lib/email/send";
 import { renderMessageEmail } from "@/lib/templates/message-render";
 import { geocodeAddress } from "@/lib/geo/geocode";
@@ -68,6 +69,19 @@ export async function createInvitationFromAccessRequestAction(requestId: string)
 
     if (existingCompany) {
       companyId = existingCompany.id;
+      // D: een eventueel meegestuurd logo hoort bij het NIEUWE bedrijf dat de
+      // aanvrager voor ogen had, niet bij dit toevallig gelijknamige bestaande
+      // bedrijf (dat kan al een eigen logo hebben) — best-effort opruimen,
+      // nooit de rest van deze actie blokkeren.
+      if (request.logo_path) {
+        try {
+          const admin = createAdminClient();
+          const paths = [request.logo_path, request.logo_thumb_path].filter((p): p is string => Boolean(p));
+          await admin.storage.from("company-logos").remove(paths);
+        } catch (cause) {
+          console.error("[beheer/aanvragen] opruimen ongebruikt pending-logo mislukt:", cause);
+        }
+      }
     } else {
       const coordinates = await geocodeAddress({
         address: request.address,
@@ -99,6 +113,31 @@ export async function createInvitationFromAccessRequestAction(requestId: string)
       companyId = createdCompany.id;
       invalidateQuery("bedrijven-page-data");
       invalidateQuery("beheer-bedrijven-page-data");
+
+      // D: een bij de aanvraag meegestuurd logo stond nog in een tijdelijke,
+      // niet aan een bedrijf gebonden map (zie submitAccessRequestAction) —
+      // nu er een echte company_id is, verplaatsen naar de normale
+      // company-logos/{company_id}/-map en meteen aan het nieuwe bedrijf
+      // koppelen. Best-effort: een mislukte verplaatsing laat het bedrijf
+      // gewoon zonder logo (net als vandaag, zonder deze functionaliteit),
+      // en blokkeert nooit het aanmaken van de uitnodiging zelf.
+      if (request.logo_path) {
+        try {
+          const admin = createAdminClient();
+          const movePending = async (fromPath: string): Promise<string | null> => {
+            const toPath = `${companyId}/${fromPath.split("/").pop()}`;
+            const { error: moveError } = await admin.storage.from("company-logos").move(fromPath, toPath);
+            return moveError ? null : toPath;
+          };
+          const logoUrl = await movePending(request.logo_path);
+          const logoThumbUrl = request.logo_thumb_path ? await movePending(request.logo_thumb_path) : null;
+          if (logoUrl) {
+            await supabase.from("companies").update({ logo_url: logoUrl, logo_thumb_url: logoThumbUrl }).eq("id", companyId);
+          }
+        } catch (cause) {
+          console.error("[beheer/aanvragen] verplaatsen pending-logo mislukt:", cause);
+        }
+      }
     }
   }
 

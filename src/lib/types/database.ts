@@ -631,6 +631,8 @@ export interface Database {
           city: string | null;
           website: string | null;
           consent_at: string | null;
+          logo_path: string | null;
+          logo_thumb_path: string | null;
           status: "pending" | "handled";
           created_at: string;
         };
