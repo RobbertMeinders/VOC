@@ -38,14 +38,34 @@ export const APP_SETTINGS_DEFAULTS: AppSettings = {
 // gebonden client als — voor ingeplande campagnes — de service-role-client
 // draait, zie src/lib/newsletter/send.ts).
 export async function fetchAppSettings(supabase: SupabaseClient<Database>): Promise<AppSettings> {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("app_settings")
     .select(
       "site_name, org_name, logo_url, privacy_content, show_testfase, signature_personal_name, signature_personal_role, signature_personal_phone, signature_personal_email"
     )
     .eq("id", true)
     .maybeSingle();
-  return data ?? APP_SETTINGS_DEFAULTS;
+
+  if (!error) return data ?? APP_SETTINGS_DEFAULTS;
+
+  // Migratie 0129 (signature_personal_*-kolommen) nog niet uitgevoerd op deze
+  // database: de select hierboven faalt dan in zijn geheel, en zonder deze
+  // terugval viel de HELE instelling (incl. site_name/privacy_content) stil
+  // terug op APP_SETTINGS_DEFAULTS — dat maakte o.a. Privacy & veiligheid
+  // sitebreed leeg lijken, ook al stond er gewoon tekst in de database.
+  const { data: baseData } = await supabase
+    .from("app_settings")
+    .select("site_name, org_name, logo_url, privacy_content, show_testfase")
+    .eq("id", true)
+    .maybeSingle();
+  if (!baseData) return APP_SETTINGS_DEFAULTS;
+  return {
+    ...baseData,
+    signature_personal_name: null,
+    signature_personal_role: null,
+    signature_personal_phone: null,
+    signature_personal_email: null,
+  };
 }
 
 // De gangbare manier om dit vanuit een Server Component/Action op te halen
