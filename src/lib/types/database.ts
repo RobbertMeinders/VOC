@@ -25,6 +25,7 @@ export interface Database {
           job_title: string | null;
           avatar_url: string | null;
           avatar_thumb_url: string | null;
+          slug: string;
           role: UserRole;
           is_active: boolean;
           show_email: boolean;

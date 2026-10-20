@@ -32,6 +32,7 @@ import { extendInvitationAction } from "@/app/(app)/beheer/uitnodigingen/actions
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { formatActivityDate, formatRelativeTime } from "@/lib/format/date";
 import { activityHref } from "@/lib/agenda/slug";
+import { memberHref } from "@/lib/members/slug";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Beheer" };
@@ -39,7 +40,7 @@ export const metadata: Metadata = { title: "Beheer" };
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
 type ActivityWithCreator = Activity & { created_by_profile: { first_name: string; last_name: string } | null };
 type Invitation = Database["public"]["Tables"]["invitations"]["Row"];
-type NewMember = { id: string; first_name: string; last_name: string; avatar_url: string | null; created_at: string };
+type NewMember = { id: string; slug: string; first_name: string; last_name: string; avatar_url: string | null; created_at: string };
 type RecentPost = {
   id: string;
   content: string | null;
@@ -145,7 +146,7 @@ export default async function BeheerPage() {
       .returns<Activity[]>(),
     supabase
       .from("profiles")
-      .select("id, first_name, last_name, avatar_url, created_at")
+      .select("id, slug, first_name, last_name, avatar_url, created_at")
       .eq("is_active", true)
       .gte("created_at", thirtyDaysAgo)
       .order("created_at", { ascending: false })
@@ -489,7 +490,7 @@ export default async function BeheerPage() {
               {newMembers!.slice(0, 5).map((member) => {
                 const incomplete = !member.avatar_url || !linkedProfileIds.has(member.id);
                 return (
-                  <Link key={member.id} href={`/leden/${member.id}`} className="flex items-center justify-between gap-2 py-1 hover:opacity-80">
+                  <Link key={member.id} href={memberHref(member)} className="flex items-center justify-between gap-2 py-1 hover:opacity-80">
                     <span className="min-w-0 flex-1 truncate text-sm text-foreground">
                       {member.first_name} {member.last_name}
                     </span>

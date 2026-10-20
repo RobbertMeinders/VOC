@@ -11,6 +11,7 @@ import { SectionHeader } from "@/components/ui/SectionHeader";
 import { RecentPostPreview } from "@/components/feed/RecentPostPreview";
 import { fetchFeedPosts } from "@/lib/feed/queries";
 import { activityHref } from "@/lib/agenda/slug";
+import { memberHref } from "@/lib/members/slug";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Home" };
@@ -19,6 +20,7 @@ type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
 type NewsItemRow = Database["public"]["Tables"]["news_items"]["Row"];
 type NewMemberRow = {
   id: string;
+  slug: string;
   first_name: string;
   last_name: string;
   avatar_url: string | null;
@@ -59,7 +61,7 @@ export default async function HomePage() {
     supabase
       .from("profiles")
       .select(
-        "id, first_name, last_name, avatar_url, avatar_thumb_url, company_members(is_primary, company:companies(id, name))"
+        "id, slug, first_name, last_name, avatar_url, avatar_thumb_url, company_members(is_primary, company:companies(id, name))"
       )
       .eq("is_active", true)
       .eq("is_organization_account", false)
@@ -230,7 +232,7 @@ export default async function HomePage() {
                 const path = member.avatar_thumb_url ?? member.avatar_url;
                 const avatarUrl = path ? (newMemberAvatarUrls.get(path) ?? null) : null;
                 return (
-                  <Link key={member.id} href={`/leden/${member.id}`} className="flex shrink-0 flex-col items-center gap-1.5 text-center">
+                  <Link key={member.id} href={memberHref(member)} className="flex shrink-0 flex-col items-center gap-1.5 text-center">
                     <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={avatarUrl} size={44} />
                     <span className="max-w-[56px] truncate text-[11px] text-muted">{member.first_name}</span>
                   </Link>
@@ -323,7 +325,7 @@ export default async function HomePage() {
                   return (
                     <Link
                       key={member.id}
-                      href={`/leden/${member.id}`}
+                      href={memberHref(member)}
                       className="flex items-center gap-3 p-3 hover:bg-black/[.03] dark:hover:bg-white/[.05]"
                     >
                       <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={avatarUrl} size={40} />

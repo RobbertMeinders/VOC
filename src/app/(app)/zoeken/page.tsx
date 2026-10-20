@@ -18,6 +18,7 @@ export const metadata: Metadata = { title: "Zoeken" };
 
 type ProfileRow = {
   id: string;
+  slug: string;
   first_name: string;
   last_name: string;
   avatar_url: string | null;
@@ -70,7 +71,7 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
       supabase
         .from("profiles")
         .select(
-          "id, first_name, last_name, avatar_url, job_title, company_members(is_primary, company:companies(id, name, industry))"
+          "id, slug, first_name, last_name, avatar_url, job_title, company_members(is_primary, company:companies(id, name, industry))"
         )
         .eq("is_organization_account", false)
         .eq("is_active", true)
@@ -125,6 +126,7 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
     const membership = p.company_members.find((m) => m.is_primary) ?? p.company_members[0];
     return {
       id: p.id,
+      slug: p.slug,
       first_name: p.first_name,
       last_name: p.last_name,
       avatarUrl: p.avatar_url ? (avatarUrls.get(p.avatar_url) ?? null) : null,

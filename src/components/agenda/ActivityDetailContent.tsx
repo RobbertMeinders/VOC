@@ -68,7 +68,7 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
     id: string;
     is_waitlisted: boolean;
     attended: boolean;
-    profile: { id: string; first_name: string; last_name: string; avatar_url: string | null } | null;
+    profile: { id: string; slug: string; first_name: string; last_name: string; avatar_url: string | null } | null;
   };
   type SubmitterRow = {
     first_name: string;
@@ -97,7 +97,7 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
     getSignedStorageUrl("activity-images", activity.image_url),
     supabase
       .from("activity_registrations")
-      .select("id, is_waitlisted, attended, profile:profiles(id, first_name, last_name, avatar_url)")
+      .select("id, is_waitlisted, attended, profile:profiles(id, slug, first_name, last_name, avatar_url)")
       .eq("activity_id", activity.id)
       .order("created_at", { ascending: true })
       .returns<RegistrationRow[]>(),
@@ -161,6 +161,7 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
     .filter((r): r is RegistrationRow & { profile: NonNullable<RegistrationRow["profile"]> } => r.profile !== null)
     .map((r) => ({
       id: r.profile.id,
+      slug: r.profile.slug,
       first_name: r.profile.first_name,
       last_name: r.profile.last_name,
       avatarUrl: r.profile.avatar_url ? (attendeeAvatarUrls.get(r.profile.avatar_url) ?? null) : null,

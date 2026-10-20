@@ -4,6 +4,7 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { activityHref } from "@/lib/agenda/slug";
+import { memberHref } from "@/lib/members/slug";
 
 export type SearchPreviewItem = {
   id: string;
@@ -37,7 +38,7 @@ export async function searchPreviewAction(rawQuery: string): Promise<SearchPrevi
   const [{ data: profiles }, { data: companies }, { data: activities }, { data: documents }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("id, first_name, last_name, avatar_url, job_title")
+      .select("id, slug, first_name, last_name, avatar_url, job_title")
       .eq("is_organization_account", false)
       .eq("is_active", true)
       .or(`first_name.ilike.${nameLike},last_name.ilike.${nameLike}`)
@@ -58,7 +59,7 @@ export async function searchPreviewAction(rawQuery: string): Promise<SearchPrevi
       type: "member" as const,
       title: `${p.first_name} ${p.last_name}`,
       subtitle: p.job_title,
-      href: `/leden/${p.id}`,
+      href: memberHref(p),
       avatarUrl: avatarUrls[i],
       initials: `${p.first_name.charAt(0)}${p.last_name.charAt(0)}`.toUpperCase(),
     })),

@@ -9,9 +9,11 @@ import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { setAttendanceAction } from "@/app/(app)/agenda/actions";
+import { memberHref } from "@/lib/members/slug";
 
 export type Attendee = {
   id: string;
+  slug: string;
   first_name: string;
   last_name: string;
   avatarUrl: string | null;
@@ -63,7 +65,7 @@ function AttendeeRow({
 }) {
   return (
     <div className="flex items-center gap-2 rounded-lg px-1 py-1 hover:bg-black/[.04] dark:hover:bg-white/[.06]">
-      <Link href={`/leden/${attendee.id}`} onClick={onClick} className="flex min-w-0 flex-1 items-center gap-2.5">
+      <Link href={memberHref(attendee)} onClick={onClick} className="flex min-w-0 flex-1 items-center gap-2.5">
         <Avatar firstName={attendee.first_name} lastName={attendee.last_name} avatarUrl={attendee.avatarUrl} size={28} />
         <span className="truncate text-sm text-foreground">
           {attendee.first_name} {attendee.last_name}

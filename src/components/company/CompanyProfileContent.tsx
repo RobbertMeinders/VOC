@@ -14,6 +14,7 @@ type Company = Database["public"]["Tables"]["companies"]["Row"];
 type MemberRow = {
   profile: {
     id: string;
+    slug: string;
     first_name: string;
     last_name: string;
     job_title: string | null;
@@ -55,7 +56,7 @@ export async function CompanyProfileContent({ id }: { id: string }) {
     getCachedCompany(id),
     supabase
       .from("company_members")
-      .select("profile:profiles(id, first_name, last_name, job_title, avatar_url, is_active)")
+      .select("profile:profiles(id, slug, first_name, last_name, job_title, avatar_url, is_active)")
       .eq("company_id", id)
       .returns<MemberRow[]>(),
     supabase
@@ -92,6 +93,7 @@ export async function CompanyProfileContent({ id }: { id: string }) {
 
   const members: CompanyMember[] = activeMemberRows.map((row) => ({
     id: row.profile.id,
+    slug: row.profile.slug,
     first_name: row.profile.first_name,
     last_name: row.profile.last_name,
     job_title: row.profile.job_title,

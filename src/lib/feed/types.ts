@@ -2,6 +2,10 @@ export type FeedAuthor = {
   id: string;
   first_name: string;
   last_name: string;
+  // Alleen gevuld voor de post-auteur (PostCard linkt daarnaar) — de
+  // reactie-auteur gebruikt dit type ook, maar wordt nergens doorgeklikt,
+  // dus daar is deze kolom niet nodig en blijft hij leeg uit de query.
+  slug: string;
   avatarUrl: string | null;
 };
 

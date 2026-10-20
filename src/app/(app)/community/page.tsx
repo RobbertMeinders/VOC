@@ -27,6 +27,7 @@ export default async function CommunityPage() {
           initialPosts={posts}
           currentAuthor={{
             id: profile.id,
+            slug: profile.slug,
             first_name: profile.first_name,
             last_name: profile.last_name,
             avatarUrl,

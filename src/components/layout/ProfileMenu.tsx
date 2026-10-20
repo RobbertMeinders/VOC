@@ -10,6 +10,7 @@ import { NavBadge } from "./NavBadge";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { signOutAction } from "@/lib/auth/actions";
 import { isBoard } from "@/lib/auth/roles";
+import { memberHref } from "@/lib/members/slug";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { useFixedAnchor } from "@/lib/dom/useFixedAnchor";
@@ -30,7 +31,7 @@ function menuItems(profile: Profile, companyId: string | null) {
   return [
     // Naar de (publieke) weergave i.p.v. meteen het bewerkformulier — daar
     // staat een "Profiel aanpassen"-knop naar /profiel voor wie wil wijzigen.
-    { href: `/leden/${profile.id}`, label: "Mijn profiel", icon: UserIcon },
+    { href: memberHref(profile), label: "Mijn profiel", icon: UserIcon },
     ...(companyId ? [{ href: `/bedrijven/${companyId}`, label: "Mijn bedrijf", icon: Building2 }] : []),
     // Privacy & veiligheid staat niet hier — die link staat al op
     // Instellingen zelf, twee ingangen naar dezelfde pagina is overbodig.
@@ -260,7 +261,7 @@ export function MobileProfileMenu({ profile, avatarUrl, companyId, companyName, 
   const items = menuItems(profile, companyId);
   const pathname = usePathname();
   const active =
-    pathname.startsWith(`/leden/${profile.id}`) ||
+    pathname.startsWith(memberHref(profile)) ||
     pathname.startsWith("/profiel") ||
     pathname.startsWith("/instellingen") ||
     pathname.startsWith("/beheer") ||

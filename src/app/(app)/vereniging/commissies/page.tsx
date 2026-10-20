@@ -8,6 +8,7 @@ import { ComingSoon } from "@/components/ui/ComingSoon";
 import { Avatar } from "@/components/ui/Avatar";
 import { CommissionApplyForm } from "@/components/vereniging/CommissionApplyForm";
 import { VerenigingHero } from "@/components/vereniging/VerenigingHero";
+import { memberHref } from "@/lib/members/slug";
 
 export const metadata: Metadata = { title: "Commissies" };
 
@@ -15,7 +16,7 @@ type CommissionRow = { id: string; name: string; description: string | null };
 type MembershipRow = {
   commission_id: string;
   profile_id: string;
-  profile: { id: string; first_name: string; last_name: string; avatar_url: string | null; avatar_thumb_url: string | null } | null;
+  profile: { id: string; slug: string; first_name: string; last_name: string; avatar_url: string | null; avatar_thumb_url: string | null } | null;
 };
 type ApplicationRow = { commission_id: string; status: string };
 
@@ -27,7 +28,7 @@ export default async function CommissiesPage() {
     supabase.from("commissions").select("id, name, description").is("archived_at", null).order("name").returns<CommissionRow[]>(),
     supabase
       .from("commission_memberships")
-      .select("commission_id, profile_id, profile:profiles!commission_memberships_profile_id_fkey(id, first_name, last_name, avatar_url, avatar_thumb_url)")
+      .select("commission_id, profile_id, profile:profiles!commission_memberships_profile_id_fkey(id, slug, first_name, last_name, avatar_url, avatar_thumb_url)")
       .returns<MembershipRow[]>(),
     supabase
       .from("commission_applications")
@@ -99,7 +100,7 @@ export default async function CommissiesPage() {
                       return (
                         <Link
                           key={member.profile_id}
-                          href={`/leden/${member.profile_id}`}
+                          href={memberHref(member.profile!)}
                           className="flex items-center gap-2.5 rounded-full bg-raised py-1.5 pl-1.5 pr-4 hover:bg-black/[.06] dark:hover:bg-white/[.08]"
                         >
                           <Avatar firstName={member.profile!.first_name} lastName={member.profile!.last_name} avatarUrl={avatarUrl} size={36} />

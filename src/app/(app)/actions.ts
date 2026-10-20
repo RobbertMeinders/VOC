@@ -303,17 +303,17 @@ export async function toggleCommentLikeAction(commentId: string): Promise<{ like
   return { liked: true };
 }
 
-export type Liker = { id: string; firstName: string; lastName: string; avatarUrl: string | null };
+export type Liker = { id: string; slug: string; firstName: string; lastName: string; avatarUrl: string | null };
 
 export async function getPostLikersAction(postId: string): Promise<Liker[]> {
   await requireProfile();
   const supabase = await createClient();
   const { data } = await supabase
     .from("feed_likes")
-    .select("profile:profiles(id, first_name, last_name, avatar_url)")
+    .select("profile:profiles(id, first_name, last_name, slug, avatar_url)")
     .eq("post_id", postId)
     .order("created_at", { ascending: false })
-    .returns<{ profile: { id: string; first_name: string; last_name: string; avatar_url: string | null } }[]>();
+    .returns<{ profile: { id: string; first_name: string; last_name: string; slug: string; avatar_url: string | null } }[]>();
 
   return hydrateLikers(supabase, data ?? []);
 }
@@ -323,21 +323,22 @@ export async function getCommentLikersAction(commentId: string): Promise<Liker[]
   const supabase = await createClient();
   const { data } = await supabase
     .from("feed_comment_likes")
-    .select("profile:profiles(id, first_name, last_name, avatar_url)")
+    .select("profile:profiles(id, first_name, last_name, slug, avatar_url)")
     .eq("comment_id", commentId)
     .order("created_at", { ascending: false })
-    .returns<{ profile: { id: string; first_name: string; last_name: string; avatar_url: string | null } }[]>();
+    .returns<{ profile: { id: string; first_name: string; last_name: string; slug: string; avatar_url: string | null } }[]>();
 
   return hydrateLikers(supabase, data ?? []);
 }
 
 async function hydrateLikers(
   supabase: Awaited<ReturnType<typeof createClient>>,
-  rows: { profile: { id: string; first_name: string; last_name: string; avatar_url: string | null } }[]
+  rows: { profile: { id: string; first_name: string; last_name: string; slug: string; avatar_url: string | null } }[]
 ): Promise<Liker[]> {
   const avatarUrls = await getSignedStorageUrls(supabase, "avatars", rows.map((r) => r.profile.avatar_url));
   return rows.map((r) => ({
     id: r.profile.id,
+    slug: r.profile.slug,
     firstName: r.profile.first_name,
     lastName: r.profile.last_name,
     avatarUrl: r.profile.avatar_url ? (avatarUrls.get(r.profile.avatar_url) ?? null) : null,

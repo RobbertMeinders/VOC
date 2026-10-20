@@ -9,7 +9,7 @@ import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCo
 // via het accountmenu. Alleen activeMatch-functies die dit onderscheid nodig
 // hebben (zoals NETWERK_NAV_ITEM) lezen deze context uit.
 export type NavActiveContext = {
-  ownProfileId?: string;
+  ownProfileSlug?: string;
   ownCompanyId?: string | null;
 };
 
@@ -65,7 +65,7 @@ export const NETWERK_NAV_ITEM: NavItem = {
     // Eigen profiel/bedrijf telt niet als "via Netwerk bereikt" — zie
     // NavActiveContext hierboven — anders licht dit altijd mee op
     // /leden/[eigen-id] en /bedrijven/[eigen-bedrijf-id].
-    if (ctx.ownProfileId && pathname.startsWith(`/leden/${ctx.ownProfileId}`)) return false;
+    if (ctx.ownProfileSlug && pathname.startsWith(`/leden/${ctx.ownProfileSlug}`)) return false;
     if (ctx.ownCompanyId && pathname.startsWith(`/bedrijven/${ctx.ownCompanyId}`)) return false;
     return pathname.startsWith("/leden") || pathname.startsWith("/bedrijven");
   },

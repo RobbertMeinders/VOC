@@ -10,6 +10,7 @@ export const metadata: Metadata = { title: "Leden" };
 
 type ProfileRow = {
   id: string;
+  slug: string;
   first_name: string;
   last_name: string;
   avatar_url: string | null;
@@ -33,7 +34,7 @@ export default async function LedenPage() {
         supabase
           .from("profiles")
           .select(
-            "id, first_name, last_name, avatar_url, avatar_thumb_url, job_title, company_members(is_primary, company:companies(id, name, industry))"
+            "id, slug, first_name, last_name, avatar_url, avatar_thumb_url, job_title, company_members(is_primary, company:companies(id, name, industry))"
           )
           .eq("is_organization_account", false)
           .eq("is_active", true)
@@ -55,6 +56,7 @@ export default async function LedenPage() {
     const membership = row.company_members.find((m) => m.is_primary) ?? row.company_members[0];
     return {
       id: row.id,
+      slug: row.slug,
       first_name: row.first_name,
       last_name: row.last_name,
       avatarUrl: null,

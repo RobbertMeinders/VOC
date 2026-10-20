@@ -5,6 +5,7 @@ import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { Input } from "@/components/ui/Input";
 import { quickUpdateMemberAction, type QuickUpdateMemberState } from "@/app/(app)/leden/[id]/actions";
+import { memberHref } from "@/lib/members/slug";
 import { useToast } from "@/lib/ui/ToastContext";
 
 const initialState: QuickUpdateMemberState = {};
@@ -31,6 +32,7 @@ function SubmitButton() {
 // volledige profiel (link onderaan dit paneel) resp. het rijmenu.
 export function MemberQuickEditForm({
   memberId,
+  memberSlug,
   firstName,
   lastName,
   phone,
@@ -38,6 +40,7 @@ export function MemberQuickEditForm({
   onSaved,
 }: {
   memberId: string;
+  memberSlug: string;
   firstName: string;
   lastName: string;
   phone: string | null;
@@ -100,7 +103,7 @@ export function MemberQuickEditForm({
       )}
 
       <div className="flex items-center justify-end gap-3">
-        <Link href={`/leden/${memberId}`} className="text-xs font-medium text-voc-red-text hover:underline">
+        <Link href={memberHref({ slug: memberSlug })} className="text-xs font-medium text-voc-red-text hover:underline">
           Meer bewerken
         </Link>
         <SubmitButton />

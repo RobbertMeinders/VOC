@@ -7,7 +7,7 @@ import type { FeedAttachment, FeedAuthor, FeedComment, FeedPost, FeedPostType } 
 
 const POST_SELECT = `
   id, author_id, content, type, created_at, updated_at,
-  author:profiles!feed_posts_author_id_fkey(id, first_name, last_name, avatar_url),
+  author:profiles!feed_posts_author_id_fkey(id, first_name, last_name, slug, avatar_url),
   attachments:feed_attachments(id, type, storage_path, thumb_path, file_name),
   comments:feed_comments(
     id, post_id, content, created_at,
@@ -17,7 +17,10 @@ const POST_SELECT = `
   likes:feed_likes(profile_id, profile:profiles(first_name, last_name))
 `;
 
-type RawAuthor = { id: string; first_name: string; last_name: string; avatar_url: string | null };
+// slug is optioneel: de reactie-auteur (hergebruikt ditzelfde type, zie
+// buildComment) komt uit een losse select zonder slug-kolom, en wordt
+// nergens doorgeklikt.
+type RawAuthor = { id: string; first_name: string; last_name: string; slug?: string; avatar_url: string | null };
 type RawAttachment = { id: string; type: "image" | "pdf"; storage_path: string; thumb_path: string | null; file_name: string };
 type RawLike = { profile_id: string; profile: { first_name: string; last_name: string } };
 type RawComment = {
@@ -71,6 +74,7 @@ function buildAuthor(author: RawAuthor, avatarUrls: Map<string, string>): FeedAu
     id: author.id,
     first_name: author.first_name,
     last_name: author.last_name,
+    slug: author.slug ?? author.id,
     avatarUrl: author.avatar_url ? (avatarUrls.get(author.avatar_url) ?? null) : null,
   };
 }

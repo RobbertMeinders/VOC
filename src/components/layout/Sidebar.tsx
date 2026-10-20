@@ -13,6 +13,7 @@ import { NotificationCenter } from "@/components/notifications/NotificationCente
 import { SearchOverlay } from "@/components/search/SearchOverlay";
 import { VocSocialLinks } from "@/components/ui/VocSocialLinks";
 import { isBoard } from "@/lib/auth/roles";
+import { memberHref } from "@/lib/members/slug";
 import type { Profile } from "@/lib/auth/session";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
@@ -37,7 +38,7 @@ export function Sidebar({
 
   function renderItem(item: NavItem, indented = false) {
     const { href, label, icon: Icon, badgeKey, badgeLabel } = item;
-    const active = isNavItemActive(item, pathname, { ownProfileId: profile.id, ownCompanyId: companyId });
+    const active = isNavItemActive(item, pathname, { ownProfileSlug: profile.slug, ownCompanyId: companyId });
     return (
       <Link
         key={href}
@@ -70,7 +71,7 @@ export function Sidebar({
   // altijd zichtbaar i.p.v. achter het klikken op de profielfoto — die knop
   // opent alleen nog Uitloggen (SidebarProfileMenu).
   const accountItems: { href: string; label: string; icon: LucideIcon; badge?: number }[] = [
-    { href: `/leden/${profile.id}`, label: "Mijn profiel", icon: UserIcon },
+    { href: memberHref(profile), label: "Mijn profiel", icon: UserIcon },
     ...(companyId ? [{ href: `/bedrijven/${companyId}`, label: "Mijn bedrijf", icon: Building2 }] : []),
     { href: "/instellingen", label: "Instellingen", icon: Settings },
     ...(isBoard(profile.role) ? [{ href: "/beheer", label: "Beheer", icon: LayoutDashboard, badge: unread.beheer }] : []),

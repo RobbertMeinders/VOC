@@ -15,6 +15,7 @@ import { LikersOverlay } from "./LikersOverlay";
 import { ReportPostOverlay } from "./ReportPostOverlay";
 import { MentionEditor } from "./MentionEditor";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
+import { memberHref } from "@/lib/members/slug";
 import {
   deleteCommentAction,
   deletePostAction,
@@ -373,7 +374,7 @@ export function PostCard({
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <Link href={`/leden/${post.author.id}`} className="flex items-center gap-3">
+        <Link href={memberHref(post.author)} className="flex items-center gap-3">
           <Avatar
             firstName={post.author.first_name}
             lastName={post.author.last_name}

@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
+import { memberHref } from "@/lib/members/slug";
 
 export type MemberListItem = {
   id: string;
+  slug: string;
   first_name: string;
   last_name: string;
   avatarUrl: string | null;
@@ -13,7 +15,7 @@ export type MemberListItem = {
 export function MemberRow({ member }: { member: MemberListItem }) {
   return (
     <Link
-      href={`/leden/${member.id}`}
+      href={memberHref(member)}
       className="card-hover-lift animate-rise-in flex min-w-0 items-center gap-4 rounded-2xl bg-surface p-4 shadow-sm hover:border-foreground/20"
     >
       <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={56} />

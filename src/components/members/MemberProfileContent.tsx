@@ -30,41 +30,48 @@ type Membership = {
 type AttendedActivity = { id: string; title: string; starts_at: string; slug: string };
 
 // Performance-audit #5: generateMetadata (title) en MemberProfileContent
-// riepen allebei hun eigen profiel-query aan voor dezelfde id — met
-// React's cache() wordt de tweede aanroep binnen hetzelfde verzoek hergebruikt
-// i.p.v. een dubbele round-trip naar Supabase te doen (zelfde patroon als
-// getCurrentProfile in lib/auth/session.ts).
-const getCachedMemberProfile = cache(async (id: string): Promise<Profile | null> => {
+// riepen allebei hun eigen profiel-query aan voor dezelfde route-waarde —
+// met React's cache() wordt de tweede aanroep binnen hetzelfde verzoek
+// hergebruikt i.p.v. een dubbele round-trip naar Supabase te doen (zelfde
+// patroon als getCurrentProfile in lib/auth/session.ts). `param` is de
+// route-waarde uit de URL (sinds de leesbare-URL's een naam-slug, of —
+// voor oudere links — een kaal UUID): get_member_profile matcht nu op
+// allebei (zie migratie 0122_profile_slug.sql).
+const getCachedMemberProfile = cache(async (param: string): Promise<Profile | null> => {
   const supabase = await createClient();
   // get_member_profile (0061_masked_contact_fields.sql) i.p.v. rechtstreeks
   // .from("profiles") — maskeert email/phone naar null tenzij het je eigen
   // profiel is, de bekeken persoon dat zelf zichtbaar heeft gezet
   // (show_email/show_phone), of jijzelf bestuur/beheer bent.
-  const { data } = await supabase.rpc("get_member_profile", { p_id: id }).returns<Profile[]>();
+  const { data } = await supabase.rpc("get_member_profile", { p_id: param }).returns<Profile[]>();
   return data?.[0] ?? null;
 });
 
-export async function getMemberProfileTitle(id: string): Promise<string> {
-  const member = await getCachedMemberProfile(id);
+export async function getMemberProfileTitle(param: string): Promise<string> {
+  const member = await getCachedMemberProfile(param);
   return member ? `${member.first_name} ${member.last_name}` : "Lid";
 }
 
 // Gedeeld tussen de volledige pagina (/leden/[id]) en de intercepted overlay
 // (@modal/(.)leden/[id]) — zelfde content, alleen de buitenste wrapper
-// (max-breedte, wel/niet gecentreerd) verschilt per aanroeper.
-export async function MemberProfileContent({ id }: { id: string }) {
+// (max-breedte, wel/niet gecentreerd) verschilt per aanroeper. `id`-prop
+// hier is dus eigenlijk de route-slug/het-UUID uit de URL; na het ophalen
+// van de rij wordt overal verderop member.id (het échte UUID) gebruikt,
+// nooit deze ruwe route-waarde — zelfde patroon als ActivityDetailContent.
+export async function MemberProfileContent({ id: routeParam }: { id: string }) {
   const viewer = await requireProfile();
   const supabase = await createClient();
-  const isOwnProfile = viewer.id === id;
-  const canSeePrivate = isOwnProfile || isBoard(viewer.role);
 
-  // Performance-audit #5: membership/attendedRows/posts hebben alleen `id`
-  // nodig, niet het resultaat van de profiel-RPC — voorheen wachtten ze
-  // toch tot die RPC klaar was voordat ze zelfs maar begonnen. Nu allemaal
-  // in één Promise.all, zodat de netwerk-rondes gelijktijdig lopen i.p.v.
-  // na elkaar.
-  const [member, { data: membership }, { data: attendedRows }, posts] = await Promise.all([
-    getCachedMemberProfile(id),
+  const member = await getCachedMemberProfile(routeParam);
+  if (!member) {
+    notFound();
+  }
+
+  const isOwnProfile = viewer.id === member.id;
+  const canSeePrivate = isOwnProfile || isBoard(viewer.role);
+  const id = member.id;
+
+  const [{ data: membership }, { data: attendedRows }, posts] = await Promise.all([
     supabase
       .from("company_members")
       .select("company:companies(id, name, city, industry, logo_url)")
@@ -84,10 +91,6 @@ export async function MemberProfileContent({ id }: { id: string }) {
     // zin om ze dan ook op te halen.
     isOwnProfile ? fetchFeedPostsByAuthor(supabase, viewer.id, id, MEMBER_PROFILE_LIST_PREVIEW + 1) : Promise.resolve([]),
   ]);
-
-  if (!member) {
-    notFound();
-  }
 
   // Deze twee hangen wél van elkaars resultaat (member.avatar_url) of van
   // membership af, dus die blijven na de Promise.all hierboven — maar wel

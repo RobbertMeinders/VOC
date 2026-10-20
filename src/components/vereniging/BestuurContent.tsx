@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { Avatar } from "@/components/ui/Avatar";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { memberHref } from "@/lib/members/slug";
 
 type BoardPositionRow = {
   id: string;
@@ -13,6 +14,7 @@ type BoardPositionRow = {
     id: string;
     first_name: string;
     last_name: string;
+    slug: string;
     avatar_url: string | null;
     avatar_thumb_url: string | null;
   } | null;
@@ -41,7 +43,7 @@ export async function BestuurContent() {
   const { data: positions } = await supabase
     .from("board_positions")
     .select(
-      "id, title, started_at, profile:profiles!board_positions_profile_id_fkey(id, first_name, last_name, avatar_url, avatar_thumb_url)"
+      "id, title, started_at, profile:profiles!board_positions_profile_id_fkey(id, first_name, last_name, slug, avatar_url, avatar_thumb_url)"
     )
     .is("ended_at", null)
     .order("started_at", { ascending: true })
@@ -95,7 +97,7 @@ export async function BestuurContent() {
         return (
           <Link
             key={id}
-            href={`/leden/${profile.id}`}
+            href={memberHref(profile)}
             // animate-rise-in + een lichte hover-lift (i.p.v. alleen de
             // randkleur) geven de kennismakingspagina wat meer leven dan een
             // statische kaart — zelfde soort micro-interactie als elders in

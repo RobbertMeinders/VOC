@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { Avatar } from "@/components/ui/Avatar";
+import { memberHref } from "@/lib/members/slug";
 
 export type CompanyMember = {
   id: string;
+  slug: string;
   first_name: string;
   last_name: string;
   job_title: string | null;
@@ -15,7 +17,7 @@ export function CompanyMemberList({ members }: { members: CompanyMember[] }) {
       {members.map((member) => (
         <Link
           key={member.id}
-          href={`/leden/${member.id}`}
+          href={memberHref(member)}
           className="flex items-center gap-3 py-3 hover:opacity-80"
         >
           <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={36} />

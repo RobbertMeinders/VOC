@@ -32,7 +32,7 @@ export function BottomNav({
         {MOBILE_PRIMARY_NAV_ITEMS.map((item) => {
           const { href, label, icon: Icon, badgeKey } = item;
           const count = badgeKey ? unread[badgeKey] : 0;
-          const active = isNavItemActive(item, pathname, { ownProfileId: profile.id, ownCompanyId: companyId });
+          const active = isNavItemActive(item, pathname, { ownProfileSlug: profile.slug, ownCompanyId: companyId });
           return (
             <li key={href} className="flex-1">
               <Link

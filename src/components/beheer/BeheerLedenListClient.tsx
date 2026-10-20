@@ -12,10 +12,12 @@ import { ComingSoon } from "@/components/ui/ComingSoon";
 import { matchesSearch } from "@/lib/search/normalize";
 import { useUrlFilterState } from "@/lib/dom/useUrlFilterState";
 import { ROLE_LABELS } from "@/lib/auth/roles";
+import { memberHref } from "@/lib/members/slug";
 import type { UserRole } from "@/lib/types/database";
 
 export type BeheerMemberRow = {
   id: string;
+  slug: string;
   first_name: string;
   last_name: string;
   email: string;
@@ -142,7 +144,7 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                   weggelaten) i.p.v. de kolommen erna te laten opschuiven. */}
               <div className="flex min-w-0 flex-col gap-1.5 sm:grid sm:grid-cols-[minmax(0,1.6fr)_160px_minmax(0,1.6fr)_130px_auto] sm:items-center sm:gap-x-4 sm:gap-y-0">
                 <div className="flex min-w-0 items-center gap-3">
-                  <Link href={`/leden/${member.id}`} className="flex min-w-0 items-center gap-3 hover:opacity-80">
+                  <Link href={memberHref(member)} className="flex min-w-0 items-center gap-3 hover:opacity-80">
                     <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={36} />
                     <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-none">
                       {member.first_name} {member.last_name}
@@ -182,6 +184,7 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
               {expanded && (
                 <MemberQuickEditForm
                   memberId={member.id}
+                  memberSlug={member.slug}
                   firstName={member.first_name}
                   lastName={member.last_name}
                   phone={member.phone}

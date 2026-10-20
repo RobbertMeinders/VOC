@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { X } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
+import { memberHref } from "@/lib/members/slug";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -61,7 +62,7 @@ export function LikersOverlay({
             {likers?.map((liker) => (
               <Link
                 key={liker.id}
-                href={`/leden/${liker.id}`}
+                href={memberHref(liker)}
                 onClick={onClose}
                 className="flex items-center gap-3 px-4 py-2.5 hover:bg-black/[.04] dark:hover:bg-white/[.06]"
               >

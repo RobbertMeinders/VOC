@@ -70,6 +70,7 @@ export async function BeheerLedenContent() {
     const path = p.avatar_thumb_url ?? p.avatar_url;
     return {
       id: p.id,
+      slug: p.slug,
       first_name: p.first_name,
       last_name: p.last_name,
       email: p.email,
