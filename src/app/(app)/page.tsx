@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { formatActivityDateCompact, formatActivityTimeOnly, formatTodayLabel, getGreeting } from "@/lib/format/date";
 import { Avatar } from "@/components/ui/Avatar";
+import { ProfilePhotoPrompt } from "@/components/home/ProfilePhotoPrompt";
 import { NewsHeroCarousel } from "@/components/home/NewsHeroCarousel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
 import { RecentPostPreview } from "@/components/feed/RecentPostPreview";
@@ -39,7 +40,15 @@ export default async function HomePage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: activities }, { data: newsItems }, { data: myRegistrationRows }, { data: newMembers }, communityPosts] = await Promise.all([
+  const [
+    { data: activities },
+    { data: newsItems },
+    { data: myRegistrationRows },
+    { data: newMembers },
+    communityPosts,
+    { data: ownMembership },
+    { data: ownPendingRequest },
+  ] = await Promise.all([
     supabase
       .from("activities")
       .select("*")
@@ -72,6 +81,18 @@ export default async function HomePage() {
     // Afwerkronde blok 2: "Laatst in de community" op desktop — de 3 meest
     // recente berichten, zelfde ophaalfunctie als de Community-pagina zelf.
     fetchFeedPosts(supabase, profile.id, 3),
+    // C (UX-audit): voor ProfilePhotoPrompt hieronder — bestond al als
+    // component maar stond nergens meer gekoppeld. Zelfde twee queries als
+    // /profiel (membership/pendingRequest) i.p.v. de hele profielpagina-
+    // logica hier te importeren.
+    supabase.from("company_members").select("id").eq("profile_id", profile.id).limit(1).maybeSingle(),
+    supabase
+      .from("company_membership_requests")
+      .select("id")
+      .eq("profile_id", profile.id)
+      .eq("status", "pending")
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const nextActivity = activities?.[0] ?? null;
@@ -128,6 +149,9 @@ export default async function HomePage() {
     const membership = member.company_members.find((m) => m.is_primary) ?? member.company_members[0];
     return { ...member, company: membership?.company ?? null };
   });
+
+  const showProfilePrompt =
+    !profile.onboarding_dismissed_at && (!profile.avatar_url || !profile.job_title || !ownMembership);
 
   return (
     <div className="flex flex-col gap-6">
@@ -203,6 +227,19 @@ export default async function HomePage() {
           )}
         </div>
       </div>
+
+      {/* C (UX-audit): aanspoor om het profiel af te maken — zelfde
+          "profiel compleet"-definitie (foto + bedrijf) als de statistieken-
+          signalen, hier aangevuld met functie. Verdwijnt zodra alles is
+          aangevuld, of door 'm zelf weg te klikken (onboarding_dismissed_at). */}
+      {showProfilePrompt && (
+        <ProfilePhotoPrompt
+          missingPhoto={!profile.avatar_url}
+          missingJobTitle={!profile.job_title}
+          missingCompany={!ownMembership}
+          companyRequestPending={Boolean(ownPendingRequest)}
+        />
+      )}
 
       {/* Mobiel: ongewijzigd t.o.v. voor de afwerkronde-herindeling —
           "Snel naar" als los blok, dan "Nieuw in het netwerk" als rij
