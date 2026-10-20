@@ -270,14 +270,15 @@ export async function deleteCompanyAction(companyId: string, redirectAfter = tru
 export async function decideCompanyMembershipRequestAction(
   requestId: string,
   companyId: string,
-  decision: "approved" | "rejected"
+  decision: "approved" | "rejected",
+  reason?: string
 ): Promise<{ error?: string }> {
   const profile = await requireProfile();
   const supabase = await createClient();
 
   const { error, count } = await supabase
     .from("company_membership_requests")
-    .update({ status: decision, decided_by: profile.id }, { count: "exact" })
+    .update({ status: decision, decided_by: profile.id, decision_reason: reason?.trim() || null }, { count: "exact" })
     .eq("id", requestId);
 
   if (error || !count) {
@@ -293,10 +294,13 @@ export async function decideCompanyMembershipRequestAction(
   // tot 30s (de cache-TTL) achter op een zojuist afgehandeld koppelverzoek.
   invalidateQuery("beheer-waiting-counts");
   revalidatePath(`/bedrijven/${companyId}`);
-  // Deze actie wordt ook vanaf het beheerdashboard ("Wacht op jou")
-  // aangeroepen — zonder deze revalidate bleef een net afgehandeld verzoek
-  // daar nog even (tot de volgende navigatie) in de lijst staan.
+  // Deze actie wordt ook vanaf het beheerdashboard ("Wacht op jou") en vanaf
+  // Beheer -> Aanvragen -> Bedrijfskoppelingen aangeroepen — zonder deze
+  // revalidates bleef een net afgehandeld verzoek daar nog even (tot de
+  // volgende navigatie) in de lijst staan.
   revalidatePath("/beheer");
+  revalidatePath("/beheer/instroom");
+  revalidatePath("/beheer/bedrijven");
   return {};
 }
 

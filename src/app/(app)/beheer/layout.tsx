@@ -24,7 +24,9 @@ export default async function BeheerLayout({ children }: { children: ReactNode }
   // Foutenrapport §0, fix 3: élke categorie die meetelt in de Beheer-badge
   // (ledenmenu) hoort ook ergens in deze sidebar terug te komen — anders
   // meldt die badge werk dat je in Beheer zelf nergens als "wachtend" ziet.
-  // De som van deze vier badges is daarmee altijd gelijk aan de Beheer-badge.
+  // De som van deze drie badges is daarmee altijd gelijk aan de Beheer-badge
+  // (bolletje alleen waar je de actie ook kunt uitvoeren — Bedrijven telt
+  // niet mee, zie hieronder).
   const counts = await getBeheerWaitingCounts();
 
   return (
@@ -32,8 +34,11 @@ export default async function BeheerLayout({ children }: { children: ReactNode }
       <BeheerSidebar
         isAdmin={profile.role === "beheerder"}
         badges={{
-          "/beheer/instroom": counts.accessRequests + counts.expiringInvitations,
-          "/beheer/bedrijven": counts.pendingMembershipRequests,
+          // Koppelverzoeken (bedrijfskoppelingen) horen nu bij Aanvragen —
+          // zie Aanvragen -> Bedrijfskoppelingen. Bedrijven zelf krijgt geen
+          // eigen bolletje meer (alleen nog een linkregel bovenaan, zie
+          // BeheerBedrijvenContent), want afhandelen kan daar niet meer.
+          "/beheer/instroom": counts.accessRequests + counts.expiringInvitations + counts.pendingMembershipRequests,
           "/beheer/agenda": counts.pendingActivities,
           "/beheer/rapportages": counts.openReports,
         }}

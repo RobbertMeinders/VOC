@@ -74,9 +74,11 @@ export function BeheerSidebar({
   }
 
   // Redesign-besluit 8: donkerpetrol beheerzijbalk — actief item krijgt een
-  // rood streepje links (border-left i.p.v. absolute positionering, zodat
-  // het nergens buiten de eigen rij uitsteekt) i.p.v. de gevulde rode pil
-  // die de gewone navigatie gebruikt.
+  // rood streepje links. Live QA: de transparante border-left-variant voor
+  // het niet-actieve item bleek in de praktijk zelf als een vage witte lijn
+  // te renderen (zelfde probleem dat eerder in de ledenkant is opgelost,
+  // zie Sidebar.tsx) — een los, absoluut gepositioneerd staafje i.p.v. een
+  // border-aanpak, alleen voor het actieve item.
   function renderDesktopItem(item: BeheerNavItem) {
     const active = isActive(item.href);
     const Icon = item.icon;
@@ -86,10 +88,11 @@ export function BeheerSidebar({
         key={item.href}
         href={item.href}
         className={clsx(
-          "flex items-center gap-2 whitespace-nowrap rounded-r-lg border-l-[3px] py-2 pl-3 pr-3 text-sm font-medium transition-all duration-150",
-          active ? "border-l-voc-red bg-white/10 text-white" : "border-l-transparent text-white/70 hover:bg-white/5 hover:text-white"
+          "relative flex items-center gap-2 whitespace-nowrap rounded-r-lg py-2 pl-3 pr-3 text-sm font-medium transition-all duration-150",
+          active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"
         )}
       >
+        {active && <span aria-hidden className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-voc-red" />}
         <Icon size={16} strokeWidth={active ? 2.5 : 2} />
         {item.label}
         {Boolean(badge) && (

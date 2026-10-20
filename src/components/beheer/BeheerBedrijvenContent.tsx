@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { isAdmin } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
@@ -47,7 +49,7 @@ export async function BeheerBedrijvenContent() {
   // dezelfde, ongefilterde lijst, dus delen tussen viewers is veilig.
   // Zoeken filtert client-side (BeheerBedrijvenListClient), dus de cache
   // blijft ongewijzigd.
-  const [{ data: allCompanies }, { data: billingRows }] = await Promise.all([
+  const [{ data: allCompanies }, { data: billingRows }, { data: pendingRequestRows }] = await Promise.all([
     cachedQuery("beheer-bedrijven-page-data", 300_000, () =>
       supabase
         .from("companies")
@@ -63,6 +65,10 @@ export async function BeheerBedrijvenContent() {
         .select("company_id, same_as_visit_address, invoice_address, invoice_postal_code, invoice_city, invoice_country, vat_number, invoice_email")
         .returns<BillingRow[]>()
     ),
+    // Koppelverzoeken onder Aanvragen: afhandelen kan hier niet meer, maar
+    // ongecached (i.p.v. de 300s-cache hierboven) tonen we wel een signaal
+    // per bedrijf — dit mag niet achterlopen op een net ingediend verzoek.
+    supabase.from("company_membership_requests").select("company_id").eq("status", "pending"),
   ]);
 
   // Thumbnail-paden in dezelfde batch-aanroep (performance-audit #1): de
@@ -75,6 +81,11 @@ export async function BeheerBedrijvenContent() {
   );
 
   const billingByCompany = new Map((billingRows ?? []).map((b) => [b.company_id, b]));
+  const pendingRequestsByCompany = new Map<string, number>();
+  for (const r of pendingRequestRows ?? []) {
+    pendingRequestsByCompany.set(r.company_id, (pendingRequestsByCompany.get(r.company_id) ?? 0) + 1);
+  }
+  const totalPendingRequests = pendingRequestRows?.length ?? 0;
 
   const companies: BeheerCompanyRow[] = (allCompanies ?? []).map((c) => {
     const billing = billingByCompany.get(c.id) ?? null;
@@ -101,11 +112,22 @@ export async function BeheerBedrijvenContent() {
       invoiceAddress: invoiceAddress || null,
       effectiveEmail: billing?.invoice_email ?? c.email,
       vatNumber: billing?.vat_number ?? null,
+      pendingMembershipRequests: pendingRequestsByCompany.get(c.id) ?? 0,
     };
   });
 
   return (
     <div>
+      {totalPendingRequests > 0 && (
+        <Link
+          href="/beheer/instroom?tab=koppelingen"
+          className="mb-4 flex items-center gap-1.5 rounded-xl bg-petrol-soft px-4 py-3 text-sm font-medium text-petrol hover:underline"
+        >
+          {totalPendingRequests} {totalPendingRequests === 1 ? "koppelverzoek wacht" : "koppelverzoeken wachten"} → Bekijken in Aanvragen
+          <ArrowRight size={14} />
+        </Link>
+      )}
+
       <NewCompanyButton />
 
       <BeheerBedrijvenListClient companies={companies} canDelete={isAdmin(profile.role)} />

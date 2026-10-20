@@ -4,7 +4,6 @@ import {
   ArrowRight,
   Building2,
   CalendarDays,
-  Check,
   CheckCircle2,
   ChevronDown,
   Clock,
@@ -14,7 +13,6 @@ import {
   TrendingUp,
   UserPlus,
   Users,
-  X,
 } from "lucide-react";
 import { clsx } from "clsx";
 import { requireBoard } from "@/lib/auth/session";
@@ -27,7 +25,6 @@ import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
 import { ReportRow, type ReportRowData } from "@/components/moderation/ReportRow";
 import { CommunicationRow } from "@/components/beheer/CommunicationRow";
 import { decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
-import { decideCompanyMembershipRequestAction } from "@/app/(app)/bedrijven/[id]/actions";
 import { extendInvitationAction } from "@/app/(app)/beheer/uitnodigingen/actions";
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { getBeheerWaitingCounts } from "@/lib/beheer/waitingCounts";
@@ -340,59 +337,28 @@ export default async function BeheerPage() {
           </div>
         )}
 
+        {/* Opdracht koppelverzoeken onder Aanvragen: geen eigen set
+            goed-/afkeurknoppen meer hier — afhandelen kan voortaan op één
+            plek (Beheer -> Aanvragen -> Bedrijfskoppelingen), dit is alleen
+            nog een signaal + link daarnaartoe. */}
         {pendingMembershipRequests.length > 0 && (
           <div>
             <p className="mb-1 flex items-center gap-1.5 text-xs font-medium text-muted">
               <Building2 size={13} />
               Bedrijfskoppelingen ter goedkeuring ({pendingMembershipRequests.length})
             </p>
-            <div className="rounded-xl border border-border px-3">
-              {pendingMembershipRequests.map((request) => (
-                <div
-                  key={request.id}
-                  className="flex flex-wrap items-center justify-between gap-3 border-b border-border py-3 last:border-0"
-                >
-                  <p className="min-w-0 text-sm text-foreground">
-                    <span className="font-medium">
-                      {request.profile.first_name} {request.profile.last_name}
-                    </span>{" "}
-                    wil gekoppeld worden aan{" "}
-                    <Link href={`/bedrijven/${request.company.id}`} className="font-medium hover:text-petrol hover:underline">
-                      {request.company.name}
-                    </Link>
-                  </p>
-                  <div className="flex shrink-0 items-center gap-2">
-                    <form
-                      action={async () => {
-                        "use server";
-                        await decideCompanyMembershipRequestAction(request.id, request.company.id, "approved");
-                      }}
-                    >
-                      <button
-                        type="submit"
-                        aria-label="Goedkeuren"
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-status-success-soft text-status-success hover:bg-status-success hover:text-white"
-                      >
-                        <Check size={16} />
-                      </button>
-                    </form>
-                    <form
-                      action={async () => {
-                        "use server";
-                        await decideCompanyMembershipRequestAction(request.id, request.company.id, "rejected");
-                      }}
-                    >
-                      <button
-                        type="submit"
-                        aria-label="Afwijzen"
-                        className="flex h-8 w-8 items-center justify-center rounded-full bg-black/[.04] text-muted hover:bg-black/[.08] dark:bg-white/[.06] dark:hover:bg-white/[.1]"
-                      >
-                        <X size={16} />
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              ))}
+            <div className="rounded-xl border border-border p-3">
+              <p className="text-sm text-foreground">
+                {pendingMembershipRequests.length} {pendingMembershipRequests.length === 1 ? "verzoek wacht" : "verzoeken wachten"} op
+                goedkeuring.
+              </p>
+              <Link
+                href="/beheer/instroom?tab=koppelingen"
+                className="mt-1 flex items-center gap-1 text-xs font-medium text-petrol hover:underline"
+              >
+                Bekijken in Aanvragen
+                <ArrowRight size={12} />
+              </Link>
             </div>
           </div>
         )}

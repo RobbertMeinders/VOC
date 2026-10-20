@@ -25,6 +25,7 @@ export type BeheerCompanyRow = {
   invoiceAddress: string | null;
   effectiveEmail: string | null;
   vatNumber: string | null;
+  pendingMembershipRequests: number;
 };
 
 function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerCompanyRow[]; canDelete: boolean }) {
@@ -101,6 +102,14 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
                   <Link href={`/bedrijven/${company.id}`} className="min-w-0 hover:opacity-80">
                     <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-none">{company.name}</p>
                   </Link>
+                  {company.pendingMembershipRequests > 0 && (
+                    <Link
+                      href="/beheer/instroom?tab=koppelingen"
+                      className="shrink-0 rounded-full bg-petrol-soft px-2 py-0.5 text-[11px] font-medium text-petrol hover:underline"
+                    >
+                      {company.pendingMembershipRequests} koppelverzoek{company.pendingMembershipRequests === 1 ? "" : "en"}
+                    </Link>
+                  )}
                   <div className="ml-auto flex shrink-0 items-center gap-2 sm:hidden">{actions}</div>
                 </div>
 

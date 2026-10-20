@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Clock, Inbox, UserPlus, UserSearch, Upload } from "lucide-react";
+import { Building2, Clock, Inbox, UserPlus, UserSearch, Upload } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
@@ -10,6 +10,7 @@ import { InviteForm } from "@/components/invitations/InviteForm";
 import { InvitationList, type Invitation } from "@/components/invitations/InvitationList";
 import { ProspectRow, type Prospect } from "@/components/beheer/ProspectRow";
 import { BulkImportForm } from "@/components/invitations/BulkImportForm";
+import { CompanyMembershipRequestRow, type CompanyMembershipRequestItem } from "@/components/beheer/CompanyMembershipRequestRow";
 import { extendAllInvitationsAction } from "@/app/(app)/beheer/uitnodigingen/actions";
 
 export const metadata: Metadata = { title: "Aanvragen" };
@@ -27,6 +28,7 @@ export const maxDuration = 300;
 // redirecten nu hierheen i.p.v. zelf te renderen.
 const TABS = [
   { key: "aanvragen", label: "Aanvragen", icon: Inbox },
+  { key: "koppelingen", label: "Bedrijfskoppelingen", icon: Building2 },
   { key: "uitnodigingen", label: "Uitnodigingen", icon: UserPlus },
   { key: "prospects", label: "Potentiële leden", icon: UserSearch },
   { key: "import", label: "Importeren", icon: Upload },
@@ -83,6 +85,79 @@ async function AanvragenTab({ status }: { status: "pending" | "handled" }) {
           title="Geen openstaande aanvragen"
           description="Nieuwe aanvragen vanuit het inlogscherm verschijnen hier."
         />
+      )}
+    </div>
+  );
+}
+
+// Koppelverzoeken onder Aanvragen (relayed opdracht): voorheen alleen af te
+// handelen op het dashboard ("Wacht op jou") en op de bedrijfspagina zelf —
+// ze gaan over lidmaatschap, dus horen hier thuis, naast de toegangsaanvragen.
+// Zelfde "pending"/"afgehandeld"-status-param en FK-kwalificatie (profile_id
+// vs. decided_by, zie foutenrapport §0) als elders.
+async function KoppelingenTab({ status }: { status: "pending" | "handled" }) {
+  const supabase = await createClient();
+  type RequestQueryRow = {
+    id: string;
+    requested_at: string;
+    decided_at: string | null;
+    decision_reason: string | null;
+    status: "pending" | "approved" | "rejected";
+    company: { id: string; name: string } | null;
+    profile: { id: string; slug: string; first_name: string; last_name: string } | null;
+    decided_by_profile: { first_name: string; last_name: string } | null;
+  };
+
+  const query = supabase
+    .from("company_membership_requests")
+    .select(
+      "id, requested_at, decided_at, decision_reason, status, company:companies(id, name), profile:profiles!company_membership_requests_profile_id_fkey(id, slug, first_name, last_name), decided_by_profile:profiles!company_membership_requests_decided_by_fkey(first_name, last_name)"
+    )
+    .order(status === "pending" ? "requested_at" : "decided_at", { ascending: false });
+
+  const { data: rows } = await (status === "pending" ? query.eq("status", "pending") : query.in("status", ["approved", "rejected"])).returns<
+    RequestQueryRow[]
+  >();
+
+  const requests: (CompanyMembershipRequestItem & { status: RequestQueryRow["status"] })[] = (rows ?? [])
+    .filter((r): r is RequestQueryRow & { company: { id: string; name: string }; profile: { id: string; slug: string; first_name: string; last_name: string } } =>
+      r.company !== null && r.profile !== null
+    )
+    .map((r) => ({
+      id: r.id,
+      requestedAt: r.requested_at,
+      decidedAt: r.decided_at,
+      decisionReason: r.decision_reason,
+      decidedBy: r.decided_by_profile,
+      company: r.company,
+      profile: r.profile,
+      status: r.status,
+    }));
+
+  if (status === "handled") {
+    return (
+      <div className="rounded-2xl bg-surface p-4 shadow-sm">
+        {requests.length > 0 ? (
+          requests.map((request) => (
+            <CompanyMembershipRequestRow
+              key={request.id}
+              request={request}
+              outcome={request.status === "approved" ? "approved" : "rejected"}
+            />
+          ))
+        ) : (
+          <ComingSoon icon={Clock} title="Nog geen afgehandelde koppelverzoeken" description="Verzoeken die je goedkeurt of afwijst, komen hier terecht." />
+        )}
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl bg-surface p-4 shadow-sm">
+      {requests.length > 0 ? (
+        requests.map((request) => <CompanyMembershipRequestRow key={request.id} request={request} />)
+      ) : (
+        <ComingSoon icon={Building2} title="Geen openstaande koppelverzoeken" description="Een lid dat zich aan een bestaand bedrijf koppelt, verschijnt hier." />
       )}
     </div>
   );
@@ -207,6 +282,19 @@ export default async function InstroomPage({
             </Chip>
           </div>
           <AanvragenTab status={requestStatus} />
+        </>
+      )}
+      {activeTab === "koppelingen" && (
+        <>
+          <div className="mb-3 flex gap-1.5">
+            <Chip href="/beheer/instroom?tab=koppelingen" active={requestStatus === "pending"}>
+              Openstaand
+            </Chip>
+            <Chip href="/beheer/instroom?tab=koppelingen&status=afgehandeld" active={requestStatus === "handled"}>
+              Afgehandeld
+            </Chip>
+          </div>
+          <KoppelingenTab status={requestStatus} />
         </>
       )}
       {activeTab === "uitnodigingen" && <UitnodigingenTab canInviteBoard={profile.role === "beheerder"} />}

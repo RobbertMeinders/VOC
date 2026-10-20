@@ -119,6 +119,7 @@ export interface Database {
           requested_at: string;
           decided_by: string | null;
           decided_at: string | null;
+          decision_reason: string | null;
         };
         Insert: Partial<Database["public"]["Tables"]["company_membership_requests"]["Row"]> & {
           company_id: string;
