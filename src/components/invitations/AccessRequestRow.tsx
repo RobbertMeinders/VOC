@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Check, X } from "lucide-react";
+import { clsx } from "clsx";
 import type { Database } from "@/lib/types/database";
 import {
   markAccessRequestHandledAction,
@@ -28,7 +29,16 @@ function InviteButton() {
   );
 }
 
-export function AccessRequestRow({ request }: { request: AccessRequest }) {
+export function AccessRequestRow({
+  request,
+  outcome,
+}: {
+  request: AccessRequest;
+  // UX-audit F3: alleen gezet vanuit de "Afgehandeld"-tab — toont dan een
+  // badge i.p.v. de actieknoppen (die horen alleen bij een openstaande
+  // aanvraag).
+  outcome?: "accepted" | "rejected";
+}) {
   // Maakt in één klik een voorgevulde uitnodiging aan (incl. bedrijf, zie
   // createInvitationFromAccessRequestAction) i.p.v. de aanvrager bij het
   // registreren alles — naam, bedrijf, adres — nog een keer te laten
@@ -80,25 +90,37 @@ export function AccessRequestRow({ request }: { request: AccessRequest }) {
           </p>
         )}
       </div>
-      <div className="flex shrink-0 items-center gap-2">
-        <form action={inviteAction}>
-          <InviteButton />
-        </form>
-        <form action={markAccessRequestHandledAction.bind(null, request.id)}>
-          <button
-            type="submit"
-            onClick={(e) => {
-              if (!window.confirm(`Aanvraag van ${request.name} afwijzen? Dit meldt de aanvrager niets, 'm.a.w. hij/zij hoort hier verder niks van.`)) {
-                e.preventDefault();
-              }
-            }}
-            className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:border-danger hover:text-danger-text"
-          >
-            <X size={14} />
-            Afwijzen
-          </button>
-        </form>
-      </div>
+      {outcome ? (
+        <span
+          className={clsx(
+            "flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium",
+            outcome === "accepted" ? "bg-status-success-soft text-status-success" : "bg-raised text-muted"
+          )}
+        >
+          {outcome === "accepted" ? <Check size={14} /> : <X size={14} />}
+          {outcome === "accepted" ? "Geaccepteerd" : "Afgewezen"}
+        </span>
+      ) : (
+        <div className="flex shrink-0 items-center gap-2">
+          <form action={inviteAction}>
+            <InviteButton />
+          </form>
+          <form action={markAccessRequestHandledAction.bind(null, request.id)}>
+            <button
+              type="submit"
+              onClick={(e) => {
+                if (!window.confirm(`Aanvraag van ${request.name} afwijzen? Dit meldt de aanvrager niets, 'm.a.w. hij/zij hoort hier verder niks van.`)) {
+                  e.preventDefault();
+                }
+              }}
+              className="flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 text-xs font-medium text-foreground hover:border-danger hover:text-danger-text"
+            >
+              <X size={14} />
+              Afwijzen
+            </button>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

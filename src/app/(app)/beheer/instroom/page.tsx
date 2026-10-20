@@ -33,14 +33,45 @@ const TABS = [
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 
-async function AanvragenTab() {
+// UX-audit F3: "afgewezen" bestaat niet als eigen statuswaarde (zowel
+// Accepteren als Afwijzen zetten status op 'handled', zie
+// markAccessRequestHandledAction/createInvitationFromAccessRequestAction) —
+// hier daarom achteraf afgeleid uit of er inmiddels een uitnodiging met
+// hetzelfde e-mailadres bestaat (dan geaccepteerd), zonder dat daar een
+// eigen kolom/migratie voor nodig is.
+async function AanvragenTab({ status }: { status: "pending" | "handled" }) {
   const supabase = await createClient();
   const { data: requests } = await supabase
     .from("access_requests")
     .select("*")
-    .eq("status", "pending")
+    .eq("status", status)
     .order("created_at", { ascending: false })
     .returns<AccessRequest[]>();
+
+  if (status === "handled") {
+    const emails = (requests ?? []).map((r) => r.email.toLowerCase());
+    const { data: invitations } =
+      emails.length > 0 ? await supabase.from("invitations").select("email").in("email", emails) : { data: [] };
+    const acceptedEmails = new Set(
+      (invitations ?? []).filter((i): i is { email: string } => Boolean(i.email)).map((i) => i.email.toLowerCase())
+    );
+
+    return (
+      <div className="rounded-2xl bg-surface p-4 shadow-sm">
+        {requests && requests.length > 0 ? (
+          requests.map((request) => (
+            <AccessRequestRow
+              key={request.id}
+              request={request}
+              outcome={acceptedEmails.has(request.email.toLowerCase()) ? "accepted" : "rejected"}
+            />
+          ))
+        ) : (
+          <ComingSoon icon={Clock} title="Nog geen afgehandelde aanvragen" description="Aanvragen die je accepteert of afwijst, komen hier terecht." />
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="rounded-2xl bg-surface p-4 shadow-sm">
@@ -133,10 +164,15 @@ function ImportTab() {
   );
 }
 
-export default async function InstroomPage({ searchParams }: { searchParams: Promise<{ tab?: string }> }) {
+export default async function InstroomPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string; status?: string }>;
+}) {
   const profile = await requireBoard();
-  const { tab } = await searchParams;
+  const { tab, status } = await searchParams;
   const activeTab: TabKey = TABS.some((t) => t.key === tab) ? (tab as TabKey) : "aanvragen";
+  const requestStatus: "pending" | "handled" = status === "afgehandeld" ? "handled" : "pending";
 
   return (
     <div>
@@ -158,7 +194,21 @@ export default async function InstroomPage({ searchParams }: { searchParams: Pro
         ))}
       </div>
 
-      {activeTab === "aanvragen" && <AanvragenTab />}
+      {activeTab === "aanvragen" && (
+        <>
+          {/* UX-audit F3: geschiedenis van afgehandelde aanvragen — tot nu
+              toe verdwenen die simpelweg uit beeld na accepteren/afwijzen. */}
+          <div className="mb-3 flex gap-1.5">
+            <Chip href="/beheer/instroom" active={requestStatus === "pending"}>
+              Openstaand
+            </Chip>
+            <Chip href="/beheer/instroom?tab=aanvragen&status=afgehandeld" active={requestStatus === "handled"}>
+              Afgehandeld
+            </Chip>
+          </div>
+          <AanvragenTab status={requestStatus} />
+        </>
+      )}
       {activeTab === "uitnodigingen" && <UitnodigingenTab canInviteBoard={profile.role === "beheerder"} />}
       {activeTab === "prospects" && <ProspectsTab />}
       {activeTab === "import" && <ImportTab />}

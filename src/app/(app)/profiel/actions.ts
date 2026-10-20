@@ -26,8 +26,6 @@ export async function updateProfileAction(
   const jobTitle = String(formData.get("job_title") ?? "").trim();
   const bio = String(formData.get("bio") ?? "").trim();
   const phone = String(formData.get("phone") ?? "").trim();
-  const showEmail = formData.get("show_email") === "on";
-  const showPhone = formData.get("show_phone") === "on";
   const linkedinUrl = String(formData.get("linkedin_url") ?? "").trim();
 
   if (!firstName || !lastName) {
@@ -56,6 +54,13 @@ export async function updateProfileAction(
     }
   }
 
+  // F2 (UX-audit): show_email/show_phone worden niet meer via dit formulier
+  // opgeslagen — ShowContactToggle (nu ook ingezet op /profiel, zie
+  // ProfileForm) is daar via updateShowEmailAction/updateShowPhoneAction al
+  // de instant-save bron van waarheid voor; dit hier laten meelopen zou
+  // bij elke "Opslaan" van het profiel de waarde terugzetten naar wat de
+  // pagina had bij het laden, en zo een toggle via /instellingen ongedaan
+  // kunnen maken.
   const { error } = await supabase
     .from("profiles")
     .update({
@@ -64,8 +69,6 @@ export async function updateProfileAction(
       job_title: jobTitle || null,
       bio: bio || null,
       phone: phone || null,
-      show_email: showEmail,
-      show_phone: showPhone,
       linkedin_url: linkedinUrl || null,
       ...(avatarPath ? { avatar_url: avatarPath, avatar_thumb_url: avatarThumbPath } : {}),
     })

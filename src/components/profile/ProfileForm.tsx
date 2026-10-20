@@ -6,7 +6,7 @@ import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
-import { Switch } from "@/components/ui/Switch";
+import { ShowContactToggle } from "@/components/profile/ShowContactToggle";
 import { FieldError } from "@/components/ui/FieldError";
 import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
 import { FormSection, FormSections, FormToggleRow } from "@/components/ui/FormSection";
@@ -40,8 +40,6 @@ export function ProfileForm({
   const [state, formAction] = useActionState(action, initialState);
   const [preview, setPreview] = useState<string | null>(null);
   const avatarThumbInputRef = useRef<HTMLInputElement>(null);
-  const [showPhone, setShowPhone] = useState(profile.show_phone);
-  const [showEmail, setShowEmail] = useState(profile.show_email);
   const toast = useToast();
   const { errors, validateField, validateAll } = useFieldValidation({
     linkedin_url: (value) => validateUrl(value),
@@ -160,13 +158,15 @@ export function ProfileForm({
             <p className="text-sm text-muted">{profile.email}</p>
           </div>
 
+          {/* F2 (UX-audit): dezelfde ShowContactToggle als op /instellingen
+              i.p.v. een eigen, pas-bij-"Opslaan"-bewaarde kopie — één
+              instant-save bron van waarheid voor deze twee velden, ongeacht
+              vanaf welke pagina je 'm wijzigt. */}
           <FormToggleRow label="Telefoonnummer zichtbaar voor andere leden">
-            <input type="hidden" name="show_phone" value={showPhone ? "on" : ""} />
-            <Switch checked={showPhone} onChange={() => setShowPhone((v) => !v)} label="Telefoonnummer zichtbaar voor andere leden" />
+            <ShowContactToggle field="phone" initialVisible={profile.show_phone} />
           </FormToggleRow>
           <FormToggleRow label="E-mailadres zichtbaar voor andere leden">
-            <input type="hidden" name="show_email" value={showEmail ? "on" : ""} />
-            <Switch checked={showEmail} onChange={() => setShowEmail((v) => !v)} label="E-mailadres zichtbaar voor andere leden" />
+            <ShowContactToggle field="email" initialVisible={profile.show_email} />
           </FormToggleRow>
 
           <div className="flex flex-col gap-1.5">
