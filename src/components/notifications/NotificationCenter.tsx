@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Bell, X } from "lucide-react";
+import { Bell } from "lucide-react";
 import { clsx } from "clsx";
 import { formatActivityDateShort } from "@/lib/format/date";
 import { Skeleton } from "@/components/ui/Skeleton";
@@ -90,27 +90,15 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
 
   const panelContent = (
     <>
+      {/* Stijlronde: geen apart kruisje meer — nogmaals op het belletje
+          klikken sluit dit paneel al (zie handleOpen's toggle()). */}
       <div className="flex items-center justify-between gap-2 border-b border-border px-4 py-3">
         <p className="text-sm font-semibold text-foreground">Meldingen</p>
-        <div className="flex items-center gap-2">
-          {notifications?.some((n) => !n.is_read) && (
-            <button
-              type="button"
-              onClick={handleMarkAllRead}
-              className="text-xs font-medium text-petrol hover:underline"
-            >
-              Alles gelezen
-            </button>
-          )}
-          <button
-            type="button"
-            onClick={close}
-            aria-label="Sluiten"
-            className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]"
-          >
-            <X size={16} />
+        {notifications?.some((n) => !n.is_read) && (
+          <button type="button" onClick={handleMarkAllRead} className="text-xs font-medium text-petrol hover:underline">
+            Alles gelezen
           </button>
-        </div>
+        )}
       </div>
       <div className={variant === "mobile" ? "flex-1 overflow-y-auto" : "max-h-80 overflow-y-auto"}>
         {loading &&
@@ -192,16 +180,10 @@ export function NotificationCenter({ count, variant }: { count: number; variant:
         {open && (
           <FloatingPortal>
             <div className="animate-fade-in fixed inset-x-0 bottom-0 top-14 z-50 flex flex-col bg-surface pb-[env(safe-area-inset-bottom)] md:hidden">
+              {/* Stijlronde: ook hier geen apart kruisje meer — de belknop
+                  blijft zichtbaar/klikbaar en sluit dit paneel al. */}
               <div className="flex items-center justify-between border-b border-border px-4 py-3">
                 <p className="text-sm font-semibold text-foreground">Meldingen</p>
-                <button
-                  type="button"
-                  onClick={close}
-                  aria-label="Sluiten"
-                  className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]"
-                >
-                  <X size={16} />
-                </button>
               </div>
               <div
                 className="flex-1 overflow-y-auto p-3"
