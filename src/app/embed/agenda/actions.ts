@@ -58,14 +58,16 @@ export async function registerPublicForActivityAction(
   });
 
   if (error) {
-    // F6: upsert_public_activity_registration (0099) bewaakt nu ook deadline
-    // en maximum, met een eigen duidelijke foutmelding per geval — die mag
-    // hier getoond worden (geen interne details, gewoon leesbare NL-tekst).
-    // Alles daarbuiten blijft de algemene melding, om nooit een rauwe
-    // databasefout te laten zien.
+    // F6: upsert_public_activity_registration (0099, rate limiting in 0119)
+    // bewaakt nu ook deadline, maximum en pogingen-per-e-mailadres, met een
+    // eigen duidelijke foutmelding per geval — die mag hier getoond worden
+    // (geen interne details, gewoon leesbare NL-tekst). Alles daarbuiten
+    // blijft de algemene melding, om nooit een rauwe databasefout te laten
+    // zien.
     const KNOWN_MESSAGES = [
       "De aanmelddeadline voor deze activiteit is verstreken.",
       "Deze activiteit heeft het maximum aantal deelnemers bereikt.",
+      "Te veel pogingen met dit e-mailadres. Probeer het over een kwartier opnieuw.",
     ];
     return {
       error: KNOWN_MESSAGES.includes(error.message)
