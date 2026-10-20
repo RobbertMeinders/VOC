@@ -5,7 +5,6 @@ import {
   Building2,
   CalendarDays,
   Contact,
-  FileText,
   Flag,
   Globe,
   Handshake,
@@ -63,7 +62,6 @@ export const BEHEER_SECTIONS: BeheerNavSection[] = [
     items: [
       { href: "/beheer/communicatie", label: "Nieuwsbrieven", icon: Mail },
       { href: "/beheer/contacten", label: "Contacten & lijsten", icon: Contact },
-      { href: "/beheer/email-templates", label: "E-mailteksten", icon: FileText, adminOnly: true },
       { href: "/beheer/notificaties", label: "Verzonden meldingen", icon: Bell },
       { href: "/beheer/pushbericht", label: "Pushbericht", icon: Megaphone, adminOnly: true },
     ],

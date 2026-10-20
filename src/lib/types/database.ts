@@ -167,6 +167,7 @@ export interface Database {
           company_id: string | null;
           imported: boolean;
           last_sent_at: string | null;
+          source: "nieuw_lid" | "bestaand_lid" | "collega";
         };
         Insert: Partial<Database["public"]["Tables"]["invitations"]["Row"]>;
         Update: Partial<Database["public"]["Tables"]["invitations"]["Row"]>;
@@ -714,11 +715,38 @@ export interface Database {
           logo_url: string | null;
           privacy_content: string;
           show_testfase: boolean;
+          signature_personal_name: string | null;
+          signature_personal_role: string | null;
+          signature_personal_phone: string | null;
+          signature_personal_email: string | null;
           updated_at: string;
           updated_by: string | null;
         };
         Insert: Partial<Database["public"]["Tables"]["app_settings"]["Row"]>;
         Update: Partial<Database["public"]["Tables"]["app_settings"]["Row"]>;
+        Relationships: [];
+      };
+      message_templates: {
+        Row: {
+          key: string;
+          sort_order: number;
+          group_label: string;
+          name: string;
+          when_text: string;
+          to_text: string;
+          signature_type: "alg" | "pers";
+          has_push: boolean;
+          subject: string;
+          body_html: string;
+          cta_label: string;
+          after_html: string;
+          push_title: string | null;
+          push_body: string | null;
+          updated_at: string;
+          updated_by: string | null;
+        };
+        Insert: Partial<Database["public"]["Tables"]["message_templates"]["Row"]> & { key: string };
+        Update: Partial<Database["public"]["Tables"]["message_templates"]["Row"]>;
         Relationships: [];
       };
       testfase_feedback: {
@@ -998,6 +1026,18 @@ export interface Database {
       get_email_template: {
         Args: { p_key: string };
         Returns: { subject: string; body_html: string }[];
+      };
+      get_message_template: {
+        Args: { p_key: string };
+        Returns: {
+          subject: string;
+          body_html: string;
+          cta_label: string;
+          after_html: string;
+          signature_type: string;
+          push_title: string | null;
+          push_body: string | null;
+        }[];
       };
       get_push_template: {
         Args: { p_key: string };
