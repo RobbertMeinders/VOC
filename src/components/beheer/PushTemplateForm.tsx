@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import { Bell } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
+import { VariableEditor, type VariableEditorHandle } from "@/components/ui/VariableEditor";
+import { variablesForTemplate } from "@/lib/templates/variables";
 import { updatePushTemplateAction, type UpdatePushTemplateState } from "@/app/(app)/beheer/email-templates/actions";
 import { useToast } from "@/lib/ui/ToastContext";
 import type { Database } from "@/lib/types/database";
@@ -12,39 +13,6 @@ import type { Database } from "@/lib/types/database";
 type PushTemplate = Database["public"]["Tables"]["push_templates"]["Row"];
 
 const initialState: UpdatePushTemplateState = {};
-
-// Voorbeeldwaarden voor de preview — een echte push vult {{title}}/{{body}}
-// met de titel/tekst van de notificatie zelf, die per type sterk verschilt
-// (vandaar per template-key een eigen voorbeeld, i.p.v. één vast
-// "Nieuwe activiteit"-voorbeeld dat ook bij bv. "feed_reactie" verscheen).
-const PREVIEW_VARIABLES_BY_KEY: Record<string, Record<string, string>> = {
-  nieuwe_activiteit: {
-    title: "Nieuwe activiteit: Netwerkborrel",
-    body: "Er is een nieuwe activiteit gepland. Bekijk de details en meld je aan.",
-  },
-  nieuw_lid: {
-    title: "Nieuw lid: Jan Jansen",
-    body: "Jan Jansen heeft zich aangesloten bij de vereniging.",
-  },
-  feed_reactie: {
-    title: "Nieuwe reactie",
-    body: "Jan Jansen heeft gereageerd op je bericht.",
-  },
-  feed_vermelding: {
-    title: "Je bent genoemd",
-    body: "Jan Jansen heeft je genoemd in een bericht.",
-  },
-};
-
-const DEFAULT_PREVIEW_VARIABLES: Record<string, string> = {
-  title: "Voorbeeldtitel",
-  body: "Voorbeeldtekst van de melding.",
-};
-
-function renderPreview(template: string, key: string) {
-  const variables = PREVIEW_VARIABLES_BY_KEY[key] ?? DEFAULT_PREVIEW_VARIABLES;
-  return Object.entries(variables).reduce((text, [name, value]) => text.replaceAll(`{{${name}}}`, value), template);
-}
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -61,6 +29,14 @@ export function PushTemplateForm({ template }: { template: PushTemplate }) {
   const [title, setTitle] = useState(template.title);
   const [body, setBody] = useState(template.body);
   const toast = useToast();
+  // Welke {{...}}-variabelen voor dit sjabloon gelden staat al in de eigen
+  // description ("Variabelen: {{a}}, {{b}}, ...", zie migraties).
+  const variables = variablesForTemplate(template.description);
+  const titleEditorRef = useRef<VariableEditorHandle>(null);
+  const bodyEditorRef = useRef<VariableEditorHandle>(null);
+  // Een variabele-knop voegt in bij het laatst-gefocuste veld (titel of
+  // bericht) — standaard het bericht, het meest voorkomende geval.
+  const activeEditorRef = useRef<VariableEditorHandle | null>(null);
 
   useEffect(() => {
     if (state.success) toast("Opgeslagen.");
@@ -72,44 +48,62 @@ export function PushTemplateForm({ template }: { template: PushTemplate }) {
       <h2 className="text-sm font-semibold text-foreground">{template.key}</h2>
       {template.description && <p className="mb-4 mt-1 text-xs text-muted">{template.description}</p>}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={`push-title-${template.key}`} className="text-sm font-medium text-foreground">
-              Titel
-            </label>
-            <Input id={`push-title-${template.key}`} name="title" value={title} onChange={(e) => setTitle(e.target.value)} required />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={`push-body-${template.key}`} className="text-sm font-medium text-foreground">
-              Bericht
-            </label>
-            <textarea
-              id={`push-body-${template.key}`}
-              name="body"
-              rows={4}
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              required
-              className="rounded-lg border border-input-border bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
-            />
-          </div>
+      {/* Stijlronde: direct typen in het voorbeeld i.p.v. losse Titel-/
+          Berichtvelden naast een losse preview — en knoppen om een
+          variabele in te voegen, die in het voorbeeld meteen de echte
+          voorbeeldtekst laat zien (zie VariableEditor) i.p.v. de rauwe
+          {{...}}-tekst. */}
+      {variables.length > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <span className="text-xs text-muted">Invoegen:</span>
+          {variables.map((v) => (
+            <button
+              key={v.key}
+              type="button"
+              onClick={() => activeEditorRef.current?.insertVariable(v.key)}
+              className="rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+            >
+              {v.label}
+            </button>
+          ))}
         </div>
+      )}
 
-        <div className="flex flex-col gap-1.5">
-          <p className="text-sm font-medium text-foreground">Voorbeeld</p>
-          <div className="flex min-h-[120px] items-start gap-3 rounded-lg border border-border bg-white p-4 shadow-sm">
-            <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-petrol-soft text-petrol">
-              <Bell size={16} />
-            </div>
-            <div className="min-w-0">
-              <p className="text-sm font-medium text-[#17171a]">{renderPreview(title, template.key)}</p>
-              <p className="mt-0.5 text-sm text-[#6b6b72]">{renderPreview(body, template.key)}</p>
-            </div>
-          </div>
+      <p className="mb-1.5 text-sm font-medium text-foreground">Voorbeeld — typ hier direct</p>
+      <div className="flex min-h-[72px] items-start gap-3 rounded-lg border border-border bg-white p-4 shadow-sm">
+        <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-petrol-soft text-petrol">
+          <Bell size={16} />
+        </div>
+        <div className="min-w-0 flex-1">
+          <VariableEditor
+            ref={titleEditorRef}
+            initialValue={title}
+            variables={variables}
+            mode="text"
+            onChange={setTitle}
+            onFocus={() => {
+              activeEditorRef.current = titleEditorRef.current;
+            }}
+            aria-label="Titel"
+            className="text-sm font-medium text-[#17171a]"
+          />
+          <VariableEditor
+            ref={bodyEditorRef}
+            initialValue={body}
+            variables={variables}
+            mode="text"
+            onChange={setBody}
+            onFocus={() => {
+              activeEditorRef.current = bodyEditorRef.current;
+            }}
+            aria-label="Bericht"
+            className="mt-0.5 text-sm text-[#6b6b72]"
+          />
         </div>
       </div>
+
+      <input type="hidden" name="title" value={title} />
+      <input type="hidden" name="body" value={body} />
 
       {state.error && (
         <p role="alert" className="mb-3 mt-4 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">

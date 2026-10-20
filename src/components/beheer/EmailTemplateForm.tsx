@@ -3,8 +3,9 @@
 import { useActionState, useEffect, useRef, useState, type ChangeEvent } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/Button";
-import { Input } from "@/components/ui/Input";
 import { FileSelectButton } from "@/components/ui/FileSelectButton";
+import { VariableEditor, type VariableEditorHandle } from "@/components/ui/VariableEditor";
+import { variablesForTemplate } from "@/lib/templates/variables";
 import {
   updateEmailTemplateAction,
   uploadEmailTemplateImageAction,
@@ -18,10 +19,6 @@ type EmailTemplate = Database["public"]["Tables"]["email_templates"]["Row"];
 
 const initialState: UpdateEmailTemplateState = {};
 const uploadInitialState: UploadEmailImageState = {};
-
-// Voorbeeldwaarde voor de preview — de échte mail vult {{link}} met de
-// werkelijke uitnodigings-/reset-link.
-const PREVIEW_VARIABLES: Record<string, string> = { link: "https://voorbeeld.nl/link" };
 
 // Logo/handtekening-afbeelding (0102, communicatieplan fase 1c): zonder
 // expliciete width/height-attributen — enkel CSS max-width — toonden veel
@@ -40,28 +37,6 @@ function scaleToFit(naturalWidth: number, naturalHeight: number): { width: numbe
   // vergroot (en dus wazig) te worden tot de maximale afmetingen.
   const scale = Math.min(1, MAX_LOGO_WIDTH / naturalWidth, MAX_LOGO_HEIGHT / naturalHeight);
   return { width: Math.round(naturalWidth * scale), height: Math.round(naturalHeight * scale) };
-}
-
-function renderPreview(subject: string, bodyHtml: string) {
-  const rendered = Object.entries(PREVIEW_VARIABLES).reduce(
-    (html, [key, value]) => html.replaceAll(`{{${key}}}`, value),
-    bodyHtml
-  );
-  const renderedSubject = Object.entries(PREVIEW_VARIABLES).reduce(
-    (text, [key, value]) => text.replaceAll(`{{${key}}}`, value),
-    subject
-  );
-
-  return `<!DOCTYPE html><html><head><meta charset="utf-8">
-    <style>
-      body { font-family: -apple-system, system-ui, sans-serif; color: #17171a; padding: 16px; margin: 0; }
-      a { color: #e8000f; }
-    </style>
-    </head><body>
-      <p style="font-size:12px;color:#6b6b72;margin:0 0 8px">Onderwerp: ${renderedSubject}</p>
-      <hr style="border:none;border-top:1px solid #e5e5ea;margin:0 0 12px">
-      ${rendered}
-    </body></html>`;
 }
 
 function SubmitButton() {
@@ -83,14 +58,10 @@ function UploadSubmitButton() {
 }
 
 // Los formulier (kan niet genest in het hoofdformulier) voor een logo/
-// handtekening-afbeelding — plaatst na upload zelf een <img>-tag onderaan
-// de HTML-inhoud, zodat je niet zelf ergens een link naartoe hoeft te
-// zoeken/hosten.
-function ImageUploadButton({
-  onInserted,
-}: {
-  onInserted: (url: string, dimensions: { width: number; height: number }) => void;
-}) {
+// handtekening-afbeelding — voegt na upload zelf een <img>-tag in op de
+// cursorpositie in het voorbeeld, zodat je niet zelf ergens een link
+// naartoe hoeft te zoeken/hosten.
+function ImageUploadButton({ onInserted }: { onInserted: (html: string) => void }) {
   const [state, formAction] = useActionState(uploadEmailTemplateImageAction, uploadInitialState);
   const formRef = useRef<HTMLFormElement>(null);
   const insertedUrlRef = useRef<string | undefined>(undefined);
@@ -102,7 +73,10 @@ function ImageUploadButton({
   useEffect(() => {
     if (state.url && state.url !== insertedUrlRef.current) {
       insertedUrlRef.current = state.url;
-      onInserted(state.url, dimensionsRef.current);
+      const { width, height } = dimensionsRef.current;
+      onInserted(
+        `<img src="${state.url}" alt="Logo" width="${width}" height="${height}" style="width:${width}px;height:${height}px;max-width:${MAX_LOGO_WIDTH}px;max-height:${MAX_LOGO_HEIGHT}px;" />`
+      );
       formRef.current?.reset();
     }
   }, [state.url, onInserted]);
@@ -147,18 +121,20 @@ export function EmailTemplateForm({ template }: { template: EmailTemplate }) {
   const [bodyHtml, setBodyHtml] = useState(template.body_html);
   const formId = `email-template-${template.key}`;
   const toast = useToast();
+  // Welke {{...}}-variabelen voor dit sjabloon gelden staat al in de eigen
+  // description ("Variabelen: {{a}}, {{b}}, ...", zie migraties) — geen los,
+  // dubbel-onderhouden lijstje per sjabloon-key nodig.
+  const variables = variablesForTemplate(template.description);
+  const subjectEditorRef = useRef<VariableEditorHandle>(null);
+  const bodyEditorRef = useRef<VariableEditorHandle>(null);
+  // Een variabele-knop voegt in bij het laatst-gefocuste veld (onderwerp of
+  // inhoud) — standaard de inhoud, het meest voorkomende geval.
+  const activeEditorRef = useRef<VariableEditorHandle | null>(null);
 
   useEffect(() => {
     if (state.success) toast("Opgeslagen.");
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
-
-  function insertImage(url: string, { width, height }: { width: number; height: number }) {
-    setBodyHtml(
-      (prev) =>
-        `${prev}${prev && !prev.endsWith("\n") ? "\n" : ""}<img src="${url}" alt="Logo" width="${width}" height="${height}" style="width:${width}px;height:${height}px;max-width:${MAX_LOGO_WIDTH}px;max-height:${MAX_LOGO_HEIGHT}px;" />\n`
-    );
-  }
 
   return (
     // Geen <form> als buitenste element: het losse ImageUploadButton-
@@ -170,53 +146,64 @@ export function EmailTemplateForm({ template }: { template: EmailTemplate }) {
       <h2 className="text-sm font-semibold text-foreground">{template.key}</h2>
       {template.description && <p className="mb-4 mt-1 text-xs text-muted">{template.description}</p>}
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <div className="flex flex-col gap-3">
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={`subject-${template.key}`} className="text-sm font-medium text-foreground">
-              Onderwerp
-            </label>
-            <Input
-              id={`subject-${template.key}`}
-              name="subject"
-              form={formId}
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="flex flex-col gap-1.5">
-            <label htmlFor={`body-${template.key}`} className="text-sm font-medium text-foreground">
-              Inhoud (HTML)
-            </label>
-            <div className="flex flex-col gap-1 rounded-lg border border-dashed border-border p-2.5">
-              <p className="text-xs text-muted">Afbeelding toevoegen (bv. logo of handtekening)</p>
-              <ImageUploadButton onInserted={insertImage} />
-            </div>
-            <textarea
-              id={`body-${template.key}`}
-              name="body_html"
-              form={formId}
-              rows={10}
-              value={bodyHtml}
-              onChange={(e) => setBodyHtml(e.target.value)}
-              required
-              className="rounded-lg border border-input-border bg-background px-3 py-2 font-mono text-xs text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
-            />
-          </div>
+      {/* Stijlronde: direct typen in het voorbeeld i.p.v. een los HTML-veld
+          naast een losse preview — en knoppen om een variabele in te
+          voegen, die in het voorbeeld meteen de echte voorbeeldtekst laat
+          zien (zie VariableEditor) i.p.v. de rauwe {{...}}-tekst. */}
+      {variables.length > 0 && (
+        <div className="mb-3 flex flex-wrap items-center gap-1.5">
+          <span className="text-xs text-muted">Invoegen:</span>
+          {variables.map((v) => (
+            <button
+              key={v.key}
+              type="button"
+              onClick={() => activeEditorRef.current?.insertVariable(v.key)}
+              className="rounded-full border border-border bg-surface px-2.5 py-1 text-xs font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+            >
+              {v.label}
+            </button>
+          ))}
         </div>
+      )}
 
-        <div className="flex flex-col gap-1.5">
-          <p className="text-sm font-medium text-foreground">Voorbeeld</p>
-          <iframe
-            title={`Voorbeeld ${template.key}`}
-            srcDoc={renderPreview(subject, bodyHtml)}
-            sandbox=""
-            className="h-full min-h-[280px] w-full rounded-lg border border-border bg-white"
+      <div className="flex flex-col gap-1.5">
+        <p className="text-sm font-medium text-foreground">Voorbeeld — typ hier direct</p>
+        <div className="rounded-lg border border-border bg-white p-4 text-[#17171a] shadow-sm">
+          <VariableEditor
+            ref={subjectEditorRef}
+            initialValue={subject}
+            variables={variables}
+            mode="text"
+            onChange={setSubject}
+            onFocus={() => {
+              activeEditorRef.current = subjectEditorRef.current;
+            }}
+            aria-label="Onderwerp"
+            className="text-sm font-semibold"
+          />
+          <hr className="my-2 border-[#e5e5ea]" />
+          <VariableEditor
+            ref={bodyEditorRef}
+            initialValue={bodyHtml}
+            variables={variables}
+            mode="html"
+            onChange={setBodyHtml}
+            onFocus={() => {
+              activeEditorRef.current = bodyEditorRef.current;
+            }}
+            aria-label="Inhoud"
+            className="text-sm leading-relaxed [&_a]:text-voc-red [&_p]:my-2"
           />
         </div>
       </div>
+
+      <div className="mt-3 flex flex-col gap-1 rounded-lg border border-dashed border-border p-2.5">
+        <p className="text-xs text-muted">Afbeelding toevoegen (bv. logo of handtekening)</p>
+        <ImageUploadButton onInserted={(html) => bodyEditorRef.current?.insertHtml(html)} />
+      </div>
+
+      <input type="hidden" name="subject" form={formId} value={subject} />
+      <input type="hidden" name="body_html" form={formId} value={bodyHtml} />
 
       <form id={formId} action={formAction}>
         {state.error && (

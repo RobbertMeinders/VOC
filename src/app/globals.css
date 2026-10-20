@@ -568,6 +568,18 @@ body {
 .animate-stagger-item {
   animation: voc-stagger-item 0.2s ease-out both;
 }
+
+/* Stijlronde: niet-bewerkbare "chip" voor een ingevoegde variabele in
+   VariableEditor — visueel duidelijk anders dan gewone tekst, zodat
+   duidelijk is dat dit een voorbeeldwaarde is, geen letterlijke tekst. */
+.var-chip {
+  display: inline-block;
+  border-radius: 0.25rem;
+  padding: 0 0.3em;
+  background-color: var(--petrol-soft);
+  color: var(--petrol);
+  font-weight: 500;
+}
 @keyframes voc-divider-draw {
   from {
     transform: scaleX(0);
