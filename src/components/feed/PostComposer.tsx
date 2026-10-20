@@ -3,7 +3,7 @@
 import { useActionState, useEffect, useRef, useState, type DragEvent } from "react";
 import { useFormStatus } from "react-dom";
 import { clsx } from "clsx";
-import { FileText, Pencil, SquarePen, Upload, X } from "lucide-react";
+import { FileText, Paperclip, Pencil, SquarePen, X } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
@@ -306,10 +306,59 @@ function PostComposerForm({
                 />
               </div>
 
-              <div className="mt-3 sm:ml-[52px]">
-                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border py-4 text-sm font-medium text-muted hover:border-muted hover:text-foreground">
-                  <Upload size={22} />
-                  Foto&apos;s of PDF toevoegen
+              {/* Meegestuurde, al client-side verkleinde (CARD_THUMBNAIL_DIMENSION)
+                  versie per afbeelding, 1-op-1 op positie gekoppeld aan
+                  `attachments` — zie buildThumbFileList hierboven en
+                  createPostAction (actions.ts) voor hoe de index-matching werkt. */}
+              <input ref={thumbInputRef} type="file" name="attachment_thumbs" multiple className="hidden" aria-hidden tabIndex={-1} />
+
+              {previews.length > 0 && (
+                <div className="mt-3 grid grid-cols-4 gap-2 sm:ml-[52px] sm:grid-cols-5">
+                  {previews.map((preview, index) => (
+                    <div key={preview.url} className="relative aspect-square overflow-hidden rounded-lg border border-border bg-background">
+                      {preview.isImage ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={preview.url} alt={preview.name} className="h-full w-full object-cover" />
+                      ) : (
+                        <div className="flex h-full w-full flex-col items-center justify-center gap-1 px-1 text-center">
+                          <FileText size={18} className="text-voc-red-text" />
+                          <span className="line-clamp-2 text-[10px] text-muted">{preview.name}</span>
+                        </div>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        aria-label="Verwijderen"
+                        className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {state.error && (
+                <p role="alert" className="mt-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text sm:ml-[52px]">
+                  {state.error}
+                </p>
+              )}
+
+              <div className="mt-3 flex items-center justify-between sm:ml-[52px]">
+                {/* Stijlronde: compact icoontje i.p.v. een hele dropzone-balk
+                    — drag-and-drop op het formulier blijft werken
+                    (handleDragOver/handleDrop hierboven), dit is alleen de
+                    klikbare ingang. Een klein, subtiel wolkje bij hoveren
+                    i.p.v. een opvallend info-blok. */}
+                <div className="group/attach relative">
+                  <button
+                    type="button"
+                    onClick={() => fileInputRef.current?.click()}
+                    aria-label="Foto's of pdf toevoegen"
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]"
+                  >
+                    <Paperclip size={18} />
+                  </button>
                   <input
                     ref={fileInputRef}
                     type="file"
@@ -321,47 +370,10 @@ function PostComposerForm({
                       void addFiles(Array.from(e.target.files ?? []));
                     }}
                   />
-                </label>
-                {/* Meegestuurde, al client-side verkleinde (CARD_THUMBNAIL_DIMENSION)
-                    versie per afbeelding, 1-op-1 op positie gekoppeld aan
-                    `attachments` — zie buildThumbFileList hierboven en
-                    createPostAction (actions.ts) voor hoe de index-matching werkt. */}
-                <input ref={thumbInputRef} type="file" name="attachment_thumbs" multiple className="hidden" aria-hidden tabIndex={-1} />
-
-                {previews.length > 0 && (
-                  <div className="mt-2 grid grid-cols-4 gap-2 sm:grid-cols-5">
-                    {previews.map((preview, index) => (
-                      <div key={preview.url} className="relative aspect-square overflow-hidden rounded-lg border border-border bg-background">
-                        {preview.isImage ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img src={preview.url} alt={preview.name} className="h-full w-full object-cover" />
-                        ) : (
-                          <div className="flex h-full w-full flex-col items-center justify-center gap-1 px-1 text-center">
-                            <FileText size={18} className="text-voc-red-text" />
-                            <span className="line-clamp-2 text-[10px] text-muted">{preview.name}</span>
-                          </div>
-                        )}
-                        <button
-                          type="button"
-                          onClick={() => removeFile(index)}
-                          aria-label="Verwijderen"
-                          className="absolute right-1 top-1 flex h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white hover:bg-black/80"
-                        >
-                          <X size={12} />
-                        </button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {state.error && (
-                <p role="alert" className="mt-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text sm:ml-[52px]">
-                  {state.error}
-                </p>
-              )}
-
-              <div className="mt-3 flex items-center justify-end sm:ml-[52px]">
+                  <span className="pointer-events-none absolute -top-8 left-0 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-[11px] font-medium text-background opacity-0 shadow-sm transition-opacity group-hover/attach:opacity-100">
+                    Afbeeldingen en pdf
+                  </span>
+                </div>
                 <SubmitButton />
               </div>
             </form>
