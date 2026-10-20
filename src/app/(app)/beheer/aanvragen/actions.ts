@@ -19,6 +19,9 @@ export async function markAccessRequestHandledAction(id: string) {
   await requireBoard();
   const supabase = await createClient();
   await supabase.from("access_requests").update({ status: "handled" }).eq("id", id);
+  // Foutenrapport §0, fix 4: zonder dit bleef de Beheer-badge tot 30s
+  // (de cache-TTL) achterlopen op een zojuist afgehandelde aanvraag.
+  invalidateQuery("beheer-waiting-counts");
   revalidatePath("/beheer/instroom");
 }
 
@@ -118,6 +121,7 @@ export async function createInvitationFromAccessRequestAction(requestId: string)
   }
 
   await supabase.from("access_requests").update({ status: "handled" }).eq("id", requestId);
+  invalidateQuery("beheer-waiting-counts");
   revalidatePath("/beheer/instroom");
 
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;

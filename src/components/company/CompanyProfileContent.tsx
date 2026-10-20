@@ -59,9 +59,13 @@ export async function CompanyProfileContent({ id }: { id: string }) {
       .select("profile:profiles(id, slug, first_name, last_name, job_title, avatar_url, is_active)")
       .eq("company_id", id)
       .returns<MemberRow[]>(),
+    // Foutenrapport §0: company_membership_requests heeft twee foreign keys
+    // naar profiles (profile_id én decided_by) — zonder expliciete hint
+    // weigert PostgREST deze embed stilzwijgend (PGRST201), waardoor
+    // openstaande koppelverzoeken hier nooit zichtbaar werden.
     supabase
       .from("company_membership_requests")
-      .select("id, profile:profiles(id, first_name, last_name, avatar_url)")
+      .select("id, profile:profiles!company_membership_requests_profile_id_fkey(id, first_name, last_name, avatar_url)")
       .eq("company_id", id)
       .eq("status", "pending")
       .returns<RequestRow[]>(),

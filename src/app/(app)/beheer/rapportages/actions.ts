@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { logAuditAction } from "@/lib/audit/log";
+import { invalidateQuery } from "@/lib/cache/queryCache";
 
 // Verwijderen van het gerapporteerde bericht markeert de rapportage meteen
 // als afgehandeld (cascade via post_id zou de rij zelf verwijderen — dat
@@ -30,5 +31,8 @@ export async function resolveReportAction(reportId: string, decision: "deleted" 
     decision: decision === "deleted" ? "Bericht verwijderd" : "Bericht behouden",
   });
 
+  // Foutenrapport §0, fix 4: zonder dit bleef de Beheer-badge tot 30s
+  // (de cache-TTL) achterlopen op een zojuist afgehandelde rapportage.
+  invalidateQuery("beheer-waiting-counts");
   revalidatePath("/beheer/rapportages");
 }

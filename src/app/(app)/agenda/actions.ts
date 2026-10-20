@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { uploadDocument } from "@/lib/supabase/uploadDocument";
 import { invalidateActivityStatsCache } from "@/lib/statistics/shared";
+import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
 import { sendRawHtmlEmail, escapeHtml } from "@/lib/email/send";
 import { dispatchPendingPushNotifications } from "@/lib/notifications/dispatch-push";
@@ -501,6 +502,9 @@ export async function decideActivitySubmissionAction(
     decision === "rejected" ? { rejection_reason: rejectionReason ?? null } : {}
   );
 
+  // Foutenrapport §0, fix 4: zonder dit bleef de Beheer-badge tot 30s
+  // (de cache-TTL) achterlopen op een zojuist goed-/afgekeurde activiteit.
+  invalidateQuery("beheer-waiting-counts");
   revalidatePath(`/agenda/${activityId}`);
   revalidatePath("/agenda");
 

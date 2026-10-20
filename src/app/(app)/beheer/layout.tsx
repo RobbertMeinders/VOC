@@ -17,17 +17,26 @@ import { getBeheerWaitingCounts } from "@/lib/beheer/waitingCounts";
 export default async function BeheerLayout({ children }: { children: ReactNode }) {
   const profile = await requireBoard();
   // Zelfde tellingen als "Wacht op jou" op het dashboard (zie
-  // lib/beheer/waitingCounts.ts) — "Aanvragen" en "Gemelde berichten" tonen
-  // hiermee precies dezelfde aantallen als daar, i.p.v. het losse
-  // notificatie-gebaseerde getal dat deze twee plekken eerder uit elkaar
-  // kon laten lopen.
+  // lib/beheer/waitingCounts.ts) — hiermee tonen deze plekken precies
+  // dezelfde aantallen als daar, i.p.v. het losse notificatie-gebaseerde
+  // getal dat deze eerder uit elkaar kon laten lopen.
+  //
+  // Foutenrapport §0, fix 3: élke categorie die meetelt in de Beheer-badge
+  // (ledenmenu) hoort ook ergens in deze sidebar terug te komen — anders
+  // meldt die badge werk dat je in Beheer zelf nergens als "wachtend" ziet.
+  // De som van deze vier badges is daarmee altijd gelijk aan de Beheer-badge.
   const counts = await getBeheerWaitingCounts();
 
   return (
     <div className="flex flex-col gap-6">
       <BeheerSidebar
         isAdmin={profile.role === "beheerder"}
-        badges={{ "/beheer/instroom": counts.accessRequests, "/beheer/rapportages": counts.openReports }}
+        badges={{
+          "/beheer/instroom": counts.accessRequests + counts.expiringInvitations,
+          "/beheer/bedrijven": counts.pendingMembershipRequests,
+          "/beheer/agenda": counts.pendingActivities,
+          "/beheer/rapportages": counts.openReports,
+        }}
       />
       <div className="min-w-0">{children}</div>
     </div>

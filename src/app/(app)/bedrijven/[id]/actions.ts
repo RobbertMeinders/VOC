@@ -289,6 +289,9 @@ export async function decideCompanyMembershipRequestAction(
   if (decision === "approved") {
     invalidateQuery("leden-page-data");
   }
+  // Foutenrapport §0, fix 4: zonder dit liep de Beheer-badge/BeheerSidebar
+  // tot 30s (de cache-TTL) achter op een zojuist afgehandeld koppelverzoek.
+  invalidateQuery("beheer-waiting-counts");
   revalidatePath(`/bedrijven/${companyId}`);
   // Deze actie wordt ook vanaf het beheerdashboard ("Wacht op jou")
   // aangeroepen — zonder deze revalidate bleef een net afgehandeld verzoek

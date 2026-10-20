@@ -30,6 +30,7 @@ import { decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
 import { decideCompanyMembershipRequestAction } from "@/app/(app)/bedrijven/[id]/actions";
 import { extendInvitationAction } from "@/app/(app)/beheer/uitnodigingen/actions";
 import { getAppSettings } from "@/lib/settings/app-settings";
+import { getBeheerWaitingCounts } from "@/lib/beheer/waitingCounts";
 import { formatActivityDate, formatRelativeTime } from "@/lib/format/date";
 import { activityHref } from "@/lib/agenda/slug";
 import { memberHref } from "@/lib/members/slug";
@@ -96,7 +97,7 @@ export default async function BeheerPage() {
     { data: accessRequests },
     { data: pendingActivities },
     { data: openReportsRaw },
-    { data: pendingMembershipRequestsRaw },
+    { data: pendingMembershipRequestsRaw, error: pendingMembershipRequestsError },
     { data: expiringInvitations },
     { data: upcomingActivities },
     { data: newMembers },
@@ -107,6 +108,7 @@ export default async function BeheerPage() {
     { count: totalProfileCount },
     { count: signupsThisMonth },
     { count: activeLast30Count },
+    beheerWaitingCounts,
   ] = await Promise.all([
     supabase.from("access_requests").select("*").eq("status", "pending").order("created_at", { ascending: false }).returns<AccessRequest[]>(),
     supabase
@@ -123,9 +125,15 @@ export default async function BeheerPage() {
       .eq("status", "open")
       .order("created_at", { ascending: false })
       .returns<ReportQueryRow[]>(),
+    // Foutenrapport §0: company_membership_requests heeft twee foreign keys
+    // naar profiles (profile_id én decided_by) — een ongekwalificeerde
+    // "profile:profiles(...)"-embed is daardoor dubbelzinnig en PostgREST
+    // weigert 'm stilletjes (PGRST201, data=null, error ongecontroleerd),
+    // waardoor deze lijst altijd leeg leek terwijl er wel degelijk
+    // openstaande koppelverzoeken waren.
     supabase
       .from("company_membership_requests")
-      .select("id, company:companies(id, name), profile:profiles(id, first_name, last_name)")
+      .select("id, company:companies(id, name), profile:profiles!company_membership_requests_profile_id_fkey(id, first_name, last_name)")
       .eq("status", "pending")
       .order("created_at", { ascending: false })
       .returns<MembershipRequestRow[]>(),
@@ -169,6 +177,7 @@ export default async function BeheerPage() {
     supabase.from("profiles").select("id", { count: "exact", head: true }),
     supabase.from("profiles").select("id", { count: "exact", head: true }).gte("created_at", startOfMonth),
     supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true).gte("last_active_at", thirtyDaysAgo),
+    getBeheerWaitingCounts(),
   ]);
 
   // Twee dingen die pas bekend zijn ná de queries hierboven: of een nieuw
@@ -189,6 +198,14 @@ export default async function BeheerPage() {
   ]);
   const linkedProfileIds = new Set((linkedMembers ?? []).map((l) => l.profile_id));
 
+  // Foutenrapport §0: een stilgevallen embed (zoals de dubbelzinnige FK
+  // hierboven) mag nooit meer onopgemerkt data=null teruggeven — dit was
+  // precies hoe "Beheer 2" tegenover "Wacht op jou: niets te doen" kon
+  // ontstaan.
+  if (pendingMembershipRequestsError) {
+    console.error("[beheer] company_membership_requests ophalen mislukt:", pendingMembershipRequestsError);
+  }
+
   const openReports = (openReportsRaw ?? []).map(toReportRowData);
   // company/profile kunnen in theorie al verwijderd zijn tussen het indienen
   // van de aanvraag en het laden van deze pagina — zo'n wees-rij overslaan
@@ -199,14 +216,12 @@ export default async function BeheerPage() {
   );
   const activationRate = totalProfileCount ? Math.round(((activeMemberCount ?? 0) / totalProfileCount) * 100) : 0;
 
-  const waitingCounts = {
-    accessRequests: accessRequests?.length ?? 0,
-    pendingActivities: pendingActivities?.length ?? 0,
-    openReports: openReports.length,
-    pendingMembershipRequests: pendingMembershipRequests.length,
-    expiringInvitations: expiringInvitations?.length ?? 0,
-  };
-  const totalWaiting = Object.values(waitingCounts).reduce((sum, n) => sum + n, 0);
+  // Foutenrapport §0, fix 2: "Wacht op jou" en de Beheer-badge in het
+  // ledenmenu/BeheerSidebar moeten altijd dezelfde optelsom tonen — anders
+  // meldt de ene plek werk dat de andere niet laat zien. getBeheerWaitingCounts()
+  // is nu de ene bron voor dat totaal; de losse rijen hierboven blijven
+  // alleen voor de "wat precies"-voorbeelden eronder.
+  const totalWaiting = beheerWaitingCounts.total;
   const hasWaitingWork = totalWaiting > 0;
 
   const kerncijfers = [

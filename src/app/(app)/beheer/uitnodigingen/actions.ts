@@ -122,6 +122,10 @@ export async function revokeInvitationAction(id: string): Promise<{ error?: stri
     .update({ status: "revoked" }, { count: "exact" })
     .eq("id", id)
     .eq("status", "pending");
+  // Foutenrapport §0, fix 4 (uitgebreid naar expiringInvitations): zonder
+  // dit bleef de Beheer-badge tot 30s achterlopen op een zojuist
+  // ingetrokken/verlengde uitnodiging.
+  invalidateQuery("beheer-waiting-counts");
   revalidatePath("/beheer/instroom");
   if (error) {
     return { error: "Intrekken is niet gelukt. Probeer het opnieuw." };
@@ -142,6 +146,7 @@ export async function extendInvitationAction(id: string) {
     .update({ expires_at: new Date(Date.now() + EXTENDED_VALIDITY_MS).toISOString() })
     .eq("id", id)
     .eq("status", "pending");
+  invalidateQuery("beheer-waiting-counts");
   revalidatePath("/beheer/instroom");
 }
 
@@ -155,6 +160,7 @@ export async function extendAllInvitationsAction() {
     .from("invitations")
     .update({ expires_at: new Date(Date.now() + EXTENDED_VALIDITY_MS).toISOString() })
     .eq("status", "pending");
+  invalidateQuery("beheer-waiting-counts");
   revalidatePath("/beheer/instroom");
 }
 
