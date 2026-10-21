@@ -85,6 +85,13 @@ export async function createInvitationAction(
   if (role !== "lid" && profile.role !== "beheerder") {
     return { error: "Alleen een beheerder kan bestuursleden of beheerders uitnodigen." };
   }
+  // Een e-mailloze uitnodigingslink is voor "lid" bewust ondersteund, maar
+  // voor bestuur/beheerder zou zo'n gedeelde/gelekte link voor iedereen die
+  // hem in handen krijgt een account met verhoogde rechten opleveren —
+  // zelfde regel als de databaseconstraint invitations_board_requires_email.
+  if (role !== "lid" && !email) {
+    return { error: "Een uitnodiging voor bestuur of beheer vereist een e-mailadres." };
+  }
 
   const supabase = await createClient();
   const companyId = await resolveCompanyIdFromForm(supabase, formData);
