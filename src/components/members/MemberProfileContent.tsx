@@ -21,11 +21,19 @@ import { ForceLogoutButton } from "@/components/members/ForceLogoutButton";
 import { ContactMemberButton } from "@/components/members/ContactMemberButton";
 import { fetchFeedPostsByAuthor } from "@/lib/feed/queries";
 import { MEMBER_PROFILE_LIST_PREVIEW } from "@/lib/feed/pagination";
+import { companyHref } from "@/lib/company/slug";
 import type { Database } from "@/lib/types/database";
 
 type Profile = Database["public"]["Tables"]["profiles"]["Row"];
 type Membership = {
-  company: { id: string; name: string; city: string | null; industry: string | null; logo_url: string | null } | null;
+  company: {
+    id: string;
+    slug: string;
+    name: string;
+    city: string | null;
+    industry: string | null;
+    logo_url: string | null;
+  } | null;
 };
 type AttendedActivity = { id: string; title: string; starts_at: string; slug: string };
 
@@ -74,7 +82,7 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
   const [{ data: membership }, { data: attendedRows }, posts] = await Promise.all([
     supabase
       .from("company_members")
-      .select("company:companies(id, name, city, industry, logo_url)")
+      .select("company:companies(id, slug, name, city, industry, logo_url)")
       .eq("profile_id", id)
       .limit(1)
       .maybeSingle()
@@ -207,7 +215,7 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
         <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij</h2>
           <Link
-            href={`/bedrijven/${membership.company.id}`}
+            href={companyHref(membership.company)}
             className="flex items-center gap-3 rounded-xl border border-border p-3 hover:border-muted"
           >
             <CompanyLogo logoUrl={logoUrl} name={membership.company.name} size={44} />

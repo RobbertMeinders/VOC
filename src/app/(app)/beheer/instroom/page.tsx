@@ -103,7 +103,7 @@ async function KoppelingenTab({ status }: { status: "pending" | "handled" }) {
     decided_at: string | null;
     decision_reason: string | null;
     status: "pending" | "approved" | "rejected";
-    company: { id: string; name: string } | null;
+    company: { id: string; slug: string; name: string } | null;
     profile: { id: string; slug: string; first_name: string; last_name: string } | null;
     decided_by_profile: { first_name: string; last_name: string } | null;
   };
@@ -111,7 +111,7 @@ async function KoppelingenTab({ status }: { status: "pending" | "handled" }) {
   const query = supabase
     .from("company_membership_requests")
     .select(
-      "id, requested_at, decided_at, decision_reason, status, company:companies(id, name), profile:profiles!company_membership_requests_profile_id_fkey(id, slug, first_name, last_name), decided_by_profile:profiles!company_membership_requests_decided_by_fkey(first_name, last_name)"
+      "id, requested_at, decided_at, decision_reason, status, company:companies(id, slug, name), profile:profiles!company_membership_requests_profile_id_fkey(id, slug, first_name, last_name), decided_by_profile:profiles!company_membership_requests_decided_by_fkey(first_name, last_name)"
     )
     .order(status === "pending" ? "requested_at" : "decided_at", { ascending: false });
 
@@ -120,7 +120,7 @@ async function KoppelingenTab({ status }: { status: "pending" | "handled" }) {
   >();
 
   const requests: (CompanyMembershipRequestItem & { status: RequestQueryRow["status"] })[] = (rows ?? [])
-    .filter((r): r is RequestQueryRow & { company: { id: string; name: string }; profile: { id: string; slug: string; first_name: string; last_name: string } } =>
+    .filter((r): r is RequestQueryRow & { company: { id: string; slug: string; name: string }; profile: { id: string; slug: string; first_name: string; last_name: string } } =>
       r.company !== null && r.profile !== null
     )
     .map((r) => ({

@@ -1,9 +1,11 @@
 import Link from "next/link";
 import type { MouseEvent } from "react";
+import { companyHref } from "@/lib/company/slug";
 import { CompanyLogo } from "./CompanyLogo";
 
 export type CompanyListItem = {
   id: string;
+  slug: string;
   name: string;
   industry: string | null;
   city: string | null;
@@ -23,7 +25,7 @@ export type CompanyListItem = {
 export function CompanyCard({ company }: { company: CompanyListItem }) {
   return (
     <Link
-      href={company.href ?? `/bedrijven/${company.id}`}
+      href={company.href ?? companyHref(company)}
       onClick={company.onClick}
       className="card-hover-lift animate-rise-in flex min-w-0 items-center gap-4 rounded-2xl bg-surface p-4 shadow-sm hover:border-muted"
     >

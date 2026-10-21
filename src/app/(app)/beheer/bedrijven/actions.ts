@@ -5,6 +5,7 @@ import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
+import { companyHref } from "@/lib/company/slug";
 
 export type CreateCompanyState = { error?: string };
 
@@ -35,7 +36,8 @@ export async function createCompanyAction(
   }
 
   const supabase = await createClient();
-  const { data, error } = await supabase.from("companies").insert({ name, slug: slugify(name) }).select("id").single();
+  const slug = slugify(name);
+  const { data, error } = await supabase.from("companies").insert({ name, slug }).select("id").single();
 
   if (error || !data) {
     return { error: "Aanmaken is niet gelukt. Probeer het opnieuw." };
@@ -45,5 +47,5 @@ export async function createCompanyAction(
   invalidateQuery("beheer-bedrijven-page-data");
   await logAuditAction("company_created", "company", data.id);
 
-  redirect(`/bedrijven/${data.id}/bewerken`);
+  redirect(companyHref({ slug }, "/bewerken"));
 }

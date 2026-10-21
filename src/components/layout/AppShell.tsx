@@ -27,7 +27,7 @@ export function AppShell({
   profile,
   unreadNotifications,
   avatarUrl,
-  companyId,
+  companySlug,
   companyName,
   logoUrl,
   siteName,
@@ -39,7 +39,7 @@ export function AppShell({
   profile: Profile;
   unreadNotifications: UnreadNotification[];
   avatarUrl: string | null;
-  companyId: string | null;
+  companySlug: string | null;
   companyName: string | null;
   logoUrl: string | null;
   siteName: string;
@@ -70,7 +70,7 @@ export function AppShell({
                       profile={profile}
                       unread={unread}
                       avatarUrl={avatarUrl}
-                      companyId={companyId}
+                      companySlug={companySlug}
                       companyName={companyName}
                       logoUrl={logoUrl}
                       siteName={siteName}
@@ -95,7 +95,7 @@ function AppShellBody({
   profile,
   unread,
   avatarUrl,
-  companyId,
+  companySlug,
   companyName,
   logoUrl,
   siteName,
@@ -107,7 +107,7 @@ function AppShellBody({
   profile: Profile;
   unread: UnreadNotificationSections;
   avatarUrl: string | null;
-  companyId: string | null;
+  companySlug: string | null;
   companyName: string | null;
   logoUrl: string | null;
   siteName: string;
@@ -177,7 +177,7 @@ function AppShellBody({
           profile={profile}
           unread={unread}
           avatarUrl={avatarUrl}
-          companyId={companyId}
+          companySlug={companySlug}
           companyName={companyName}
           logoUrl={logoUrl}
           siteName={siteName}
@@ -204,7 +204,7 @@ function AppShellBody({
       <BottomNav
         profile={profile}
         avatarUrl={avatarUrl}
-        companyId={companyId}
+        companySlug={companySlug}
         companyName={companyName}
         unread={unread}
         showTestfase={showTestfase}

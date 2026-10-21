@@ -11,7 +11,7 @@ import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCo
 export function BottomNav({
   profile,
   avatarUrl,
-  companyId,
+  companySlug,
   companyName,
   unread,
   showTestfase,
@@ -19,7 +19,7 @@ export function BottomNav({
 }: {
   profile: Profile;
   avatarUrl: string | null;
-  companyId: string | null;
+  companySlug: string | null;
   companyName: string | null;
   unread: UnreadNotificationSections;
   showTestfase: boolean;
@@ -36,7 +36,7 @@ export function BottomNav({
         {MOBILE_PRIMARY_NAV_ITEMS.map((item) => {
           const { href, label, icon: Icon, badgeKey } = item;
           const count = badgeKey ? unread[badgeKey] : 0;
-          const active = isNavItemActive(item, pathname, { ownProfileSlug: profile.slug, ownCompanyId: companyId });
+          const active = isNavItemActive(item, pathname, { ownProfileSlug: profile.slug, ownCompanySlug: companySlug });
           return (
             <li key={href} className="flex-1">
               <Link
@@ -65,7 +65,7 @@ export function BottomNav({
           <MobileProfileMenu
             profile={profile}
             avatarUrl={avatarUrl}
-            companyId={companyId}
+            companySlug={companySlug}
             companyName={companyName}
             showTestfase={showTestfase}
             beheerBadge={beheerWaitingCount}

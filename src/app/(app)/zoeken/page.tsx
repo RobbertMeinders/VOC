@@ -27,6 +27,7 @@ type ProfileRow = {
 };
 type CompanyRow = {
   id: string;
+  slug: string;
   name: string;
   industry: string | null;
   city: string | null;
@@ -79,7 +80,7 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
         .returns<ProfileRow[]>(),
       supabase
         .from("companies")
-        .select("id, name, industry, city, logo_url, tagline")
+        .select("id, slug, name, industry, city, logo_url, tagline")
         .or(`name.ilike.${orLike},city.ilike.${orLike},tagline.ilike.${orLike}`)
         .returns<CompanyRow[]>(),
       supabase
@@ -137,6 +138,7 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
 
   const companies: CompanyListItem[] = matchedCompanies.map((c) => ({
     id: c.id,
+    slug: c.slug,
     name: c.name,
     industry: c.industry,
     city: c.city,

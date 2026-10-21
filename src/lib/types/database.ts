@@ -936,6 +936,7 @@ export interface Database {
         Args: Record<string, never>;
         Returns: {
           id: string;
+          slug: string;
           name: string;
           industry: string | null;
           city: string | null;

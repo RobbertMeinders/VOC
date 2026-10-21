@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { notFound, redirect } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/session";
 import { isAdmin, isBoard } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
+import { companyHref, companyIdFilter } from "@/lib/company/slug";
 import { CompanyForm } from "@/components/company/CompanyForm";
 import { CompanyBillingForm } from "@/components/company/CompanyBillingForm";
 import { CompanyEditFormsGuard } from "@/components/company/CompanyEditFormsGuard";
@@ -18,12 +19,12 @@ type CompanyBillingDetails = Database["public"]["Tables"]["company_billing_detai
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
   const supabase = await createClient();
-  const { data: company } = await supabase.from("companies").select("name").eq("id", id).maybeSingle();
+  const { data: company } = await supabase.from("companies").select("name").filter(...companyIdFilter(id)).maybeSingle();
   return { title: company ? `${company.name} bewerken` : "Bedrijf bewerken" };
 }
 
 export default async function EditCompanyPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+  const { id: routeParam } = await params;
   const profile = await requireProfile();
   const supabase = await createClient();
 
@@ -31,10 +32,21 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
   // longitude voor wie geen lid van dit bedrijf of bestuur/beheer is — de
   // check vlak hieronder bepaalt of het formulier zelf getoond wordt, maar
   // de data zelf mag sowieso nooit ongemaskeerd naar de client.
-  const { data: company } = await supabase.from("companies_for_members").select("*").eq("id", id).maybeSingle<Company>();
+  const { data: company } = await supabase
+    .from("companies_for_members")
+    .select("*")
+    .filter(...companyIdFilter(routeParam))
+    .maybeSingle<Company>();
 
   if (!company) {
     notFound();
+  }
+
+  // URL-ronde: zelfde canonicalisatie als CompanyProfileContent — een oude,
+  // rechtstreeks verstuurde UUID-link blijft werken maar stuurt door naar
+  // de nette slug-URL.
+  if (routeParam !== company.slug) {
+    permanentRedirect(companyHref(company, "/bewerken"));
   }
 
   // Bewerken mag elk gekoppeld lid van dit bedrijf, of bestuur/beheer —
@@ -46,21 +58,21 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
     const { count } = await supabase
       .from("company_members")
       .select("id", { count: "exact", head: true })
-      .eq("company_id", id)
+      .eq("company_id", company.id)
       .eq("profile_id", profile.id);
     if (!count) {
-      redirect(`/bedrijven/${id}`);
+      redirect(companyHref(company));
     }
   }
 
   const [logoUrl, { data: billing }] = await Promise.all([
     getSignedStorageUrl("company-logos", company.logo_url),
-    supabase.from("company_billing_details").select("*").eq("company_id", id).maybeSingle<CompanyBillingDetails>(),
+    supabase.from("company_billing_details").select("*").eq("company_id", company.id).maybeSingle<CompanyBillingDetails>(),
   ]);
 
   return (
     <div className="flex flex-col gap-4">
-      <BackLink href={`/bedrijven/${id}`} label={`Terug naar ${company.name}`} />
+      <BackLink href={companyHref(company)} label={`Terug naar ${company.name}`} />
       <div>
         <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Bedrijfsgegevens bewerken</h1>
       </div>

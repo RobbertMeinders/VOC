@@ -8,6 +8,7 @@ import { decideCompanyMembershipRequestAction } from "@/app/(app)/bedrijven/[id]
 import { useConfirmWithReason } from "@/lib/ui/ConfirmDialogContext";
 import { useToast } from "@/lib/ui/ToastContext";
 import { memberHref } from "@/lib/members/slug";
+import { companyHref } from "@/lib/company/slug";
 
 export type CompanyMembershipRequestItem = {
   id: string;
@@ -15,7 +16,7 @@ export type CompanyMembershipRequestItem = {
   decidedAt: string | null;
   decisionReason: string | null;
   decidedBy: { first_name: string; last_name: string } | null;
-  company: { id: string; name: string };
+  company: { id: string; slug: string; name: string };
   profile: { id: string; slug: string; first_name: string; last_name: string };
 };
 
@@ -79,7 +80,7 @@ export function CompanyMembershipRequestRow({
             {request.profile.first_name} {request.profile.last_name}
           </Link>{" "}
           wil gekoppeld worden aan{" "}
-          <Link href={`/bedrijven/${request.company.id}`} className="font-medium hover:text-petrol hover:underline">
+          <Link href={companyHref(request.company)} className="font-medium hover:text-petrol hover:underline">
             {request.company.name}
           </Link>
         </p>

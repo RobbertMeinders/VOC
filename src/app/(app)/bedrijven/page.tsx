@@ -59,6 +59,7 @@ export default async function BedrijvenPage() {
     const path = c.logo_thumb_url ?? c.logo_url;
     return {
       id: c.id,
+      slug: c.slug,
       name: c.name,
       industry: c.industry,
       city: c.city,

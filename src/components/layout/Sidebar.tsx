@@ -15,6 +15,7 @@ import { SearchOverlay } from "@/components/search/SearchOverlay";
 import { VocSocialLinks } from "@/components/ui/VocSocialLinks";
 import { isBoard } from "@/lib/auth/roles";
 import { memberHref } from "@/lib/members/slug";
+import { companyHref } from "@/lib/company/slug";
 import type { Profile } from "@/lib/auth/session";
 import type { UnreadNotificationSections } from "@/lib/notifications/useUnreadCount";
 
@@ -22,7 +23,7 @@ export function Sidebar({
   profile,
   unread,
   avatarUrl,
-  companyId,
+  companySlug,
   companyName,
   logoUrl,
   siteName,
@@ -32,7 +33,7 @@ export function Sidebar({
   profile: Profile;
   unread: UnreadNotificationSections;
   avatarUrl: string | null;
-  companyId: string | null;
+  companySlug: string | null;
   companyName: string | null;
   logoUrl: string | null;
   siteName: string;
@@ -43,7 +44,7 @@ export function Sidebar({
 
   function renderItem(item: NavItem, indented = false) {
     const { href, label, icon: Icon, badgeKey, badgeLabel } = item;
-    const active = isNavItemActive(item, pathname, { ownProfileSlug: profile.slug, ownCompanyId: companyId });
+    const active = isNavItemActive(item, pathname, { ownProfileSlug: profile.slug, ownCompanySlug: companySlug });
     return (
       <Link
         key={href}
@@ -77,7 +78,7 @@ export function Sidebar({
   // opent alleen nog Uitloggen (SidebarProfileMenu).
   const accountItems: { href: string; label: string; icon: LucideIcon; badge?: number }[] = [
     { href: memberHref(profile), label: "Mijn profiel", icon: UserIcon },
-    ...(companyId ? [{ href: `/bedrijven/${companyId}`, label: "Mijn bedrijf", icon: Building2 }] : []),
+    ...(companySlug ? [{ href: companyHref({ slug: companySlug }), label: "Mijn bedrijf", icon: Building2 }] : []),
     { href: "/instellingen", label: "Instellingen", icon: Settings },
     ...(isBoard(profile.role) ? [{ href: "/beheer", label: "Beheer", icon: LayoutDashboard, badge: beheerWaitingCount }] : []),
   ];

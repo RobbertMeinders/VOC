@@ -10,6 +10,7 @@ import { NewCompanyButton } from "@/components/beheer/NewCompanyButton";
 
 type CompanyRow = {
   id: string;
+  slug: string;
   name: string;
   industry: string | null;
   city: string | null;
@@ -56,7 +57,7 @@ export async function BeheerBedrijvenContent() {
     cachedQuery("beheer-bedrijven-page-data", 300_000, () =>
       supabase
         .from("companies_for_members")
-        .select("id, name, industry, city, address, postal_code, logo_url, logo_thumb_url, phone, email, website")
+        .select("id, slug, name, industry, city, address, postal_code, logo_url, logo_thumb_url, phone, email, website")
         .order("name")
         .returns<CompanyRow[]>()
     ),
@@ -105,6 +106,7 @@ export async function BeheerBedrijvenContent() {
     const logoPath = c.logo_thumb_url ?? c.logo_url;
     return {
       id: c.id,
+      slug: c.slug,
       name: c.name,
       industry: c.industry,
       city: c.city,

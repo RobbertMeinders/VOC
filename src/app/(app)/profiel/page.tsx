@@ -10,10 +10,11 @@ import { ProfileForm } from "@/components/profile/ProfileForm";
 import { CompanyMembershipForm } from "@/components/profile/CompanyMembershipForm";
 import { IntroductionPrompt } from "@/components/feed/IntroductionPrompt";
 import { ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
+import { companyHref } from "@/lib/company/slug";
 
 export const metadata: Metadata = { title: "Profiel" };
 
-type Membership = { company: { id: string; name: string; city: string | null } | null };
+type Membership = { company: { id: string; slug: string; name: string; city: string | null } | null };
 type PendingRequest = { company: { id: string; name: string } | null };
 
 export default async function ProfielPage() {
@@ -23,7 +24,7 @@ export default async function ProfielPage() {
   const [{ data: membership }, { data: pendingRequest }, avatarUrl, hasIntroduced] = await Promise.all([
     supabase
       .from("company_members")
-      .select("company:companies(id, name, city)")
+      .select("company:companies(id, slug, name, city)")
       .eq("profile_id", profile.id)
       .limit(1)
       .maybeSingle()
@@ -59,7 +60,7 @@ export default async function ProfielPage() {
         <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Link
-              href={`/bedrijven/${membership.company.id}`}
+              href={companyHref(membership.company)}
               className="flex items-center gap-2 text-sm text-foreground hover:text-petrol"
             >
               <Building2 size={16} className="text-muted" />
@@ -75,7 +76,7 @@ export default async function ProfielPage() {
                 tekstlink i.p.v. knop — dit is een snelkoppeling, geen
                 hoofdactie van deze pagina. */}
             <Link
-              href={`/bedrijven/${membership.company.id}/bewerken`}
+              href={companyHref(membership.company, "/bewerken")}
               className="flex items-center gap-1 text-xs text-muted hover:text-petrol"
             >
               <Pencil size={11} />

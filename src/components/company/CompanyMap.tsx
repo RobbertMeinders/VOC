@@ -9,6 +9,7 @@ import "leaflet/dist/leaflet.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.css";
 import "react-leaflet-cluster/dist/assets/MarkerCluster.Default.css";
 import { escapeHtml } from "@/lib/text/escape-html";
+import { companyHref } from "@/lib/company/slug";
 import { CompanyLogo } from "./CompanyLogo";
 import type { CompanyListItem } from "./CompanyCard";
 
@@ -145,7 +146,7 @@ export function CompanyMap({
             }}
           >
             <Popup className="voc-company-popup" minWidth={200}>
-              <Link href={company.href ?? `/bedrijven/${company.id}`} onClick={company.onClick} className="group flex items-center gap-3">
+              <Link href={company.href ?? companyHref(company)} onClick={company.onClick} className="group flex items-center gap-3">
                 <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={40} />
                 <span className="min-w-0 flex-1">
                   {/* Vaste grijstinten i.p.v. text-foreground/text-muted: de

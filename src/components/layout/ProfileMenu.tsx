@@ -11,6 +11,7 @@ import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { signOutAction } from "@/lib/auth/actions";
 import { isBoard } from "@/lib/auth/roles";
 import { memberHref } from "@/lib/members/slug";
+import { companyHref } from "@/lib/company/slug";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { useFixedAnchor } from "@/lib/dom/useFixedAnchor";
@@ -22,18 +23,18 @@ const DISMISS_THRESHOLD = 60;
 type ProfileMenuProps = {
   profile: Profile;
   avatarUrl: string | null;
-  companyId: string | null;
+  companySlug: string | null;
   companyName?: string | null;
   showTestfase?: boolean;
   beheerBadge?: number;
 };
 
-function menuItems(profile: Profile, companyId: string | null, showTestfase: boolean) {
+function menuItems(profile: Profile, companySlug: string | null, showTestfase: boolean) {
   return [
     // Naar de (publieke) weergave i.p.v. meteen het bewerkformulier — daar
     // staat een "Profiel aanpassen"-knop naar /profiel voor wie wil wijzigen.
     { href: memberHref(profile), label: "Mijn profiel", icon: UserIcon },
-    ...(companyId ? [{ href: `/bedrijven/${companyId}`, label: "Mijn bedrijf", icon: Building2 }] : []),
+    ...(companySlug ? [{ href: companyHref({ slug: companySlug }), label: "Mijn bedrijf", icon: Building2 }] : []),
     // Privacy & veiligheid staat niet hier — die link staat al op
     // Instellingen zelf, twee ingangen naar dezelfde pagina is overbodig.
     { href: "/instellingen", label: "Instellingen", icon: Settings },
@@ -262,21 +263,21 @@ export function SidebarProfileMenu({
 export function MobileProfileMenu({
   profile,
   avatarUrl,
-  companyId,
+  companySlug,
   companyName,
   showTestfase = false,
   beheerBadge,
 }: ProfileMenuProps) {
   const { open, toggle, close } = useOverlay("profile");
   const [closing, setClosing] = useState(false);
-  const items = menuItems(profile, companyId, showTestfase);
+  const items = menuItems(profile, companySlug, showTestfase);
   const pathname = usePathname();
   const active =
     pathname.startsWith(memberHref(profile)) ||
     pathname.startsWith("/profiel") ||
     pathname.startsWith("/instellingen") ||
     pathname.startsWith("/beheer") ||
-    (companyId ? pathname.startsWith(`/bedrijven/${companyId}`) : false);
+    (companySlug ? pathname.startsWith(`/bedrijven/${companySlug}`) : false);
 
   // Sluiten speelt eerst de omgekeerde animatie af (animate-sheet-out) en
   // unmount de sheet daarna pas — vandaar deze lokale "closing"-fase naast

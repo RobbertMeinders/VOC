@@ -1,9 +1,10 @@
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { cache } from "react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { isBoard } from "@/lib/auth/roles";
+import { companyHref, companyIdFilter } from "@/lib/company/slug";
 import { CompanyHeader } from "@/components/company/CompanyHeader";
 import { CompanyLocationMap } from "@/components/company/CompanyLocationMap";
 import { CompanyMemberList, type CompanyMember } from "@/components/company/CompanyMemberList";
@@ -32,36 +33,53 @@ type RequestRow = {
 // deden allebei hun eigen companies-query voor dezelfde id — cache() dedupet
 // de tweede aanroep binnen hetzelfde verzoek (zelfde patroon als
 // getCurrentProfile in lib/auth/session.ts).
-const getCachedCompany = cache(async (id: string): Promise<Company | null> => {
+// `param` is de route-waarde uit de URL: sinds de URL-ronde een leesbare
+// naam-slug, of — voor oudere links — een kaal UUID (zie lib/company/slug.ts).
+const getCachedCompany = cache(async (param: string): Promise<Company | null> => {
   const supabase = await createClient();
   // companies_for_members (M8) i.p.v. de tabel zelf: maskeert address/
   // postal_code/latitude/longitude voor wie geen lid van dit bedrijf of
   // bestuur/beheer is, als het bedrijf show_address uit heeft staan.
-  const { data } = await supabase.from("companies_for_members").select("*").eq("id", id).maybeSingle<Company>();
+  const { data } = await supabase
+    .from("companies_for_members")
+    .select("*")
+    .filter(...companyIdFilter(param))
+    .maybeSingle<Company>();
   return data;
 });
 
-export async function getCompanyProfileTitle(id: string): Promise<string> {
-  const company = await getCachedCompany(id);
+export async function getCompanyProfileTitle(param: string): Promise<string> {
+  const company = await getCachedCompany(param);
   return company?.name ?? "Bedrijf";
 }
 
 // Gedeeld tussen de volledige pagina (/bedrijven/[id]) en de intercepted
 // overlay (@modal/(.)bedrijven/[id]) — zie MemberProfileContent voor
-// dezelfde reden.
-export async function CompanyProfileContent({ id }: { id: string }) {
+// dezelfde reden. `id`-prop hier is dus eigenlijk de route-slug/het-UUID uit
+// de URL; na het ophalen van de rij wordt overal verderop company.id (het
+// échte UUID) gebruikt, nooit deze ruwe route-waarde.
+export async function CompanyProfileContent({ id: routeParam }: { id: string }) {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  // Performance-audit #5: memberRows/requestRows hebben alleen `id` nodig,
-  // niet het resultaat van de companies-query — meteen samen met die query
-  // in één Promise.all i.p.v. pas erna te starten.
-  const [company, { data: memberRows }, { data: requestRows }] = await Promise.all([
-    getCachedCompany(id),
+  const company = await getCachedCompany(routeParam);
+  if (!company) {
+    notFound();
+  }
+
+  // URL-ronde: oude, rechtstreeks verstuurde links (kaal UUID) blijven
+  // werken, maar sturen door naar de canonieke slug-URL — zodat de
+  // adresbalk altijd de nette versie toont en nieuwe links die hiervandaan
+  // worden gekopieerd ook meteen de slug gebruiken.
+  if (routeParam !== company.slug) {
+    permanentRedirect(companyHref(company));
+  }
+
+  const [{ data: memberRows }, { data: requestRows }] = await Promise.all([
     supabase
       .from("company_members")
       .select("profile:profiles(id, slug, first_name, last_name, job_title, avatar_url, is_active)")
-      .eq("company_id", id)
+      .eq("company_id", company.id)
       .returns<MemberRow[]>(),
     // Foutenrapport §0: company_membership_requests heeft twee foreign keys
     // naar profiles (profile_id én decided_by) — zonder expliciete hint
@@ -70,14 +88,10 @@ export async function CompanyProfileContent({ id }: { id: string }) {
     supabase
       .from("company_membership_requests")
       .select("id, profile:profiles!company_membership_requests_profile_id_fkey(id, first_name, last_name, avatar_url)")
-      .eq("company_id", id)
+      .eq("company_id", company.id)
       .eq("status", "pending")
       .returns<RequestRow[]>(),
   ]);
-
-  if (!company) {
-    notFound();
-  }
 
   // Een gedeactiveerd lid blijft in company_members staan (90 dagen
   // bewaartermijn), maar hoort niet meer als huidig teamlid getoond te
@@ -122,13 +136,13 @@ export async function CompanyProfileContent({ id }: { id: string }) {
 
   return (
     <div className="flex flex-col gap-6">
-      <CompanyHeader company={company} logoUrl={logoUrl} editHref={canManage ? `/bedrijven/${id}/bewerken` : undefined} />
+      <CompanyHeader company={company} logoUrl={logoUrl} editHref={canManage ? companyHref(company, "/bewerken") : undefined} />
 
       {/* Direct onder de header, boven de kaart en ledenlijst — anders is
           deze actie makkelijk te missen als je hier via de notificatie
           binnenkomt en de kaart+ledenlijst het scherm al vullen. */}
-      {canManage && <CompanyMembershipRequests companyId={id} requests={pendingRequests} />}
-      {canManage && <InviteColleagueForm companyId={id} />}
+      {canManage && <CompanyMembershipRequests companyId={company.id} requests={pendingRequests} />}
+      {canManage && <InviteColleagueForm companyId={company.id} />}
 
       {/* UX-review V6: deze kaart liet op bijna elk bedrijf alleen "Nog geen
           leden gekoppeld aan dit bedrijf." zien — een lege sectie verbergen
@@ -144,6 +158,7 @@ export async function CompanyProfileContent({ id }: { id: string }) {
         <CompanyLocationMap
           company={{
             id: company.id,
+            slug: company.slug,
             name: company.name,
             industry: company.industry,
             city: company.city,

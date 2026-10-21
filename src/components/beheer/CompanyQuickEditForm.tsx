@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/Select";
 import { quickUpdateCompanyAction, type QuickUpdateCompanyState } from "@/app/(app)/bedrijven/[id]/actions";
 import { useToast } from "@/lib/ui/ToastContext";
 import { INDUSTRIES } from "@/lib/constants/industries";
+import { companyHref } from "@/lib/company/slug";
 
 const initialState: QuickUpdateCompanyState = {};
 
@@ -31,6 +32,7 @@ function SubmitButton() {
 // socials en factuurgegevens blijven daar (link onderaan dit paneel).
 export function CompanyQuickEditForm({
   companyId,
+  companySlug,
   name,
   industry,
   city,
@@ -40,6 +42,7 @@ export function CompanyQuickEditForm({
   onSaved,
 }: {
   companyId: string;
+  companySlug: string;
   name: string;
   industry: string | null;
   city: string | null;
@@ -115,7 +118,7 @@ export function CompanyQuickEditForm({
       )}
 
       <div className="flex items-center justify-end gap-3">
-        <Link href={`/bedrijven/${companyId}/bewerken`} className="text-xs font-medium text-voc-red-text hover:underline">
+        <Link href={companyHref({ slug: companySlug }, "/bewerken")} className="text-xs font-medium text-voc-red-text hover:underline">
           Meer bewerken
         </Link>
         <SubmitButton />

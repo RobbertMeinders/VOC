@@ -25,11 +25,11 @@ export default async function AppLayout({ children, modal }: { children: ReactNo
     getSignedStorageUrl("avatars", profile.avatar_url),
     supabase
       .from("company_members")
-      .select("company_id, company:companies(name)")
+      .select("company_id, company:companies(name, slug)")
       .eq("profile_id", profile.id)
       .limit(1)
       .maybeSingle()
-      .returns<{ company_id: string; company: { name: string } | null }>(),
+      .returns<{ company_id: string; company: { name: string; slug: string } | null }>(),
     getAppSettings(),
     // De "Beheer"-badge in het ledenmenu moet exact dezelfde som tonen als
     // "Wacht op jou" op het beheerdashboard — niet (zoals voorheen) het
@@ -44,7 +44,7 @@ export default async function AppLayout({ children, modal }: { children: ReactNo
       profile={profile}
       unreadNotifications={unreadNotifications ?? []}
       avatarUrl={avatarUrl}
-      companyId={membership?.company_id ?? null}
+      companySlug={membership?.company?.slug ?? null}
       companyName={membership?.company?.name ?? null}
       logoUrl={settings.logo_url}
       siteName={settings.site_name}

@@ -12,9 +12,11 @@ import { ComingSoon } from "@/components/ui/ComingSoon";
 import { matchesSearch } from "@/lib/search/normalize";
 import { useUrlFilterState } from "@/lib/dom/useUrlFilterState";
 import { deleteCompanyAction } from "@/app/(app)/bedrijven/[id]/actions";
+import { companyHref } from "@/lib/company/slug";
 
 export type BeheerCompanyRow = {
   id: string;
+  slug: string;
   name: string;
   industry: string | null;
   city: string | null;
@@ -104,7 +106,7 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
                       — nu onder de naam i.p.v. ernaast, zodat beide hun
                       eigen regel/breedte houden. */}
                   <div className="min-w-0 flex-1">
-                    <Link href={`/bedrijven/${company.id}`} className="block min-w-0 hover:opacity-80">
+                    <Link href={companyHref(company)} className="block min-w-0 hover:opacity-80">
                       <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-none">{company.name}</p>
                     </Link>
                     {company.pendingMembershipRequests > 0 && (
@@ -173,6 +175,7 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
               {expanded && (
                 <CompanyQuickEditForm
                   companyId={company.id}
+                  companySlug={company.slug}
                   name={company.name}
                   industry={company.industry}
                   city={company.city}
