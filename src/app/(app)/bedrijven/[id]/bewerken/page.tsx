@@ -27,7 +27,11 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const { data: company } = await supabase.from("companies").select("*").eq("id", id).maybeSingle<Company>();
+  // companies_for_members (M8): maskeert address/postal_code/latitude/
+  // longitude voor wie geen lid van dit bedrijf of bestuur/beheer is — de
+  // check vlak hieronder bepaalt of het formulier zelf getoond wordt, maar
+  // de data zelf mag sowieso nooit ongemaskeerd naar de client.
+  const { data: company } = await supabase.from("companies_for_members").select("*").eq("id", id).maybeSingle<Company>();
 
   if (!company) {
     notFound();

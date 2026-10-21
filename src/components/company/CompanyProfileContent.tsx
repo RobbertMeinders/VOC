@@ -34,7 +34,10 @@ type RequestRow = {
 // getCurrentProfile in lib/auth/session.ts).
 const getCachedCompany = cache(async (id: string): Promise<Company | null> => {
   const supabase = await createClient();
-  const { data } = await supabase.from("companies").select("*").eq("id", id).maybeSingle<Company>();
+  // companies_for_members (M8) i.p.v. de tabel zelf: maskeert address/
+  // postal_code/latitude/longitude voor wie geen lid van dit bedrijf of
+  // bestuur/beheer is, als het bedrijf show_address uit heeft staan.
+  const { data } = await supabase.from("companies_for_members").select("*").eq("id", id).maybeSingle<Company>();
   return data;
 });
 

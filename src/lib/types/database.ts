@@ -854,7 +854,15 @@ export interface Database {
         Relationships: [];
       };
     };
-    Views: Record<string, never>;
+    Views: {
+      // M8: maskeert companies.address/postal_code/latitude/longitude voor
+      // wie geen lid van dit bedrijf of bestuur/beheer is en het bedrijf
+      // show_address uit heeft staan (0145_mask_company_address.sql).
+      companies_for_members: {
+        Row: Database["public"]["Tables"]["companies"]["Row"];
+        Relationships: [];
+      };
+    };
     Functions: {
       get_invitation_preview: {
         Args: { p_token: string };
@@ -919,6 +927,21 @@ export interface Database {
       get_activity_registration_counts: {
         Args: Record<string, never>;
         Returns: { activity_id: string; registered_count: number }[];
+      };
+      get_companies_directory: {
+        Args: Record<string, never>;
+        Returns: {
+          id: string;
+          name: string;
+          industry: string | null;
+          city: string | null;
+          logo_url: string | null;
+          logo_thumb_url: string | null;
+          tagline: string | null;
+          latitude: number | null;
+          longitude: number | null;
+          show_address: boolean;
+        }[];
       };
       get_public_companies: {
         Args: Record<string, never>;

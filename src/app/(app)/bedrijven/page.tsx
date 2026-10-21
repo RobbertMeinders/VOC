@@ -14,13 +14,13 @@ export default async function BedrijvenPage() {
 
   // Zichtbaarheid is voor elk actief lid identiek (companies_members_select
   // kent geen per-gebruiker variatie), dus dit resultaat delen tussen
-  // leden/requests is veilig.
+  // leden/requests is veilig — get_companies_directory() (M8) maskeert
+  // latitude/longitude daarom ook alleen op show_address, nooit op wie de
+  // kijker zelf is (dat zou dit gedeelde cache-resultaat tussen viewers met
+  // verschillende rechten laten lekken).
   const [{ data: companies }, { data: memberships }, { count: ledenCount }] = await cachedQuery("bedrijven-page-data", 60_000, () =>
     Promise.all([
-      supabase
-        .from("companies")
-        .select("id, name, industry, city, logo_url, logo_thumb_url, tagline, latitude, longitude, show_address")
-        .order("name"),
+      supabase.rpc("get_companies_directory"),
       // UX-review Z4: bedrijven ook doorzoekbaar op de namen van de mensen
       // die er werken — alleen gebruikt om op te matchen, niet getoond.
       supabase.from("company_members").select("company_id, profile:profiles(first_name, last_name)").returns<MembershipRow[]>(),
