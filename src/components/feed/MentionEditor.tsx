@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react";
+import { useEffect, useId, useRef, useState, type ClipboardEvent, type KeyboardEvent } from "react";
 import { searchMentionsAction } from "@/app/(app)/actions";
 import { MentionDropdown } from "./MentionDropdown";
 import { createMentionChip, populateMentionEditor, serializeMentionEditor } from "@/lib/feed/mentionDom";
-import type { MentionKind, MentionResults } from "@/lib/feed/mentionTypes";
+import { flattenMentionResults, mentionOptionId, type MentionKind, type MentionResults } from "@/lib/feed/mentionTypes";
 
 /**
  * Contenteditable tekstveld met @mention-ondersteuning: een gekozen mention
@@ -44,9 +44,12 @@ export function MentionEditor({
   const hiddenInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
   const [results, setResults] = useState<MentionResults>({ profiles: [], companies: [] });
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const queryRangeRef = useRef<{ node: Text; start: number; end: number } | null>(null);
   const requestId = useRef(0);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const listboxId = useId();
+  const flatResults = flattenMentionResults(results);
 
   useEffect(() => {
     const root = editorRef.current;
@@ -93,6 +96,7 @@ export function MentionEditor({
     const start = anchorOffset - match[1].length - 1;
     queryRangeRef.current = { node: anchorNode as Text, start, end: anchorOffset };
     setOpen(true);
+    setHighlightedIndex(0);
 
     // Gedebouncet i.p.v. bij elke toetsaanslag meteen te zoeken — zonder dit
     // vuurde elk toetsaanslag zowel via het input- als het keyup-event een
@@ -104,7 +108,10 @@ export function MentionEditor({
     debounceRef.current = setTimeout(() => {
       const requestNumber = ++requestId.current;
       void searchMentionsAction(query).then((result) => {
-        if (requestNumber === requestId.current) setResults(result);
+        if (requestNumber === requestId.current) {
+          setResults(result);
+          setHighlightedIndex(0);
+        }
       });
     }, 150);
   }
@@ -151,6 +158,35 @@ export function MentionEditor({
   }
 
   function handleKeyDown(e: KeyboardEvent<HTMLDivElement>) {
+    // ARIA-combobox-toetsenbordbediening: alleen relevant terwijl de
+    // suggestielijst open staat, en vóór de bestaande Enter-afhandeling
+    // hieronder (anders zou Enter een suggestie negeren en in plaats daarvan
+    // versturen/een regeleinde invoegen).
+    if (open && flatResults.length > 0) {
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        setHighlightedIndex((i) => (i + 1) % flatResults.length);
+        return;
+      }
+      if (e.key === "ArrowUp") {
+        e.preventDefault();
+        setHighlightedIndex((i) => (i - 1 + flatResults.length) % flatResults.length);
+        return;
+      }
+      if (e.key === "Enter") {
+        e.preventDefault();
+        const option = flatResults[highlightedIndex];
+        if (option) handleSelect(option.name, option.kind, option.id);
+        return;
+      }
+      if (e.key === "Escape") {
+        e.preventDefault();
+        setOpen(false);
+        queryRangeRef.current = null;
+        return;
+      }
+    }
+
     if (e.key !== "Enter") return;
     if (singleLine) {
       e.preventDefault();
@@ -174,9 +210,14 @@ export function MentionEditor({
       <div
         ref={editorRef}
         contentEditable
-        role="textbox"
-        aria-multiline={!singleLine}
+        role="combobox"
         aria-label={placeholder}
+        aria-expanded={open}
+        aria-controls={open ? listboxId : undefined}
+        aria-activedescendant={
+          open && flatResults[highlightedIndex] ? mentionOptionId(listboxId, flatResults[highlightedIndex].kind, flatResults[highlightedIndex].id) : undefined
+        }
+        aria-autocomplete="list"
         data-placeholder={placeholder}
         onInput={handleInput}
         onKeyUp={handleKeyUp}
@@ -188,7 +229,9 @@ export function MentionEditor({
         className={`mention-editor ${minHeightClassName} w-full resize-none break-words rounded-2xl border border-input-border bg-background px-3.5 py-1.5 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20`}
       />
       <input ref={hiddenInputRef} type="hidden" name={name} />
-      {open && <MentionDropdown results={results} onSelect={handleSelect} />}
+      {open && (
+        <MentionDropdown listboxId={listboxId} results={results} highlightedIndex={highlightedIndex} onSelect={handleSelect} />
+      )}
     </div>
   );
 }

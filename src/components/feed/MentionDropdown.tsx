@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { Building2, User } from "lucide-react";
-import type { MentionKind, MentionResults } from "@/lib/feed/mentionTypes";
+import { flattenMentionResults, mentionOptionId, type MentionKind, type MentionResults } from "@/lib/feed/mentionTypes";
 
 function SuggestionImage({ imageUrl, kind }: { imageUrl: string | null; kind: MentionKind }) {
   if (imageUrl) {
@@ -25,36 +25,38 @@ function SuggestionImage({ imageUrl, kind }: { imageUrl: string | null; kind: Me
 }
 
 export function MentionDropdown({
+  listboxId,
   results,
+  highlightedIndex,
   onSelect,
 }: {
+  listboxId: string;
   results: MentionResults;
+  highlightedIndex: number;
   onSelect: (name: string, kind: MentionKind, id: string) => void;
 }) {
+  const flat = flattenMentionResults(results);
   return (
-    <div className="absolute left-0 top-full z-50 mt-1 max-h-56 w-64 overflow-y-auto rounded-xl border border-border bg-surface py-1 shadow-lg">
-      {results.profiles.map((profile) => (
+    <div
+      id={listboxId}
+      role="listbox"
+      className="absolute left-0 top-full z-50 mt-1 max-h-56 w-64 overflow-y-auto rounded-xl border border-border bg-surface py-1 shadow-lg"
+    >
+      {flat.map((item, index) => (
         <button
-          key={`profiel-${profile.id}`}
+          key={`${item.kind}-${item.id}`}
+          id={mentionOptionId(listboxId, item.kind, item.id)}
+          role="option"
+          aria-selected={index === highlightedIndex}
           type="button"
           onMouseDown={(e) => e.preventDefault()}
-          onClick={() => onSelect(profile.name, "profiel", profile.id)}
-          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+          onClick={() => onSelect(item.name, item.kind, item.id)}
+          className={`flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-foreground ${
+            index === highlightedIndex ? "bg-black/[.04] dark:bg-white/[.06]" : ""
+          }`}
         >
-          <SuggestionImage imageUrl={profile.imageUrl} kind="profiel" />
-          <span className="truncate">{profile.name}</span>
-        </button>
-      ))}
-      {results.companies.map((company) => (
-        <button
-          key={`bedrijf-${company.id}`}
-          type="button"
-          onMouseDown={(e) => e.preventDefault()}
-          onClick={() => onSelect(company.name, "bedrijf", company.id)}
-          className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-        >
-          <SuggestionImage imageUrl={company.imageUrl} kind="bedrijf" />
-          <span className="truncate">{company.name}</span>
+          <SuggestionImage imageUrl={item.imageUrl} kind={item.kind} />
+          <span className="truncate">{item.name}</span>
         </button>
       ))}
     </div>
