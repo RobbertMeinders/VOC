@@ -383,7 +383,7 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
         ? [
             {
               label: `"${fullActivity.title}" vol`,
-              sublabel: "Staat op de wachtlijst — misschien een tweede datum",
+              sublabel: "Staat op de wachtlijst - misschien een tweede datum",
               count: (registrationsByActivityId.get(fullActivity.id) ?? []).filter((r) => r.is_waitlisted).length,
               tone: "good" as const,
               href: activityHref(fullActivity),

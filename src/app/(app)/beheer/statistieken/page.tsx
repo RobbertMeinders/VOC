@@ -261,7 +261,7 @@ async function ActiviteitenTab({ period, compare }: { period: ReturnType<typeof 
         />
         <Legend items={[{ label: "Leden", color: CHART_COLORS.primary }, { label: "Gasten via website", color: CHART_COLORS.secondary }]} />
         <p className="text-xs text-muted">
-          Opkomst (wie er echt was) staat in de aanwezigheidslijst per activiteit, niet hierin — dit zijn aanmeldingen.
+          Opkomst (wie er echt was) staat in de aanwezigheidslijst per activiteit, niet hierin - dit zijn aanmeldingen.
         </p>
       </ChartCard>
     </div>

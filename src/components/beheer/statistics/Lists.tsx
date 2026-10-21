@@ -10,7 +10,7 @@ const TONE_MAP: Record<SignalItem["tone"], StatusTone> = { warning: "warning", n
 // aandacht *kunnen* verdienen i.p.v. acties die letterlijk op je wachten.
 export function SignalsList({ items }: { items: SignalItem[] }) {
   if (items.length === 0) {
-    return <p className="text-sm text-muted">Geen signalen — alles ziet er goed uit.</p>;
+    return <p className="text-sm text-muted">Geen signalen - alles ziet er goed uit.</p>;
   }
   return (
     <div className="flex flex-col divide-y divide-border">

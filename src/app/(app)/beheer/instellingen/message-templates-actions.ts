@@ -130,7 +130,7 @@ export async function sendTestMessageEmailAction(
   const renderedAfter = renderTemplate(afterHtml, escapedVariables);
   const cta = `<a href="${escapeHtml(testLink)}" style="${ctaStyle}">${escapeHtml(ctaLabel)}</a>`;
   const signatureHtml = signatureType === "pers" ? renderPersonalSignature(settings) : renderGeneralSignature(settings);
-  const banner = `<p style="margin:0 0 16px;padding:10px 14px;background:#fff3cd;border-radius:8px;font-size:13px;color:#664d03;">Testmail — dit is een voorbeeld, niet daadwerkelijk verstuurd aan een lid.</p>`;
+  const banner = `<p style="margin:0 0 16px;padding:10px 14px;background:#fff3cd;border-radius:8px;font-size:13px;color:#664d03;">Testmail - dit is een voorbeeld, niet daadwerkelijk verstuurd aan een lid.</p>`;
   const html = banner + renderedBody + cta + renderedAfter + `<div style="margin-top:22px">${signatureHtml}</div>`;
 
   const result = await sendRawHtmlEmail(profile.email, `[Test] ${renderedSubject}`, html);
@@ -186,7 +186,7 @@ export async function sendTestSignatureEmailAction(): Promise<SendTestSignatureS
 
   const settings = await getAppSettings();
   const html =
-    `<p style="margin:0 0 16px;padding:10px 14px;background:#fff3cd;border-radius:8px;font-size:13px;color:#664d03;">Testmail — zo zien de twee handtekeningen eruit.</p>` +
+    `<p style="margin:0 0 16px;padding:10px 14px;background:#fff3cd;border-radius:8px;font-size:13px;color:#664d03;">Testmail - zo zien de twee handtekeningen eruit.</p>` +
     `<p><b>Algemeen</b></p><div>${renderGeneralSignature(settings)}</div>` +
     `<hr style="margin:24px 0;border:none;border-top:1px solid #e5e5ea;" />` +
     `<p><b>Persoonlijk</b></p><div>${renderPersonalSignature(settings)}</div>`;

@@ -50,7 +50,7 @@ export function CommissionApplyForm({ options }: { options: { id: string; name: 
   return (
     <form onSubmit={handleSubmit} className="rounded-2xl bg-surface p-4 shadow-sm">
       <p className="text-sm font-semibold text-foreground">Wil je bijdragen aan een van de commissies?</p>
-      <p className="mt-1 text-sm text-muted">Meld je hieronder aan — je aanvraag wordt ter beoordeling voorgelegd aan het bestuur.</p>
+      <p className="mt-1 text-sm text-muted">Meld je hieronder aan - je aanvraag wordt ter beoordeling voorgelegd aan het bestuur.</p>
 
       <div className="mt-3 flex flex-col gap-3">
         <div className="flex flex-col gap-1.5">

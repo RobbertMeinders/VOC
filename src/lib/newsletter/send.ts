@@ -30,7 +30,7 @@ async function markOrThrow(
     if (!error) return;
     if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 300 * (attempt + 1)));
   }
-  throw new Error(`Markeren als verstuurd/mislukt is niet gelukt (${label}) — verzending gestopt om niemand dubbel te mailen.`);
+  throw new Error(`Markeren als verstuurd/mislukt is niet gelukt (${label}) - verzending gestopt om niemand dubbel te mailen.`);
 }
 
 // Gedeeld tussen sendNewsletterAction (de "Versturen"-knop, bestuurslid met

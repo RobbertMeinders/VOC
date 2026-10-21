@@ -82,7 +82,7 @@ export function CompanySelector({
       )}
       {!lockPrefilled && companyMode === "skip" && (
         <p className="rounded-lg border border-border px-3 py-2 text-xs text-muted">
-          Geen probleem — je kunt dit later toevoegen via je profiel.
+          Geen probleem - je kunt dit later toevoegen via je profiel.
         </p>
       )}
     </div>

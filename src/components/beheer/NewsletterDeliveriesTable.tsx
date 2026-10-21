@@ -26,14 +26,14 @@ function DeliveryStatus({ delivery }: { delivery: Delivery }) {
   if (delivery.status === "mislukt") {
     return (
       <StatusPill tone="danger" icon={XCircle}>
-        Mislukt{delivery.failure_reason ? ` — ${delivery.failure_reason}` : ""}
+        Mislukt{delivery.failure_reason ? ` - ${delivery.failure_reason}` : ""}
       </StatusPill>
     );
   }
   if (delivery.status === "overgeslagen") {
     return (
       <StatusPill tone="neutral" icon={MinusCircle}>
-        Overgeslagen{delivery.failure_reason ? ` — ${delivery.failure_reason}` : ""}
+        Overgeslagen{delivery.failure_reason ? ` - ${delivery.failure_reason}` : ""}
       </StatusPill>
     );
   }

@@ -65,7 +65,7 @@ export function SignaturesEditor({ settings }: { settings: AppSettings }) {
             <p className="text-sm font-semibold text-foreground">Algemeen</p>
             <p className="mt-0.5 text-xs text-muted">
               Onder alle automatische mails waar &apos;Algemeen&apos; is gekozen. Logo, verenigingsnaam, e-mailadres en website komen
-              automatisch uit Portaalinstellingen en de verzendconfiguratie — niets om hier los in te vullen.
+              automatisch uit Portaalinstellingen en de verzendconfiguratie - niets om hier los in te vullen.
             </p>
           </div>
           <div className="rounded-xl border border-border p-3">

@@ -226,7 +226,7 @@ export function MessageTemplateEditor({
                 className="text-sm leading-relaxed [&_p]:my-2"
               />
               <div className="mt-4 border-t border-dashed border-[#e5e5ea] pt-3 text-xs text-[#67625b]">
-                Handtekening: {signatureType === "pers" ? "persoonlijk" : "algemeen (VOC)"} — komt er automatisch onder, hier niet te bewerken.
+                Handtekening: {signatureType === "pers" ? "persoonlijk" : "algemeen (VOC)"} - komt er automatisch onder, hier niet te bewerken.
               </div>
             </div>
 
