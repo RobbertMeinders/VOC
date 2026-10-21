@@ -7,8 +7,10 @@ import { FileText, Paperclip, Pencil, SquarePen, X } from "lucide-react";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
+import { IconButton } from "@/components/ui/IconButton";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
+import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 import { createPostAction, type CreatePostState } from "@/app/(app)/actions";
 import { CARD_THUMBNAIL_DIMENSION, compressImageFile, createThumbnailFile } from "@/lib/image/compress";
 import { MentionEditor } from "./MentionEditor";
@@ -118,8 +120,34 @@ function PostComposerForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const thumbInputRef = useRef<HTMLInputElement>(null);
   const previewUrlsRef = useRef<string[]>([]);
+  const formElRef = useRef<HTMLFormElement>(null);
+  const confirm = useConfirm();
 
-  useEscapeKey(open, onClose);
+  // Een achtergrond-klik/Escape sloot dit paneel tot nu toe stilletjes, met
+  // verlies van al ingevulde tekst + bijlagen — alleen een bevestiging
+  // vragen als er daadwerkelijk iets te verliezen is (anders zou een lege
+  // composer sluiten onnodig een extra klik kosten).
+  function hasUnsavedContent(): boolean {
+    if (previews.length > 0) return true;
+    const content = formElRef.current?.elements.namedItem("content");
+    return content instanceof HTMLInputElement && content.value.trim().length > 0;
+  }
+
+  async function requestClose() {
+    if (hasUnsavedContent()) {
+      const confirmed = await confirm({
+        title: "Bericht sluiten?",
+        description: "Je ingevulde tekst en bijlagen gaan dan verloren.",
+        confirmLabel: "Sluiten",
+        cancelLabel: "Terug naar bericht",
+        danger: true,
+      });
+      if (!confirmed) return;
+    }
+    onClose();
+  }
+
+  useEscapeKey(open, requestClose);
   useBodyScrollLock(open);
 
   useEffect(() => {
@@ -256,7 +284,7 @@ function PostComposerForm({
     // gerenderde BottomNav de klik, waardoor die onder dit paneel aanklikbaar
     // bleef (zelfde bugklasse als bij NotificationCenter).
     <FloatingPortal>
-      <div className="fixed inset-0 z-40 cursor-pointer bg-black/60 animate-fade-in" onClick={onClose} />
+      <div className="fixed inset-0 z-40 cursor-pointer bg-black/60 animate-fade-in" onClick={requestClose} />
       {/* Mobiel: paneel van onderen (zelfde patroon als ProfileMenu) i.p.v.
           een venster midden in het scherm — hoorde niet bij hoe de rest van
           de app zijn panelen op een telefoon toont. Vanaf sm weer het
@@ -265,14 +293,9 @@ function PostComposerForm({
         <div className="animate-sheet-in sm:animate-scale-in max-h-[85vh] overflow-y-auto rounded-t-2xl border border-border bg-surface pb-[env(safe-area-inset-bottom)] shadow-lg sm:rounded-2xl sm:pb-0">
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <p className="text-sm font-semibold text-foreground">{chosen === "voorstellen" ? "Stel jezelf voor" : "Nieuw bericht"}</p>
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Sluiten"
-              className="flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]"
-            >
+            <IconButton onClick={requestClose} aria-label="Sluiten">
               <X size={16} />
-            </button>
+            </IconButton>
           </div>
 
           {chosen === undefined ? (
@@ -281,6 +304,7 @@ function PostComposerForm({
             </div>
           ) : (
             <form
+              ref={formElRef}
               action={formAction}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
@@ -360,14 +384,9 @@ function PostComposerForm({
                     klikbare ingang. Een klein, subtiel wolkje bij hoveren
                     i.p.v. een opvallend info-blok. */}
                 <div className="group/attach relative">
-                  <button
-                    type="button"
-                    onClick={() => fileInputRef.current?.click()}
-                    aria-label="Foto's of pdf toevoegen"
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]"
-                  >
+                  <IconButton onClick={() => fileInputRef.current?.click()} aria-label="Foto's of pdf toevoegen">
                     <Paperclip size={18} />
-                  </button>
+                  </IconButton>
                   <input
                     ref={fileInputRef}
                     type="file"

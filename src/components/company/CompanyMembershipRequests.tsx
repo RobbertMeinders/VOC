@@ -72,7 +72,7 @@ export function CompanyMembershipRequests({
                 disabled={isPending}
                 onClick={() => decide(request.id, "approved")}
                 aria-label="Goedkeuren"
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-voc-red-light text-voc-red-text hover:bg-voc-red hover:text-white disabled:opacity-50"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-voc-red-light text-voc-red-text hover:bg-voc-red hover:text-white disabled:opacity-50"
               >
                 <Check size={16} />
               </button>
@@ -81,7 +81,7 @@ export function CompanyMembershipRequests({
                 disabled={isPending}
                 onClick={() => decide(request.id, "rejected")}
                 aria-label="Afwijzen"
-                className="flex h-8 w-8 items-center justify-center rounded-full bg-black/[.04] text-muted hover:bg-black/[.08] disabled:opacity-50 dark:bg-white/[.06] dark:hover:bg-white/[.1]"
+                className="flex h-11 w-11 items-center justify-center rounded-full bg-black/[.04] text-muted hover:bg-black/[.08] disabled:opacity-50 dark:bg-white/[.06] dark:hover:bg-white/[.1]"
               >
                 <X size={16} />
               </button>
