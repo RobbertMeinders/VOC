@@ -5,9 +5,11 @@ import Link from "next/link";
 import Image from "next/image";
 import { Megaphone } from "lucide-react";
 import { clsx } from "clsx";
+import { newsItemHref } from "@/lib/news/slug";
 
 export type NewsHeroSlide = {
   id: string;
+  slug: string;
   title: string;
   subtitle: string | null;
   body: string;
@@ -140,7 +142,7 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
                 swipen over de afbeelding mogelijk zonder dat een sleep per
                 ongeluk als klik naar /nieuws telt. */}
             <Link
-              href={`/nieuws/${slide.id}`}
+              href={newsItemHref(slide)}
               tabIndex={slideIndex === index ? undefined : -1}
               draggable={false}
               onClick={(e) => {

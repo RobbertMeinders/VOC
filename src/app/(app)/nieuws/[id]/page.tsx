@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { BackLink } from "@/components/ui/BackLink";
+import { newsItemHref, newsItemIdFilter } from "@/lib/news/slug";
 import type { Database } from "@/lib/types/database";
 
 type NewsItem = Database["public"]["Tables"]["news_items"]["Row"];
@@ -13,9 +14,13 @@ function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
 }
 
-async function getNewsItem(id: string): Promise<NewsItem | null> {
+async function getNewsItem(param: string): Promise<NewsItem | null> {
   const supabase = await createClient();
-  const { data } = await supabase.from("news_items").select("*").eq("id", id).maybeSingle<NewsItem>();
+  const { data } = await supabase
+    .from("news_items")
+    .select("*")
+    .filter(...newsItemIdFilter(param))
+    .maybeSingle<NewsItem>();
   return data;
 }
 
@@ -27,9 +32,16 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
 
 export default async function NieuwsDetailPage({ params }: { params: Promise<{ id: string }> }) {
   await requireProfile();
-  const { id } = await params;
-  const item = await getNewsItem(id);
+  const { id: routeParam } = await params;
+  const item = await getNewsItem(routeParam);
   if (!item) notFound();
+  // URL-ronde #101: een kaal UUID (oude, rechtstreeks verstuurde link)
+  // blijft werken, maar stuurt door naar de canonieke slug-URL — zelfde
+  // patroon als bedrijven/activiteiten. Geen alias-tabel nodig: deze slug
+  // is, net als leden/bedrijven, bewust voor altijd stabiel.
+  if (routeParam !== item.slug) {
+    permanentRedirect(newsItemHref(item));
+  }
 
   const supabase = await createClient();
   const imageUrl = item.image_url ? (await getSignedStorageUrls(supabase, "news-images", [item.image_url])).get(item.image_url) ?? null : null;

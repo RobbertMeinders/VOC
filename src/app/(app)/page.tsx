@@ -131,6 +131,7 @@ export default async function HomePage() {
 
   const newsSlides = (newsItems ?? []).map((item) => ({
     id: item.id,
+    slug: item.slug,
     title: item.title,
     subtitle: item.subtitle,
     body: item.body,

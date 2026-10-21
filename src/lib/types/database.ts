@@ -413,6 +413,7 @@ export interface Database {
       news_items: {
         Row: {
           id: string;
+          slug: string;
           title: string;
           subtitle: string | null;
           body: string;
@@ -423,6 +424,7 @@ export interface Database {
           updated_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["news_items"]["Row"]> & {
+          slug: string;
           title: string;
           body: string;
         };

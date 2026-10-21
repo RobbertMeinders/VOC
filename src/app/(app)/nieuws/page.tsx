@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { cachedQuery } from "@/lib/cache/queryCache";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { newsItemHref } from "@/lib/news/slug";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Nieuws" };
@@ -49,7 +50,7 @@ export default async function NieuwsPage() {
             return (
               <Link
                 key={item.id}
-                href={`/nieuws/${item.id}`}
+                href={newsItemHref(item)}
                 className="flex gap-3 overflow-hidden rounded-2xl bg-surface p-3 shadow-sm transition-all duration-150 hover:border-muted hover:shadow-md sm:gap-4 sm:p-4"
               >
                 {imageUrl && (

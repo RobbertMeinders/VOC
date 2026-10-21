@@ -9,6 +9,32 @@ import { logAuditAction } from "@/lib/audit/log";
 
 export type NewsFormState = { error?: string; success?: boolean };
 
+// Zelfde opbouw als companies/agenda — zie lib/company/slug.ts resp.
+// lib/agenda/slug.ts. Blijft bewust voor altijd stabiel (geen
+// regeneratie bij een titelwijziging): zelfde reden als companies/leden,
+// zie lib/news/slug.ts.
+function slugify(title: string): string {
+  const base = title
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+  return base || "nieuws";
+}
+
+async function generateUniqueSlug(supabase: Awaited<ReturnType<typeof createClient>>, title: string): Promise<string> {
+  const base = slugify(title);
+  let slug = base;
+  let attempt = 2;
+  for (;;) {
+    const { data } = await supabase.from("news_items").select("id").eq("slug", slug).maybeSingle();
+    if (!data) return slug;
+    slug = `${base}-${attempt++}`;
+  }
+}
+
 // Dashboard (/) leest rechtstreeks, zonder cache, dus die hoeft hier niet
 // expliciet gerevalideerd te worden — revalidatePath("/") dekt dat al.
 function revalidateNews() {
@@ -41,10 +67,11 @@ export async function createNewsItemAction(_prevState: NewsFormState, formData: 
     .limit(1)
     .maybeSingle();
   const position = topItem ? topItem.position - 1 : 0;
+  const slug = await generateUniqueSlug(supabase, title);
 
   const { data: newsItem, error } = await supabase
     .from("news_items")
-    .insert({ title, subtitle: subtitle || null, body, created_by: profile.id, position })
+    .insert({ title, subtitle: subtitle || null, body, created_by: profile.id, position, slug })
     .select("id")
     .single();
 
