@@ -330,9 +330,18 @@ export async function changeEmailAction(_prevState: ChangeEmailState, formData: 
   // echt ingaat — vandaar twee generateLink-aanroepen/mails i.p.v. één.
   try {
     const admin = createAdminClient();
+    // Het huidige adres komt uit auth.users (de echte identiteit), niet uit
+    // profiles.email — die kolom volgt auth.users via een aparte sync-
+    // trigger (0112) en is zelf geen bron van waarheid.
+    const { data: authUser, error: authUserError } = await admin.auth.admin.getUserById(profile.id);
+    const currentEmail = authUser?.user?.email;
+    if (authUserError || !currentEmail) {
+      return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
+    }
+
     const [currentLink, newLink] = await Promise.all([
-      admin.auth.admin.generateLink({ type: "email_change_current", email: profile.email, newEmail: email }),
-      admin.auth.admin.generateLink({ type: "email_change_new", email: profile.email, newEmail: email }),
+      admin.auth.admin.generateLink({ type: "email_change_current", email: currentEmail, newEmail: email }),
+      admin.auth.admin.generateLink({ type: "email_change_new", email: currentEmail, newEmail: email }),
     ]);
     const currentToken = currentLink.data?.properties?.hashed_token;
     const newToken = newLink.data?.properties?.hashed_token;
@@ -349,7 +358,7 @@ export async function changeEmailAction(_prevState: ChangeEmailState, formData: 
       renderMessageEmail("email", buildLink(newToken), { greeting }),
     ]);
     await Promise.all([
-      currentRendered ? sendRawHtmlEmail(profile.email, currentRendered.subject, currentRendered.html) : null,
+      currentRendered ? sendRawHtmlEmail(currentEmail, currentRendered.subject, currentRendered.html) : null,
       newRendered ? sendRawHtmlEmail(email, newRendered.subject, newRendered.html) : null,
     ]);
   } catch {

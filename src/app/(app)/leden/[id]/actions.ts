@@ -213,9 +213,6 @@ export async function generateLoginLinkAction(memberId: string): Promise<Generat
   if (!target.is_active) {
     return { error: "Dit account is gedeactiveerd." };
   }
-  if (!target.email) {
-    return { error: "Geen e-mailadres bekend voor dit lid." };
-  }
   // Een gewoon bestuurslid mag geen inloglink genereren voor een ander
   // bestuurslid of beheerder — alleen de beheerder mag dat.
   if (target.role !== "lid" && viewer.role !== "beheerder") {
@@ -223,9 +220,19 @@ export async function generateLoginLinkAction(memberId: string): Promise<Generat
   }
 
   const admin = createAdminClient();
+  // Het adres komt uit auth.users (de echte identiteit waarmee het account
+  // ook daadwerkelijk kan inloggen), niet uit profiles.email — die kolom
+  // volgt auth.users via een aparte sync-trigger (0112) en is zelf geen
+  // bron van waarheid.
+  const { data: authUser, error: authUserError } = await admin.auth.admin.getUserById(memberId);
+  const targetEmail = authUser?.user?.email;
+  if (authUserError || !targetEmail) {
+    return { error: "Geen e-mailadres bekend voor dit lid." };
+  }
+
   const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
     type: "magiclink",
-    email: target.email,
+    email: targetEmail,
   });
   const hashedToken = linkData?.properties?.hashed_token;
 
