@@ -759,6 +759,67 @@ end;
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.enforce_feed_comment_rate_limit()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_recent_count integer;
+begin
+  select count(*) into v_recent_count
+    from public.feed_comments
+    where author_id = new.author_id
+      and created_at > now() - interval '15 minutes';
+
+  if v_recent_count >= 20 then
+    raise exception 'Je hebt de afgelopen tijd al genoeg reacties geplaatst. Probeer het later opnieuw.';
+  end if;
+
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.enforce_feed_post_rate_limit()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_recent_count integer;
+begin
+  select count(*) into v_recent_count
+    from public.feed_posts
+    where author_id = new.author_id
+      and created_at > now() - interval '15 minutes';
+
+  if v_recent_count >= 10 then
+    raise exception 'Je hebt de afgelopen tijd al genoeg berichten geplaatst. Probeer het later opnieuw.';
+  end if;
+
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.enforce_push_subscription_endpoint()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if new.endpoint !~ '^https://(fcm\.googleapis\.com|updates\.push\.services\.mozilla\.com|web\.push\.apple\.com|[a-z0-9-]+\.notify\.windows\.com)(/.*)?$' then
+    raise exception 'Dit pushendpoint wordt niet ondersteund.';
+  end if;
+  return new;
+end;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.enforce_testfase_feedback_rate_limit()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -1371,6 +1432,28 @@ begin
   if not public.is_board() then
     new.slug := old.slug;
     new.created_by := old.created_by;
+  end if;
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.guard_link_url_scheme()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+begin
+  if new.linkedin_url is not null and new.linkedin_url !~* '^https?://\S+\.\S+' then
+    new.linkedin_url := null;
+  end if;
+  if new.instagram_url is not null and new.instagram_url !~* '^https?://\S+\.\S+' then
+    new.instagram_url := null;
+  end if;
+  if new.facebook_url is not null and new.facebook_url !~* '^https?://\S+\.\S+' then
+    new.facebook_url := null;
+  end if;
+  if TG_TABLE_NAME = 'companies' and new.website is not null and new.website !~* '^https?://\S+\.\S+' then
+    new.website := null;
   end if;
   return new;
 end;
