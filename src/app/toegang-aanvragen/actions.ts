@@ -7,13 +7,18 @@ import { isEmailRateLimited } from "@/lib/auth/rate-limit";
 
 export type AccessRequestState = { error?: string; success?: boolean };
 
+// Zelfde patroon als beheer/leden-import en embed/agenda. Zonder normaliseren
+// (lowercase) omzeilde "Foo@Bar.nl" vs "foo@bar.nl" de e-mail-rate-limit
+// hieronder bij elke net iets andere schrijfwijze van hetzelfde adres.
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export async function submitAccessRequestAction(
   _prevState: AccessRequestState,
   formData: FormData
 ): Promise<AccessRequestState> {
   const firstName = String(formData.get("first_name") ?? "").trim();
   const lastName = String(formData.get("last_name") ?? "").trim();
-  const email = String(formData.get("email") ?? "").trim();
+  const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const phone = String(formData.get("phone") ?? "").trim();
   const companyName = String(formData.get("company_name") ?? "").trim();
   const jobTitle = String(formData.get("job_title") ?? "").trim();
@@ -36,6 +41,9 @@ export async function submitAccessRequestAction(
 
   if (!firstName || !lastName || !email) {
     return { error: "Vul je voornaam, achternaam en e-mailadres in." };
+  }
+  if (!EMAIL_PATTERN.test(email)) {
+    return { error: "Vul een geldig e-mailadres in." };
   }
   if (!consent) {
     return { error: "Ga akkoord met het bewaren van je gegevens om de aanvraag te versturen." };

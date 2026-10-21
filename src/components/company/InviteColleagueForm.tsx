@@ -89,7 +89,11 @@ export function InviteColleagueForm({ companyId }: { companyId: string }) {
           </button>
         </div>
       </div>
-      {state.error && <p className="mt-2 text-sm text-voc-red-text">{state.error}</p>}
+      {state.error && (
+        <p role="alert" className="mt-2 text-sm text-voc-red-text">
+          {state.error}
+        </p>
+      )}
     </form>
   );
 }
