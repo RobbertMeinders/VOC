@@ -94,6 +94,33 @@ export async function createInvitationAction(
   }
 
   const supabase = await createClient();
+
+  // Diepte-audit Blok B3: zonder deze check kon een bestuurslid onbedoeld
+  // een tweede uitnodiging naar hetzelfde e-mailadres sturen — naar iemand
+  // die al een account heeft (het token werkt dan toch niet, verwarrende
+  // foutmelding bij het registreren), of een duplicaat van een al
+  // openstaande, nog geldige uitnodiging (meerdere geldige tokens voor
+  // dezelfde persoon in omloop).
+  if (email) {
+    const { count: existingAccountCount } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .ilike("email", email);
+    if ((existingAccountCount ?? 0) > 0) {
+      return { error: "Er bestaat al een account met dit e-mailadres." };
+    }
+
+    const { count: existingInvitationCount } = await supabase
+      .from("invitations")
+      .select("id", { count: "exact", head: true })
+      .ilike("email", email)
+      .eq("status", "pending")
+      .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`);
+    if ((existingInvitationCount ?? 0) > 0) {
+      return { error: "Er staat al een openstaande uitnodiging naar dit e-mailadres." };
+    }
+  }
+
   const companyId = await resolveCompanyIdFromForm(supabase, formData);
 
   // Zonder e-mailadres is de link vanaf aanmaken al bruikbaar/deelbaar (geen
