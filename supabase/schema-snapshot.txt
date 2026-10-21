@@ -2601,7 +2601,7 @@ begin
       v_next.profile_id,
       'waitlist_promoted',
       'Je staat nu op de deelnemerslijst',
-      'Er is een plek vrijgekomen voor "' || coalesce(v_title, 'de activiteit') || '" — je bent van de wachtlijst gehaald.',
+      'Er is een plek vrijgekomen voor "' || coalesce(v_title, 'de activiteit') || '". Je bent van de wachtlijst gehaald.',
       '/agenda/' || v_slug,
       v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
     );
