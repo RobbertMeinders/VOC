@@ -11,7 +11,17 @@ import type { Database } from "@/lib/types/database";
 type Communication = Database["public"]["Tables"]["communications"]["Row"];
 export type NewsletterSendKind = Database["public"]["Tables"]["communication_send_attempts"]["Row"]["kind"];
 
-export type NewsletterSendResult = { total: number; sent: number; failed: number; skipped: number; alreadySending?: boolean };
+export type NewsletterSendResult = {
+  total: number;
+  sent: number;
+  failed: number;
+  skipped: number;
+  alreadySending?: boolean;
+  // Portaal-gezondheid Blok C: true als deze aanroep bewust is gestopt vóór
+  // het einde van de ontvangerslijst (zie maxPerRun hieronder) — er staan
+  // dan nog onverwerkte 'wachten'-rijen klaar voor een volgende aanroep.
+  hasMore?: boolean;
+};
 
 // N4: de mail is dan al écht verstuurd, maar als het markeren zelf mislukt
 // (een kortstondig DB-foutje) blijft de rij op 'wachten' staan — en zonder
@@ -43,7 +53,15 @@ async function markOrThrow(
 export async function performNewsletterSend(
   supabase: SupabaseClient<Database>,
   communication: Communication,
-  kind: NewsletterSendKind
+  kind: NewsletterSendKind,
+  // Portaal-gezondheid Blok C: de cron (maxDuration 300s) geeft dit mee om
+  // een grote verzending over meerdere cron-runs te spreiden i.p.v. het
+  // platform de hele functie hard te laten afbreken halverwege een
+  // verzending — zie de toelichting bij hasMore/de return hieronder. De
+  // "Versturen"-knop (sendNewsletterAction) laat dit bewust weg: een
+  // bestuurslid dat zelf op de knop klikt, wacht de hele verzending gewoon
+  // af, net als voorheen.
+  maxPerRun?: number
 ): Promise<NewsletterSendResult> {
   // F3: zonder deze atomaire claim konden twee gelijktijdige aanroepen voor
   // dezelfde communication (bv. handmatig "Versturen" terwijl de cron voor
@@ -83,7 +101,17 @@ export async function performNewsletterSend(
       logoUrl: settings.logo_url,
     });
 
-    for (const recipient of recipients ?? []) {
+    const allClaimed = recipients ?? [];
+    // maxPerRun ontbreekt (handmatige "Versturen"-knop): geen limiet, exact
+    // hetzelfde gedrag als voorheen.
+    const toProcess = maxPerRun ? allClaimed.slice(0, maxPerRun) : allClaimed;
+    const hasMore = toProcess.length < allClaimed.length;
+
+    let sentCount = 0;
+    let failedCount = 0;
+    let skippedCount = 0;
+
+    for (const recipient of toProcess) {
       const isContact = recipient.contact_id !== null;
       const unsubscribeUrl = buildUnsubscribeUrl(siteUrl, isContact ? "contact" : "profile", (isContact ? recipient.contact_id : recipient.profile_id)!);
       const html = htmlTemplate.replace(
@@ -105,17 +133,33 @@ export async function performNewsletterSend(
         await markOrThrow(supabase, recipient.email, async () =>
           supabase.rpc("mark_newsletter_delivery_sent", { p_delivery_id: recipient.delivery_id, p_provider_id: result.providerId ?? null })
         );
+        sentCount++;
       } else if (result.skipped) {
         // Bewust genegeerd door beleid (EMAIL_ALLOWLIST), geen echte
         // verzendfout — telt bij finalize mee als "klaar", niet "mislukt".
         await markOrThrow(supabase, recipient.email, async () =>
           supabase.rpc("mark_newsletter_delivery_skipped", { p_delivery_id: recipient.delivery_id, p_reason: result.error ?? "Overgeslagen" })
         );
+        skippedCount++;
       } else {
         await markOrThrow(supabase, recipient.email, async () =>
           supabase.rpc("mark_newsletter_delivery_failed", { p_delivery_id: recipient.delivery_id, p_reason: result.error ?? "Onbekende fout" })
         );
+        failedCount++;
       }
+    }
+
+    if (hasMore) {
+      // Bewust gestopt vóór het einde van de ontvangerslijst (maxPerRun) —
+      // NIET finalizen: finalize_newsletter_send_v2 telt over ALLE
+      // deliveries van deze communication (niet alleen deze poging), en zou
+      // de nog niet-geprobeerde 'wachten'-rijen verkeerd als "mislukt"
+      // boeken. De rij blijft op status 'versturen' staan; claim_newsletter_
+      // send (0098) staat die na 10 minuten stilstand weer toe te claimen,
+      // en claim_newsletter_deliveries (0116) zet alles wat nog 'wachten' is
+      // dan gewoon opnieuw klaar voor de volgende cron-tick — zelfde
+      // herstelpad als bij een onverwachte crash (N3/D6).
+      return { total: allClaimed.length, sent: sentCount, failed: failedCount, skipped: skippedCount, hasMore: true };
     }
 
     const { data: finalized } = await supabase.rpc("finalize_newsletter_send_v2", { p_communication_id: communication.id });

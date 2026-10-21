@@ -950,6 +950,14 @@ export interface Database {
         Args: { p_id: string };
         Returns: void;
       };
+      get_feed_post_like_summaries: {
+        Args: { p_post_ids: string[] };
+        Returns: { post_id: string; likes_count: number; top_liker_first_name: string | null; top_liker_last_name: string | null }[];
+      };
+      get_feed_comment_like_counts: {
+        Args: { p_comment_ids: string[] };
+        Returns: { comment_id: string; likes_count: number }[];
+      };
       get_companies_directory: {
         Args: Record<string, never>;
         Returns: {

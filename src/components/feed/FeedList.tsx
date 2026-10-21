@@ -149,8 +149,18 @@ export function FeedList({
         removePost(payload.old.id as string);
       })
       .on("postgres_changes", { event: "UPDATE", schema: "public", table: "feed_posts" }, (payload) => {
-        const postId = payload.new.id as string;
-        getPostAction(postId).then((post) => post && updatePost(post));
+        // updatePostAction (app/(app)/actions.ts) wijzigt uitsluitend content
+        // en type — auteur, bijlagen, reacties en likes kunnen door een
+        // update nooit veranderen, dus de nieuwe payload alleen al is genoeg
+        // om de lokale state bij te werken. Een volledige getPostAction-
+        // round-trip (die dat allemaal opnieuw zou ophalen) is hier dus
+        // overbodig.
+        const updated = payload.new as { id: string; content: string | null; type: FeedPostType | null; updated_at: string };
+        setPosts((prev) =>
+          prev.map((p) =>
+            p.id === updated.id ? { ...p, content: updated.content, type: updated.type, updatedAt: updated.updated_at } : p
+          )
+        );
       })
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "feed_comments" }, (payload) => {
         const commentId = payload.new.id as string;

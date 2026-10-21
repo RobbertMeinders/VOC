@@ -29,11 +29,21 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const results: { id: string; total: number; sent: number }[] = [];
+  // Portaal-gezondheid Blok C: begrenst elke aanroep tot 200 verstuurde
+  // e-mails, zodat een grote ledenlijst deze functie niet op het
+  // maxDuration-limiet (hierboven) laat vastlopen — performNewsletterSend
+  // laat de rest dan gewoon op 'wachten' staan voor een volgende cron-tick
+  // i.p.v. het platform de hele aanroep hard te laten afbreken.
+  const MAX_RECIPIENTS_PER_RUN = 200;
+
+  const results: { id: string; total: number; sent: number; hasMore?: boolean }[] = [];
   for (const communication of due ?? []) {
     try {
-      const result = await performNewsletterSend(supabase, communication, "eerste_verzending");
-      results.push({ id: communication.id, ...result });
+      const result = await performNewsletterSend(supabase, communication, "eerste_verzending", MAX_RECIPIENTS_PER_RUN);
+      results.push({ id: communication.id, total: result.total, sent: result.sent, hasMore: result.hasMore });
+      if (result.hasMore) {
+        console.log(`[cron] send-scheduled-campaigns: ${communication.id} nog niet klaar, volgende tick pakt de rest op`);
+      }
     } catch (cause) {
       console.error("[cron] send-scheduled-campaigns failed for", communication.id, cause);
     }
