@@ -50,6 +50,18 @@ export function AccessRequestForm() {
       className="flex flex-col gap-4"
     >
       <FormErrorSummary errors={errors} />
+      {/* Honeypot: voor mensen onzichtbaar (niet via Tab bereikbaar, niet
+          voorgelezen), een scriptje dat elk veld invult tikt hem wel aan.
+          Gevuld -> submitAccessRequestAction doet alsof het gelukt is,
+          zonder iets op te slaan. */}
+      <input
+        type="text"
+        name="company_fax"
+        tabIndex={-1}
+        autoComplete="off"
+        aria-hidden="true"
+        className="sr-only"
+      />
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
           <label htmlFor="first_name" className="text-sm font-medium text-foreground">

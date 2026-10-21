@@ -26,6 +26,14 @@ export async function submitAccessRequestAction(
   const logoFile = formData.get("logo");
   const logoThumbFile = formData.get("logo_thumb");
 
+  // Honeypot (AccessRequestForm.tsx): voor een mens onzichtbaar en niet
+  // bereikbaar, dus alleen een script dat blind elk veld invult vult 'm.
+  // Doet alsof het gelukt is — geen foutmelding die een bot laat weten dat
+  // hij gedetecteerd is, en geen rij in de database.
+  if (String(formData.get("company_fax") ?? "").trim() !== "") {
+    return { success: true };
+  }
+
   if (!firstName || !lastName || !email) {
     return { error: "Vul je voornaam, achternaam en e-mailadres in." };
   }
