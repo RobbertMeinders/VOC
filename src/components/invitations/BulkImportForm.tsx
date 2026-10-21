@@ -23,12 +23,25 @@ export function BulkImportForm() {
   const [rows, setRows] = useState<ImportRow[]>([]);
   const [importing, setImporting] = useState(false);
   const [result, setResult] = useState<BulkImportResult | null>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   async function handleFile(file: File) {
-    const text = await file.text();
-    setRows(parseMemberCsv(text));
     setResult(null);
+    setFileError(null);
+    try {
+      const text = await file.text();
+      const parsed = parseMemberCsv(text);
+      if (parsed.length === 0) {
+        setFileError("Geen bruikbare rijen gevonden in dit bestand — controleer de kolomvolgorde en of er meer dan alleen een kopregel in staat.");
+        setRows([]);
+        return;
+      }
+      setRows(parsed);
+    } catch {
+      setFileError("Dit bestand kon niet worden gelezen. Controleer of het een geldig CSV-bestand is.");
+      setRows([]);
+    }
   }
 
   function updateRow(index: number, field: keyof ImportRow, value: string) {
@@ -41,12 +54,18 @@ export function BulkImportForm() {
 
   async function handleImport() {
     setImporting(true);
-    const outcome = await bulkImportMembersAction(rows);
-    setImporting(false);
-    setResult(outcome);
-    if (outcome.imported > 0) {
-      setRows([]);
-      if (fileInputRef.current) fileInputRef.current.value = "";
+    setFileError(null);
+    try {
+      const outcome = await bulkImportMembersAction(rows);
+      setResult(outcome);
+      if (outcome.imported > 0) {
+        setRows([]);
+        if (fileInputRef.current) fileInputRef.current.value = "";
+      }
+    } catch {
+      setFileError("Importeren is niet gelukt. Probeer het opnieuw.");
+    } finally {
+      setImporting(false);
     }
   }
 
@@ -76,6 +95,11 @@ export function BulkImportForm() {
           </a>
           .
         </p>
+        {fileError && (
+          <p role="alert" className="mt-2 text-xs text-voc-red-text">
+            {fileError}
+          </p>
+        )}
       </div>
 
       {rows.length > 0 && (
