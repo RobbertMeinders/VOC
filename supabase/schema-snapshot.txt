@@ -964,7 +964,13 @@ AS $function$
     p.onboarding_dismissed_at, p.introduction_prompt_dismissed_at,
     p.created_at, p.updated_at
   from public.profiles p
-  where (p.id::text = p_id or p.slug = p_id) and (p.id = auth.uid() or public.is_active_member());
+  where (
+    case
+      when p_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then p.id::text = p_id
+      else p.slug = p_id
+    end
+  )
+  and (p.id = auth.uid() or public.is_active_member());
 $function$
 
 ---
@@ -1299,6 +1305,16 @@ begin
       or (new.id = auth.uid() and old.is_active and not new.is_active)
     ) then
       new.is_active := old.is_active;
+    end if;
+    if not (
+      public.is_board()
+      or auth.role() = 'service_role'
+      or (new.id = auth.uid() and old.is_active and not new.is_active)
+    ) then
+      new.deactivated_at := old.deactivated_at;
+    end if;
+    if not public.is_board() then
+      new.is_organization_account := old.is_organization_account;
     end if;
   end if;
   return new;
