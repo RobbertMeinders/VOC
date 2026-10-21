@@ -14,6 +14,7 @@ import { invalidateQuery } from "@/lib/cache/queryCache";
 import { REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
 import { logPushUnsubscribed } from "@/lib/events/log";
 import { validateDisplayNamePart } from "@/lib/validation/fields";
+import { isAllowedPushEndpoint } from "@/lib/push/endpoint";
 
 export type UpdateProfileState = { error?: string; success?: boolean };
 
@@ -111,6 +112,16 @@ export async function subscribeToPushAction(subscription: {
   keys: { p256dh: string; auth: string };
 }): Promise<PushActionResult> {
   const profile = await requireProfile();
+
+  // M15: dit endpoint wordt later server-side (de pushverzend-cron)
+  // aangeroepen zonder verdere controle — een willekeurige/interne URL zou
+  // de server dus een aanvraag naar eigen keuze laten doen (SSRF). Een
+  // echte pushsubscriptie komt altijd van de pushdienst van de browser
+  // zelf, nooit van iets anders.
+  if (!isAllowedPushEndpoint(subscription.endpoint)) {
+    return { error: "Aanmelden voor pushmeldingen is niet gelukt." };
+  }
+
   const supabase = await createClient();
 
   const { error } = await supabase.from("push_subscriptions").upsert(
