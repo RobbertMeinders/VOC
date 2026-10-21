@@ -49,10 +49,15 @@ jobs:
         run: npm run db:snapshot
 
       - name: Committen en pushen (alleen als er iets veranderde)
+        # git diff --quiet ziet een NIEUW, nog nooit getrackt bestand niet
+        # als wijziging (het zit niet in de index) — dat liet deze stap de
+        # eerste keer stilletjes niets doen terwijl schema-snapshot.txt wel
+        # degelijk net voor het eerst aangemaakt was. git status --porcelain
+        # ziet untracked bestanden wél.
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          if git diff --quiet -- supabase/schema-snapshot.txt; then
+          if [ -z "$(git status --porcelain -- supabase/schema-snapshot.txt)" ]; then
             echo "Geen wijziging in supabase/schema-snapshot.txt."
             exit 0
           fi
