@@ -38,9 +38,12 @@ jobs:
         run: supabase status -o env >> "$GITHUB_ENV"
 
       - name: Omgevingsvariabelen hernoemen naar wat de app verwacht
+        # Zie ci.yml voor waarom het quote-strippen hier nodig is.
         run: |
-          echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
-          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
+          url="${API_URL%\"}"; url="${url#\"}"
+          key="${SERVICE_ROLE_KEY%\"}"; key="${key#\"}"
+          echo "NEXT_PUBLIC_SUPABASE_URL=$url" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$key" >> "$GITHUB_ENV"
 
       - name: Snapshot genereren
         run: npm run db:snapshot
