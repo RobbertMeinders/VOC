@@ -177,6 +177,20 @@ function parseActivityForm(formData: FormData) {
   };
 }
 
+// Server-side tegenhanger van de client-kruiscontrole in ActivityForm — een
+// API-aanroep buiten het formulier om (of een client die de validatie mist)
+// mag dezelfde inconsistentie (eind vóór begin, deadline na begin) niet alsnog
+// kunnen opslaan.
+function validateActivityDates(startsAt: string, endsAt: string | null, deadline: string | null): string | null {
+  if (endsAt && new Date(endsAt).getTime() <= new Date(startsAt).getTime()) {
+    return "De eindtijd moet na de starttijd liggen.";
+  }
+  if (deadline && new Date(deadline).getTime() >= new Date(startsAt).getTime()) {
+    return "De aanmelddeadline moet vóór de starttijd liggen.";
+  }
+  return null;
+}
+
 // Alleen relevant bij het AANMAKEN van een VOC-activiteit (zie showTypePicker
 // in ActivityForm) — bij bewerken staan deze switches niet meer op het
 // formulier (UX-review punt 13: ze suggereerden bij bewerken een melding die
@@ -210,6 +224,11 @@ export async function createActivityAction(
 
     if (!title || !startsAt) {
       return { error: "Titel en een geldige startdatum zijn verplicht." };
+    }
+
+    const dateError = validateActivityDates(startsAt, rest.ends_at, rest.registration_deadline);
+    if (dateError) {
+      return { error: dateError };
     }
 
     // Alleen relevant voor bestuur/beheer (zie showTypePicker in
@@ -266,6 +285,11 @@ export async function updateActivityAction(
 
     if (!title || !startsAt) {
       return { error: "Titel en een geldige startdatum zijn verplicht." };
+    }
+
+    const dateError = validateActivityDates(startsAt, rest.ends_at, rest.registration_deadline);
+    if (dateError) {
+      return { error: dateError };
     }
 
     const supabase = await createClient();
@@ -355,8 +379,21 @@ export async function updateActivityAction(
     // bij elke edit zou ruis worden, en stilzwijgend niets doen was het oude
     // (verwarrende) gedrag. Dus: alleen een bewerkbaar voorstel aanbieden
     // als er iets relevants veranderde ÉN er daadwerkelijk aanmeldingen zijn.
+    // Datum/tijd-velden vergelijken als tijdstip, niet als ruwe string: de
+    // database geeft starts_at/ends_at terug in een ander ISO-formaat
+    // (seconden/milliseconden, +00:00 i.p.v. Z) dan wat het formulier
+    // opstuurt, dus een kale !== op de string was hier altijd waar — ook als
+    // er helemaal niets aan datum/tijd veranderde.
+    const sameInstant = (a: string | null, b: string | null) => {
+      if (a === b) return true;
+      if (!a || !b) return false;
+      return new Date(a).getTime() === new Date(b).getTime();
+    };
     const relevantChange =
-      existing && (existing.starts_at !== startsAt || existing.ends_at !== rest.ends_at || existing.location !== rest.location);
+      existing &&
+      (!sameInstant(existing.starts_at, startsAt) ||
+        !sameInstant(existing.ends_at, rest.ends_at) ||
+        existing.location !== rest.location);
     if (relevantChange) {
       const { count } = await supabase
         .from("activity_registrations")

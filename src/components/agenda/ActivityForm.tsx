@@ -57,6 +57,46 @@ function toLocalTimeValue(iso: string | null): string {
   return amsterdamParts(iso).time;
 }
 
+// "YYYY-MM-DD" één kalenderdag verder — gebruikt om de einddatum een dag op
+// te schuiven bij een activiteit die over middernacht loopt.
+function nextDatePart(datePart: string): string {
+  const [year, month, day] = datePart.split("-").map(Number);
+  const next = new Date(Date.UTC(year, month - 1, day + 1));
+  return next.toISOString().slice(0, 10);
+}
+
+// Tegenhanger van amsterdamParts: een "YYYY-MM-DDTHH:mm"-string, bedoeld als
+// Europe/Amsterdam-wandklok-tijd (zoals het formulier 'm toont/invult), omzetten
+// naar het juiste ISO/UTC-tijdstip. Zonder dit gebruikte new Date(string)
+// hieronder de AMBIENT tijdzone van de browser/server om de string te
+// interpreteren — op een bestuurslid met een niet-Amsterdamse systeemklok gaf
+// dat een asymmetrische round-trip (weergave klopt, terugschrijven niet).
+// Eerst gokken als UTC, dan de Amsterdam-offset op dat moment bepalen (die
+// zomer/wintertijd correct meeneemt omdat 'ie op de echte datum rekent), en
+// die offset van de gok aftrekken.
+function amsterdamWallClockToIso(dateTimeLocal: string): string {
+  const [datePart, timePart] = dateTimeLocal.split("T");
+  const [year, month, day] = datePart.split("-").map(Number);
+  const [hour, minute] = (timePart ?? "00:00").split(":").map(Number);
+  const guessUtcMs = Date.UTC(year, month - 1, day, hour, minute);
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Amsterdam",
+    hour12: false,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  }).formatToParts(new Date(guessUtcMs));
+  const get = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? "0");
+  const asIfUtcMs = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour"), get("minute"), get("second"));
+  const offsetMs = asIfUtcMs - guessUtcMs;
+
+  return new Date(guessUtcMs - offsetMs).toISOString();
+}
+
 function SubmitButton({ label }: { label: string }) {
   const { pending } = useFormStatus();
   return (
@@ -174,9 +214,24 @@ export function ActivityForm({
   const [deadline, setDeadline] = useState(toLocalInputValue(activity?.registration_deadline ?? null));
 
   const startDatePart = startsAt.split("T")[0] ?? "";
-  const startsAtIso = startsAt ? new Date(startsAt).toISOString() : "";
-  const endsAtIso = startDatePart && endTime ? new Date(`${startDatePart}T${endTime}`).toISOString() : "";
-  const deadlineIso = deadline ? new Date(deadline).toISOString() : "";
+  const startsAtIso = startsAt ? amsterdamWallClockToIso(startsAt) : "";
+  // Eindtijd is een los tijd-veld (zelfde dag als de start) — een activiteit
+  // die over middernacht loopt (bv. 22:00-02:00) zou zo een eindtijd vóór de
+  // starttijd krijgen (kapotte .ics, eind < begin). Schuift de einddatum een
+  // dag op zodra de combinatie met de startdatum vóór de starttijd zou
+  // uitkomen.
+  let endsAtIso = "";
+  if (startDatePart && endTime) {
+    const sameDayEnd = amsterdamWallClockToIso(`${startDatePart}T${endTime}`);
+    const sameDayEndsBeforeStart = Boolean(startsAtIso) && new Date(sameDayEnd).getTime() <= new Date(startsAtIso).getTime();
+    endsAtIso = sameDayEndsBeforeStart ? amsterdamWallClockToIso(`${nextDatePart(startDatePart)}T${endTime}`) : sameDayEnd;
+  }
+  const deadlineIso = deadline ? amsterdamWallClockToIso(deadline) : "";
+
+  const endBeforeStart = Boolean(startsAtIso && endsAtIso && new Date(endsAtIso).getTime() <= new Date(startsAtIso).getTime());
+  const deadlineAfterStart = Boolean(
+    startsAtIso && deadlineIso && new Date(deadlineIso).getTime() >= new Date(startsAtIso).getTime()
+  );
 
   return (
     // onChange vangt (via bubbling) elke native invoer — tekst/tekstvlak/
@@ -187,7 +242,23 @@ export function ActivityForm({
       action={formAction}
       onChange={() => setDirty(true)}
       onSubmit={(e) => {
-        if (!validateAll(new FormData(e.currentTarget))) e.preventDefault();
+        if (!validateAll(new FormData(e.currentTarget))) {
+          e.preventDefault();
+          return;
+        }
+        // Eind-/deadline-tijdstippen hangen af van elkaar (eind > start,
+        // deadline < start) — useFieldValidation valideert alleen losse
+        // velden, dus deze kruiscontrole zit hier direct i.p.v. in een
+        // validator.
+        if (endBeforeStart) {
+          e.preventDefault();
+          toast("De eindtijd moet na de starttijd liggen.", "error");
+          return;
+        }
+        if (deadlineAfterStart) {
+          e.preventDefault();
+          toast("De aanmelddeadline moet vóór de starttijd liggen.", "error");
+        }
       }}
       className="flex flex-col gap-5"
     >
