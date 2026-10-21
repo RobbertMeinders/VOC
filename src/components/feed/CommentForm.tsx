@@ -15,7 +15,7 @@ function SubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-voc-red-text hover:bg-voc-red-light disabled:opacity-50"
+      className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-voc-red-text hover:bg-voc-red-light disabled:opacity-50"
       aria-label="Reactie plaatsen"
     >
       <Send size={16} />
@@ -54,14 +54,21 @@ function CommentFormInner({ postId, onPosted }: { postId: string; onPosted: (com
   }, [state]);
 
   return (
-    <form ref={formRef} action={formAction} className="flex items-center gap-2">
-      <MentionEditor
-        name="content"
-        placeholder="Schrijf een reactie…"
-        singleLine
-        onEnter={() => formRef.current?.requestSubmit()}
-      />
-      <SubmitButton />
-    </form>
+    <div className="flex flex-col gap-1">
+      <form ref={formRef} action={formAction} className="flex items-center gap-2">
+        <MentionEditor
+          name="content"
+          placeholder="Schrijf een reactie…"
+          singleLine
+          onEnter={() => formRef.current?.requestSubmit()}
+        />
+        <SubmitButton />
+      </form>
+      {state.error && (
+        <p role="alert" className="text-xs text-voc-red-text">
+          {state.error}
+        </p>
+      )}
+    </div>
   );
 }

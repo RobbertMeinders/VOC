@@ -191,11 +191,13 @@ export async function toggleLikeAction(postId: string): Promise<{ liked: boolean
     .maybeSingle();
 
   if (existing) {
-    await supabase.from("feed_likes").delete().eq("id", existing.id);
+    const { error } = await supabase.from("feed_likes").delete().eq("id", existing.id);
+    if (error) throw new Error("Vind-ik-leuk verwijderen is niet gelukt.");
     return { liked: false };
   }
 
-  await supabase.from("feed_likes").insert({ post_id: postId, profile_id: profile.id });
+  const { error } = await supabase.from("feed_likes").insert({ post_id: postId, profile_id: profile.id });
+  if (error) throw new Error("Vind-ik-leuk is niet gelukt.");
   return { liked: true };
 }
 
@@ -300,11 +302,13 @@ export async function toggleCommentLikeAction(commentId: string): Promise<{ like
     .maybeSingle();
 
   if (existing) {
-    await supabase.from("feed_comment_likes").delete().eq("id", existing.id);
+    const { error } = await supabase.from("feed_comment_likes").delete().eq("id", existing.id);
+    if (error) throw new Error("Vind-ik-leuk verwijderen is niet gelukt.");
     return { liked: false };
   }
 
-  await supabase.from("feed_comment_likes").insert({ comment_id: commentId, profile_id: profile.id });
+  const { error } = await supabase.from("feed_comment_likes").insert({ comment_id: commentId, profile_id: profile.id });
+  if (error) throw new Error("Vind-ik-leuk is niet gelukt.");
   return { liked: true };
 }
 
