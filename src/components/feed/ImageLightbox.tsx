@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
+import { useFocusTrap } from "@/lib/dom/useFocusTrap";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import type { FeedAttachment } from "@/lib/feed/types";
 
@@ -37,6 +38,7 @@ export function ImageLightbox({
 
   useEscapeKey(true, onClose);
   useBodyScrollLock(true);
+  const trapRef = useFocusTrap(true);
 
   function goTo(next: number) {
     setIndex((next + images.length) % images.length);
@@ -99,7 +101,12 @@ export function ImageLightbox({
   return (
     <FloatingPortal>
       <div
-        className="animate-fade-in fixed inset-0 z-[60] flex touch-none cursor-pointer flex-col bg-black/95"
+        ref={trapRef}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Foto"
+        tabIndex={-1}
+        className="animate-fade-in fixed inset-0 z-[60] flex touch-none cursor-pointer flex-col bg-black/95 focus:outline-none"
         onClick={handleBackgroundClick}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
@@ -155,7 +162,7 @@ export function ImageLightbox({
                 goTo(index - 1);
               }}
               aria-label="Vorige foto"
-              className="absolute left-2 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:flex"
+              className="absolute left-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
             >
               <ChevronLeft size={22} />
             </button>
@@ -166,7 +173,7 @@ export function ImageLightbox({
                 goTo(index + 1);
               }}
               aria-label="Volgende foto"
-              className="absolute right-2 top-1/2 hidden h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20 sm:flex"
+              className="absolute right-2 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/10 text-white hover:bg-white/20"
             >
               <ChevronRight size={22} />
             </button>

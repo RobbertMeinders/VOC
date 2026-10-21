@@ -5,6 +5,7 @@ import { useRef, useState, type TouchEvent } from "react";
 import { X } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
+import { useFocusTrap } from "@/lib/dom/useFocusTrap";
 import { getOverlayCloseHref, isOverlayRoute } from "@/lib/ui/overlayRoutes";
 import { useOverlayOrigin } from "@/lib/ui/OverlayOriginContext";
 import { useUnsavedChanges } from "@/lib/ui/UnsavedChangesContext";
@@ -108,6 +109,13 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
 
   useEscapeKey(!dismissed, close);
   useBodyScrollLock(!dismissed);
+  // Zelfde useFocusTrap als ConfirmDialogContext/WelcomeDialog — eerder
+  // bewust overgeslagen hier uit voorzichtigheid (een paneel met formulieren
+  // erin, zonder browserverificatie beschikbaar), maar de hook trap alleen
+  // Tab-cyclen binnen de zichtbare focusbare elementen en blokkeert geen
+  // klik-navigatie (bv. naar "bewerken" of een gelinkt profiel) — dat maakt
+  // 'm voor dit paneel even veilig als voor de andere twee dialogen.
+  const trapRef = useFocusTrap(!dismissed);
 
   if (dismissed) return null;
 
@@ -121,9 +129,12 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
     // last van hebben, want dan verandert pathname niet.
     <div
       key={pathname}
+      ref={trapRef}
       role="dialog"
       aria-modal="true"
-      className="animate-sheet-in fixed inset-x-0 bottom-14 top-0 z-30 overflow-y-auto rounded-t-2xl bg-background pt-[env(safe-area-inset-top)] md:inset-y-0 md:bottom-0 md:left-72 md:top-0 md:rounded-none md:pt-0"
+      aria-label="Detailvenster"
+      tabIndex={-1}
+      className="animate-sheet-in fixed inset-x-0 bottom-14 top-0 z-30 overflow-y-auto rounded-t-2xl bg-background pt-[env(safe-area-inset-top)] md:inset-y-0 md:bottom-0 md:left-72 md:top-0 md:rounded-none md:pt-0 focus:outline-none"
       style={{
         transform: `translateY(${dragY}px)`,
         transition: dragging ? "none" : "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
