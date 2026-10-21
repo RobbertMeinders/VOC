@@ -13,13 +13,28 @@
 // tenzij iemand die string handmatig ophoogde bij elke release.
 const CACHE_NAME = `voc-shell-${new URL(self.location.href).searchParams.get("v") ?? "v1"}`;
 const OFFLINE_URL = "/offline";
-const PRECACHE_URLS = [OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png"];
+// voc-logo-mark.png: het merkbeeld dat de offline-pagina zelf toont (Logo-
+// component) — een vast, niet-contentgehasht pad in /public, dus hier
+// rechtstreeks te precachen i.t.t. Next's gehashte build-output.
+const PRECACHE_URLS = [OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png", "/brand/voc-logo-mark.png"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
+      .then(async (cache) => {
+        await cache.addAll(PRECACHE_URLS);
+        // De offline-pagina leunt verder op Next's content-gehashte
+        // stylesheet (onbekende bestandsnaam vooraf, verandert elke build) —
+        // zonder die ook te cachen toonde de offline-pagina wel tekst, maar
+        // volledig ongestyled zodra iemand offline gaat vóór 'm ooit eerder
+        // (met netwerk) bezocht te hebben. Haalt de net gecachte HTML op en
+        // cachet elke <link rel="stylesheet">-href die 'm zelf aanhaalt.
+        const offlinePage = await cache.match(OFFLINE_URL);
+        const html = offlinePage ? await offlinePage.text() : "";
+        const stylesheetHrefs = [...html.matchAll(/<link[^>]+rel="stylesheet"[^>]+href="([^"]+)"/g)].map((m) => m[1]);
+        await Promise.all(stylesheetHrefs.map((href) => cache.add(href).catch(() => {})));
+      })
       .then(() => self.skipWaiting())
   );
 });
@@ -80,10 +95,43 @@ self.addEventListener("push", (event) => {
     body: payload.body || "",
     icon: "/icon.png",
     badge: "/icon.png",
+    // Zonder tag stapelden meerdere snel opeenvolgende meldingen van
+    // hetzelfde type (bv. een reeks reacties) zich op in het
+    // systeemmeldingencentrum i.p.v. elkaar te vervangen.
+    tag: payload.type || undefined,
     data: { link: payload.link || "/", notificationId: payload.notification_id || null },
   };
 
   event.waitUntil(self.registration.showNotification(title, options));
+});
+
+// Een browser kan een pushabonnement periodiek laten verlopen/roteren (bv.
+// na verloop van tijd of een browser-update) en vuurt dan dit event — zonder
+// handler bleef het OUDE, nu ongeldige abonnement in de database staan en
+// "sleten" pushmeldingen voor dat lid geruisloos weg zonder dat iemand het
+// doorhad. sw.js (statisch uit /public, niet door Next's build verwerkt)
+// heeft geen toegang tot de NEXT_PUBLIC_VAPID_PUBLIC_KEY env-variabele, dus
+// hergebruikt hier bewust event.oldSubscription's eigen applicationServerKey
+// i.p.v. een nieuwe sleutel te construeren — zonder oldSubscription kan dit
+// niet veilig opnieuw abonneren, dan wordt dit best-effort overgeslagen.
+// Stuurt het nieuwe abonnement naar /api/push/resubscribe: een server action
+// kan een service worker niet rechtstreeks aanroepen.
+self.addEventListener("pushsubscriptionchange", (event) => {
+  const applicationServerKey = event.oldSubscription?.options?.applicationServerKey;
+  if (!applicationServerKey) return;
+
+  event.waitUntil(
+    self.registration.pushManager
+      .subscribe({ applicationServerKey, userVisibleOnly: true })
+      .then((subscription) =>
+        fetch("/api/push/resubscribe", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(subscription.toJSON()),
+        })
+      )
+      .catch(() => {})
+  );
 });
 
 self.addEventListener("notificationclick", (event) => {
