@@ -50,7 +50,12 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
     const data: ImportRow = {
       firstName: truncate(rawData.firstName),
       lastName: truncate(rawData.lastName),
-      email: truncate(rawData.email),
+      // Lowercase hier, vóór elke duplicaatcheck/insert verderop: zonder dit
+      // vergeleek existingEmails/pendingEmails (al wel lowercase, regel ~93)
+      // een niet-lowercase waarde, waardoor "Jan@Bedrijf.nl" een al bestaand
+      // "jan@bedrijf.nl"-account of een al openstaande uitnodiging niet
+      // herkende als duplicaat.
+      email: truncate(rawData.email).toLowerCase(),
       phone: truncate(rawData.phone),
       companyName: truncate(rawData.companyName),
       companyAddress: truncate(rawData.companyAddress),
