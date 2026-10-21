@@ -63,7 +63,21 @@ const nextConfig: NextConfig = {
     // URL. Optimalisatie hier volledig uit i.p.v. per-<Image> `unoptimized`
     // overal los toevoegen — herstelt in elk geval het tonen van
     // afbeeldingen terwijl de echte oorzaak van de optimizer-storing verder
-    // wordt uitgezocht. TODO: root cause vinden en optimalisatie terugzetten.
+    // wordt uitgezocht.
+    //
+    // Waarschijnlijke oorzaak gevonden: het project had geen `sharp`
+    // (nu wel toegevoegd, package.json) — zonder `sharp` valt Next's
+    // image-optimizer terug op zijn eigen WASM-decoder, die bekendstaat om
+    // precies dit soort stille beeldcorruptie in serverless omgevingen
+    // (Vercel's eigen documentatie raadt `sharp` daarom expliciet aan voor
+    // productie). Dit verklaart ook waarom het zich voordeed ongeacht
+    // caching: de WASM-stap zelf produceerde kapotte output.
+    // `unoptimized` blijft hier bewust nog op `true` staan — met `sharp` nu
+    // aanwezig is de hypothese sterk, maar dit vraagt een geverifieerde
+    // preview-deploy (afbeeldingen controleren) voordat de knop omgaat; dat
+    // kan niet vanuit deze sandbox (geen live/preview-omgeving). Zet na een
+    // geslaagde test gewoon terug naar `false` (of verwijder de regel, dat
+    // is de default).
     unoptimized: true,
     remotePatterns: [
       // Supabase Storage (avatars, company logos, feed media)
