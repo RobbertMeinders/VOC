@@ -8,11 +8,27 @@
 -- het maskerings- of rij-zichtbaarheidsgedrag te veranderen.
 drop view if exists public.companies_for_members;
 
--- PostgREST behandelt een stable/immutable functie die setof teruggeeft als
--- een view: ?select=, horizontale filters (?id=eq...) en ?order= werken
--- hierna nog hetzelfde via supabase-js' .rpc(...).select(...).filter(...).
+-- "returns table (...)" i.p.v. "returns setof public.companies": die laatste
+-- vereist een output die positioneel (kolomvolgorde én -type) exact
+-- overeenkomt met de fysieke tabeldefinitie, niet met kolomnamen — companies
+-- kreeg zijn kolommen via meerdere losse ALTER TABLE-migraties (0009, 0012,
+-- 0018, 0026, 0036, 0050, 0085, 0128), in een heel andere volgorde dan de
+-- SELECT-lijst hieronder. "returns table" (zelfde patroon als
+-- get_companies_directory, 0145) ontkoppelt de output expliciet van de
+-- fysieke kolomvolgorde. PostgREST behandelt een stable/immutable functie
+-- die setof/table teruggeeft als een view: ?select=, horizontale filters
+-- (?id=eq...) en ?order= werken hierna nog hetzelfde via supabase-js'
+-- .rpc(...).select(...).filter(...).
 create function public.companies_for_members()
-returns setof public.companies
+returns table (
+  id uuid, name text, slug text, logo_url text, logo_thumb_url text,
+  description text, tagline text, industry text, website text, city text,
+  address text, postal_code text, show_address boolean, phone text, email text,
+  latitude double precision, longitude double precision,
+  linkedin_url text, instagram_url text, facebook_url text,
+  is_publicly_visible boolean, created_by uuid,
+  created_at timestamptz, updated_at timestamptz
+)
 language sql
 stable
 security definer
