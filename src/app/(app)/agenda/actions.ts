@@ -12,6 +12,7 @@ import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
 import { sendRawHtmlEmail, escapeHtml } from "@/lib/email/send";
 import { dispatchPendingPushNotifications } from "@/lib/notifications/dispatch-push";
+import { activitySlugBase } from "@/lib/agenda/slug";
 
 export type ActionResult = { error?: string };
 
@@ -36,30 +37,31 @@ function parseIsoOrNull(value: string): string | null {
   return Number.isNaN(date.getTime()) ? null : date.toISOString();
 }
 
-function slugify(title: string): string {
-  const base = title
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
-  return base || "activiteit";
-}
-
-// Genereert eenmalig, bij het aanmaken, een leesbare permalink-slug (bv.
-// "open-borrel") — gebruikt door de "Delen"-knop op de openbare
-// agenda-embed (zie ShareActivityButton + /embed/agenda's
-// ?activiteit=<slug>-lookup). Wordt daarna nooit meer herberekend bij het
-// bewerken, ook niet als de titel wijzigt: anders zou een al gedeelde link
-// stukgaan.
-async function generateUniqueSlug(supabase: Awaited<ReturnType<typeof createClient>>, title: string): Promise<string> {
-  const base = slugify(title);
+// Genereert een leesbare permalink-slug (bv. "open-borrel-maart-2026") —
+// gebruikt door de "Delen"-knop op de openbare agenda-embed (zie
+// ShareActivityButton + /embed/agenda's ?activiteit=<slug>-lookup) én door
+// de portaal-URL zelf. I.t.t. de leden-/bedrijven-slug blijft deze NIET
+// voor altijd gelijk: updateActivityAction hieronder herberekent 'm zodra
+// titel of startdatum wijzigt (de maand/het jaar zit in de slug, zie
+// activitySlugBase), en zet de oude waarde dan in activity_slug_aliases
+// (migratie 0155) zodat een al gedeelde link met een 308 blijft werken.
+// Botsingscheck tegen zowel activities.slug als activity_slug_aliases.slug
+// — beide tabellen samen zijn de volledige verzameling in-gebruik-zijnde
+// slugs, een nieuwe mag met geen van beide samenvallen.
+async function generateUniqueSlug(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  title: string,
+  startsAtIso: string
+): Promise<string> {
+  const base = activitySlugBase(title, startsAtIso);
   let slug = base;
   let attempt = 2;
   for (;;) {
-    const { data } = await supabase.from("activities").select("id").eq("slug", slug).maybeSingle();
-    if (!data) return slug;
+    const [{ data: existingActivity }, { data: existingAlias }] = await Promise.all([
+      supabase.from("activities").select("id").eq("slug", slug).maybeSingle(),
+      supabase.from("activity_slug_aliases").select("id").eq("slug", slug).maybeSingle(),
+    ]);
+    if (!existingActivity && !existingAlias) return slug;
     slug = `${base}-${attempt++}`;
   }
 }
@@ -202,7 +204,7 @@ export async function createActivityAction(
     const source = String(formData.get("source") ?? "") === "lid" ? "lid" : "voc";
 
     const supabase = await createClient();
-    const slug = await generateUniqueSlug(supabase, title);
+    const slug = await generateUniqueSlug(supabase, title, startsAt);
     const { data: activity, error } = await supabase
       .from("activities")
       .insert({ title, starts_at: startsAt, ...rest, ...notifyChannels, source, slug, created_by: profile.id })
@@ -256,7 +258,7 @@ export async function updateActivityAction(
 
     const { data: existing } = await supabase
       .from("activities")
-      .select("image_url, image_thumb_url, starts_at, ends_at, location")
+      .select("title, slug, image_url, image_thumb_url, starts_at, ends_at, location")
       .eq("id", activityId)
       .maybeSingle();
 
@@ -280,18 +282,47 @@ export async function updateActivityAction(
       }
     }
 
+    // URL-ronde #100: de slug bevat de maand/het jaar van starts_at, dus
+    // moet mee veranderen zodra titel óf startdatum verandert — vergeleken
+    // op de herberekende basis, niet op de (mogelijk met een "-2"-staart
+    // verlengde) opgeslagen slug zelf. De oude slug wordt hier bewust niet
+    // weggegooid: als alias (activity_slug_aliases) blijft een al gedeelde
+    // link met een 308 naar de nieuwe URL wijzen.
+    let newSlug: string | undefined;
+    if (existing && activitySlugBase(title, startsAt) !== activitySlugBase(existing.title, existing.starts_at)) {
+      newSlug = await generateUniqueSlug(supabase, title, startsAt);
+    }
+
     const { error } = await supabase
       .from("activities")
       .update({
         title,
         starts_at: startsAt,
         ...rest,
+        ...(newSlug ? { slug: newSlug } : {}),
         ...(imagePath ? { image_url: imagePath, image_thumb_url: imageThumbPath } : {}),
       })
       .eq("id", activityId);
 
     if (error) {
       return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+    }
+
+    // Pas ná een geslaagde update de oude slug als alias vastleggen — zo
+    // blijft, als de update hierboven om een andere reden mislukt, de oude
+    // slug ook gewoon de actieve (geen weesalias naar een niet-bijgewerkte
+    // rij).
+    if (newSlug && existing) {
+      const { error: aliasError } = await supabase
+        .from("activity_slug_aliases")
+        .insert({ slug: existing.slug, activity_id: activityId });
+      // Best-effort: een mislukte alias-insert mag de titel-/datumwijziging
+      // zelf niet blokkeren — in het ergste geval werkt alleen de oude link
+      // niet meer door, wat niet erger is dan het gedrag van vóór deze
+      // migratie (toen de slug sowieso nooit veranderde).
+      if (aliasError) {
+        console.error("[agenda] activity_slug_aliases insert failed:", aliasError);
+      }
     }
 
     if (imagePath) {

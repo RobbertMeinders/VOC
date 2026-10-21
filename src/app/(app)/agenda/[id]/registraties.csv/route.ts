@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { activityIdFilter } from "@/lib/agenda/slug";
+import { activityHref, activityIdFilter, resolveActivitySlugAlias } from "@/lib/agenda/slug";
 import { csvEscape } from "@/lib/export/csv";
 
 // UX-review punt 15: CSV-export van aanmeldingen voor bestuur, naar het
@@ -13,14 +13,23 @@ import { csvEscape } from "@/lib/export/csv";
 // onbeveiligde invoer, dus moet tegen CSV-/formule-injectie beschermd
 // worden voordat het hieronder een rij wordt.
 
-export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
+export async function GET(request: Request, { params }: { params: Promise<{ id: string }> }) {
   await requireBoard();
   const { id } = await params;
 
   const supabase = await createClient();
-  const { data: activity } = await supabase.from("activities").select("id, title").filter(...activityIdFilter(id)).maybeSingle();
+  const { data: activity } = await supabase
+    .from("activities")
+    .select("id, slug, title")
+    .filter(...activityIdFilter(id))
+    .maybeSingle();
 
   if (!activity) {
+    // URL-ronde #100: zie de .ics-route hierboven.
+    const currentSlug = await resolveActivitySlugAlias(supabase, id);
+    if (currentSlug) {
+      return NextResponse.redirect(new URL(activityHref({ slug: currentSlug }, "/registraties.csv"), request.url), 308);
+    }
     return NextResponse.json({ error: "Activiteit niet gevonden" }, { status: 404 });
   }
 

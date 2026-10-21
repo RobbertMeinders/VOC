@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { after } from "next/server";
 import { cache } from "react";
 import { CalendarDays, Clock, Download, ExternalLink, MapPin, Pencil, Users, XCircle } from "lucide-react";
@@ -20,7 +20,7 @@ import { ApproveActivityForm } from "@/components/agenda/ApproveActivityForm";
 import { StatusPill } from "@/components/ui/StatusPill";
 import { deleteActivityAction, decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
 import { logEvent } from "@/lib/events/log";
-import { activityHref, activityIdFilter } from "@/lib/agenda/slug";
+import { activityHref, activityIdFilter, resolveActivitySlugAlias } from "@/lib/agenda/slug";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
@@ -58,7 +58,22 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
 
   const activity = await getCachedActivity(routeParam);
   if (!activity) {
+    // URL-ronde #100: de slug van een activiteit kan wijzigen (titel- of
+    // datumwijziging) — een gemiste directe match kan dus een oude,
+    // inmiddels verouderde slug zijn (activity_slug_aliases, migratie
+    // 0155) i.p.v. een echt onbestaande activiteit.
+    const currentSlug = await resolveActivitySlugAlias(supabase, routeParam);
+    if (currentSlug) {
+      permanentRedirect(activityHref({ slug: currentSlug }));
+    }
     notFound();
+  }
+
+  // URL-ronde #100: een kaal UUID (oude, rechtstreeks verstuurde link) blijft
+  // werken, maar stuurt door naar de canonieke slug-URL — zelfde patroon als
+  // bedrijven (CompanyProfileContent).
+  if (routeParam !== activity.slug) {
+    permanentRedirect(activityHref(activity));
   }
 
   // Performance-audit #3: dit blokkeerde eerder het renderen van de hele

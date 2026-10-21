@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { activityHref, activityIdFilter } from "./slug";
+import { activityHref, activityIdFilter, activitySlugBase } from "./slug";
 
 // Zelfde patroon als members/slug.ts, voor activiteiten.
 describe("activityHref", () => {
@@ -19,5 +19,21 @@ describe("activityIdFilter", () => {
 
   it("behandelt een leesbare slug als slug, niet als id", () => {
     expect(activityIdFilter("open-borrel")).toEqual(["slug", "eq", "open-borrel"]);
+  });
+});
+
+// URL-ronde #100: i.t.t. memberHref/companyHref bevat deze basis ook de
+// Nederlandse maand + het jaar van starts_at — dat maakt 'm instabiel bij
+// een titel- of datumwijziging (zie updateActivityAction), vandaar
+// activity_slug_aliases voor de oude waarde.
+describe("activitySlugBase", () => {
+  it("voegt de Nederlandse maand en het jaar van starts_at toe", () => {
+    expect(activitySlugBase("Nieuwjaarsborrel", "2026-01-15T19:00:00.000Z")).toBe("nieuwjaarsborrel-januari-2026");
+  });
+
+  it("levert voor dezelfde titel een andere basis op in een ander jaar", () => {
+    const vorigJaar = activitySlugBase("Nieuwjaarsborrel", "2025-01-15T19:00:00.000Z");
+    const ditJaar = activitySlugBase("Nieuwjaarsborrel", "2026-01-15T19:00:00.000Z");
+    expect(vorigJaar).not.toBe(ditJaar);
   });
 });
