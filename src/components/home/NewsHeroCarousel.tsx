@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Megaphone } from "lucide-react";
+import { Megaphone, Pause, Play } from "lucide-react";
 import { clsx } from "clsx";
 import { newsItemHref } from "@/lib/news/slug";
 
@@ -29,13 +29,21 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
   const [index, setIndex] = useState(0);
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
+  // Begint gepauzeerd voor wie prefers-reduced-motion aanheeft — zo'n
+  // gebruiker krijgt de automatische doorschuif-animatie nooit te zien,
+  // ongeacht of ze zelf op pauze klikken. Een gewone bezoeker kan de
+  // doorloop ook altijd zelf pauzeren via de zichtbare knop hieronder.
+  const [paused, setPaused] = useState(() => {
+    if (typeof window === "undefined") return false;
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  });
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pointerState = useRef<{ id: number; startX: number } | null>(null);
   const didDragRef = useRef(false);
 
   function resetAutoAdvance() {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    if (slides.length <= 1) return;
+    if (slides.length <= 1 || paused) return;
     timeoutRef.current = setTimeout(() => {
       setIndex((current) => (current + 1) % slides.length);
     }, SLIDE_DURATION_MS);
@@ -47,7 +55,7 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [index, slides.length]);
+  }, [index, slides.length, paused]);
 
   function handlePointerDown(e: ReactPointerEvent<HTMLDivElement>) {
     if (slides.length <= 1) return;
@@ -168,6 +176,18 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
           </div>
         );
       })}
+
+      {slides.length > 1 && (
+        <button
+          type="button"
+          aria-label={paused ? "Doorschuiven hervatten" : "Doorschuiven pauzeren"}
+          aria-pressed={paused}
+          onClick={() => setPaused((p) => !p)}
+          className="absolute right-2.5 top-2.5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white hover:bg-black/50"
+        >
+          {paused ? <Play size={16} /> : <Pause size={16} />}
+        </button>
+      )}
 
       {slides.length > 1 && (
         // Afwerkronde blok 6: stond rechtsboven en oogde daar als een losse

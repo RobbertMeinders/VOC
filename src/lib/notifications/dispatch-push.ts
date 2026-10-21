@@ -29,6 +29,10 @@ export async function dispatchPendingPushNotifications(limit = 50): Promise<{ se
   const publicKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
   const privateKey = process.env.VAPID_PRIVATE_KEY;
   if (!publicKey || !privateKey) {
+    // Zonder deze regel faalde dit volledig stil: een lid kan pushmeldingen
+    // in de instellingen "aanzetten" zonder te weten dat er, bij een
+    // ontbrekende serversleutel, server-side nooit iets wordt verstuurd.
+    console.error("Push niet verstuurd: NEXT_PUBLIC_VAPID_PUBLIC_KEY/VAPID_PRIVATE_KEY ontbreekt.");
     return { sent: 0 };
   }
   webpush.setVapidDetails("mailto:bestuur@voc-veendam.nl", publicKey, privateKey);
@@ -56,7 +60,16 @@ export async function dispatchPendingPushNotifications(limit = 50): Promise<{ se
     return { title: renderTemplate(template.title, variables), body: renderTemplate(template.body, variables) };
   }
 
-  const pushedIds: string[] = [];
+  // get_pending_push_notifications claimt elke rij al atomisch (pushed_at =
+  // now()) op het moment van ophalen — mark_notifications_pushed hieronder
+  // is dus alleen nog nodig als expliciete no-op-bevestiging voor rijen die
+  // echt zijn afgehandeld. Bij een fout die niet op een ingetrokken
+  // abonnement wijst (tijdelijk netwerkprobleem, 5xx bij de pushdienst), is
+  // de claim zonder verdere actie blijvend: de rij bleef voorheen voor
+  // altijd pushed_at≠null staan terwijl de push nooit is aangekomen. Zet de
+  // claim dan expliciet terug (pushed_at = null) zodat de volgende
+  // cron-tick het opnieuw probeert.
+  let sent = 0;
   for (const item of pending) {
     try {
       const content = await renderPushContent(item);
@@ -67,20 +80,25 @@ export async function dispatchPendingPushNotifications(limit = 50): Promise<{ se
           body: content.body,
           link: item.link,
           notification_id: item.notification_id,
+          // Notification-tag (sw.js): laat meerdere snel opeenvolgende
+          // meldingen van hetzelfde type elkaar vervangen i.p.v. zich op te
+          // stapelen in het systeemmeldingencentrum.
+          type: item.type,
         })
       );
+      sent += 1;
     } catch (cause) {
       const statusCode = (cause as { statusCode?: number }).statusCode;
       if (statusCode === 404 || statusCode === 410) {
+        // Abonnement is echt ingetrokken/verlopen — dit zal nooit meer
+        // lukken, dus de claim blijft staan (geen eindeloze retries op een
+        // dood abonnement).
         await logPushUnsubscribed(item.endpoint, item.profile_id, supabase);
+      } else {
+        await supabase.from("notifications").update({ pushed_at: null }).eq("id", item.notification_id);
       }
     }
-    pushedIds.push(item.notification_id);
   }
 
-  if (pushedIds.length > 0) {
-    await supabase.rpc("mark_notifications_pushed", { p_ids: pushedIds });
-  }
-
-  return { sent: pushedIds.length };
+  return { sent };
 }
