@@ -6,6 +6,14 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { REMEMBERED_MAX_AGE, REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
 import { validateDisplayNamePart } from "@/lib/validation/fields";
+import { isEmailRateLimited } from "@/lib/auth/rate-limit";
+
+// M13 (beveiligingsfixlijst Blok 3): elke afwijzing vóór het echte
+// account-aanmaken moet dezelfde, generieke tekst geven — anders kan het
+// verschil tussen "deze uitnodiging deugt niet" en "dit e-mailadres is al
+// in gebruik" gebruikt worden om te testen of een gegokt e-mailadres al
+// lid is, zonder dat de uitnodiging zelf ooit geldig hoefde te zijn.
+const GENERIC_REGISTER_ERROR = "Registreren is niet gelukt. Controleer de uitnodigingslink en probeer opnieuw.";
 
 export type CompanyOption = { id: string; name: string; city: string | null };
 
@@ -64,6 +72,26 @@ export async function registerAction(
     return { error: "De wachtwoorden komen niet overeen." };
   }
 
+  // M13: rate-limit vóór elke verdere check — zonder dit kon een script
+  // onbeperkt e-mailadressen langs deze pagina proberen.
+  if (await isEmailRateLimited("register_attempted", email)) {
+    return { error: "Te veel pogingen met dit e-mailadres. Probeer het over een kwartier opnieuw." };
+  }
+
+  // M13: de uitnodiging zelf moet geldig zijn (en, als 'm aan een specifiek
+  // adres gebonden is, bij dat adres horen) VOORDAT er iets gebeurt dat kan
+  // verraden of het ingevulde e-mailadres al een account heeft —
+  // generateLink hieronder doet dat namelijk linksom (een niet-bestaand
+  // e-mailadres zou anders, mét een willekeurige/ongeldige token, al een
+  // ander soort fout geven dan een bestaand adres). Dezelfde generieke
+  // foutmelding voor "token ongeldig" als voor "account bestaat al".
+  const anonSupabase = await createClient();
+  const { data: previewRows } = await anonSupabase.rpc("get_invitation_preview", { p_token: token });
+  const invitation = previewRows?.[0];
+  if (!invitation?.valid || (invitation.email && invitation.email.toLowerCase() !== email.toLowerCase())) {
+    return { error: GENERIC_REGISTER_ERROR };
+  }
+
   // Account aanmaken: we genereren zelf een invite-token (service-role, net
   // als bij wachtwoord-reset) en verifiëren 'm meteen hierna met de gewone
   // server-client — dat schrijft de sessiecookies direct weg, dus geen
@@ -91,10 +119,7 @@ export async function registerAction(
   });
 
   if (linkError || !linkData?.properties?.hashed_token) {
-    if (linkError?.message.toLowerCase().includes("already been registered")) {
-      return { error: "Er bestaat al een account met dit e-mailadres." };
-    }
-    return { error: "Registreren is niet gelukt. Controleer de uitnodigingslink en probeer opnieuw." };
+    return { error: GENERIC_REGISTER_ERROR };
   }
 
   // Nieuwe accounts blijven meteen ingelogd — er is nog geen moment geweest
@@ -116,7 +141,7 @@ export async function registerAction(
   });
 
   if (verifyError || !verifyData.user) {
-    return { error: "Registreren is niet gelukt. Controleer de uitnodigingslink en probeer opnieuw." };
+    return { error: GENERIC_REGISTER_ERROR };
   }
 
   await supabase.from("profiles").update({ last_active_at: new Date().toISOString() }).eq("id", verifyData.user.id);
