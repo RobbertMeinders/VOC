@@ -108,7 +108,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
             id="logo"
             name="logo"
             type="file"
-            accept="image/png,image/jpeg,image/webp,image/svg+xml,image/avif"
+            accept="image/png,image/jpeg,image/webp,image/avif"
             className="sr-only"
             onChange={async (e) => {
               const input = e.target;

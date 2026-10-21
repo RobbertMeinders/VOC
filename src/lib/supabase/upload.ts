@@ -7,6 +7,16 @@ import { randomFileName } from "./randomFileName";
 const ALLOWED_IMAGE_TYPES = new Set(["image/png", "image/jpeg", "image/webp", "image/svg+xml", "image/avif"]);
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 
+// M5 (beveiligingsfixlijst Blok 3): avatars/company-logos zijn de minst
+// vertrouwde SVG-bron van alle upload-plekken (elk lid kan deze zelf
+// uploaden) — sanitizeSvg() hieronder is defense-in-depth, geen garantie
+// tegen elke denkbare scriptvector, dus SVG wordt daar nu helemaal
+// geweigerd. news-images (alleen door bestuur/beheer aan te leveren) blijft
+// ongewijzigd. De company-logos-BUCKET staat SVG sinds migratie 0148 ook
+// zelf niet meer toe — deze lijst voorkomt alleen dat een afgewezen upload
+// pas bij de storage-aanroep zelf met een onduidelijke foutmelding strandt.
+const SVG_CAPABLE_BUCKETS = new Set(["news-images"]);
+
 export type ImageUploadResult = { path: string } | { error: string };
 
 // Reduceert het risico van een SVG-upload met ingebed script: via <img src>
@@ -42,9 +52,11 @@ export async function uploadImage(
   folder: string,
   file: File
 ): Promise<ImageUploadResult> {
-  if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+  const svgAllowedHere = SVG_CAPABLE_BUCKETS.has(bucket);
+  if (!ALLOWED_IMAGE_TYPES.has(file.type) || (file.type === "image/svg+xml" && !svgAllowedHere)) {
+    const allowedLabel = svgAllowedHere ? "PNG, JPEG, WebP, SVG of AVIF" : "PNG, JPEG, WebP of AVIF";
     return {
-      error: `Alleen PNG, JPEG, WebP, SVG of AVIF-afbeeldingen zijn toegestaan (kreeg: ${file.type || "onbekend"}).`,
+      error: `Alleen ${allowedLabel}-afbeeldingen zijn toegestaan (kreeg: ${file.type || "onbekend"}).`,
     };
   }
   if (file.size > MAX_IMAGE_BYTES) {

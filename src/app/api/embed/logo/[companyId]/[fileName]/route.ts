@@ -32,10 +32,21 @@ export async function GET(
     return new NextResponse(null, { status: 404 });
   }
 
+  // M5: nieuwe uploads kunnen hier geen SVG meer zijn (0148, bucket- en
+  // app-niveau), maar een bestaand, al vóór die migratie geüpload logo kan
+  // dat nog zijn. Content-Disposition: attachment en een sandboxing CSP
+  // voorkomen dat zo'n bestand ooit als HTML/script in deze origin wordt
+  // uitgevoerd als iemand de URL rechtstreeks opent — alleen voor dat ene
+  // geval, want diezelfde headers zouden een gewone PNG/JPEG/WebP juist
+  // laten downloaden i.p.v. inline tonen als <img> op de embed-pagina.
+  const isSvg = data.type === "image/svg+xml";
+
   return new NextResponse(data, {
     headers: {
       "Content-Type": data.type || "application/octet-stream",
       "Cache-Control": "public, max-age=31536000, immutable",
+      "X-Content-Type-Options": "nosniff",
+      ...(isSvg ? { "Content-Disposition": "attachment", "Content-Security-Policy": "sandbox" } : {}),
     },
   });
 }
