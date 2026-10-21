@@ -431,9 +431,10 @@ export function ActivityForm({
                     defaultValue={activity?.external_registration_url ?? ""}
                     placeholder="https://"
                     invalid={Boolean(errors.external_registration_url)}
+                    aria-describedby={errors.external_registration_url ? "external_registration_url-error" : undefined}
                     onBlur={(e) => validateField("external_registration_url", e.target.value)}
                   />
-                  <FieldError message={errors.external_registration_url} />
+                  <FieldError id="external_registration_url-error" message={errors.external_registration_url} />
                 </>
               )}
               {!externalRegistration && (

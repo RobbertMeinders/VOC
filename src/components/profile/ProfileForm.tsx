@@ -181,9 +181,10 @@ export function ProfileForm({
               defaultValue={profile.linkedin_url ?? ""}
               placeholder="https://www.linkedin.com/in/..."
               invalid={Boolean(errors.linkedin_url)}
+              aria-describedby={errors.linkedin_url ? "linkedin_url-error" : undefined}
               onBlur={(e) => validateField("linkedin_url", e.target.value)}
             />
-            <FieldError message={errors.linkedin_url} />
+            <FieldError id="linkedin_url-error" message={errors.linkedin_url} />
           </div>
         </FormSection>
       </FormSections>

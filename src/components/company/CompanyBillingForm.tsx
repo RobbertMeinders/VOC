@@ -164,9 +164,10 @@ export function CompanyBillingForm({ company, billing }: { company: Company; bil
                 defaultValue={billing?.invoice_email ?? ""}
                 placeholder={company.email ?? "facturen@bedrijf.nl"}
                 invalid={Boolean(errors.invoice_email)}
+                aria-describedby={errors.invoice_email ? "invoice_email-error" : undefined}
                 onBlur={(e) => validateField("invoice_email", e.target.value)}
               />
-              <FieldError message={errors.invoice_email} />
+              <FieldError id="invoice_email-error" message={errors.invoice_email} />
             </div>
           </div>
         </FormSection>

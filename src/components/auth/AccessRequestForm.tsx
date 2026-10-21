@@ -155,9 +155,10 @@ export function AccessRequestForm() {
           autoComplete="email"
           placeholder="naam@bedrijf.nl"
           invalid={Boolean(errors.email)}
+          aria-describedby={errors.email ? "email-error" : undefined}
           onBlur={(e) => validateField("email", e.target.value)}
         />
-        <FieldError message={errors.email} />
+        <FieldError id="email-error" message={errors.email} />
       </div>
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-1.5">
@@ -185,12 +186,13 @@ export function AccessRequestForm() {
           autoComplete="url"
           placeholder="https://"
           invalid={Boolean(errors.website)}
+          aria-describedby={errors.website ? "website-error" : undefined}
           onBlur={(e) => {
             e.target.value = normalizeUrl(e.target.value);
             validateField("website", e.target.value);
           }}
         />
-        <FieldError message={errors.website} />
+        <FieldError id="website-error" message={errors.website} />
       </div>
       <div className="flex flex-col gap-1.5">
         <label htmlFor="message" className="text-sm font-medium text-foreground">

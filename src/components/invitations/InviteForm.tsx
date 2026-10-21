@@ -54,9 +54,10 @@ export function InviteForm({ canInviteBoard }: { canInviteBoard: boolean }) {
             inputMode="email"
             placeholder="naam@bedrijf.nl"
             invalid={Boolean(errors.email)}
+            aria-describedby={errors.email ? "invite-email-error" : undefined}
             onBlur={(e) => validateField("email", e.target.value)}
           />
-          <FieldError message={errors.email} />
+          <FieldError id="invite-email-error" message={errors.email} />
         </div>
 
         <div>

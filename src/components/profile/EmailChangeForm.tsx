@@ -62,9 +62,10 @@ export function EmailChangeForm({ currentEmail }: { currentEmail: string }) {
         defaultValue={currentEmail}
         autoComplete="email"
         invalid={Boolean(errors.email)}
+        aria-describedby={errors.email ? "new_email-error" : undefined}
         onBlur={(e) => validateField("email", e.target.value)}
       />
-      <FieldError message={errors.email} />
+      <FieldError id="new_email-error" message={errors.email} />
       {state.error && (
         <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
           {state.error}

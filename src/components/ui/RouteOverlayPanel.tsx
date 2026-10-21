@@ -6,6 +6,7 @@ import { X } from "lucide-react";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { useFocusTrap } from "@/lib/dom/useFocusTrap";
+import { useVisualViewportHeight } from "@/lib/dom/useVisualViewportHeight";
 import { getOverlayCloseHref, isOverlayRoute } from "@/lib/ui/overlayRoutes";
 import { useOverlayOrigin } from "@/lib/ui/OverlayOriginContext";
 import { useUnsavedChanges } from "@/lib/ui/UnsavedChangesContext";
@@ -116,6 +117,13 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
   // klik-navigatie (bv. naar "bewerken" of een gelinkt profiel) — dat maakt
   // 'm voor dit paneel even veilig als voor de andere twee dialogen.
   const trapRef = useFocusTrap(!dismissed);
+  // iOS-PWA (standalone) verkleint de layout-viewport niet als het
+  // schermtoetsenbord opent boven een formulier in dit paneel (bv.
+  // ActivityForm) — zonder dit kan het ingedrukte veld of de verzendknop
+  // onbereikbaar achter het toetsenbord eindigen. maxHeight kan alleen
+  // verkleinen t.o.v. de bestaande top/bottom-gebaseerde hoogte, dus geen
+  // effect zolang het toetsenbord dicht is.
+  const visualViewportHeight = useVisualViewportHeight();
 
   if (dismissed) return null;
 
@@ -138,6 +146,7 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
       style={{
         transform: `translateY(${dragY}px)`,
         transition: dragging ? "none" : "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+        maxHeight: visualViewportHeight ?? undefined,
       }}
     >
       {/* Grijpstrookje — alleen op mobiel, waar dit paneel als bottom sheet

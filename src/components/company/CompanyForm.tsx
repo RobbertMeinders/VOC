@@ -207,9 +207,10 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
               defaultValue={company.website ?? ""}
               placeholder="https://"
               invalid={Boolean(errors.website)}
+              aria-describedby={errors.website ? "website-error" : undefined}
               onBlur={(e) => validateField("website", e.target.value)}
             />
-            <FieldError message={errors.website} />
+            <FieldError id="website-error" message={errors.website} />
           </div>
         </FormSection>
 
@@ -226,9 +227,10 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
               defaultValue={company.linkedin_url ?? ""}
               placeholder="https://www.linkedin.com/company/..."
               invalid={Boolean(errors.linkedin_url)}
+              aria-describedby={errors.linkedin_url ? "linkedin_url-error" : undefined}
               onBlur={(e) => validateField("linkedin_url", e.target.value)}
             />
-            <FieldError message={errors.linkedin_url} />
+            <FieldError id="linkedin_url-error" message={errors.linkedin_url} />
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="instagram_url" className="text-xs font-medium text-muted">
@@ -242,9 +244,10 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
               defaultValue={company.instagram_url ?? ""}
               placeholder="https://www.instagram.com/..."
               invalid={Boolean(errors.instagram_url)}
+              aria-describedby={errors.instagram_url ? "instagram_url-error" : undefined}
               onBlur={(e) => validateField("instagram_url", e.target.value)}
             />
-            <FieldError message={errors.instagram_url} />
+            <FieldError id="instagram_url-error" message={errors.instagram_url} />
           </div>
           <div className="flex flex-col gap-1.5">
             <label htmlFor="facebook_url" className="text-xs font-medium text-muted">
@@ -258,9 +261,10 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
               defaultValue={company.facebook_url ?? ""}
               placeholder="https://www.facebook.com/..."
               invalid={Boolean(errors.facebook_url)}
+              aria-describedby={errors.facebook_url ? "facebook_url-error" : undefined}
               onBlur={(e) => validateField("facebook_url", e.target.value)}
             />
-            <FieldError message={errors.facebook_url} />
+            <FieldError id="facebook_url-error" message={errors.facebook_url} />
           </div>
         </FormSection>
 
@@ -312,9 +316,10 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
                 defaultValue={company.email ?? ""}
                 placeholder="info@bedrijf.nl"
                 invalid={Boolean(errors.email)}
+                aria-describedby={errors.email ? "company-email-error" : undefined}
                 onBlur={(e) => validateField("email", e.target.value)}
               />
-              <FieldError message={errors.email} />
+              <FieldError id="company-email-error" message={errors.email} />
             </div>
           </div>
         </FormSection>
