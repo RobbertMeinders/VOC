@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Fragment } from "react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getAppSettings } from "@/lib/settings/app-settings";
@@ -11,7 +12,12 @@ import { ForceLogoutAllButton } from "@/components/beheer/ForceLogoutAllButton";
 import { NotificationRuleRow } from "@/components/beheer/NotificationRuleRow";
 import { AllNotificationChannelsSwitch } from "@/components/beheer/AllNotificationChannelsSwitch";
 import { MessageTemplatesContent } from "@/components/beheer/MessageTemplatesContent";
-import { CONFIGURABLE_NOTIFICATION_TYPES, ROLE_BASED_NOTIFICATION_TYPES, type ConfigurableNotificationType } from "@/lib/notifications/type-labels";
+import {
+  CONFIGURABLE_NOTIFICATION_TYPES,
+  MEMBER_FACING_NOTIFICATION_TYPES,
+  ROLE_BASED_NOTIFICATION_TYPES,
+  type ConfigurableNotificationType,
+} from "@/lib/notifications/type-labels";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Portaalinstellingen" };
@@ -104,22 +110,43 @@ export default async function AppSettingsPage({ searchParams }: { searchParams: 
                   </tr>
                 </thead>
                 <tbody>
-                  {CONFIGURABLE_NOTIFICATION_TYPES.map((type: ConfigurableNotificationType) => {
-                    const row = byType.get(type);
-                    if (!row) return null;
-                    // key op updated_at (i.p.v. alleen type): na de hoofdschakelaar
-                    // hierboven krijgt elke rij een nieuwe updated_at, wat deze rij
-                    // laat remounten met de verse initial-waarden i.p.v. de eigen,
-                    // inmiddels verouderde lokale state te laten staan.
-                    return (
-                      <NotificationRuleRow
-                        key={`${type}-${row.updated_at}`}
-                        type={type}
-                        initial={row}
-                        isRoleBased={ROLE_BASED_NOTIFICATION_TYPES.includes(type)}
-                      />
-                    );
-                  })}
+                  {(
+                    [
+                      { label: "Naar leden", types: MEMBER_FACING_NOTIFICATION_TYPES },
+                      {
+                        label: "Naar bestuur & beheer",
+                        types: CONFIGURABLE_NOTIFICATION_TYPES.filter((type) => !MEMBER_FACING_NOTIFICATION_TYPES.includes(type)),
+                      },
+                    ] as const
+                  ).map(({ label, types }) => (
+                    <Fragment key={`group-${label}`}>
+                      <tr>
+                        <th
+                          colSpan={4}
+                          scope="colgroup"
+                          className="bg-background px-4 py-1.5 text-left text-xs font-semibold uppercase tracking-wide text-muted"
+                        >
+                          {label}
+                        </th>
+                      </tr>
+                      {types.map((type: ConfigurableNotificationType) => {
+                        const row = byType.get(type);
+                        if (!row) return null;
+                        // key op updated_at (i.p.v. alleen type): na de hoofdschakelaar
+                        // hierboven krijgt elke rij een nieuwe updated_at, wat deze rij
+                        // laat remounten met de verse initial-waarden i.p.v. de eigen,
+                        // inmiddels verouderde lokale state te laten staan.
+                        return (
+                          <NotificationRuleRow
+                            key={`${type}-${row.updated_at}`}
+                            type={type}
+                            initial={row}
+                            isRoleBased={ROLE_BASED_NOTIFICATION_TYPES.includes(type)}
+                          />
+                        );
+                      })}
+                    </Fragment>
+                  ))}
                 </tbody>
               </table>
             </div>

@@ -8,7 +8,7 @@ import type { Database, UserRole } from "@/lib/types/database";
 
 type Settings = Database["public"]["Tables"]["notification_type_settings"]["Row"];
 
-const ROLE_LABELS: Record<string, string> = { bestuurslid: "Bestuurslid", beheerder: "Beheerder" };
+const ROLE_LABELS: Record<string, string> = { lid: "Lid", bestuurslid: "Bestuurslid", beheerder: "Beheerder" };
 
 export function NotificationRuleRow({ type, initial, isRoleBased }: { type: ConfigurableNotificationType; initial: Settings; isRoleBased: boolean }) {
   const [settings, setSettings] = useState(initial);

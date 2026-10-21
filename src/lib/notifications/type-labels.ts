@@ -46,13 +46,37 @@ export const NOTIFICATION_TYPE_LABELS: Record<ConfigurableNotificationType, { la
 
 // Alleen deze types hebben een bewerkbare rollenlijst — de overige richten
 // zich op een vast individu/vaste relatie (indiener, melder, collega's...)
-// en hebben geen "rol"-begrip.
+// en hebben geen "rol"-begrip. new_activity ging oorspronkelijk altijd naar
+// "alle actieve leden" (hardcoded in notify_activity_published) — nu ook
+// rolconfigureerbaar, met diezelfde combinatie als standaardwaarde zodra er
+// nog geen expliciete keuze is gemaakt (zie notification_dispatch_config).
 export const ROLE_BASED_NOTIFICATION_TYPES: ConfigurableNotificationType[] = [
   "new_member",
   "activity_submission",
   "company_membership_request",
   "feed_post_report",
   "access_request",
+  "new_activity",
 ];
 
-export const ASSIGNABLE_ROLES = ["bestuurslid", "beheerder"] as const;
+// Notificatieregels-scherm: twee groepen, in deze volgorde. Alles wat niet in
+// MEMBER_FACING_NOTIFICATION_TYPES staat, valt in de bestuur/beheer-groep.
+export const MEMBER_FACING_NOTIFICATION_TYPES: ConfigurableNotificationType[] = [
+  "activity_decision",
+  "company_membership_decision",
+  "feed_comment",
+  "feed_mention",
+  "waitlist_promoted",
+  "activity_reminder",
+  "new_activity",
+  "activity_changed",
+  "activity_cancelled",
+  "report_resolved",
+];
+
+// "lid" toegevoegd zodat een rolgebaseerd type (met name new_activity) ook
+// specifiek naar gewone leden gericht kan worden i.p.v. alleen bestuur/
+// beheer — de overige vier rolgebaseerde types blijven in de praktijk
+// bestuur/beheer-only (een lid heeft geen reden om bijvoorbeeld een nieuwe-
+// lid-melding te krijgen), maar de rol zelf is nu overal kiesbaar.
+export const ASSIGNABLE_ROLES = ["lid", "bestuurslid", "beheerder"] as const;
