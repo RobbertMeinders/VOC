@@ -8,8 +8,9 @@ export type PushBroadcastState = { error?: string; sent?: number; total?: number
 
 // Los van de automatische notificaties (nieuwe activiteit, nieuw lid, …):
 // bestuur/beheer stuurt hier zelf, direct, één pushbericht naar alle
-// actieve abonnementen — geen categorie-voorkeur (push_activities/-feed/
-// -new_members) filtert dit weg, net als de andere altijd-aan operationele
+// actieve abonnementen — geen enkele per-type voorkeur (push_new_activity/
+// -activity_reminder/-feed_comment/-feed_mention/-new_members) filtert dit
+// weg, net als de andere altijd-aan operationele
 // meldingen. Per bereikt abonnement komt er, net als bij een automatische
 // push, één notifications-rij bij (type "manual_broadcast", meteen
 // pushed_at gezet) zodat handmatige en automatische pushes op dezelfde

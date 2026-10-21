@@ -29,7 +29,9 @@ export default async function InstellingenPage() {
   const [{ data }, { data: membership }] = await Promise.all([
     supabase
       .from("profiles")
-      .select("show_attended_activities, publicly_visible, email_campaigns")
+      .select(
+        "show_attended_activities, publicly_visible, email_campaigns, email_digest_new_activity, email_digest_feed_comment, email_digest_feed_mention"
+      )
       .eq("id", profile.id)
       .single(),
     supabase
@@ -84,15 +86,44 @@ export default async function InstellingenPage() {
             staat het label daarom boven en krijgt de keuze de volle breedte;
             vanaf sm: weer naast elkaar, net als de andere rijen. Na de twee
             schakelaars hierboven i.p.v. ertussen: scheidt de simpele
-            aan/uit-rijen van de pil-keuzes, oogt rustiger dan afwisselen. */}
+            aan/uit-rijen van de pil-keuzes, oogt rustiger dan afwisselen.
+            Meldingensysteem-overhaul Fase 3: vier losse types i.p.v. twee
+            brede categorieën ("Activiteiten"/"Reacties en vermeldingen") —
+            new_activity en activity_reminder, en feed_comment en
+            feed_mention, konden tot nu toe niet los ingesteld worden. */}
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <span className="text-sm text-foreground">Activiteiten</span>
-          <NotificationChannelChoice category="activities" initialPush={profile.push_activities} initialEmail={profile.email_activities} />
+          <span className="text-sm text-foreground">Nieuwe activiteiten</span>
+          <NotificationChannelChoice
+            type="new_activity"
+            initialPush={profile.push_new_activity}
+            initialEmail={profile.email_new_activity}
+            digest={{ type: "new_activity", initialDigest: data?.email_digest_new_activity ?? false }}
+          />
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <span className="text-sm text-foreground">Reacties en vermeldingen</span>
-          <NotificationChannelChoice category="feed" initialPush={profile.push_feed} initialEmail={profile.email_feed} />
+          <span className="text-sm text-foreground">Herinnering vooraf</span>
+          <NotificationChannelChoice type="activity_reminder" initialPush={profile.push_activity_reminder} initialEmail={profile.email_activity_reminder} />
+        </div>
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <span className="text-sm text-foreground">Reacties</span>
+          <NotificationChannelChoice
+            type="feed_comment"
+            initialPush={profile.push_feed_comment}
+            initialEmail={profile.email_feed_comment}
+            digest={{ type: "feed_comment", initialDigest: data?.email_digest_feed_comment ?? false }}
+          />
+        </div>
+
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+          <span className="text-sm text-foreground">Vermeldingen (@)</span>
+          <NotificationChannelChoice
+            type="feed_mention"
+            initialPush={profile.push_feed_mention}
+            initialEmail={profile.email_feed_mention}
+            digest={{ type: "feed_mention", initialDigest: data?.email_digest_feed_mention ?? false }}
+          />
         </div>
       </SettingGroup>
 

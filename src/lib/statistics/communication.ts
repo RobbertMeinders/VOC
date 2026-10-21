@@ -82,7 +82,9 @@ export async function getCommunicationStats(range: PeriodRange): Promise<Communi
       getAllPushSubscriptions(supabase),
       supabase
         .from("profiles")
-        .select("id, push_activities, push_feed, push_new_members, email_activities, email_feed, email_new_members")
+        .select(
+          "id, push_new_activity, push_activity_reminder, push_feed_comment, push_feed_mention, push_new_members, email_new_activity, email_activity_reminder, email_feed_comment, email_feed_mention, email_new_members"
+        )
         .eq("is_active", true),
       // Foutenrapport M12: get_notification_type_counts() groepeert in SQL
       // i.p.v. elke meldingsrij in de periode (kan al snel honderden per
@@ -129,10 +131,12 @@ export async function getCommunicationStats(range: PeriodRange): Promise<Communi
     // ontvangen.
     const pushSubscribedProfileIds = new Set(pushSubscriptions.map((s) => s.profile_id));
     const channelRows = channelProfiles ?? [];
-    const pushOnCount = channelRows.filter(
-      (p) => (p.push_activities || p.push_feed || p.push_new_members) && pushSubscribedProfileIds.has(p.id)
-    ).length;
-    const emailOnCount = channelRows.filter((p) => p.email_activities || p.email_feed || p.email_new_members).length;
+    const anyPushPreference = (p: (typeof channelRows)[number]) =>
+      p.push_new_activity || p.push_activity_reminder || p.push_feed_comment || p.push_feed_mention || p.push_new_members;
+    const anyEmailPreference = (p: (typeof channelRows)[number]) =>
+      p.email_new_activity || p.email_activity_reminder || p.email_feed_comment || p.email_feed_mention || p.email_new_members;
+    const pushOnCount = channelRows.filter((p) => anyPushPreference(p) && pushSubscribedProfileIds.has(p.id)).length;
+    const emailOnCount = channelRows.filter((p) => anyEmailPreference(p)).length;
     const total = channelRows.length || 1;
     const kanalen = [
       { label: "Ook als pushmelding", value: Math.round((pushOnCount / total) * 100) },
@@ -140,13 +144,7 @@ export async function getCommunicationStats(range: PeriodRange): Promise<Communi
       {
         label: "Alleen in het portaal",
         value: Math.round(
-          (channelRows.filter(
-            (p) =>
-              !((p.push_activities || p.push_feed || p.push_new_members) && pushSubscribedProfileIds.has(p.id)) &&
-              !p.email_activities &&
-              !p.email_feed &&
-              !p.email_new_members
-          ).length /
+          (channelRows.filter((p) => !(anyPushPreference(p) && pushSubscribedProfileIds.has(p.id)) && !anyEmailPreference(p)).length /
             total) *
             100
         ),

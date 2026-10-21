@@ -272,33 +272,75 @@ export async function updateShowEmailAction(visible: boolean): Promise<{ error?:
   return {};
 }
 
-// Communicatieplan: één keuze per categorie i.p.v. twee losse push/e-mail-
-// schakelaars — zo kan een lid niet meer (zoals voorheen, allebei stond
-// standaard aan) ongemerkt dubbel gemeld worden over dezelfde gebeurtenis.
-// "Nieuwe leden" heeft geen keuze meer (zie get_pending_push_notifications/
-// get_pending_email_notifications, migratie 0079): te lage urgentie voor een
-// instant kanaal, blijft wel gewoon zichtbaar in de bel en de ledenlijst.
-// Buiten "activities"/"feed" gaat alles altijd door (moderatiemeldingen voor
-// bestuur/beheer, en de uitkomst van je eigen aanvraag/inzending/wachtlijst-
-// plek).
+// Meldingensysteem-overhaul Fase 3: één keuze per TYPE i.p.v. per brede
+// categorie (was: "activities" = new_activity + activity_reminder samen,
+// "feed" = feed_comment + feed_mention samen) — zo kan een lid bijv. wel
+// een pushmelding willen bij een nieuwe activiteit maar niet bij de
+// herinnering 2 dagen vooraf. "Nieuwe leden" heeft geen keuze (zie
+// get_pending_push_notifications/get_pending_email_notifications, 0079):
+// te lage urgentie voor een instant kanaal, blijft wel gewoon zichtbaar in
+// de bel en de ledenlijst. Buiten deze vier types gaat alles altijd door
+// (moderatiemeldingen voor bestuur/beheer, en de uitkomst van je eigen
+// aanvraag/inzending/wachtlijstplek/activiteit-wijziging — besluiten óver
+// het lid zelf horen niet uit te kunnen vallen).
+export type ChannelNotificationType = "new_activity" | "activity_reminder" | "feed_comment" | "feed_mention";
+
 export async function updateNotificationChannelAction(
-  category: "activities" | "feed",
+  type: ChannelNotificationType,
   choice: "push" | "email" | "both" | "none"
 ): Promise<{ error?: string }> {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const pushEnabled = choice === "push" || choice === "both";
-  const emailEnabled = choice === "email" || choice === "both";
+  const push = choice === "push" || choice === "both";
+  const email = choice === "email" || choice === "both";
 
-  const update =
-    category === "activities"
-      ? { push_activities: pushEnabled, email_activities: emailEnabled }
-      : { push_feed: pushEnabled, email_feed: emailEnabled };
+  // Expliciete, letterlijke kolomnamen per branch i.p.v. een computed-key
+  // object (`{ [col]: ... }`): Supabase's gegenereerde Update-type wijst een
+  // dynamische string-key af (RejectExcessProperties), een letterlijke
+  // sleutel per tak blijft wél typeveilig.
+  const result = await (() => {
+    switch (type) {
+      case "new_activity":
+        return supabase.from("profiles").update({ push_new_activity: push, email_new_activity: email }).eq("id", profile.id);
+      case "activity_reminder":
+        return supabase.from("profiles").update({ push_activity_reminder: push, email_activity_reminder: email }).eq("id", profile.id);
+      case "feed_comment":
+        return supabase.from("profiles").update({ push_feed_comment: push, email_feed_comment: email }).eq("id", profile.id);
+      case "feed_mention":
+        return supabase.from("profiles").update({ push_feed_mention: push, email_feed_mention: email }).eq("id", profile.id);
+    }
+  })();
 
-  const { error } = await supabase.from("profiles").update(update).eq("id", profile.id);
+  if (result.error) {
+    return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
+  }
+  return {};
+}
 
-  if (error) {
+// Alleen voor de drie digest-geschikte types (new_activity/feed_comment/
+// feed_mention, zie DIGEST_ELIGIBLE_TYPES) — of e-mail voor dit type direct
+// gaat of verzameld wordt in de dagelijkse samenvatting. Los van
+// updateNotificationChannelAction hierboven: dit zet alleen de digest-vlag,
+// niet of e-mail voor dit type aan staat (dat blijft de chip-keuze).
+export type DigestNotificationType = "new_activity" | "feed_comment" | "feed_mention";
+
+export async function updateNotificationDigestAction(type: DigestNotificationType, digest: boolean): Promise<{ error?: string }> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const result = await (() => {
+    switch (type) {
+      case "new_activity":
+        return supabase.from("profiles").update({ email_digest_new_activity: digest }).eq("id", profile.id);
+      case "feed_comment":
+        return supabase.from("profiles").update({ email_digest_feed_comment: digest }).eq("id", profile.id);
+      case "feed_mention":
+        return supabase.from("profiles").update({ email_digest_feed_mention: digest }).eq("id", profile.id);
+    }
+  })();
+
+  if (result.error) {
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
   return {};
