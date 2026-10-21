@@ -521,6 +521,22 @@ body {
    fade + subtiele zijwaartse schuif (zie media query hieronder). Zelfde
    easing als .animate-scale-in voor een consistent "zacht landen"-gevoel
    door de hele app heen. */
+/* NavigationProgress: de balk zelf is altijd 1/3 breed en schuift van links
+   (net buiten beeld) naar rechts (net buiten beeld) — een onbepaalde
+   voortgangsindicator, geen percentage (we weten nooit hoe lang een
+   navigatie precies duurt). */
+@keyframes voc-nav-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+.animate-nav-progress {
+  animation: voc-nav-progress 0.8s ease-in-out infinite;
+}
+
 @keyframes voc-sheet-in {
   from {
     opacity: 0;
@@ -646,7 +662,8 @@ body {
   .animate-slide-out-right,
   .animate-stagger-item,
   .animate-divider-draw,
-  .animate-panel-in {
+  .animate-panel-in,
+  .animate-nav-progress {
     animation: none;
   }
 }
