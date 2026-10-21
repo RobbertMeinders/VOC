@@ -1014,6 +1014,29 @@ end;
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.generate_unique_company_slug(p_name text)
+ RETURNS text
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_base text;
+  v_candidate text;
+  v_suffix int := 1;
+begin
+  v_base := nullif(trim(both '-' from regexp_replace(lower(p_name), '[^a-z0-9]+', '-', 'g')), '');
+  v_base := coalesce(v_base, 'bedrijf');
+  v_candidate := v_base;
+  while exists (select 1 from public.companies where slug = v_candidate) loop
+    v_suffix := v_suffix + 1;
+    v_candidate := v_base || '-' || v_suffix;
+  end loop;
+  return v_candidate;
+end;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.generate_unique_profile_slug(p_first_name text, p_last_name text)
  RETURNS text
  LANGUAGE plpgsql
@@ -1083,6 +1106,23 @@ end;
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.get_communication_delivery_stats()
+ RETURNS TABLE(communication_id uuid, sent bigint, failed bigint, total bigint)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select
+    communication_id,
+    count(*) filter (where status = 'verstuurd'),
+    count(*) filter (where status = 'mislukt'),
+    count(*)
+  from public.communication_deliveries
+  where public.is_board()
+  group by communication_id;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.get_companies_directory()
  RETURNS TABLE(id uuid, slug text, name text, industry text, city text, logo_url text, logo_thumb_url text, tagline text, latitude double precision, longitude double precision, show_address boolean)
  LANGUAGE sql
@@ -1107,6 +1147,48 @@ CREATE OR REPLACE FUNCTION public.get_email_template(p_key text)
  SET search_path TO 'public'
 AS $function$
   select subject, body_html from public.email_templates where key = p_key;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_feed_comment_counts()
+ RETURNS TABLE(post_id uuid, comment_count bigint)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select post_id, count(*)
+  from public.feed_comments
+  where public.is_board()
+  group by post_id;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_feed_comment_like_counts(p_comment_ids uuid[])
+ RETURNS TABLE(comment_id uuid, likes_count bigint)
+ LANGUAGE sql
+ STABLE
+AS $function$
+  select fcl.comment_id, count(*) as likes_count
+  from public.feed_comment_likes fcl
+  where fcl.comment_id = any (p_comment_ids)
+  group by fcl.comment_id;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_feed_post_like_summaries(p_post_ids uuid[])
+ RETURNS TABLE(post_id uuid, likes_count bigint, top_liker_first_name text, top_liker_last_name text)
+ LANGUAGE sql
+ STABLE
+AS $function$
+  select
+    fl.post_id,
+    count(*) as likes_count,
+    (array_agg(p.first_name order by fl.created_at desc))[1] as top_liker_first_name,
+    (array_agg(p.last_name order by fl.created_at desc))[1] as top_liker_last_name
+  from public.feed_likes fl
+  join public.profiles p on p.id = fl.profile_id
+  where fl.post_id = any (p_post_ids)
+  group by fl.post_id;
 $function$
 
 ---
@@ -1196,6 +1278,22 @@ CREATE OR REPLACE FUNCTION public.get_message_template(p_key text)
 AS $function$
   select subject, body_html, cta_label, after_html, signature_type, push_title, push_body
   from public.message_templates where key = p_key;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_notification_type_counts(p_start timestamp with time zone, p_end timestamp with time zone)
+ RETURNS TABLE(type text, cnt bigint)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select type, count(*)
+  from public.notifications
+  where created_at >= p_start
+    and created_at < p_end
+    and type <> 'newsletter'
+    and public.is_board()
+  group by type;
 $function$
 
 ---
@@ -1289,6 +1387,19 @@ end;
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.get_post_view_counts()
+ RETURNS TABLE(post_id uuid, views bigint)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select target_id, count(*)
+  from public.events
+  where event_type = 'post_viewed' and target_id is not null and public.is_board()
+  group by target_id;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.get_profiles_pending_auth_scrub()
  RETURNS TABLE(profile_id uuid, pending_avatar_cleanup text)
  LANGUAGE sql
@@ -1356,6 +1467,22 @@ CREATE OR REPLACE FUNCTION public.get_push_template(p_key text)
  SET search_path TO 'public'
 AS $function$
   select title, body from public.push_templates where key = p_key;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_registration_counts_by_profile(p_since timestamp with time zone)
+ RETURNS TABLE(profile_id uuid, registrations bigint)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select profile_id, count(*)
+  from public.activity_registrations
+  where is_waitlisted = false
+    and created_at >= p_since
+    and profile_id is not null
+    and public.is_board()
+  group by profile_id;
 $function$
 
 ---
@@ -1662,7 +1789,7 @@ begin
     insert into public.companies (name, slug, industry, website, city)
     values (
       v_new_company_name,
-      lower(regexp_replace(v_new_company_name, '[^a-zA-Z0-9]+', '-', 'g')) || '-' || substr(new.id::text, 1, 8),
+      public.generate_unique_company_slug(v_new_company_name),
       v_meta ->> 'new_company_industry',
       v_meta ->> 'new_company_website',
       v_meta ->> 'new_company_city'
@@ -2507,6 +2634,20 @@ begin
     delete from public.push_subscriptions where endpoint = any(p_dead_endpoints);
   end if;
 end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.resolve_company_slug_alias(p_slug text)
+ RETURNS text
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select c.slug
+  from public.company_slug_aliases a
+  join public.companies c on c.id = a.company_id
+  where a.slug = p_slug
+  limit 1;
 $function$
 
 ---
