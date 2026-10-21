@@ -4,7 +4,14 @@
 // as a PWA cleanly and shows something better than the browser's own "no
 // internet" page when a navigation fails offline.
 
-const CACHE_NAME = "voc-shell-v1";
+// Registratie geeft dit bestand een ?v=<package.json-versie>-querystring mee
+// (zie ServiceWorkerRegister.tsx/push/subscribe.ts, die allebei dezelfde
+// NEXT_PUBLIC_APP_VERSION build-time env-variabele gebruiken als de
+// zichtbare versieregel in de sidebar) — zonder dat bleef CACHE_NAME een
+// vaste letterlijke string over elke deploy heen, dus purgete `activate`
+// hieronder nooit een oudere cache (met het toen gecachte /offline-bestand)
+// tenzij iemand die string handmatig ophoogde bij elke release.
+const CACHE_NAME = `voc-shell-${new URL(self.location.href).searchParams.get("v") ?? "v1"}`;
 const OFFLINE_URL = "/offline";
 const PRECACHE_URLS = [OFFLINE_URL, "/icons/icon-192.png", "/icons/icon-512.png"];
 

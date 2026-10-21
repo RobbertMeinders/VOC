@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useState, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 
 // Eén gedeelde "staat er een formulier met niet-opgeslagen wijzigingen
 // open"-vlag, zodat RouteOverlayPanel's sluit-knoppen (Esc, kruisje,
@@ -18,6 +18,22 @@ const UnsavedChangesContext = createContext<UnsavedChangesContextValue | null>(n
 
 export function UnsavedChangesProvider({ children }: { children: ReactNode }) {
   const [isDirty, setIsDirty] = useState(false);
+
+  // confirmDiscard() hierboven dekt alleen binnen-app-navigatie (Esc,
+  // kruisje, naar-beneden-vegen) — een tabblad/venster sluiten, de pagina
+  // verversen, of een adres rechtstreeks intypen omzeilt dat allemaal. De
+  // browser's eigen beforeunload-dialoog is hiervoor de enige vangnet; de
+  // tekst zelf is niet aanpasbaar (elke browser toont zijn eigen generieke
+  // melding), vandaar de lege/genegeerde returnValue-toewijzing.
+  useEffect(() => {
+    if (!isDirty) return;
+    function handleBeforeUnload(e: BeforeUnloadEvent) {
+      e.preventDefault();
+      e.returnValue = "";
+    }
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+  }, [isDirty]);
 
   const value: UnsavedChangesContextValue = {
     isDirty,

@@ -10,7 +10,12 @@ import { useEffect } from "react";
 export function ServiceWorkerRegister() {
   useEffect(() => {
     if (typeof window === "undefined" || !("serviceWorker" in navigator)) return;
-    navigator.serviceWorker.register("/sw.js").catch(() => {});
+    // ?v=<versie>: de service worker leest dit uit zijn eigen URL om
+    // CACHE_NAME per release te laten verschillen (zie sw.js) — zonder dit
+    // query-param detecteert de browser een ongewijzigde /sw.js tussen twee
+    // releases met alleen contentwijzigingen elders, en blijft de oude cache
+    // (met het toen gecachte /offline-bestand) voor onbepaalde tijd staan.
+    navigator.serviceWorker.register(`/sw.js?v=${process.env.NEXT_PUBLIC_APP_VERSION}`).catch(() => {});
   }, []);
 
   return null;

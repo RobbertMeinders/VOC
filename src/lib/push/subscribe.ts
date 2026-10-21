@@ -12,7 +12,8 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 }
 
 export async function subscribeToPush(): Promise<PushSubscription> {
-  const registration = await navigator.serviceWorker.register("/sw.js");
+  // Zelfde ?v=<versie> als ServiceWorkerRegister.tsx — zie sw.js voor waarom.
+  const registration = await navigator.serviceWorker.register(`/sw.js?v=${process.env.NEXT_PUBLIC_APP_VERSION}`);
   await navigator.serviceWorker.ready;
 
   const permission = await Notification.requestPermission();
