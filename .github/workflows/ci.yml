@@ -57,15 +57,20 @@ jobs:
         run: supabase start
 
       - name: Lokale API-URL/sleutel doorgeven aan de volgende stap
-        # --override-name zet de standaard status-variabelen direct onder
-        # dezelfde naam als createAdminClient() (src/lib/supabase/admin.ts)
-        # verwacht — zelfde patroon als het officiële CLI-voorbeeld
-        # ("supabase status --help").
+        # api.url bleek via --override-name wel te matchen, maar de
+        # service-role-sleutel staat in de status-dump onder een andere
+        # instellingsnaam (niet api.service_role_key) en kwam er zo stil
+        # ongemapt uit. Simpeler en onafhankelijk van hoe de CLI zijn
+        # instellingen noemt: de dump met standaardnamen laten staan
+        # (zet SERVICE_ROLE_KEY e.d. in $GITHUB_ENV) en in een losse stap
+        # expliciet doormappen naar de namen die createAdminClient()
+        # (src/lib/supabase/admin.ts) verwacht.
+        run: supabase status -o env >> "$GITHUB_ENV"
+
+      - name: Omgevingsvariabelen hernoemen naar wat de app verwacht
         run: |
-          supabase status -o env \
-            --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
-            --override-name api.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
-            >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
 
       - name: DB-regressietest (policies/functies)
         run: npm run db:snapshot:check

@@ -35,11 +35,12 @@ jobs:
         run: supabase start
 
       - name: Lokale API-URL/sleutel doorgeven aan de volgende stap
+        run: supabase status -o env >> "$GITHUB_ENV"
+
+      - name: Omgevingsvariabelen hernoemen naar wat de app verwacht
         run: |
-          supabase status -o env \
-            --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
-            --override-name api.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
-            >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL" >> "$GITHUB_ENV"
+          echo "SUPABASE_SERVICE_ROLE_KEY=$SERVICE_ROLE_KEY" >> "$GITHUB_ENV"
 
       - name: Snapshot genereren
         run: npm run db:snapshot
