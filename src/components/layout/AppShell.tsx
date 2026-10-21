@@ -22,6 +22,7 @@ import { BottomNav } from "./BottomNav";
 import { MobileHeader } from "./MobileHeader";
 import { OnlineHeartbeat } from "./OnlineHeartbeat";
 import { ScrollLockGuard } from "./ScrollLockGuard";
+import { ThemeColorSync } from "./ThemeColorSync";
 
 export function AppShell({
   profile,
@@ -176,6 +177,7 @@ function AppShellBody({
       </a>
       <OnlineHeartbeat />
       <ScrollLockGuard />
+      <ThemeColorSync />
       {/* QA-feedback redesign: op /beheer vervangt de donkerpetrol
           beheerzijbalk (BeheerSidebar, in beheer/layout.tsx) de gewone
           Sidebar — niet ernaast. Die beheerzijbalk is zelf fixed en vult

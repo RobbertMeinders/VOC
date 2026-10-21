@@ -39,9 +39,14 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export const viewport: Viewport = {
-  // Redesign-besluit 3/fase 1 (docs/redesign-ontwerp.md): donkerpetrol i.p.v.
-  // rood — rood is voortaan schaars (logo, hoofdknop, actief item, teller).
-  themeColor: "#0B2E33",
+  // Server-side fallback vóór THEME_INIT_SCRIPT draait (lib/theme/constants.ts) —
+  // die blocking inline script overschrijft dit vrijwel meteen met de
+  // daadwerkelijk opgeloste thema-achtergrond (licht/donker), en ThemeColorSync
+  // (AppShell) houdt 'm daarna actueel bij elke thema-wissel. Licht als
+  // fallback: :root (globals.css) is het lichte thema, niet dit vaste petrol
+  // — dat liet de statusbalk op een donker systeemthema tot een herstart in
+  // het verkeerde thema staan.
+  themeColor: "#f5f3ef",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
