@@ -160,14 +160,21 @@ export async function deleteMemberAction(memberId: string): Promise<DeleteMember
   // staat al, auth_scrubbed_at/pending_avatar_cleanup pas na succes hier) —
   // i.p.v. dat het echte e-mailadres voorgoed in auth.users blijft staan.
   const [{ old_avatar_url }] = anonymized;
+  // ban_duration blokkeert het account zelf (een bestaand wachtwoord werkt
+  // niet meer, net als elke nieuwe inlogpoging); force_logout_member ruimt
+  // daarnaast de al actieve sessie/refresh-tokens op (0111) — zonder dat
+  // tweede deel bleef een sessie die al liep na "verwijderen" nog gewoon
+  // geldig totdat hij vanzelf verliep.
   const { error: authError } = await admin.auth.admin.updateUserById(memberId, {
     email: `verwijderd-${memberId}@voc-ledenportaal.invalid`,
+    ban_duration: "876000h",
   });
   if (!authError) {
     await admin.rpc("mark_profiles_auth_scrubbed", { p_ids: [memberId] });
   } else {
     console.error(`[leden] deleteMemberAction: auth.users-update mislukt voor ${memberId}:`, authError);
   }
+  await admin.rpc("force_logout_member", { p_id: memberId });
   if (old_avatar_url) {
     const { error: storageError } = await admin.storage.from("avatars").remove([old_avatar_url]);
     if (!storageError) {
