@@ -2,17 +2,16 @@ import { NextResponse } from "next/server";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { activityIdFilter } from "@/lib/agenda/slug";
+import { csvEscape } from "@/lib/export/csv";
 
 // UX-review punt 15: CSV-export van aanmeldingen voor bestuur, naar het
 // patroon van de .ics-downloadroute hierboven. Alleen de velden die een
 // bestuurslid echt nodig heeft om een deelnemerslijst te kunnen gebruiken
 // (bv. voor cateringaantallen) — geen interne id's/avatar-paden.
-function csvEscape(value: string): string {
-  if (value.includes(",") || value.includes('"') || value.includes("\n")) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
-}
+// csvEscape (M12, lib/export/csv.ts): naam/bedrijfsnaam van een externe
+// aanmelding (public_activity_registrations) komt van een anonieme,
+// onbeveiligde invoer, dus moet tegen CSV-/formule-injectie beschermd
+// worden voordat het hieronder een rij wordt.
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   await requireBoard();
