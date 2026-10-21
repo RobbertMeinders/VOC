@@ -3,7 +3,9 @@ import { Users, List as ListIcon } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Chip } from "@/components/ui/Chip";
+import { QueryTabs } from "@/components/ui/QueryTabs";
+import { TabNavProvider } from "@/lib/ui/TabNavContext";
+import { TabContentArea } from "@/components/ui/TabContentArea";
 import { ContactenContent } from "@/components/beheer/ContactenContent";
 
 export const metadata: Metadata = { title: "Contacten & lijsten" };
@@ -37,26 +39,37 @@ export default async function ContactenPage({ searchParams }: { searchParams: Pr
     ]);
 
   return (
-    <div className="flex flex-col gap-4">
-      <PageHeader title="Contacten & lijsten" description="Externe contactpersonen zonder account en herbruikbare lijsten voor nieuwsbrieven." />
+    <TabNavProvider>
+      <div className="flex flex-col gap-4">
+        <PageHeader title="Contacten & lijsten" description="Externe contactpersonen zonder account en herbruikbare lijsten voor nieuwsbrieven." />
 
-      <div className="flex gap-1.5 overflow-x-auto">
-        {TABS.map((t) => (
-          <Chip key={t.key} href={t.key === "contacten" ? "/beheer/contacten" : `/beheer/contacten?tab=${t.key}`} active={activeTab === t.key}>
-            <t.icon size={14} />
-            {t.label}
-          </Chip>
-        ))}
+        <div className="flex gap-1.5 overflow-x-auto">
+          <QueryTabs
+            active={activeTab}
+            tabs={TABS.map((t) => ({
+              key: t.key,
+              href: t.key === "contacten" ? "/beheer/contacten" : `/beheer/contacten?tab=${t.key}`,
+              label: (
+                <>
+                  <t.icon size={14} />
+                  {t.label}
+                </>
+              ),
+            }))}
+          />
+        </div>
+
+        <TabContentArea>
+          <ContactenContent
+            activeTab={activeTab}
+            contacts={contacts ?? []}
+            lists={lists ?? []}
+            listProfiles={listProfiles ?? []}
+            listContacts={listContacts ?? []}
+            activeProfiles={activeProfiles ?? []}
+          />
+        </TabContentArea>
       </div>
-
-      <ContactenContent
-        activeTab={activeTab}
-        contacts={contacts ?? []}
-        lists={lists ?? []}
-        listProfiles={listProfiles ?? []}
-        listContacts={listContacts ?? []}
-        activeProfiles={activeProfiles ?? []}
-      />
-    </div>
+    </TabNavProvider>
   );
 }

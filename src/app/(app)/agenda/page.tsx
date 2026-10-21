@@ -6,9 +6,11 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { formatMonthLabel, splitUpcomingAndPast } from "@/lib/format/date";
 import { ActivityCard } from "@/components/agenda/ActivityCard";
+import { AgendaTypeTabs } from "@/components/agenda/AgendaTypeTabs";
 import { ComingSoon } from "@/components/ui/ComingSoon";
-import { Chip } from "@/components/ui/Chip";
 import { AnimatedDisclosure } from "@/components/ui/AnimatedDisclosure";
+import { TabNavProvider } from "@/lib/ui/TabNavContext";
+import { TabContentArea } from "@/components/ui/TabContentArea";
 import { MarkSectionReadOnView } from "@/components/notifications/MarkSectionReadOnView";
 import type { Database } from "@/lib/types/database";
 
@@ -23,13 +25,6 @@ function dayParts(iso: string) {
 export const metadata: Metadata = { title: "Agenda" };
 
 type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
-
-const TYPE_TABS = [
-  { value: undefined, label: "Alles" },
-  { value: "activiteit", label: "VOC" },
-  { value: "ingebracht", label: "Extern" },
-  { value: "mijn-aanmeldingen", label: "Aangemeld" },
-] as const;
 
 export default async function AgendaPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
   const profile = await requireProfile();
@@ -123,55 +118,53 @@ export default async function AgendaPage({ searchParams }: { searchParams: Promi
   }
 
   return (
-    <div>
-      <MarkSectionReadOnView section="agenda" />
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Agenda</h1>
-        {/* Stijlronde: hoofdknop van het scherm, dus rood en met gewicht
-            i.p.v. een witte outline-knop — de grote datum per activiteit
-            hieronder doet het werk van de weekstrook, die is weg. */}
-        <Link
-          href="/agenda/nieuw"
-          className="flex h-11 items-center gap-1.5 rounded-full bg-voc-red px-5 text-sm font-semibold text-white shadow-[0_6px_16px_-4px_rgba(232,0,15,0.4)] transition-all duration-150 hover:-translate-y-px hover:bg-voc-red-dark"
-        >
-          <Plus size={18} />
-          Activiteit
-        </Link>
-      </div>
+    <TabNavProvider>
+      <div>
+        <MarkSectionReadOnView section="agenda" />
+        <div className="mb-4 flex items-center justify-between">
+          <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Agenda</h1>
+          {/* Stijlronde: hoofdknop van het scherm, dus rood en met gewicht
+              i.p.v. een witte outline-knop — de grote datum per activiteit
+              hieronder doet het werk van de weekstrook, die is weg. */}
+          <Link
+            href="/agenda/nieuw"
+            className="flex h-11 items-center gap-1.5 rounded-full bg-voc-red px-5 text-sm font-semibold text-white shadow-[0_6px_16px_-4px_rgba(232,0,15,0.4)] transition-all duration-150 hover:-translate-y-px hover:bg-voc-red-dark"
+          >
+            <Plus size={18} />
+            Activiteit
+          </Link>
+        </div>
 
-      <div className="mb-4 flex gap-1.5 overflow-x-auto">
-        {TYPE_TABS.map((tab) => (
-          <Chip key={tab.label} href={tab.value ? `/agenda?type=${tab.value}` : "/agenda"} active={(type ?? undefined) === tab.value}>
-            {tab.label}
-          </Chip>
-        ))}
-      </div>
+        <AgendaTypeTabs active={type} />
 
-      {upcoming.length > 0 ? (
-        <div className="flex flex-col gap-6">
-          {upcomingByMonth.map((group) => (
-            <div key={group.label} className="flex flex-col gap-3">
-              <h2 className="font-display pl-[56px] text-sm font-bold text-muted">{group.label}</h2>
-              {renderTimelineGroup(group.items)}
+        <TabContentArea>
+          {upcoming.length > 0 ? (
+            <div className="flex flex-col gap-6">
+              {upcomingByMonth.map((group) => (
+                <div key={group.label} className="flex flex-col gap-3">
+                  <h2 className="font-display pl-[56px] text-sm font-bold text-muted">{group.label}</h2>
+                  {renderTimelineGroup(group.items)}
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      ) : (
-        <ComingSoon icon={CalendarDays} title="Geen activiteiten gepland" description="Er zijn momenteel geen activiteiten." />
-      )}
+          ) : (
+            <ComingSoon icon={CalendarDays} title="Geen activiteiten gepland" description="Er zijn momenteel geen activiteiten." />
+          )}
 
-      {/* Afwerkronde blok 5: hoogte-animatie bij het uitklappen i.p.v. de
-          native <details> die instant open/dicht klapte. */}
-      {past.length > 0 && (
-        <div className="mt-8">
-          <AnimatedDisclosure label={`Eerdere activiteiten (${past.length})`} contentClassName="opacity-80 grayscale-[65%]">
-            {/* Lichtjes grijzer dan de rest, niet extreem, en blijft ook zo —
-                geen kleur-restore bij hover (dat voelde als een onnodige
-                knipper-animatie voor iets dat sowieso al voorbij is). */}
-            {renderTimelineGroup(past)}
-          </AnimatedDisclosure>
-        </div>
-      )}
-    </div>
+          {/* Afwerkronde blok 5: hoogte-animatie bij het uitklappen i.p.v. de
+              native <details> die instant open/dicht klapte. */}
+          {past.length > 0 && (
+            <div className="mt-8">
+              <AnimatedDisclosure label={`Eerdere activiteiten (${past.length})`} contentClassName="opacity-80 grayscale-[65%]">
+                {/* Lichtjes grijzer dan de rest, niet extreem, en blijft ook zo —
+                    geen kleur-restore bij hover (dat voelde als een onnodige
+                    knipper-animatie voor iets dat sowieso al voorbij is). */}
+                {renderTimelineGroup(past)}
+              </AnimatedDisclosure>
+            </div>
+          )}
+        </TabContentArea>
+      </div>
+    </TabNavProvider>
   );
 }

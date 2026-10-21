@@ -6,7 +6,9 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { memberHref } from "@/lib/members/slug";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Chip } from "@/components/ui/Chip";
+import { QueryTabs } from "@/components/ui/QueryTabs";
+import { TabNavProvider } from "@/lib/ui/TabNavContext";
+import { TabContentArea } from "@/components/ui/TabContentArea";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { formatDateTime } from "@/lib/format/date";
 
@@ -54,23 +56,40 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Pro
   );
 
   return (
-    <div>
+    <TabNavProvider>
+      <div>
       <PageHeader title="Feedback" description="Wat testleden melden via de testfase-pagina." />
 
       <div className="mb-4 flex gap-1.5">
-        <Chip href="/beheer/feedback" active={!activeType}>
-          Alles
-        </Chip>
-        <Chip href="/beheer/feedback?type=probleem" active={activeType === "probleem"}>
-          <AlertTriangle size={14} />
-          Problemen
-        </Chip>
-        <Chip href="/beheer/feedback?type=idee" active={activeType === "idee"}>
-          <Lightbulb size={14} />
-          Ideeën
-        </Chip>
+        <QueryTabs
+          active={activeType ?? "alles"}
+          tabs={[
+            { key: "alles", href: "/beheer/feedback", label: "Alles" },
+            {
+              key: "probleem",
+              href: "/beheer/feedback?type=probleem",
+              label: (
+                <>
+                  <AlertTriangle size={14} />
+                  Problemen
+                </>
+              ),
+            },
+            {
+              key: "idee",
+              href: "/beheer/feedback?type=idee",
+              label: (
+                <>
+                  <Lightbulb size={14} />
+                  Ideeën
+                </>
+              ),
+            },
+          ]}
+        />
       </div>
 
+      <TabContentArea>
       {rows && rows.length > 0 ? (
         <div className="flex flex-col gap-3">
           {rows.map((row) => (
@@ -124,6 +143,8 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Pro
           description="Meldingen van testleden via /testfase verschijnen hier."
         />
       )}
-    </div>
+      </TabContentArea>
+      </div>
+    </TabNavProvider>
   );
 }

@@ -3,7 +3,9 @@ import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Chip } from "@/components/ui/Chip";
+import { QueryTabs } from "@/components/ui/QueryTabs";
+import { TabNavProvider } from "@/lib/ui/TabNavContext";
+import { TabContentArea } from "@/components/ui/TabContentArea";
 import { AppSettingsForm } from "@/components/beheer/AppSettingsForm";
 import { ForceLogoutAllButton } from "@/components/beheer/ForceLogoutAllButton";
 import { NotificationRuleRow } from "@/components/beheer/NotificationRuleRow";
@@ -48,20 +50,25 @@ export default async function AppSettingsPage({ searchParams }: { searchParams: 
   const anyRuleEnabled = (notificationRows ?? []).some((row) => row.enabled);
 
   return (
-    <div className="flex flex-col gap-4">
+    <TabNavProvider>
+      <div className="flex flex-col gap-4">
       <PageHeader
         title="Portaalinstellingen"
         description="Naam, logo, verenigingsnaam, notificatieregels en de teksten van automatische berichten."
       />
 
       <div className="flex min-w-0 gap-1.5 overflow-x-auto">
-        {TABS.map((t) => (
-          <Chip key={t.key} href={t.key === "algemeen" ? "/beheer/instellingen" : `/beheer/instellingen?tab=${t.key}`} active={activeTab === t.key}>
-            {t.label}
-          </Chip>
-        ))}
+        <QueryTabs
+          active={activeTab}
+          tabs={TABS.map((t) => ({
+            key: t.key,
+            href: t.key === "algemeen" ? "/beheer/instellingen" : `/beheer/instellingen?tab=${t.key}`,
+            label: t.label,
+          }))}
+        />
       </div>
 
+      <TabContentArea className="flex flex-col gap-4">
       {activeTab === "algemeen" && (
         <>
           {isAdmin && <AppSettingsForm settings={settings} />}
@@ -121,6 +128,8 @@ export default async function AppSettingsPage({ searchParams }: { searchParams: 
       )}
 
       {activeTab === "berichten" && (isAdmin ? <MessageTemplatesContent /> : <p className="text-sm text-muted">Alleen voor beheerders.</p>)}
-    </div>
+      </TabContentArea>
+      </div>
+    </TabNavProvider>
   );
 }

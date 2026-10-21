@@ -3,7 +3,9 @@ import { Building2, Clock, Inbox, UserPlus, UserSearch, Upload } from "lucide-re
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { Chip } from "@/components/ui/Chip";
+import { QueryTabs } from "@/components/ui/QueryTabs";
+import { TabNavProvider } from "@/lib/ui/TabNavContext";
+import { TabContentArea } from "@/components/ui/TabContentArea";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { AccessRequestRow, type AccessRequest } from "@/components/invitations/AccessRequestRow";
 import { InviteForm } from "@/components/invitations/InviteForm";
@@ -250,36 +252,42 @@ export default async function InstroomPage({
   const requestStatus: "pending" | "handled" = status === "afgehandeld" ? "handled" : "pending";
 
   return (
-    <div>
+    <TabNavProvider>
+      <div>
       <PageHeader title="Aanvragen" />
 
       {/* sticky: blijft in beeld bij scrollen door een lange lijst (zelfde als
           /beheer/bedrijven). top-14 op mobiel (onder de mobiele header), top-0
           op desktop (geen vaste header daar). */}
       <div className="sticky top-14 z-10 -mx-4 mb-4 flex gap-1.5 overflow-x-auto bg-background px-4 py-2 md:top-0 md:-mx-16 md:px-16">
-        {TABS.map((t) => (
-          <Chip
-            key={t.key}
-            href={t.key === "aanvragen" ? "/beheer/instroom" : `/beheer/instroom?tab=${t.key}`}
-            active={activeTab === t.key}
-          >
-            <t.icon size={14} />
-            {t.label}
-          </Chip>
-        ))}
+        <QueryTabs
+          active={activeTab}
+          tabs={TABS.map((t) => ({
+            key: t.key,
+            href: t.key === "aanvragen" ? "/beheer/instroom" : `/beheer/instroom?tab=${t.key}`,
+            label: (
+              <>
+                <t.icon size={14} />
+                {t.label}
+              </>
+            ),
+          }))}
+        />
       </div>
 
+      <TabContentArea>
       {activeTab === "aanvragen" && (
         <>
           {/* UX-audit F3: geschiedenis van afgehandelde aanvragen — tot nu
               toe verdwenen die simpelweg uit beeld na accepteren/afwijzen. */}
           <div className="mb-3 flex gap-1.5">
-            <Chip href="/beheer/instroom" active={requestStatus === "pending"}>
-              Openstaand
-            </Chip>
-            <Chip href="/beheer/instroom?tab=aanvragen&status=afgehandeld" active={requestStatus === "handled"}>
-              Afgehandeld
-            </Chip>
+            <QueryTabs
+              active={requestStatus}
+              tabs={[
+                { key: "pending", href: "/beheer/instroom", label: "Openstaand" },
+                { key: "handled", href: "/beheer/instroom?tab=aanvragen&status=afgehandeld", label: "Afgehandeld" },
+              ]}
+            />
           </div>
           <AanvragenTab status={requestStatus} />
         </>
@@ -287,12 +295,13 @@ export default async function InstroomPage({
       {activeTab === "koppelingen" && (
         <>
           <div className="mb-3 flex gap-1.5">
-            <Chip href="/beheer/instroom?tab=koppelingen" active={requestStatus === "pending"}>
-              Openstaand
-            </Chip>
-            <Chip href="/beheer/instroom?tab=koppelingen&status=afgehandeld" active={requestStatus === "handled"}>
-              Afgehandeld
-            </Chip>
+            <QueryTabs
+              active={requestStatus}
+              tabs={[
+                { key: "pending", href: "/beheer/instroom?tab=koppelingen", label: "Openstaand" },
+                { key: "handled", href: "/beheer/instroom?tab=koppelingen&status=afgehandeld", label: "Afgehandeld" },
+              ]}
+            />
           </div>
           <KoppelingenTab status={requestStatus} />
         </>
@@ -300,6 +309,8 @@ export default async function InstroomPage({
       {activeTab === "uitnodigingen" && <UitnodigingenTab canInviteBoard={profile.role === "beheerder"} />}
       {activeTab === "prospects" && <ProspectsTab />}
       {activeTab === "import" && <ImportTab />}
-    </div>
+      </TabContentArea>
+      </div>
+    </TabNavProvider>
   );
 }
