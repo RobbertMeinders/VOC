@@ -29,9 +29,6 @@ jobs:
 
       - run: npm ci
 
-      - name: Typecheck
-        run: npx tsc --noEmit
-
       - name: Lint
         run: npm run lint
 
@@ -39,7 +36,15 @@ jobs:
         # Draait zonder Supabase-omgevingsvariabelen: elke route in dit
         # project is server-rendered on demand (geen statische data-fetch
         # tijdens build), dus dit slaagt ook zonder live databasetoegang.
+        # Genereert ook .next/types/** (Next.js' eigen gegenereerde globale
+        # types, zoals LayoutProps<"/"> in layout.tsx) — moet daarom vóór
+        # Typecheck draaien, anders faalt tsc op elke verse checkout met
+        # "Cannot find name 'LayoutProps'" (lokaal viel dit niet op omdat
+        # daar al build-output van een eerdere run stond).
         run: npm run build
+
+      - name: Typecheck
+        run: npx tsc --noEmit
 
       - name: Tests
         run: npm test
