@@ -49,14 +49,15 @@ export async function BeheerBedrijvenContent() {
   // requireBoard hierboven is de echte grens — elk bestuurslid ziet toch al
   // dezelfde, ongefilterde lijst, dus delen tussen viewers is veilig.
   // Zoeken filtert client-side (BeheerBedrijvenListClient), dus de cache
-  // blijft ongewijzigd. companies_for_members (M8) i.p.v. companies zelf:
-  // elke viewer hier is al bestuur/beheer, dus krijgt via die view sowieso
-  // het ongemaskeerde adres — alleen de kolom-grant op companies zelf is nu
-  // dicht voor authenticated.
+  // blijft ongewijzigd. companies_for_members (M8, sinds 0158 een security
+  // definer functie i.p.v. view — Supabase-linter 0010) i.p.v. companies
+  // zelf: elke viewer hier is al bestuur/beheer, dus krijgt via deze functie
+  // sowieso het ongemaskeerde adres — alleen de kolom-grant op companies
+  // zelf is nu dicht voor authenticated.
   const [{ data: allCompanies }, { data: billingRows }, { data: pendingRequestRows }] = await Promise.all([
     cachedQuery("beheer-bedrijven-page-data", 300_000, () =>
       supabase
-        .from("companies_for_members")
+        .rpc("companies_for_members")
         .select("id, slug, name, industry, city, address, postal_code, logo_url, logo_thumb_url, phone, email, website")
         .order("name")
         .returns<CompanyRow[]>()

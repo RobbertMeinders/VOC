@@ -85,12 +85,13 @@ export async function updateCompanyAction(
   // eerdere mislukte geocode-poging (bijv. Nominatim tijdelijk niet
   // bereikbaar). Bij een ongewijzigd adres mét al bekende coördinaten
   // slaan we de aanroep over.
-  // companies_for_members (M8): deze aanroeper is hierboven al als
+  // companies_for_members (M8, sinds 0158 een security definer functie
+  // i.p.v. view — Supabase-linter 0010): deze aanroeper is hierboven al als
   // company-lid of bestuur/beheer geverifieerd, dus krijgt sowieso het
   // ongemaskeerde adres terug — maar de kolom-grant op companies zelf is
-  // nu dicht voor authenticated, dus moet via deze view gelezen worden.
+  // nu dicht voor authenticated, dus moet via deze functie gelezen worden.
   const { data: existing } = await supabase
-    .from("companies_for_members")
+    .rpc("companies_for_members")
     .select("address, postal_code, city, latitude, longitude, logo_url, logo_thumb_url")
     .eq("id", companyId)
     .maybeSingle();

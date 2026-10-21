@@ -28,12 +28,13 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  // companies_for_members (M8): maskeert address/postal_code/latitude/
-  // longitude voor wie geen lid van dit bedrijf of bestuur/beheer is — de
-  // check vlak hieronder bepaalt of het formulier zelf getoond wordt, maar
-  // de data zelf mag sowieso nooit ongemaskeerd naar de client.
+  // companies_for_members (M8, sinds 0158 een security definer functie
+  // i.p.v. view — Supabase-linter 0010): maskeert address/postal_code/
+  // latitude/longitude voor wie geen lid van dit bedrijf of bestuur/beheer
+  // is — de check vlak hieronder bepaalt of het formulier zelf getoond
+  // wordt, maar de data zelf mag sowieso nooit ongemaskeerd naar de client.
   const { data: company } = await supabase
-    .from("companies_for_members")
+    .rpc("companies_for_members")
     .select("*")
     .filter(...companyIdFilter(routeParam))
     .maybeSingle<Company>();

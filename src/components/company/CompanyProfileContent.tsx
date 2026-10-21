@@ -37,11 +37,13 @@ type RequestRow = {
 // naam-slug, of — voor oudere links — een kaal UUID (zie lib/company/slug.ts).
 const getCachedCompany = cache(async (param: string): Promise<Company | null> => {
   const supabase = await createClient();
-  // companies_for_members (M8) i.p.v. de tabel zelf: maskeert address/
-  // postal_code/latitude/longitude voor wie geen lid van dit bedrijf of
-  // bestuur/beheer is, als het bedrijf show_address uit heeft staan.
+  // companies_for_members (M8, sinds 0158 een security definer functie
+  // i.p.v. view — Supabase-linter 0010): maskeert address/postal_code/
+  // latitude/longitude voor wie geen lid van dit bedrijf of bestuur/beheer
+  // is, als het bedrijf show_address uit heeft staan. Een stable functie die
+  // setof teruggeeft ondersteunt dezelfde .select()/.filter() als een view.
   const { data } = await supabase
-    .from("companies_for_members")
+    .rpc("companies_for_members")
     .select("*")
     .filter(...companyIdFilter(param))
     .maybeSingle<Company>();

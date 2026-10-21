@@ -870,16 +870,18 @@ export interface Database {
         Relationships: [];
       };
     };
-    Views: {
+    Views: Record<string, never>;
+    Functions: {
       // M8: maskeert companies.address/postal_code/latitude/longitude voor
       // wie geen lid van dit bedrijf of bestuur/beheer is en het bedrijf
-      // show_address uit heeft staan (0145_mask_company_address.sql).
+      // show_address uit heeft staan. Was een view (0145), sinds 0158 een
+      // security definer functie (Supabase-linter 0010, "Security Definer
+      // View") — zelfde rijvorm/maskering, dus Returns is nog steeds de
+      // companies-Row.
       companies_for_members: {
-        Row: Database["public"]["Tables"]["companies"]["Row"];
-        Relationships: [];
+        Args: Record<string, never>;
+        Returns: Database["public"]["Tables"]["companies"]["Row"][];
       };
-    };
-    Functions: {
       get_invitation_preview: {
         Args: { p_token: string };
         Returns: {
