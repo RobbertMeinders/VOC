@@ -30,7 +30,20 @@ export async function dispatchPendingEmailNotifications(limit = 50): Promise<{ s
         p_provider_id: result.providerId,
       });
     }
-    emailedIds.push(item.notification_id);
+    // Portaal-gezondheidsonderzoek A4: alleen als verstuurd boeken bij een
+    // geslaagde (of bewust overgeslagen, bv. EMAIL_ALLOWLIST) verzending.
+    // Bij een echte fout blijft de rij ongemarkeerd (emailed_at NULL) — de
+    // 10-minuten-lease (0134, email_claimed_at) verloopt dan vanzelf, en een
+    // latere aanroep probeert het opnieuw i.p.v. de mail stil te laten
+    // verdwijnen.
+    if (!result.error || result.skipped) {
+      emailedIds.push(item.notification_id);
+    } else {
+      console.error(
+        `[dispatch-email] versturen mislukt voor notificatie ${item.notification_id} (${item.email}):`,
+        result.error
+      );
+    }
   }
 
   if (emailedIds.length > 0) {
