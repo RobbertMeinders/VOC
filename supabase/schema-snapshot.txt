@@ -48,20 +48,20 @@ public.communications | communications_board_select | cmd=SELECT | roles={public
 public.communications | communications_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
 public.companies | companies_admin_delete | cmd=DELETE | roles={public} | using=is_admin() | check=
 public.companies | companies_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
-public.companies | companies_member_update | cmd=UPDATE | roles={public} | using=(EXISTS ( SELECT 1
+public.companies | companies_member_update | cmd=UPDATE | roles={public} | using=(is_active_member() AND (EXISTS ( SELECT 1
    FROM company_members
-  WHERE ((company_members.company_id = companies.id) AND (company_members.profile_id = auth.uid())))) | check=
+  WHERE ((company_members.company_id = companies.id) AND (company_members.profile_id = auth.uid()))))) | check=
 public.companies | companies_members_insert | cmd=INSERT | roles={public} | using= | check=is_active_member()
 public.companies | companies_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.company_billing_details | company_billing_details_member_insert | cmd=INSERT | roles={public} | using= | check=(is_board() OR (EXISTS ( SELECT 1
+public.company_billing_details | company_billing_details_member_insert | cmd=INSERT | roles={public} | using= | check=(is_board() OR (is_active_member() AND (EXISTS ( SELECT 1
    FROM company_members
-  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = auth.uid())))))
-public.company_billing_details | company_billing_details_member_select | cmd=SELECT | roles={public} | using=(is_board() OR (EXISTS ( SELECT 1
+  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = auth.uid()))))))
+public.company_billing_details | company_billing_details_member_select | cmd=SELECT | roles={public} | using=(is_board() OR (is_active_member() AND (EXISTS ( SELECT 1
    FROM company_members
-  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = auth.uid()))))) | check=
-public.company_billing_details | company_billing_details_member_update | cmd=UPDATE | roles={public} | using=(is_board() OR (EXISTS ( SELECT 1
+  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = auth.uid())))))) | check=
+public.company_billing_details | company_billing_details_member_update | cmd=UPDATE | roles={public} | using=(is_board() OR (is_active_member() AND (EXISTS ( SELECT 1
    FROM company_members
-  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = auth.uid()))))) | check=
+  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = auth.uid())))))) | check=
 public.company_members | company_members_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
 public.company_members | company_members_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
 public.company_members | company_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
@@ -112,9 +112,7 @@ public.feed_likes | feed_likes_self_delete | cmd=DELETE | roles={public} | using
    FROM feed_posts
   WHERE ((feed_posts.id = feed_likes.post_id) AND (feed_posts.author_id = auth.uid()))))) | check=
 public.feed_likes | feed_likes_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member())
-public.feed_post_reports | feed_post_reports_author_or_board_delete | cmd=DELETE | roles={public} | using=(is_board() OR (EXISTS ( SELECT 1
-   FROM feed_posts
-  WHERE ((feed_posts.id = feed_post_reports.post_id) AND (feed_posts.author_id = auth.uid()))))) | check=
+public.feed_post_reports | feed_post_reports_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
 public.feed_post_reports | feed_post_reports_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
 public.feed_post_reports | feed_post_reports_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=is_board()
 public.feed_post_reports | feed_post_reports_self_insert | cmd=INSERT | roles={public} | using= | check=((reporter_id = auth.uid()) AND is_active_member())
@@ -123,7 +121,7 @@ public.feed_posts | feed_posts_members_select | cmd=SELECT | roles={public} | us
 public.feed_posts | feed_posts_self_insert | cmd=INSERT | roles={public} | using= | check=((author_id = auth.uid()) AND is_active_member())
 public.feed_posts | feed_posts_self_or_board_delete | cmd=DELETE | roles={public} | using=((author_id = auth.uid()) OR is_board()) | check=
 public.feed_posts | feed_posts_self_update | cmd=UPDATE | roles={public} | using=(author_id = auth.uid()) | check=(author_id = auth.uid())
-public.invitations | invitations_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
+public.invitations | invitations_board_select | cmd=SELECT | roles={public} | using=(is_admin() OR ((role = 'lid'::user_role) AND is_board())) | check=
 public.invitations | invitations_insert | cmd=INSERT | roles={public} | using= | check=((invited_by = auth.uid()) AND (is_admin() OR ((role = 'lid'::user_role) AND is_board())))
 public.invitations | invitations_update | cmd=UPDATE | roles={public} | using=(is_admin() OR ((role = 'lid'::user_role) AND is_board())) | check=
 public.message_templates | message_templates_admin_select | cmd=SELECT | roles={public} | using=is_admin() | check=
@@ -527,6 +525,25 @@ end;
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.delete_feed_post(p_id uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not exists (
+    select 1 from public.feed_posts
+    where id = p_id and (author_id = auth.uid() or public.is_board())
+  ) then
+    raise exception 'not authorized';
+  end if;
+
+  delete from public.feed_posts where id = p_id;
+end;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.dispatch_mention_notifications(p_content text, p_author_id uuid, p_context text)
  RETURNS void
  LANGUAGE plpgsql
@@ -665,7 +682,11 @@ AS $function$
 declare
   v_normalized_email text := lower(trim(new.email));
   v_recent_attempts integer;
+  v_recent_total integer;
 begin
+  new.created_at := now();
+  new.status := 'pending';
+
   select count(*) into v_recent_attempts
     from public.access_requests
     where lower(email) = v_normalized_email
@@ -673,6 +694,20 @@ begin
 
   if v_recent_attempts >= 5 then
     raise exception 'Te veel aanvragen met dit e-mailadres. Probeer het over een kwartier opnieuw.';
+  end if;
+
+  -- Los van het per-e-mailadres-limiet hierboven: dit formulier is volledig
+  -- anoniem bereikbaar, dus een script dat telkens een ander e-mailadres
+  -- gebruikt, omzeilt dat limiet moeiteloos. Een algemene bovengrens per
+  -- tijdvak (onafhankelijk van welk e-mailadres) maakt dat soort
+  -- grootschalig misbruik ook onmogelijk, zonder het legitieme, lage
+  -- volume van dit formulier te raken.
+  select count(*) into v_recent_total
+    from public.access_requests
+    where created_at > now() - interval '1 hour';
+
+  if v_recent_total >= 30 then
+    raise exception 'Er zijn momenteel te veel aanvragen binnengekomen. Probeer het later opnieuw.';
   end if;
 
   return new;
@@ -692,6 +727,8 @@ declare
   v_status text;
   v_confirmed_count integer;
 begin
+  new.attended := false;
+
   select registration_deadline, max_participants, status
     into v_deadline, v_max, v_status
     from public.activities
@@ -731,6 +768,8 @@ AS $function$
 declare
   v_recent_count integer;
 begin
+  new.created_at := now();
+
   select count(*) into v_recent_count
     from public.testfase_feedback
     where profile_id = new.profile_id
@@ -908,6 +947,23 @@ begin
   where r.activity_id = p_activity_id
   order by r.created_at;
 end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_companies_directory()
+ RETURNS TABLE(id uuid, name text, industry text, city text, logo_url text, logo_thumb_url text, tagline text, latitude double precision, longitude double precision, show_address boolean)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select
+    id, name, industry, city, logo_url, logo_thumb_url, tagline,
+    case when show_address then latitude else null end,
+    case when show_address then longitude else null end,
+    show_address
+  from public.companies
+  where public.is_active_member()
+  order by name;
 $function$
 
 ---
@@ -1275,6 +1331,36 @@ CREATE OR REPLACE FUNCTION public.gtrgm_union(internal, internal)
 AS '$libdir/pg_trgm', $function$gtrgm_union$function$
 
 ---
+CREATE OR REPLACE FUNCTION public.guard_commission_application_insert()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  new.status := 'in_behandeling';
+  new.decided_by := null;
+  new.decided_at := null;
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.guard_company_membership_request_insert()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  new.status := 'pending';
+  new.decided_by := null;
+  new.decided_at := null;
+  return new;
+end;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.guard_company_privileges()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -1302,6 +1388,7 @@ begin
     new.role := old.role;
     if not (
       public.is_board()
+      or auth.role() = 'service_role'
       or (new.id = auth.uid() and old.is_active and not new.is_active)
     ) then
       new.is_active := old.is_active;
@@ -1609,7 +1696,11 @@ CREATE OR REPLACE FUNCTION public.log_event(p_event_type text, p_target_type tex
  SET search_path TO 'public'
 AS $function$
 begin
-  if auth.uid() is null then
+  if auth.uid() is null or not public.is_active_member() then
+    return;
+  end if;
+
+  if p_event_type not in ('activity_viewed', 'document_viewed', 'post_viewed') then
     return;
   end if;
 
