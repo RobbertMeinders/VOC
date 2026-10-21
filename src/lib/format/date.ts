@@ -131,7 +131,14 @@ export function getGreeting(): string {
  */
 export function splitUpcomingAndPast<T extends { starts_at: string }>(items: T[]): { upcoming: T[]; past: T[] } {
   const now = Date.now();
-  const upcoming = items.filter((item) => new Date(item.starts_at).getTime() >= now);
+  // B2 (eerste testsuite): `upcoming` werd nooit zelf gesorteerd — alleen de
+  // enige huidige aanroeper (agenda/page.tsx) haalt activiteiten al
+  // oplopend-gesorteerd op, wat de "soonest first"-belofte hierboven toevallig
+  // waarmaakte. Een sort hier maakt de functie ook correct voor een
+  // ongesorteerde input, i.p.v. stilletjes op de aanroeper te vertrouwen.
+  const upcoming = items
+    .filter((item) => new Date(item.starts_at).getTime() >= now)
+    .sort((a, b) => new Date(a.starts_at).getTime() - new Date(b.starts_at).getTime());
   const past = items
     .filter((item) => new Date(item.starts_at).getTime() < now)
     .sort((a, b) => new Date(b.starts_at).getTime() - new Date(a.starts_at).getTime());

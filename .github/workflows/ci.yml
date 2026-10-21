@@ -1,0 +1,55 @@
+name: CI
+
+# Portaal-gezondheidsonderzoek Blok B2: er was tot nu toe geen enkele
+# geautomatiseerde check — een fout kon zo in elke push meegaan. Draait
+# dezelfde verificatie die elke commit op deze repo al handmatig doorloopt
+# (tsc + lint + build + tests), plus (best-effort, zie db-snapshot-check
+# hieronder) de B1-regressietest op databasepolicies/functies.
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npx tsc --noEmit
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        # Draait zonder Supabase-omgevingsvariabelen: elke route in dit
+        # project is server-rendered on demand (geen statische data-fetch
+        # tijdens build), dus dit slaagt ook zonder live databasetoegang.
+        run: npm run build
+
+      - name: Tests
+        run: npm test
+
+      - name: Schema-snapshot beschikbaar?
+        id: snapshot_secrets
+        run: echo "available=${{ secrets.SUPABASE_SERVICE_ROLE_KEY != '' && secrets.NEXT_PUBLIC_SUPABASE_URL != '' }}" >> "$GITHUB_OUTPUT"
+
+      - name: DB-regressietest (policies/functies)
+        # B1: pas uitvoerbaar zodra het eerste referentiebestand
+        # (supabase/schema-snapshot.txt) is vastgelegd EN de
+        # service-role-sleutel als repository-secret beschikbaar is gemaakt
+        # — tot die tijd best-effort overgeslagen i.p.v. elke run te laten
+        # falen om iets dat nog niet opgezet is.
+        if: steps.snapshot_secrets.outputs.available == 'true'
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npm run db:snapshot:check

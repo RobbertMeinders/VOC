@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "eslint",
     "db:snapshot": "node scripts/db-schema-snapshot.mjs",
-    "db:snapshot:check": "node scripts/db-schema-snapshot.mjs --check"
+    "db:snapshot:check": "node scripts/db-schema-snapshot.mjs --check",
+    "test": "vitest run"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
@@ -38,6 +39,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.5",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^3.2.7"
   }
 }
