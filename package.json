@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:snapshot": "node scripts/db-schema-snapshot.mjs",
+    "db:snapshot:check": "node scripts/db-schema-snapshot.mjs --check"
   },
   "dependencies": {
     "@supabase/ssr": "^0.12.7",
