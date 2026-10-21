@@ -46,6 +46,7 @@ export async function getBeheerWaitingCounts(): Promise<BeheerWaitingCounts> {
         .from("invitations")
         .select("id", { count: "exact", head: true })
         .eq("status", "pending")
+        .gt("expires_at", new Date().toISOString())
         .lte("expires_at", sevenDaysFromNow),
     ]);
 

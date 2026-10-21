@@ -1063,6 +1063,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: number;
       };
+      delete_expired_invitations: {
+        Args: Record<string, never>;
+        Returns: number;
+      };
       anonymize_expired_profiles: {
         Args: Record<string, never>;
         Returns: { profile_id: string; old_avatar_url: string | null }[];

@@ -41,7 +41,12 @@ export async function GET(request: Request) {
   // voor service_role — deze route gebruikte de admin-client toch al voor
   // de auth.admin-aanroep verderop, dus nu voor alles in één keer.
   const admin = createAdminClient();
-  const [{ error }, { data: deletedProspects, error: prospectsError }, { data: deletedEvents, error: eventsError }] = await Promise.all([
+  const [
+    { error },
+    { data: deletedProspects, error: prospectsError },
+    { data: deletedEvents, error: eventsError },
+    { data: deletedInvitations, error: invitationsError },
+  ] = await Promise.all([
     admin.rpc("anonymize_expired_profiles"),
     admin.rpc("delete_expired_prospects"),
     // cleanup_old_events (portaal-gezondheid Blok C): events groeit
@@ -49,9 +54,16 @@ export async function GET(request: Request) {
     // voor persoonsgegevens, maar hoeft er net als delete_expired_prospects
     // geen eigen dagelijkse cron/vercel.json-entry voor te hebben.
     admin.rpc("cleanup_old_events"),
+    // delete_expired_invitations (diepte-audit Blok B2): zelfde reden als
+    // hierboven — een eigen bewaartermijn-opruiming die geen aparte cron
+    // verdient.
+    admin.rpc("delete_expired_invitations"),
   ]);
   if (eventsError) {
     console.error("[cron] anonymize-members: cleanup_old_events mislukt:", eventsError);
+  }
+  if (invitationsError) {
+    console.error("[cron] anonymize-members: delete_expired_invitations mislukt:", invitationsError);
   }
 
   if (error) {
@@ -101,5 +113,6 @@ export async function GET(request: Request) {
     avatarsRemoved: avatarPaths.length,
     deletedProspects: prospectsError ? null : deletedProspects,
     deletedEvents: eventsError ? null : deletedEvents,
+    deletedInvitations: invitationsError ? null : deletedInvitations,
   });
 }
