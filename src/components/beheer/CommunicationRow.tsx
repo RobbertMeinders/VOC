@@ -8,6 +8,7 @@ import { ActionMenu, type ActionMenuItem } from "@/components/ui/ActionMenu";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 import { deleteCommunicationAction, duplicateCommunicationAction } from "@/app/(app)/beheer/communicatie/actions";
 import { renderNewsletterHtml } from "@/lib/newsletter/render";
+import { formatDateShort } from "@/lib/format/date";
 import type { NewsletterBlock } from "@/lib/newsletter/types";
 import type { Database } from "@/lib/types/database";
 
@@ -85,7 +86,7 @@ function CampaignThumbnail({
 }
 
 function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" });
+  return formatDateShort(iso);
 }
 
 function StatusBadge({ status }: { status: string }) {

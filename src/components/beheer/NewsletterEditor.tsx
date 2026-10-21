@@ -48,7 +48,7 @@ import { AudiencePicker } from "@/components/beheer/AudiencePicker";
 import { NewsletterDeliveriesTable } from "@/components/beheer/NewsletterDeliveriesTable";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 import { useToast } from "@/lib/ui/ToastContext";
-import { formatActivityDate } from "@/lib/format/date";
+import { formatActivityDate, formatDateTime } from "@/lib/format/date";
 import type { NewsletterAlign, NewsletterBlock } from "@/lib/newsletter/types";
 import type { Database } from "@/lib/types/database";
 
@@ -731,7 +731,7 @@ export function NewsletterEditor({
     const iso = new Date(scheduledAtInput).toISOString();
     const confirmed = await confirm({
       title: "Nieuwsbrief inplannen?",
-      description: `Wordt verstuurd op ${new Date(iso).toLocaleString("nl-NL")}. Je kunt de planning daarna nog annuleren.`,
+      description: `Wordt verstuurd op ${formatDateTime(iso)}. Je kunt de planning daarna nog annuleren.`,
       confirmLabel: "Inplannen",
       danger: true,
     });
@@ -1041,7 +1041,7 @@ export function NewsletterEditor({
             <p className="text-sm font-medium text-foreground">Ingepland</p>
             <p className="mt-1 text-sm text-muted">
               Wordt verstuurd aan de gekozen doelgroep op{" "}
-              {communication.scheduled_at ? new Date(communication.scheduled_at).toLocaleString("nl-NL") : "-"}.
+              {communication.scheduled_at ? formatDateTime(communication.scheduled_at) : "-"}.
             </p>
             <div className="mt-3 flex flex-wrap items-center gap-3">
               <Button type="button" variant="secondary" onClick={handleCancelSchedule} disabled={schedulePending}>

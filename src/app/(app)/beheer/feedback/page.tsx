@@ -8,6 +8,7 @@ import { memberHref } from "@/lib/members/slug";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Chip } from "@/components/ui/Chip";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { formatDateTime } from "@/lib/format/date";
 
 export const metadata: Metadata = { title: "Feedback" };
 
@@ -94,7 +95,7 @@ export default async function FeedbackPage({ searchParams }: { searchParams: Pro
                     <span className="text-sm text-muted">Onbekend lid</span>
                   )}
                 </div>
-                <span className="text-xs text-muted">{new Date(row.created_at).toLocaleString("nl-NL")}</span>
+                <span className="text-xs text-muted">{formatDateTime(row.created_at)}</span>
               </div>
 
               <p className="mt-2 text-sm text-foreground">{row.message}</p>

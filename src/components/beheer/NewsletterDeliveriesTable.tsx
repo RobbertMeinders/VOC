@@ -1,5 +1,6 @@
 import { CheckCircle2, XCircle, MinusCircle, Clock } from "lucide-react";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { formatDateTime } from "@/lib/format/date";
 import type { Database } from "@/lib/types/database";
 
 type Delivery = Database["public"]["Tables"]["communication_deliveries"]["Row"];
@@ -10,10 +11,6 @@ const ATTEMPT_LABELS: Record<SendAttempt["kind"], string> = {
   nasturen: "Nasturen",
   opnieuw_proberen: "Opnieuw proberen",
 };
-
-function formatDateTime(iso: string): string {
-  return new Date(iso).toLocaleString("nl-NL", { dateStyle: "short", timeStyle: "short" });
-}
 
 function DeliveryStatus({ delivery }: { delivery: Delivery }) {
   if (delivery.status === "verstuurd") {

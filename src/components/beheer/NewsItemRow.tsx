@@ -6,13 +6,10 @@ import { ChevronDown, ChevronUp, Pencil } from "lucide-react";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { NewsItemForm } from "./NewsItemForm";
 import { deleteNewsItemAction, moveNewsItemAction } from "@/app/(app)/beheer/nieuws/actions";
+import { formatDateShort as formatDate } from "@/lib/format/date";
 import type { Database } from "@/lib/types/database";
 
 type NewsItem = Database["public"]["Tables"]["news_items"]["Row"];
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" });
-}
 
 export function NewsItemRow({
   item,

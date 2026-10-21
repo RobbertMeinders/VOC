@@ -9,6 +9,7 @@ import { useConfirmWithReason } from "@/lib/ui/ConfirmDialogContext";
 import { useToast } from "@/lib/ui/ToastContext";
 import { memberHref } from "@/lib/members/slug";
 import { companyHref } from "@/lib/company/slug";
+import { formatDateNumeric } from "@/lib/format/date";
 
 export type CompanyMembershipRequestItem = {
   id: string;
@@ -84,7 +85,7 @@ export function CompanyMembershipRequestRow({
             {request.company.name}
           </Link>
         </p>
-        <p className="mt-0.5 text-xs text-muted">Aangevraagd op {new Date(request.requestedAt).toLocaleDateString("nl-NL")}</p>
+        <p className="mt-0.5 text-xs text-muted">Aangevraagd op {formatDateNumeric(request.requestedAt)}</p>
         {!outcome && (
           <p className="mt-1 text-xs text-muted">
             Na goedkeuring staat {request.profile.first_name} bij dit bedrijf en kan deze persoon het bedrijfsprofiel bewerken.
@@ -93,7 +94,7 @@ export function CompanyMembershipRequestRow({
         {outcome && (
           <p className="mt-1 text-xs text-muted">
             {outcome === "approved" ? "Goedgekeurd" : "Afgewezen"}
-            {request.decidedAt && ` op ${new Date(request.decidedAt).toLocaleDateString("nl-NL")}`}
+            {request.decidedAt && ` op ${formatDateNumeric(request.decidedAt)}`}
             {request.decidedBy && ` door ${request.decidedBy.first_name} ${request.decidedBy.last_name}`}
             {request.decisionReason && ` · Reden: ${request.decisionReason}`}
           </p>

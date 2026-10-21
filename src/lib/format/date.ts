@@ -56,6 +56,36 @@ export function formatActivityTimeOnly(iso: string): string {
   }).format(new Date(iso));
 }
 
+// Generieke datum-/datumtijd-helpers voor plekken die tot nu toe
+// `toLocaleDateString("nl-NL")`/`toLocaleString("nl-NL")` zonder expliciete
+// timeZone aanriepen — zelfde reden als de rest van dit bestand: zonder
+// vastgezette zone toont/berekent dit de verkeerde dag/tijd op een server
+// die in UTC draait (en kan dat, bij hergebruik in een client component,
+// ook een server/client-hydratiemismatch geven).
+export function formatDateNumeric(iso: string): string {
+  return new Intl.DateTimeFormat("nl-NL", { timeZone: NL_TIMEZONE }).format(new Date(iso));
+}
+
+export function formatDateShort(iso: string): string {
+  return new Intl.DateTimeFormat("nl-NL", { timeZone: NL_TIMEZONE, day: "numeric", month: "short", year: "numeric" }).format(
+    new Date(iso)
+  );
+}
+
+export function formatDateLong(iso: string): string {
+  return new Intl.DateTimeFormat("nl-NL", { timeZone: NL_TIMEZONE, day: "numeric", month: "long", year: "numeric" }).format(
+    new Date(iso)
+  );
+}
+
+export function formatDateTime(iso: string): string {
+  return new Intl.DateTimeFormat("nl-NL", {
+    timeZone: NL_TIMEZONE,
+    dateStyle: "short",
+    timeStyle: "short",
+  }).format(new Date(iso));
+}
+
 // Board-only "laatst actief" display (see profiles.last_active_at, kept
 // current by a client heartbeat — OnlineHeartbeat — while a tab is open,
 // not just at login). Used server-side only (member detail page), so

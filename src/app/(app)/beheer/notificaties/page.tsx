@@ -3,6 +3,7 @@ import { Check, Minus } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { formatDateTime } from "@/lib/format/date";
 import type { Database } from "@/lib/types/database";
 
 type Notification = Database["public"]["Tables"]["notifications"]["Row"];
@@ -13,10 +14,6 @@ const LOG_LIMIT = 100;
 
 function ChannelStatus({ sent }: { sent: boolean }) {
   return sent ? <Check size={14} className="text-status-success" /> : <Minus size={14} className="text-muted" />;
-}
-
-function formatDateTime(iso: string) {
-  return new Date(iso).toLocaleString("nl-NL", { dateStyle: "short", timeStyle: "short" });
 }
 
 export default async function BeheerNotificatiesPage() {

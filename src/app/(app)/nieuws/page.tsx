@@ -8,15 +8,12 @@ import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { cachedQuery } from "@/lib/cache/queryCache";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { newsItemHref } from "@/lib/news/slug";
+import { formatDateLong as formatDate } from "@/lib/format/date";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Nieuws" };
 
 type NewsItem = Database["public"]["Tables"]["news_items"]["Row"];
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
-}
 
 export default async function NieuwsPage() {
   await requireProfile();

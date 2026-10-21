@@ -4,6 +4,7 @@ import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import { Check, X } from "lucide-react";
 import { clsx } from "clsx";
+import { formatDateNumeric } from "@/lib/format/date";
 import type { Database } from "@/lib/types/database";
 import {
   markAccessRequestHandledAction,
@@ -64,7 +65,7 @@ export function AccessRequestRow({
           {request.phone && ` · ${request.phone}`}
           {request.company_name && ` · ${request.company_name}`}
           {" · "}
-          {new Date(request.created_at).toLocaleDateString("nl-NL")}
+          {formatDateNumeric(request.created_at)}
         </p>
         {(request.address || request.postal_code || request.city) && (
           <p className="mt-0.5 text-xs text-muted">

@@ -6,13 +6,10 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { BackLink } from "@/components/ui/BackLink";
 import { newsItemHref, newsItemIdFilter } from "@/lib/news/slug";
+import { formatDateLong as formatDate } from "@/lib/format/date";
 import type { Database } from "@/lib/types/database";
 
 type NewsItem = Database["public"]["Tables"]["news_items"]["Row"];
-
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("nl-NL", { day: "numeric", month: "long", year: "numeric" });
-}
 
 async function getNewsItem(param: string): Promise<NewsItem | null> {
   const supabase = await createClient();

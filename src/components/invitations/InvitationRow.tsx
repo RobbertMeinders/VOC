@@ -7,13 +7,14 @@ import { StatusPill } from "@/components/ui/StatusPill";
 import { isInvitationExpired, type Invitation } from "./InvitationList";
 import { extendInvitationAction, revokeInvitationAction, sendInvitationEmailAction } from "@/app/(app)/beheer/uitnodigingen/actions";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
+import { formatDateNumeric } from "@/lib/format/date";
 
 function StatusBadge({ invitation }: { invitation: Invitation }) {
   if (isInvitationExpired(invitation)) {
     return <StatusPill tone="warning">Verlopen</StatusPill>;
   }
   if (invitation.last_sent_at) {
-    return <StatusPill tone="success">Verstuurd {new Date(invitation.last_sent_at).toLocaleDateString("nl-NL")}</StatusPill>;
+    return <StatusPill tone="success">Verstuurd {formatDateNumeric(invitation.last_sent_at)}</StatusPill>;
   }
   return <StatusPill tone="neutral">Niet verstuurd</StatusPill>;
 }
@@ -110,7 +111,7 @@ export function InvitationRow({
             {name && invitation.email ? `${invitation.email} · ` : ""}
             {ROLE_LABELS[invitation.role]} ·{" "}
             {invitation.expires_at
-              ? `verloopt ${new Date(invitation.expires_at).toLocaleDateString("nl-NL")}`
+              ? `verloopt ${formatDateNumeric(invitation.expires_at)}`
               : "verloopt pas na versturen"}
           </p>
           {feedback && <p className="mt-0.5 text-xs text-muted">{feedback}</p>}

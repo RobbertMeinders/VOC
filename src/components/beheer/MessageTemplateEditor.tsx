@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { VariableEditor, type VariableEditorHandle } from "@/components/ui/VariableEditor";
 import { variablesForMessageTemplate } from "@/lib/templates/message-template-variables";
+import { formatDateNumeric } from "@/lib/format/date";
 import {
   updateMessageTemplateAction,
   resetMessageTemplateAction,
@@ -284,7 +285,7 @@ export function MessageTemplateEditor({
       )}
 
       <form id={formId} action={updateAction} className="flex flex-wrap items-center gap-2 rounded-2xl bg-surface p-4 shadow-sm">
-        <span className="mr-auto text-xs text-muted">Laatst gewijzigd: {new Date(template.updated_at).toLocaleDateString("nl-NL")}</span>
+        <span className="mr-auto text-xs text-muted">Laatst gewijzigd: {formatDateNumeric(template.updated_at)}</span>
         <button
           type="submit"
           formAction={resetAction}
