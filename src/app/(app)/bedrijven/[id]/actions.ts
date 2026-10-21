@@ -11,7 +11,22 @@ import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
 import { isEmailConfigured, sendRawHtmlEmail, invitationGreeting } from "@/lib/email/send";
 import { renderMessageEmail } from "@/lib/templates/message-render";
+import { companyHref } from "@/lib/company/slug";
 import type { Database } from "@/lib/types/database";
+
+// URL-ronde: revalidatePath() matcht het exacte pad, geen routepatroon — nu
+// bedrijven op slug-URL's draaien, revalideert een pad met het kale UUID de
+// daadwerkelijk gerenderde route niet meer. Gebruikt waar de aanroepende
+// functie de slug niet al zelf heeft opgehaald; valt terug op het UUID-pad
+// als de rij onverwacht niet (meer) bestaat, zodat dit nooit crasht.
+async function getCompanySlugPath(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  companyId: string,
+  suffix = ""
+): Promise<string> {
+  const { data } = await supabase.from("companies").select("slug").eq("id", companyId).maybeSingle();
+  return data?.slug ? companyHref({ slug: data.slug }, suffix) : `/bedrijven/${companyId}${suffix}`;
+}
 
 export type UpdateCompanyState = { error?: string; success?: boolean };
 
@@ -92,7 +107,7 @@ export async function updateCompanyAction(
   // nu dicht voor authenticated, dus moet via deze functie gelezen worden.
   const { data: existing } = await supabase
     .rpc("companies_for_members")
-    .select("address, postal_code, city, latitude, longitude, logo_url, logo_thumb_url")
+    .select("address, postal_code, city, latitude, longitude, logo_url, logo_thumb_url, slug")
     .eq("id", companyId)
     .maybeSingle();
 
@@ -170,7 +185,7 @@ export async function updateCompanyAction(
   invalidateQuery("bedrijven-page-data");
   invalidateQuery("leden-page-data");
   invalidateQuery("beheer-bedrijven-page-data");
-  revalidatePath(`/bedrijven/${companyId}`);
+  revalidatePath(existing?.slug ? companyHref({ slug: existing.slug }) : `/bedrijven/${companyId}`);
   return { success: true };
 }
 
@@ -198,7 +213,7 @@ export async function quickUpdateCompanyAction(
     return { error: "Bedrijfsnaam is verplicht." };
   }
 
-  const { error, count } = await supabase
+  const { data, error, count } = await supabase
     .from("companies")
     .update(
       {
@@ -211,7 +226,8 @@ export async function quickUpdateCompanyAction(
       },
       { count: "exact" }
     )
-    .eq("id", companyId);
+    .eq("id", companyId)
+    .select("slug");
 
   if (error || !count) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
@@ -222,7 +238,7 @@ export async function quickUpdateCompanyAction(
   invalidateQuery("bedrijven-page-data");
   invalidateQuery("leden-page-data");
   invalidateQuery("beheer-bedrijven-page-data");
-  revalidatePath(`/bedrijven/${companyId}`);
+  revalidatePath(data?.[0]?.slug ? companyHref({ slug: data[0].slug }) : `/bedrijven/${companyId}`);
   return { success: true };
 }
 
@@ -248,7 +264,7 @@ export async function updateCompanyShowAddressAction(companyId: string, visible:
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
   invalidateQuery("bedrijven-page-data");
-  revalidatePath(`/bedrijven/${companyId}`);
+  revalidatePath(await getCompanySlugPath(supabase, companyId));
   revalidatePath("/profiel");
   return {};
 }
@@ -300,7 +316,7 @@ export async function decideCompanyMembershipRequestAction(
   // Foutenrapport §0, fix 4: zonder dit liep de Beheer-badge/BeheerSidebar
   // tot 30s (de cache-TTL) achter op een zojuist afgehandeld koppelverzoek.
   invalidateQuery("beheer-waiting-counts");
-  revalidatePath(`/bedrijven/${companyId}`);
+  revalidatePath(await getCompanySlugPath(supabase, companyId));
   // Deze actie wordt ook vanaf het beheerdashboard ("Wacht op jou") en vanaf
   // Beheer -> Aanvragen -> Bedrijfskoppelingen aangeroepen — zonder deze
   // revalidates bleef een net afgehandeld verzoek daar nog even (tot de
@@ -356,7 +372,7 @@ export async function updateCompanyBillingAction(
   // Zonder deze regel bleef Beheer -> Bedrijven -> Factuurgegevens tot wel 5
   // minuten de oude (gecachte) btw-gegevens tonen na het opslaan hier.
   invalidateQuery("beheer-bedrijven-page-billing");
-  revalidatePath(`/bedrijven/${companyId}/bewerken`);
+  revalidatePath(await getCompanySlugPath(supabase, companyId, "/bewerken"));
   revalidatePath("/beheer/bedrijven");
   return { success: true };
 }
@@ -399,7 +415,7 @@ export async function inviteColleagueAction(
     return { error: "E-mail versturen is niet geconfigureerd." };
   }
 
-  const { data: company } = await supabase.from("companies").select("name").eq("id", companyId).maybeSingle();
+  const { data: company } = await supabase.from("companies").select("name, slug").eq("id", companyId).maybeSingle();
   if (!company) {
     return { error: "Bedrijf niet gevonden." };
   }
@@ -436,7 +452,7 @@ export async function inviteColleagueAction(
     await supabase.from("invitations").update({ last_sent_at: new Date().toISOString() }).eq("token", invitation.token);
   }
 
-  revalidatePath(`/bedrijven/${companyId}`);
+  revalidatePath(companyHref({ slug: company.slug }));
   if (emailError) {
     return { error: `Uitnodiging aangemaakt, maar de e-mail versturen is niet gelukt (${emailError}).` };
   }

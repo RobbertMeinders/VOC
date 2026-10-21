@@ -8,8 +8,23 @@ import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
 import { setBoardPosition } from "@/lib/board/positions";
+import { memberHref } from "@/lib/members/slug";
 import type { UpdateProfileState } from "@/app/(app)/profiel/actions";
 import type { Database, UserRole } from "@/lib/types/database";
+
+// URL-ronde: revalidatePath() matcht het exacte pad, geen routepatroon — nu
+// leden op slug-URL's draaien, revalideert een pad met het kale UUID de
+// daadwerkelijk gerenderde route niet meer. Gebruikt waar de aanroepende
+// functie de slug niet al zelf heeft opgehaald; valt terug op het UUID-pad
+// als de rij onverwacht niet (meer) bestaat, zodat dit nooit crasht.
+async function getMemberSlugPath(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  memberId: string,
+  suffix = ""
+): Promise<string> {
+  const { data } = await supabase.from("profiles").select("slug").eq("id", memberId).maybeSingle();
+  return data?.slug ? memberHref({ slug: data.slug }, suffix) : `/leden/${memberId}${suffix}`;
+}
 
 export type UpdateMemberRoleState = { error?: string; success?: boolean };
 
@@ -56,7 +71,7 @@ export async function updateMemberRoleAction(
   await logAuditAction("member_role_changed", "profile", memberId, { role });
 
   invalidateQuery("beheer-leden-page-data");
-  revalidatePath(`/leden/${memberId}`);
+  revalidatePath(await getMemberSlugPath(supabase, memberId));
   return { success: true };
 }
 
@@ -109,7 +124,7 @@ export async function updateMemberActiveAction(memberId: string, isActive: boole
   // Deactivering haalt het lid direct uit de (RLS-gefilterde) ledenlijst.
   invalidateQuery("leden-page-data");
   invalidateQuery("beheer-leden-page-data");
-  revalidatePath(`/leden/${memberId}`);
+  revalidatePath(await getMemberSlugPath(supabase, memberId));
   return { success: true };
 }
 
@@ -130,7 +145,7 @@ export async function deleteMemberAction(memberId: string): Promise<DeleteMember
 
   const supabase = await createClient();
 
-  const { data: target } = await supabase.from("profiles").select("role").eq("id", memberId).single();
+  const { data: target } = await supabase.from("profiles").select("role, slug").eq("id", memberId).single();
   if (target?.role === "beheerder") {
     const { count } = await supabase
       .from("profiles")
@@ -190,7 +205,7 @@ export async function deleteMemberAction(memberId: string): Promise<DeleteMember
   invalidateQuery("beheer-bedrijven-page-data");
   revalidatePath("/leden");
   revalidatePath("/beheer/leden");
-  revalidatePath(`/leden/${memberId}`);
+  revalidatePath(target?.slug ? memberHref({ slug: target.slug }) : `/leden/${memberId}`);
   return {};
 }
 
@@ -315,7 +330,7 @@ export async function updateMemberOrganizationAccountAction(
 
   invalidateQuery("leden-page-data");
   invalidateQuery("beheer-leden-page-data");
-  revalidatePath(`/leden/${memberId}`);
+  revalidatePath(await getMemberSlugPath(supabase, memberId));
   return { success: true };
 }
 
@@ -353,7 +368,7 @@ export async function updateMemberProfileAction(
     avatarPath = result.path;
   }
 
-  const { error, count } = await supabase
+  const { data, error, count } = await supabase
     .from("profiles")
     .update(
       {
@@ -369,7 +384,8 @@ export async function updateMemberProfileAction(
       },
       { count: "exact" }
     )
-    .eq("id", memberId);
+    .eq("id", memberId)
+    .select("slug");
 
   if (error || !count) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
@@ -384,7 +400,7 @@ export async function updateMemberProfileAction(
   // Naam/functie/avatar staan ook in de ledenlijst.
   invalidateQuery("leden-page-data");
   invalidateQuery("beheer-leden-page-data");
-  revalidatePath(`/leden/${memberId}`);
+  revalidatePath(data?.[0]?.slug ? memberHref({ slug: data[0].slug }) : `/leden/${memberId}`);
   return { success: true };
 }
 
@@ -412,7 +428,7 @@ export async function quickUpdateMemberAction(
     return { error: "Voor- en achternaam zijn verplicht." };
   }
 
-  const { error, count } = await supabase
+  const { data, error, count } = await supabase
     .from("profiles")
     .update(
       {
@@ -422,7 +438,8 @@ export async function quickUpdateMemberAction(
       },
       { count: "exact" }
     )
-    .eq("id", memberId);
+    .eq("id", memberId)
+    .select("slug");
 
   if (error || !count) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
@@ -443,6 +460,6 @@ export async function quickUpdateMemberAction(
 
   invalidateQuery("leden-page-data");
   invalidateQuery("beheer-leden-page-data");
-  revalidatePath(`/leden/${memberId}`);
+  revalidatePath(data?.[0]?.slug ? memberHref({ slug: data[0].slug }) : `/leden/${memberId}`);
   return { success: true };
 }

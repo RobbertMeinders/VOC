@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, Clock } from "lucide-react";
 import { clsx } from "clsx";
 import { Button } from "@/components/ui/Button";
@@ -31,6 +32,7 @@ export function RegisterButton({
   const [waitlisted, setWaitlisted] = useState(initialWaitlisted);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
+  const router = useRouter();
 
   function handleClick() {
     setError(null);
@@ -42,6 +44,11 @@ export function RegisterButton({
         } else {
           setRegistered(false);
           setWaitlisted(false);
+          // De deelnemerslijst ("Wie gaat er ook") en de aanmeldteller
+          // elders op deze pagina zijn server-gerenderd — zonder refresh
+          // bleven die staan op de stand van vóór deze af-/aanmelding tot
+          // een handmatige paginaherlading.
+          router.refresh();
         }
         return;
       }
@@ -52,6 +59,7 @@ export function RegisterButton({
       } else {
         setRegistered(true);
         setWaitlisted(Boolean(result.waitlisted));
+        router.refresh();
       }
     });
   }

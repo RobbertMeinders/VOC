@@ -12,7 +12,7 @@ import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
 import { sendRawHtmlEmail, escapeHtml } from "@/lib/email/send";
 import { dispatchPendingPushNotifications } from "@/lib/notifications/dispatch-push";
-import { activitySlugBase } from "@/lib/agenda/slug";
+import { activityHref, activitySlugBase } from "@/lib/agenda/slug";
 
 export type ActionResult = { error?: string };
 
@@ -66,6 +66,20 @@ async function generateUniqueSlug(
   }
 }
 
+// URL-ronde: revalidatePath() matcht het exacte pad, geen routepatroon — nu
+// activiteiten op slug-URL's draaien, revalideert een pad met het kale UUID
+// de daadwerkelijk gerenderde route niet meer. Gebruikt waar de aanroepende
+// functie de slug niet al zelf heeft opgehaald; valt terug op het UUID-pad
+// als de rij onverwacht niet (meer) bestaat, zodat dit nooit crasht.
+async function getActivitySlugPath(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  activityId: string,
+  suffix = ""
+): Promise<string> {
+  const { data } = await supabase.from("activities").select("slug").eq("id", activityId).maybeSingle();
+  return data?.slug ? activityHref({ slug: data.slug }, suffix) : `/agenda/${activityId}${suffix}`;
+}
+
 export type RegisterResult = ActionResult & { waitlisted?: boolean };
 
 export async function registerForActivityAction(activityId: string): Promise<RegisterResult> {
@@ -96,7 +110,7 @@ export async function registerForActivityAction(activityId: string): Promise<Reg
   // Anders bleef Statistieken > Activiteiten tot 60s (de cache-TTL) een
   // aanmeldingenaantal van vóór deze aanmelding tonen.
   invalidateActivityStatsCache();
-  revalidatePath(`/agenda/${activityId}`);
+  revalidatePath(await getActivitySlugPath(supabase, activityId));
   revalidatePath("/agenda");
   return { waitlisted: data.is_waitlisted };
 }
@@ -116,7 +130,7 @@ export async function unregisterFromActivityAction(activityId: string): Promise<
   }
 
   invalidateActivityStatsCache();
-  revalidatePath(`/agenda/${activityId}`);
+  revalidatePath(await getActivitySlugPath(supabase, activityId));
   revalidatePath("/agenda");
   // UX-review punt 2: de promote_next_waitlisted-trigger zette net een
   // notifications-rij voor wie van de wachtlijst promoveerde — direct
@@ -332,7 +346,8 @@ export async function updateActivityAction(
 
     await logAuditAction("activity_updated", "activity", activityId);
 
-    revalidatePath(`/agenda/${activityId}`);
+    const currentSlug = newSlug ?? existing?.slug;
+    revalidatePath(currentSlug ? activityHref({ slug: currentSlug }) : `/agenda/${activityId}`);
     revalidatePath("/agenda");
 
     // UX-review punt 1/13: wie al is aangemeld, verdient een expliciet
@@ -424,7 +439,7 @@ export async function cancelActivityAction(activityId: string, message: string):
   await requireBoard();
   const supabase = await createClient();
 
-  const { data: activity } = await supabase.from("activities").select("title, status").eq("id", activityId).maybeSingle();
+  const { data: activity } = await supabase.from("activities").select("title, status, slug").eq("id", activityId).maybeSingle();
   if (!activity) {
     return { error: "Activiteit niet gevonden." };
   }
@@ -465,7 +480,7 @@ export async function cancelActivityAction(activityId: string, message: string):
 
   await logAuditAction("activity_cancelled", "activity", activityId);
   invalidateActivityStatsCache();
-  revalidatePath(`/agenda/${activityId}`);
+  revalidatePath(activity.slug ? activityHref({ slug: activity.slug }) : `/agenda/${activityId}`);
   revalidatePath("/agenda");
   revalidatePath("/beheer/agenda");
   return { success: true };
@@ -514,7 +529,7 @@ export async function decideActivitySubmissionAction(
   await requireBoard();
   const supabase = await createClient();
 
-  await supabase
+  const { data: decided } = await supabase
     .from("activities")
     .update({
       status: decision,
@@ -524,7 +539,8 @@ export async function decideActivitySubmissionAction(
       // aanmaakt en deze kolommen naar de notificatie-rijen kopieert.
       ...(decision === "approved" ? { notify_push: notifyPush, notify_email: notifyEmail } : {}),
     })
-    .eq("id", activityId);
+    .eq("id", activityId)
+    .select("slug");
 
   await logAuditAction(
     decision === "approved" ? "activity_approved" : "activity_rejected",
@@ -536,7 +552,8 @@ export async function decideActivitySubmissionAction(
   // Foutenrapport §0, fix 4: zonder dit bleef de Beheer-badge tot 30s
   // (de cache-TTL) achterlopen op een zojuist goed-/afgekeurde activiteit.
   invalidateQuery("beheer-waiting-counts");
-  revalidatePath(`/agenda/${activityId}`);
+  const decidedSlug = decided?.[0]?.slug;
+  revalidatePath(decidedSlug ? activityHref({ slug: decidedSlug }) : `/agenda/${activityId}`);
   revalidatePath("/agenda");
 
   // UX-review punt 2: bij goedkeuren maakt notify_activity_published direct
@@ -557,7 +574,7 @@ export async function setAttendanceAction(registrationId: string, activityId: st
   await supabase.from("activity_registrations").update({ attended }).eq("id", registrationId);
 
   invalidateActivityStatsCache();
-  revalidatePath(`/agenda/${activityId}`);
+  revalidatePath(await getActivitySlugPath(supabase, activityId));
 }
 
 export type AttachmentFormState = { error?: string; success?: boolean };
@@ -591,8 +608,8 @@ export async function addActivityAttachmentAction(
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
 
-  revalidatePath(`/agenda/${activityId}`);
-  revalidatePath(`/agenda/${activityId}/bewerken`);
+  revalidatePath(await getActivitySlugPath(supabase, activityId));
+  revalidatePath(await getActivitySlugPath(supabase, activityId, "/bewerken"));
   return { success: true };
 }
 
@@ -601,6 +618,6 @@ export async function deleteActivityAttachmentAction(activityId: string, attachm
   const supabase = await createClient();
   await supabase.storage.from("activity-attachments").remove([storagePath]);
   await supabase.from("activity_attachments").delete().eq("id", attachmentId);
-  revalidatePath(`/agenda/${activityId}`);
-  revalidatePath(`/agenda/${activityId}/bewerken`);
+  revalidatePath(await getActivitySlugPath(supabase, activityId));
+  revalidatePath(await getActivitySlugPath(supabase, activityId, "/bewerken"));
 }

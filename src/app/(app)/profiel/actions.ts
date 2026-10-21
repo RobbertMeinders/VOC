@@ -15,6 +15,7 @@ import { REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
 import { logPushUnsubscribed } from "@/lib/events/log";
 import { validateDisplayNamePart } from "@/lib/validation/fields";
 import { isAllowedPushEndpoint } from "@/lib/push/endpoint";
+import { memberHref } from "@/lib/members/slug";
 
 export type UpdateProfileState = { error?: string; success?: boolean };
 
@@ -157,7 +158,7 @@ export async function updateAttendedActivitiesVisibilityAction(visible: boolean)
     console.error("[profiel] updateAttendedActivitiesVisibilityAction failed:", error);
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
-  revalidatePath(`/leden/${profile.id}`);
+  revalidatePath(memberHref(profile));
   return {};
 }
 
@@ -252,7 +253,7 @@ export async function updateShowPhoneAction(visible: boolean): Promise<{ error?:
   if (error) {
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
-  revalidatePath(`/leden/${profile.id}`);
+  revalidatePath(memberHref(profile));
   revalidatePath("/profiel");
   return {};
 }
@@ -266,7 +267,7 @@ export async function updateShowEmailAction(visible: boolean): Promise<{ error?:
   if (error) {
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
   }
-  revalidatePath(`/leden/${profile.id}`);
+  revalidatePath(memberHref(profile));
   revalidatePath("/profiel");
   return {};
 }
