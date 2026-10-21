@@ -6,6 +6,8 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { uploadImage } from "@/lib/supabase/upload";
 import { logAuditAction } from "@/lib/audit/log";
+import { invalidateQuery } from "@/lib/cache/queryCache";
+import { APP_SETTINGS_CACHE_KEY } from "@/lib/settings/app-settings";
 
 export type UpdateAppSettingsState = { error?: string; success?: boolean };
 
@@ -43,6 +45,7 @@ export async function updateAppSettingsAction(
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
 
+  invalidateQuery(APP_SETTINGS_CACHE_KEY);
   revalidatePath("/", "layout");
   revalidatePath("/privacy");
   revalidatePath("/testfase");
@@ -81,6 +84,7 @@ export async function uploadAppLogoAction(_prevState: UploadAppLogoState, formDa
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
   }
 
+  invalidateQuery(APP_SETTINGS_CACHE_KEY);
   revalidatePath("/", "layout");
   return { logoUrl: data.publicUrl };
 }
@@ -91,6 +95,7 @@ export async function removeAppLogoAction(): Promise<void> {
 
   await supabase.from("app_settings").update({ logo_url: null, updated_by: profile.id }).eq("id", true);
 
+  invalidateQuery(APP_SETTINGS_CACHE_KEY);
   revalidatePath("/", "layout");
 }
 

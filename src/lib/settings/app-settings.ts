@@ -3,7 +3,13 @@ import "server-only";
 import { cache } from "react";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/server";
+import { cachedQuery } from "@/lib/cache/queryCache";
 import type { Database } from "@/lib/types/database";
+
+// Gedeelde cross-request cache-sleutel — ook gebruikt door elke server action
+// die app_settings wijzigt (zie beheer/instellingen/actions.ts) om de cache
+// direct te verversen na een opslag.
+export const APP_SETTINGS_CACHE_KEY = "app-settings";
 
 export type AppSettings = {
   site_name: string;
@@ -71,8 +77,15 @@ export async function fetchAppSettings(supabase: SupabaseClient<Database>): Prom
 // De gangbare manier om dit vanuit een Server Component/Action op te halen
 // — select-policy is publiek leesbaar (zie migratie), dus dit werkt ook op
 // niet-ingelogde pagina's (bv. /login). cache() dedupet herhaalde aanroepen
-// binnen dezelfde request, zelfde patroon als getCurrentProfile().
+// binnen dezelfde request; cachedQuery() deelt het resultaat daarnaast ook
+// tussen requests/instances (5 min, zelfde als andere gedeelde paginadata) —
+// deze instelling verandert zelden en is voor elke bezoeker identiek (geen
+// per-gebruiker variatie in de RLS-policy), dus is bij uitstek geschikt om
+// te delen i.p.v. bij elke request opnieuw op te halen. createClient() mag
+// niet binnen de cachedQuery-closure (cookies/headers) — vandaar vóór de
+// aanroep gebouwd en alleen via closure gebruikt, zelfde patroon als elke
+// andere cachedQuery-aanroeper.
 export const getAppSettings = cache(async (): Promise<AppSettings> => {
   const supabase = await createClient();
-  return fetchAppSettings(supabase);
+  return cachedQuery(APP_SETTINGS_CACHE_KEY, 300_000, () => fetchAppSettings(supabase));
 });

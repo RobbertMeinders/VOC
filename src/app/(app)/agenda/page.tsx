@@ -26,25 +26,54 @@ export const metadata: Metadata = { title: "Agenda" };
 
 type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
 
+// Deze lijstpagina toont alleen wat ActivityCard/de datumkolom/de type-tabs
+// nodig hebben (title/beschrijving/externe-link/deadline enz. staan pas op
+// het activiteitdetail) — scheelt onnodige kolommen op een query die elke
+// keer deze pagina geladen wordt opnieuw draait.
+const ACTIVITY_LIST_COLUMNS = "id, title, starts_at, location, status, source, max_participants, image_url, image_thumb_url";
+
+// Verleden activiteiten blijven zich ophopen (bron van de inklapbare
+// "Eerdere activiteiten"-sectie) terwijl toekomstige/actuele er typisch maar
+// een handvol tegelijk zijn — zonder limiet haalt deze query na een paar jaar
+// de hele, steeds groter wordende geschiedenis op. Een nieuwe, recente
+// activiteit schuift de oudste er zo nodig gewoon vanaf; niemand mist een
+// activiteit van jaren terug in deze sowieso al standaard ingeklapte lijst.
+const PAST_ACTIVITIES_LIMIT = 50;
+
 export default async function AgendaPage({ searchParams }: { searchParams: Promise<{ type?: string }> }) {
   const profile = await requireProfile();
   const { type } = await searchParams;
   const supabase = await createClient();
+  const nowIso = new Date().toISOString();
 
   // Performance-audit #8: aantal aanmeldingen per activiteit komt nu uit een
   // GROUP BY in de database (get_activity_registration_counts) i.p.v. de hele
   // activity_registrations-tabel op te halen om in JavaScript te tellen — dat
   // laatste raakte fout zodra de tabel boven Supabase's standaardlimiet van
   // 1000 rijen kwam (de telling werd dan stil afgekapt).
-  const [{ data: allActivities }, { data: registrationCountRows }, { data: myRegistrations }] = await Promise.all([
-    supabase.from("activities").select("*").order("starts_at", { ascending: true }).returns<ActivityRow[]>(),
-    supabase.rpc("get_activity_registration_counts"),
-    supabase.from("activity_registrations").select("activity_id, is_waitlisted").eq("profile_id", profile.id),
-  ]);
+  const [{ data: upcomingActivities }, { data: pastActivities }, { data: registrationCountRows }, { data: myRegistrations }] =
+    await Promise.all([
+      supabase
+        .from("activities")
+        .select(ACTIVITY_LIST_COLUMNS)
+        .gte("starts_at", nowIso)
+        .order("starts_at", { ascending: true })
+        .returns<ActivityRow[]>(),
+      supabase
+        .from("activities")
+        .select(ACTIVITY_LIST_COLUMNS)
+        .lt("starts_at", nowIso)
+        .order("starts_at", { ascending: false })
+        .limit(PAST_ACTIVITIES_LIMIT)
+        .returns<ActivityRow[]>(),
+      supabase.rpc("get_activity_registration_counts"),
+      supabase.from("activity_registrations").select("activity_id, is_waitlisted").eq("profile_id", profile.id),
+    ]);
+  const allActivities = [...(upcomingActivities ?? []), ...(pastActivities ?? [])];
 
   const myRegistrationByActivity = new Map((myRegistrations ?? []).map((r) => [r.activity_id, r.is_waitlisted]));
 
-  const activities = (allActivities ?? []).filter((a) => {
+  const activities = allActivities.filter((a) => {
     if (type === "activiteit") return a.source === "voc";
     if (type === "ingebracht") return a.source === "lid";
     if (type === "mijn-aanmeldingen") return myRegistrationByActivity.has(a.id);
