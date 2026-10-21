@@ -168,8 +168,8 @@ function addDaysAmsterdam(startOfDay: Date, days: number): Date {
   return amsterdamMidnightUTC(year, month, day + days);
 }
 
-// Nette Nederlandse datumreeks onder de tabbladbalk, bv. "13 – 19 okt 2026"
-// of "okt 2025 – okt 2026" — zelfde idee als het klikbare voorbeeld.
+// Nette Nederlandse datumreeks onder de tabbladbalk, bv. "13 t/m 19 okt 2026"
+// of "okt 2025 t/m okt 2026" — zelfde idee als het klikbare voorbeeld.
 export function formatRangeLabel(range: PeriodRange): string {
   const fmtDay = (d: Date) => new Intl.DateTimeFormat("nl-NL", { timeZone: TZ, day: "numeric", month: "short" }).format(d);
   const fmtDayYear = (d: Date) =>
@@ -177,9 +177,9 @@ export function formatRangeLabel(range: PeriodRange): string {
   const fmtMonthYear = (d: Date) => new Intl.DateTimeFormat("nl-NL", { timeZone: TZ, month: "short", year: "numeric" }).format(d);
 
   if (range.granularity === "month") {
-    return `${fmtMonthYear(range.start)} – ${fmtMonthYear(range.end)}`;
+    return `${fmtMonthYear(range.start)} t/m ${fmtMonthYear(range.end)}`;
   }
-  return `${fmtDay(range.start)} – ${fmtDayYear(range.end)}`;
+  return `${fmtDay(range.start)} t/m ${fmtDayYear(range.end)}`;
 }
 
 // ---------------------------------------------------------------------------

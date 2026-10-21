@@ -21,7 +21,7 @@ function secret(): string | null {
 function sign(payload: string): string {
   const key = secret();
   if (!key) {
-    throw new Error("UNSUBSCRIBE_SECRET ontbreekt — kan geen afmeldlink genereren.");
+    throw new Error("UNSUBSCRIBE_SECRET ontbreekt, kan geen afmeldlink genereren.");
   }
   return createHmac("sha256", key).update(payload).digest("base64url").slice(0, 22);
 }

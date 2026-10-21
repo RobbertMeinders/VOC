@@ -120,7 +120,7 @@ export function AccessRequestForm() {
           <input ref={logoThumbInputRef} type="file" name="logo_thumb" className="hidden" tabIndex={-1} aria-hidden="true" />
         </div>
         <p className="text-xs text-muted">
-          Nieuw bedrijf? Stuur het logo meteen mee — dan staat het al klaar zodra je account geactiveerd wordt.
+          Nieuw bedrijf? Stuur het logo meteen mee, dan staat het al klaar zodra je account geactiveerd wordt.
         </p>
       </div>
       <div className="flex flex-col gap-1.5">

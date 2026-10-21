@@ -153,7 +153,7 @@ async function OverviewTab({ period, compare }: { period: ReturnType<typeof reso
                   <>
                     <Mail size={10} className="mx-auto mb-0.5 text-muted" />
                     <span className="font-display text-[15px] font-extrabold text-foreground">
-                      {stats.bereik.laatsteNieuwsbrief?.afgeleverd ?? "–"}
+                      {stats.bereik.laatsteNieuwsbrief?.afgeleverd ?? "-"}
                     </span>
                   </>
                 ),

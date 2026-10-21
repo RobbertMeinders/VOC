@@ -67,8 +67,8 @@ export function WelcomeDialog({ shouldShow }: { shouldShow: boolean }) {
           </div>
           <h2 className="font-display text-xl font-extrabold tracking-[-0.02em] text-foreground">Je bent een van de eersten</h2>
           <p className="mt-2 text-sm text-muted">
-            Je gebruikt de proefversie van het ledenportaal. Je kunt alles al gebruiken, maar soms hapert er nog iets.
-            Loop je ergens tegenaan? Gebruik Feedback geven.
+            Je gebruikt de proefversie van het ledenportaal. Bijna alles werkt al, maar soms hapert er nog iets.
+            Loop je ergens tegenaan? Laat het ons weten via Feedback geven.
           </p>
           <div className="mt-5 flex items-center justify-between gap-3">
             <Link href="/testfase" onClick={handleDismiss} className="text-sm font-medium text-petrol hover:underline">

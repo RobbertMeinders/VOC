@@ -22,8 +22,8 @@ export async function TestfasePageContent({ van }: { van?: string }) {
           Over het ledenportaal
         </h1>
         <p className="text-sm text-muted">
-          Je gebruikt de proefversie van het ledenportaal. Je kunt al bijna alles gebruiken, maar een paar dingen
-          lopen nog via de oude weg:
+          Je gebruikt de proefversie van het ledenportaal. Bijna alles werkt al, maar een paar dingen lopen nog via
+          de oude weg:
         </p>
       </div>
 
@@ -44,7 +44,7 @@ export async function TestfasePageContent({ van }: { van?: string }) {
 
       {latest && (
         <div className="rounded-2xl bg-surface p-6 shadow-sm">
-          <p className="text-sm font-semibold text-foreground">Wat is er nieuw in versie {latest.version}</p>
+          <p className="text-sm font-semibold text-foreground">Wat is er nieuw?</p>
           <ul className="mt-2 flex flex-col gap-1.5">
             {latest.items.map((item) => (
               <li key={item} className="flex gap-2 text-sm text-muted">

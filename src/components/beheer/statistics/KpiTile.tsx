@@ -18,7 +18,7 @@ export function KpiTile({ kpi, compareLabel, compare }: { kpi: Kpi; compareLabel
     <div className="min-w-0 rounded-2xl bg-surface p-4 pb-3 shadow-sm">
       <p className="truncate text-xs text-muted">{kpi.label}</p>
       <p className="font-display text-[1.75rem] font-extrabold leading-tight tracking-[-0.03em] text-foreground">
-        {kpi.value === null ? "–" : nl.format(kpi.value)}
+        {kpi.value === null ? "-" : nl.format(kpi.value)}
         {kpi.value !== null && kpi.unit && <small className="ml-1 text-sm font-semibold text-muted">{kpi.unit}</small>}
       </p>
       {kpi.note ? (

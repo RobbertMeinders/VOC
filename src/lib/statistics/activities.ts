@@ -154,7 +154,7 @@ export async function getActivitiesStats(range: PeriodRange): Promise<Activities
     const nooit = activeMemberCount - vast - afEnToe;
     const wieKomtEr = [
       { label: "Vaste bezoekers (3+ keer)", value: vast },
-      { label: "Af en toe (1–2 keer)", value: afEnToe },
+      { label: "Af en toe (1-2 keer)", value: afEnToe },
       { label: "Nog nooit (12 mnd)", value: nooit },
     ];
 
