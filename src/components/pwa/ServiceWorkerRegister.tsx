@@ -15,7 +15,15 @@ export function ServiceWorkerRegister() {
     // query-param detecteert de browser een ongewijzigde /sw.js tussen twee
     // releases met alleen contentwijzigingen elders, en blijft de oude cache
     // (met het toen gecachte /offline-bestand) voor onbepaalde tijd staan.
-    navigator.serviceWorker.register(`/sw.js?v=${process.env.NEXT_PUBLIC_APP_VERSION}`).catch(() => {});
+    // Een geslikte fout hier (bv. de service worker geblokkeerd door CSP,
+    // of een ander registratieprobleem) bleef tot nu toe volledig onzichtbaar
+    // — een lid zag dan nergens een foutmelding, alleen een PWA die stilletjes
+    // geen offline-ondersteuning/push kreeg. console.error is hier het enige
+    // haalbare: er is op dit punt geen ingelogde gebruiker/server om een
+    // meldingssysteem voor aan te spreken.
+    navigator.serviceWorker
+      .register(`/sw.js?v=${process.env.NEXT_PUBLIC_APP_VERSION}`)
+      .catch((error) => console.error("Service worker registratie mislukt:", error));
   }, []);
 
   return null;

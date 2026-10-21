@@ -69,6 +69,13 @@ function buildCsp(nonce: string): string {
     `base-uri 'self'`,
     `form-action 'self'`,
     `object-src 'none'`,
+    // Zonder expliciete worker-src valt een service-worker-registratie terug
+    // op child-src/default-src in sommige browsers, maar niet betrouwbaar in
+    // alle — een strikte CSP zonder dit kan de PWA's service worker (push,
+    // offline-cache) stilletjes laten blokkeren. manifest-src dekt het
+    // webmanifest (installeerbaarheid/PWA-metadata) op dezelfde manier.
+    `worker-src 'self'`,
+    `manifest-src 'self'`,
   ].join("; ");
 }
 
