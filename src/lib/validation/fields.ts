@@ -32,3 +32,19 @@ export function validateEmail(value: string, required = false): string | undefin
   if (!EMAIL_PATTERN.test(trimmed)) return "Vul een geldig e-mailadres in.";
   return undefined;
 }
+
+// M1 (beveiligingsfixlijst Blok 3): voor-/achternaam komen terecht in de
+// weergavenaam van een e-mailafzender (sendMemberContactEmail) — <, >, @,
+// komma en puntkomma kunnen daar een adresveld laten lijken op iets anders
+// dan het echte, geverifieerde adres, en een regeleinde kan in sommige
+// mailclients als headerinjectie worden gelezen. Verder gewoon vrije tekst
+// (geen harde lengte/tekenset-eis) — dit is alleen de kleine lijst tekens
+// die specifiek dat ene risico raakt.
+const DANGEROUS_NAME_CHARS = /[<>@,;\r\n]/;
+
+export function validateDisplayNamePart(value: string): string | undefined {
+  if (DANGEROUS_NAME_CHARS.test(value)) {
+    return "Dit veld mag niet de tekens < > @ , ; of een regeleinde bevatten.";
+  }
+  return undefined;
+}

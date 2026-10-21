@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { REMEMBERED_MAX_AGE, REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
+import { validateDisplayNamePart } from "@/lib/validation/fields";
 
 export type CompanyOption = { id: string; name: string; city: string | null };
 
@@ -41,6 +42,14 @@ export async function registerAction(
 
   if (!email || !firstName || !lastName) {
     return { error: "Vul alle verplichte velden in." };
+  }
+  // M1: voor-/achternaam komen terecht in de weergavenaam van een
+  // e-mailafzender (sendMemberContactEmail) — nooit tekens toestaan die
+  // daar een adresveld kunnen laten lijken op iets anders dan het echte,
+  // geverifieerde adres.
+  const nameError = validateDisplayNamePart(firstName) ?? validateDisplayNamePart(lastName);
+  if (nameError) {
+    return { error: nameError };
   }
   if (companyMode === "existing" && !companyId) {
     return { error: "Zoek en selecteer je bedrijf, of maak een nieuw bedrijf aan." };

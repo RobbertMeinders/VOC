@@ -91,7 +91,7 @@ async function sendMail(
   to: string,
   subject: string,
   html: string,
-  from?: string,
+  from?: string | { name: string; address: string },
   replyTo?: string,
   headers?: Record<string, string>
 ): Promise<SendResult> {
@@ -179,7 +179,12 @@ export async function sendRawHtmlEmail(
 
   const fromAddressMatch = defaultFrom.match(/<([^>]+)>/);
   const fromAddress = fromAddressMatch ? fromAddressMatch[1] : defaultFrom;
-  const from = senderName ? `${senderName} <${fromAddress}>` : defaultFrom;
+  // M1: senderName kan door een lid zelf bepaalde tekst zijn (voor-/
+  // achternaam, of de nieuwsbrief-afzendernaam) — als {name, address}-object
+  // i.p.v. een los samengestelde string laat nodemailer de weergavenaam zelf
+  // correct encoderen/escapen, zodat die nooit als extra adresveld of
+  // header gelezen kan worden.
+  const from = senderName ? { name: senderName, address: fromAddress } : defaultFrom;
 
   return sendMail(to, subject, html, from, replyTo, headers);
 }

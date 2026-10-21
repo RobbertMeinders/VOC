@@ -48,10 +48,6 @@ export async function sendMemberContactMessageAction(
     return { error: "Bericht is te lang." };
   }
 
-  if (!sender.email) {
-    return { error: "Je eigen e-mailadres is niet bekend. Neem contact op met het bestuur." };
-  }
-
   if (!isEmailConfigured()) {
     return { error: "E-mail versturen is niet geconfigureerd. Neem contact op met het bestuur." };
   }
@@ -71,10 +67,20 @@ export async function sendMemberContactMessageAction(
     return { error: "Dit lid kan momenteel niet worden bereikt." };
   }
 
+  // M1: het reply-to-adres komt uit auth.users (de echte identiteit waarmee
+  // het account ook daadwerkelijk kan inloggen), niet uit profiles.email —
+  // die kolom volgt auth.users via een aparte sync-trigger (0112) en is zelf
+  // geen bron van waarheid.
+  const { data: senderAuthUser } = await admin.auth.admin.getUserById(sender.id);
+  const senderEmail = senderAuthUser?.user?.email;
+  if (!senderEmail) {
+    return { error: "Je eigen e-mailadres is niet bekend. Neem contact op met het bestuur." };
+  }
+
   const senderName = `${sender.first_name} ${sender.last_name}`;
   const result = await sendMemberContactEmail({
     to: recipient.email,
-    replyTo: sender.email,
+    replyTo: senderEmail,
     senderName,
     subject: trimmedSubject,
     message: trimmedMessage,

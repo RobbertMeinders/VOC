@@ -13,6 +13,7 @@ import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { REMEMBER_ME_COOKIE } from "@/lib/supabase/session-persistence";
 import { logPushUnsubscribed } from "@/lib/events/log";
+import { validateDisplayNamePart } from "@/lib/validation/fields";
 
 export type UpdateProfileState = { error?: string; success?: boolean };
 
@@ -31,6 +32,14 @@ export async function updateProfileAction(
 
   if (!firstName || !lastName) {
     return { error: "Voor- en achternaam zijn verplicht." };
+  }
+  // M1: voor-/achternaam komen terecht in de weergavenaam van een
+  // e-mailafzender (sendMemberContactEmail) — nooit tekens toestaan die
+  // daar een adresveld kunnen laten lijken op iets anders dan het echte,
+  // geverifieerde adres.
+  const nameError = validateDisplayNamePart(firstName) ?? validateDisplayNamePart(lastName);
+  if (nameError) {
+    return { error: nameError };
   }
 
   const supabase = await createClient();

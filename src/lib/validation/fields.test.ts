@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { normalizeUrl, validateUrl, validateEmail } from "./fields";
+import { normalizeUrl, validateUrl, validateEmail, validateDisplayNamePart } from "./fields";
 
 // Enige plek waar het FORMAAT van een e-mailadres/URL echt gecontroleerd
 // wordt (zie fields.ts) — gebruikt op elk formulier met zo'n veld
@@ -73,5 +73,26 @@ describe("validateEmail", () => {
 
   it("wijst een adres met een spatie af", () => {
     expect(validateEmail("rob bert@voc-veendam.nl")).toBeDefined();
+  });
+});
+
+// M1: voor-/achternaam komen terecht in de weergavenaam van een
+// e-mailafzender — deze tekens kunnen daar een adresveld laten lijken op
+// iets anders dan het echte, geverifieerde adres.
+describe("validateDisplayNamePart", () => {
+  it("accepteert een normale naam", () => {
+    expect(validateDisplayNamePart("Robbert")).toBeUndefined();
+    expect(validateDisplayNamePart("Jean-Pierre")).toBeUndefined();
+  });
+
+  it("wijst tekens af die een e-mailadresveld kunnen laten lijken op iets anders", () => {
+    expect(validateDisplayNamePart("Evil <victim@example.com>")).toBeDefined();
+    expect(validateDisplayNamePart("Evil@example.com")).toBeDefined();
+    expect(validateDisplayNamePart("Evil, Bcc: x@example.com")).toBeDefined();
+    expect(validateDisplayNamePart("Evil; Bcc: x@example.com")).toBeDefined();
+  });
+
+  it("wijst een regeleinde af", () => {
+    expect(validateDisplayNamePart("Evil\r\nBcc: x@example.com")).toBeDefined();
   });
 });
