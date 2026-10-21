@@ -9,6 +9,11 @@
 -- enkel lid) wordt daar meteen eerste lid van — er is dan niemand om het
 -- goed te keuren (zie profiel/actions.ts, companyMode "new").
 drop policy if exists "company_members_self_or_board_insert" on public.company_members;
+-- B1-regressietest (migratie-replay op een lege database) ving dit: deze
+-- policy-naam bestaat al sinds 0013 en werd daarna nooit gedropt — zonder
+-- deze drop botst de create hieronder bij een schone replay. Live blijft
+-- dit onschadelijk (de policy staat daar al, met exact dezelfde definitie).
+drop policy if exists "company_members_board_insert" on public.company_members;
 
 create policy "company_members_board_insert" on public.company_members
   for insert with check (public.is_board());
