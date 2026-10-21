@@ -63,7 +63,7 @@ export function TestfaseFeedbackForm({ van }: { van?: string }) {
           )}
         >
           <AlertTriangle size={15} />
-          Er gaat iets mis
+          Iets melden
         </button>
         <button
           type="button"
@@ -74,7 +74,7 @@ export function TestfaseFeedbackForm({ van }: { van?: string }) {
           )}
         >
           <Lightbulb size={15} />
-          Ik heb een idee
+          Suggestie delen
         </button>
       </div>
 

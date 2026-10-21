@@ -238,17 +238,18 @@ export default async function HomePage() {
         </div>
       </div>
 
-      {/* H (onboarding-opdracht): rustige, niet-wegklikbare banner — bewust
-          géén statuskleur (niet rood), gewoon een neutraal vlak met een
-          link naar /testfase. */}
+      {/* H (onboarding-opdracht), opnieuw vormgegeven (Opdracht 2): een
+          waarschuwingskleur is hier passend — dit ís een waarschuwing dat
+          niet alles al definitief werkt — vandaar de bestaande
+          status-warning-tokens i.p.v. het eerdere neutrale vlak. */}
       {appSettings.show_testfase && (
         <Link
           href="/testfase"
-          className="flex items-center justify-between gap-3 rounded-xl border border-border bg-raised px-4 py-3 text-sm text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
+          className="flex flex-col gap-2 rounded-xl border border-status-warning/30 bg-status-warning-soft px-4 py-3 text-sm text-status-warning hover:brightness-95 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
         >
-          <span>Dit is de testversie van het ledenportaal. Nog niet alles werkt zoals straks.</span>
-          <span className="flex shrink-0 items-center gap-1 font-medium text-petrol">
-            Lees wat je moet weten
+          <span>Je gebruikt de proefversie — nog niet alles werkt al definitief.</span>
+          <span className="flex shrink-0 items-center gap-1 font-medium">
+            Wat je moet weten
             <ArrowRight size={14} />
           </span>
         </Link>

@@ -6,6 +6,15 @@ export type ReleaseNote = { version: string; items: string[] };
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "0.10.0",
+    items: [
+      "Een aantal extra beveiligingsmaatregelen doorgevoerd (onder meer bij e-mail, bestandsuploads en koppelingen).",
+      "Bedrijven-, agenda- en nieuwspagina's hebben nu nette, leesbare links i.p.v. een kale lange code.",
+      "Oude links naar een activiteit of bedrijf blijven gewoon werken, ook na een naam- of datumwijziging.",
+      "Meldingen en e-mails linken voortaan naar diezelfde nette links.",
+    ],
+  },
+  {
     version: "0.9.0",
     items: [
       "Statistieken-pagina: een stapel tel- en weergavefouten opgelost (percentages tot 800%, dubbele maandlabels, verkeerde badge-aantallen in Beheer).",

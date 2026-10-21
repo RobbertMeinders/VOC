@@ -135,7 +135,7 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
           <div>
             <p className="text-sm font-medium text-foreground">Testfase tonen</p>
             <p className="mt-0.5 text-xs text-muted">
-              Toont het &ldquo;Testversie&rdquo;-label, de banner op Home en de /testfase-pagina met feedbackformulier aan leden.
+              Toont het &ldquo;Proefversie&rdquo;-label, de banner op Home en de /testfase-pagina met feedbackformulier aan leden.
             </p>
           </div>
           <input type="hidden" name="show_testfase" value={showTestfase ? "on" : ""} />

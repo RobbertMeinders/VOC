@@ -352,7 +352,7 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
                 aangemeld (die regel hierboven dekt dat geval al). */}
             {appSettings.show_testfase && activity.status !== "cancelled" && !activity.external_registration_url && (
               <p className="mt-2 text-xs text-muted">
-                Testfase: meld je ook aan via de website.
+                Proefversie: meld je ook aan via de website.
               </p>
             )}
           </div>
