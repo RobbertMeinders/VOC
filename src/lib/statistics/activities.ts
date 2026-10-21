@@ -81,21 +81,39 @@ export async function getActivitiesStats(range: PeriodRange): Promise<Activities
     ]);
 
     // ---- Bezetting per activiteit (periode) ----
+    // Audit-bevinding: deze telling nam alleen leden-aanmeldingen mee, terwijl
+    // een externe aanmelding (public_activity_registrations) net zo goed een
+    // plek van het max_participants-maximum opsoupeert — "bezetting"/"vol"
+    // hoorde zo op sommige activiteiten te laag uit te komen. Externen kennen
+    // geen wachtlijst (public_activity_registrations heeft geen is_waitlisted-
+    // kolom), dus die tellen hier altijd als bevestigd.
     const periodActivityIds = (periodActivities ?? []).map((a) => a.id);
-    const { data: periodRegsAll } =
+    const [{ data: periodRegsAll }, { data: periodGuestRegsAll }] = await Promise.all([
       periodActivityIds.length > 0
-        ? await supabase.from("activity_registrations").select("activity_id, is_waitlisted").in("activity_id", periodActivityIds)
-        : { data: [] as { activity_id: string; is_waitlisted: boolean }[] };
+        ? supabase.from("activity_registrations").select("activity_id, is_waitlisted").in("activity_id", periodActivityIds)
+        : Promise.resolve({ data: [] as { activity_id: string; is_waitlisted: boolean }[] }),
+      periodActivityIds.length > 0
+        ? supabase.from("public_activity_registrations").select("activity_id").in("activity_id", periodActivityIds)
+        : Promise.resolve({ data: [] as { activity_id: string }[] }),
+    ]);
     const regsByActivity = new Map<string, { is_waitlisted: boolean }[]>();
     for (const r of periodRegsAll ?? []) {
       const list = regsByActivity.get(r.activity_id) ?? [];
       list.push({ is_waitlisted: r.is_waitlisted });
       regsByActivity.set(r.activity_id, list);
     }
+    const guestCountByActivity = new Map<string, number>();
+    for (const r of periodGuestRegsAll ?? []) {
+      guestCountByActivity.set(r.activity_id, (guestCountByActivity.get(r.activity_id) ?? 0) + 1);
+    }
+    const confirmedCountFor = (activityId: string) => {
+      const regs = regsByActivity.get(activityId) ?? [];
+      return regs.filter((r) => !r.is_waitlisted).length + (guestCountByActivity.get(activityId) ?? 0);
+    };
     const bezetting: OccupancyRow[] = (periodActivities ?? [])
       .map((a) => {
         const regs = regsByActivity.get(a.id) ?? [];
-        const confirmed = regs.filter((r) => !r.is_waitlisted).length;
+        const confirmed = confirmedCountFor(a.id);
         const waitlist = regs.filter((r) => r.is_waitlisted).length;
         return {
           id: a.id,
@@ -116,10 +134,7 @@ export async function getActivitiesStats(range: PeriodRange): Promise<Activities
     // null laat de KPI-tegel "–" tonen in plaats van een misleidend getal.
     const occupancyRates = (periodActivities ?? [])
       .filter((a) => a.max_participants)
-      .map((a) => {
-        const regs = regsByActivity.get(a.id) ?? [];
-        return (regs.filter((r) => !r.is_waitlisted).length / a.max_participants!) * 100;
-      });
+      .map((a) => (confirmedCountFor(a.id) / a.max_participants!) * 100);
     const avgOccupancy =
       occupancyRates.length > 0 ? Math.round(occupancyRates.reduce((s, v) => s + v, 0) / occupancyRates.length) : null;
 

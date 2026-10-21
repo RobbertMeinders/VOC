@@ -149,6 +149,16 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
       : Promise.resolve({ data: null as PublicRegistrationRow[] | null }),
   ]);
 
+  // get_activity_registration_counts (0088, uitgebreid in 0166) telt leden-
+  // én externe aanmeldingen samen — dezelfde telling als agenda/zoeken en de
+  // embed-statusroute gebruiken, zodat "vol"/badges overal hetzelfde getal
+  // tonen i.p.v. drie losse, elk-zonder-externen tellingen.
+  const { data: countRow } = await supabase
+    .rpc("get_activity_registration_counts")
+    .eq("activity_id", activity.id)
+    .maybeSingle();
+  const confirmedCount = Number(countRow?.registered_count ?? 0);
+
   let submitterLabel: string | null = null;
   if (submitter) {
     const membership = submitter.company_members.find((m) => m.is_primary) ?? submitter.company_members[0];
@@ -158,7 +168,6 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
 
   const confirmedRegistrations = (registrations ?? []).filter((r) => !r.is_waitlisted);
   const waitlistedRegistrations = (registrations ?? []).filter((r) => r.is_waitlisted);
-  const confirmedCount = confirmedRegistrations.length;
 
   // De twee signed-URL-batches zijn onafhankelijk van elkaar (bijlagen vs.
   // aanwezigen-avatars) — ook hier parallel i.p.v. na elkaar.

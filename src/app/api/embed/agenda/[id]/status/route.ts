@@ -17,7 +17,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
   }
 
   const supabase = await createClient();
-  const [{ data: activity }, registrationResult, confirmedCountResult] = await Promise.all([
+  const [{ data: activity }, registrationResult, countResult] = await Promise.all([
     supabase.from("activities").select("max_participants, registration_deadline").eq("id", id).maybeSingle(),
     supabase
       .from("activity_registrations")
@@ -25,14 +25,13 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       .eq("activity_id", id)
       .eq("profile_id", profile.id)
       .maybeSingle(),
-    supabase
-      .from("activity_registrations")
-      .select("id", { count: "exact", head: true })
-      .eq("activity_id", id)
-      .eq("is_waitlisted", false),
+    // get_activity_registration_counts (0088, uitgebreid in 0166) telt leden-
+    // én externe aanmeldingen samen — zelfde telling als de detailpagina en
+    // agenda/zoeken, zodat "vol" hier niet langer externe aanmeldingen mist.
+    supabase.rpc("get_activity_registration_counts").eq("activity_id", id).maybeSingle(),
   ]);
 
-  const confirmedCount = confirmedCountResult.count ?? 0;
+  const confirmedCount = Number(countResult.data?.registered_count ?? 0);
   const isFull = activity?.max_participants != null && confirmedCount >= activity.max_participants;
   const deadlinePassed = activity?.registration_deadline ? new Date(activity.registration_deadline) < new Date() : false;
 
