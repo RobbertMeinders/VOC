@@ -74,6 +74,13 @@ export const MEMBER_FACING_NOTIFICATION_TYPES: ConfigurableNotificationType[] = 
   "report_resolved",
 ];
 
+// Meldingensysteem-overhaul Fase 2: de enige drie types met een e-mail-
+// digest-optie (dagelijkse samenvatting i.p.v. losse mail) — zie
+// email_digest_new_activity/_feed_comment/_feed_mention op profiles
+// (0173). Alleen deze drie hebben de volumepieken die een samenvatting
+// de moeite waard maken; de overige types blijven altijd direct.
+export const DIGEST_ELIGIBLE_TYPES: ConfigurableNotificationType[] = ["new_activity", "feed_comment", "feed_mention"];
+
 // "lid" toegevoegd zodat een rolgebaseerd type (met name new_activity) ook
 // specifiek naar gewone leden gericht kan worden i.p.v. alleen bestuur/
 // beheer — de overige vier rolgebaseerde types blijven in de praktijk

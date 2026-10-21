@@ -38,6 +38,9 @@ export interface Database {
           email_feed: boolean;
           email_new_members: boolean;
           email_campaigns: boolean;
+          email_digest_new_activity: boolean;
+          email_digest_feed_comment: boolean;
+          email_digest_feed_mention: boolean;
           deactivated_at: string | null;
           anonymized_at: string | null;
           auth_scrubbed_at: string | null;
@@ -650,6 +653,19 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["push_subscriptions"]["Row"]>;
         Relationships: [];
       };
+      push_daily_send_counts: {
+        Row: {
+          profile_id: string;
+          send_date: string;
+          count: number;
+        };
+        Insert: Partial<Database["public"]["Tables"]["push_daily_send_counts"]["Row"]> & {
+          profile_id: string;
+          send_date: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["push_daily_send_counts"]["Row"]>;
+        Relationships: [];
+      };
       access_requests: {
         Row: {
           id: string;
@@ -1147,6 +1163,23 @@ export interface Database {
       mark_notifications_emailed: {
         Args: { p_ids: string[] };
         Returns: undefined;
+      };
+      get_pending_email_digest_notifications: {
+        Args: { p_limit?: number };
+        Returns: {
+          notification_id: string;
+          profile_id: string;
+          type: string;
+          title: string;
+          body: string | null;
+          link: string | null;
+          email: string;
+          created_at: string;
+        }[];
+      };
+      claim_push_send_slot: {
+        Args: { p_profile_id: string; p_type: string; p_daily_limit: number };
+        Returns: boolean;
       };
       get_email_template: {
         Args: { p_key: string };

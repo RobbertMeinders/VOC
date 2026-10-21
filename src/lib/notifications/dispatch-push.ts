@@ -18,6 +18,14 @@ const NOTIFICATION_PUSH_TEMPLATE_KEYS: Record<string, string> = {
   waitlist_promoted: "wachtlijst",
 };
 
+// Meldingensysteem-overhaul Fase 2: zachte dagelijkse pushlimiet per lid
+// (claim_push_send_slot, 0173) — ruim genoeg voor een normale drukke dag,
+// krap genoeg om een uitzonderlijke piek (bv. tientallen reacties op één
+// discussie) niet ongebreideld door te laten. Tijdkritische types
+// (besluiten óver het lid zelf) slaan deze limiet altijd over, zie de
+// functie zelf.
+const PUSH_DAILY_SOFT_LIMIT = 8;
+
 // UX-review punt 2: deze functie bevatte eerder alleen de cron-route zelf
 // (/api/cron/send-push) — verplaatst hierheen zodat zowel de cron (als
 // vangnet, 1x per dag) als een directe aanroep vlak na de onderliggende
@@ -72,6 +80,19 @@ export async function dispatchPendingPushNotifications(limit = 50): Promise<{ se
   let sent = 0;
   for (const item of pending) {
     try {
+      const { data: allowed } = await supabase.rpc("claim_push_send_slot", {
+        p_profile_id: item.profile_id,
+        p_type: item.type,
+        p_daily_limit: PUSH_DAILY_SOFT_LIMIT,
+      });
+      if (!allowed) {
+        // Zacht onderdrukt: de rij blijft gewoon pushed_at (al geclaimd
+        // door get_pending_push_notifications), alleen de daadwerkelijke
+        // pushverzending wordt overgeslagen — de melding blijft gewoon
+        // zichtbaar in-app/in de meldingenlijst.
+        continue;
+      }
+
       const content = await renderPushContent(item);
       await webpush.sendNotification(
         { endpoint: item.endpoint, keys: { p256dh: item.p256dh, auth: item.auth } },

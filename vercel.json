@@ -17,6 +17,10 @@
       "schedule": "0 8 * * *"
     },
     {
+      "path": "/api/cron/send-email-digest",
+      "schedule": "30 8 * * *"
+    },
+    {
       "path": "/api/cron/send-scheduled-campaigns",
       "schedule": "0 9 * * *"
     }
