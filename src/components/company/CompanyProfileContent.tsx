@@ -4,7 +4,7 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl, getSignedStorageUrls } from "@/lib/supabase/storage";
 import { isBoard } from "@/lib/auth/roles";
-import { companyHref, companyIdFilter } from "@/lib/company/slug";
+import { companyHref, companyIdFilter, resolveCompanySlugAlias } from "@/lib/company/slug";
 import { CompanyHeader } from "@/components/company/CompanyHeader";
 import { CompanyLocationMap } from "@/components/company/CompanyLocationMap";
 import { CompanyMemberList, type CompanyMember } from "@/components/company/CompanyMemberList";
@@ -66,6 +66,14 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
 
   const company = await getCachedCompany(routeParam);
   if (!company) {
+    // Opschoonbackfill (0163) kan deze route-waarde als oude, lelijke slug
+    // hebben achtergelaten (company_slug_aliases) — bv. een al extern
+    // gedeelde "capture-a61926fa"-link. Dan alsnog naar de huidige,
+    // nette slug-URL doorsturen i.p.v. een loze notFound().
+    const currentSlug = await resolveCompanySlugAlias(supabase, routeParam);
+    if (currentSlug) {
+      permanentRedirect(companyHref({ slug: currentSlug }));
+    }
     notFound();
   }
 

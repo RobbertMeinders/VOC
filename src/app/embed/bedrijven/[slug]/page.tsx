@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls, publicLogoUrl } from "@/lib/supabase/storage";
+import { resolveCompanySlugAlias } from "@/lib/company/slug";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
 import { CompanyDetailContent, type CompanyDetailData } from "@/components/embed/CompanyDetailContent";
 import { isWebsiteTheme, withEmbedTheme } from "@/lib/embed/theme";
@@ -36,7 +37,17 @@ export default async function BedrijfEmbedDetailPage({
   const { data } = await supabase.rpc("get_public_company", { p_slug: slug });
   const company = data?.[0] ?? null;
 
-  if (!company) notFound();
+  if (!company) {
+    // Opschoonbackfill (0163) kan deze route-waarde als oude, lelijke
+    // pre-backfill-slug hebben achtergelaten (company_slug_aliases) — deze
+    // pagina is een echte paginanavigatie (fallback zonder JS/rechtsklik),
+    // dus hier wél een 308 i.t.t. het JSON-endpoint hieronder.
+    const currentSlug = await resolveCompanySlugAlias(supabase, slug);
+    if (currentSlug) {
+      permanentRedirect(withEmbedTheme(`/embed/bedrijven/${currentSlug}`, thema));
+    }
+    notFound();
+  }
 
   const avatarUrls = await getSignedStorageUrls(
     supabase,

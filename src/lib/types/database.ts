@@ -98,6 +98,23 @@ export interface Database {
         Update: Partial<Database["public"]["Tables"]["companies"]["Row"]>;
         Relationships: [];
       };
+      // Opschoonbackfill (0163) van companies.slug: oude (willekeurige/id-
+      // staart) slugs blijven hier staan en wijzen naar hun bedrijf, voor een
+      // 308 vanaf een al extern gedeelde/ingebedde link (0162).
+      company_slug_aliases: {
+        Row: {
+          id: string;
+          slug: string;
+          company_id: string;
+          created_at: string;
+        };
+        Insert: Partial<Database["public"]["Tables"]["company_slug_aliases"]["Row"]> & {
+          slug: string;
+          company_id: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["company_slug_aliases"]["Row"]>;
+        Relationships: [];
+      };
       company_members: {
         Row: {
           id: string;
@@ -881,6 +898,14 @@ export interface Database {
       companies_for_members: {
         Args: Record<string, never>;
         Returns: Database["public"]["Tables"]["companies"]["Row"][];
+      };
+      generate_unique_company_slug: {
+        Args: { p_name: string };
+        Returns: string;
+      };
+      resolve_company_slug_alias: {
+        Args: { p_slug: string };
+        Returns: string | null;
       };
       // Statistieken-foutenrapport M12/M13: SQL-side aggregatie i.p.v. alle
       // rijen van een groeiende tabel naar de client halen (0160).

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls, publicLogoUrl } from "@/lib/supabase/storage";
+import { resolveCompanySlugAlias } from "@/lib/company/slug";
 import type { CompanyDetailData } from "@/components/embed/CompanyDetailContent";
 
 // Client-side aangeroepen door CompanyDetailOverlay (klik op een bedrijf in
@@ -15,7 +16,19 @@ export async function GET(_request: Request, { params }: { params: Promise<{ slu
   const supabase = await createClient();
 
   const { data } = await supabase.rpc("get_public_company", { p_slug: slug });
-  const company = data?.[0] ?? null;
+  let company = data?.[0] ?? null;
+
+  if (!company) {
+    // Opschoonbackfill (0163) kan deze slug als oude, lelijke pre-backfill-
+    // slug hebben achtergelaten (company_slug_aliases) — dit is een JSON-
+    // fetch, geen paginanavigatie, dus hier geen 308 (geen adresbalk om bij
+    // te werken): gewoon stil opnieuw opzoeken met de huidige slug.
+    const currentSlug = await resolveCompanySlugAlias(supabase, slug);
+    if (currentSlug) {
+      const retry = await supabase.rpc("get_public_company", { p_slug: currentSlug });
+      company = retry.data?.[0] ?? null;
+    }
+  }
 
   if (!company) {
     return NextResponse.json({ error: "not_found" }, { status: 404 });

@@ -4,7 +4,7 @@ import { requireProfile } from "@/lib/auth/session";
 import { isAdmin, isBoard } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
-import { companyHref, companyIdFilter } from "@/lib/company/slug";
+import { companyHref, companyIdFilter, resolveCompanySlugAlias } from "@/lib/company/slug";
 import { CompanyForm } from "@/components/company/CompanyForm";
 import { CompanyBillingForm } from "@/components/company/CompanyBillingForm";
 import { CompanyEditFormsGuard } from "@/components/company/CompanyEditFormsGuard";
@@ -40,6 +40,12 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
     .maybeSingle<Company>();
 
   if (!company) {
+    // Zelfde reden als CompanyProfileContent: routeParam kan een oude,
+    // lelijke pre-backfill-slug zijn (company_slug_aliases, 0162/0163).
+    const currentSlug = await resolveCompanySlugAlias(supabase, routeParam);
+    if (currentSlug) {
+      permanentRedirect(companyHref({ slug: currentSlug }, "/bewerken"));
+    }
     notFound();
   }
 

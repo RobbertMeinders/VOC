@@ -130,19 +130,34 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
       geocoded.push({ latitude: coordinates?.latitude ?? null, longitude: coordinates?.longitude ?? null });
     }
 
-    const toCreate = newCompanies.map((c, index) => ({
-      ...c,
-      ...geocoded[index],
-      slug: c.name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") + "-" + Math.random().toString(36).slice(2, 8),
-    }));
-    const { data: createdCompanies, error: companyError } = await supabase.from("companies").insert(toCreate).select("id, name");
-    if (companyError) {
-      return {
-        imported: 0,
-        skipped: [...skipped, { row: 0, email: "", reason: "Bedrijven aanmaken is niet gelukt: " + companyError.message }],
-      };
-    }
-    for (const created of createdCompanies ?? []) {
+    // generate_unique_company_slug (0161): kale geslugde naam, alleen bij
+    // een échte botsing een oplopend "-2"/"-3". Eén voor één aangeroepen én
+    // ingevoegd (i.p.v. één batch-insert met vooraf berekende slugs) — twee
+    // verschillende bedrijfsnamen in dezelfde import kunnen op dezelfde
+    // geslugde basis uitkomen (bv. "Café Central" en "Cafe, Central!"), en
+    // de generator ziet alleen al ECHT ingevoegde rijen, niet de rest van
+    // dit nog niet opgeslagen batch.
+    for (const [index, company] of newCompanies.entries()) {
+      const { data: slug, error: slugError } = await supabase.rpc("generate_unique_company_slug", {
+        p_name: company.name,
+      });
+      if (slugError || !slug) {
+        return {
+          imported: 0,
+          skipped: [...skipped, { row: 0, email: "", reason: "Bedrijven aanmaken is niet gelukt: " + (slugError?.message ?? "onbekende fout") }],
+        };
+      }
+      const { data: created, error: companyError } = await supabase
+        .from("companies")
+        .insert({ ...company, ...geocoded[index], slug })
+        .select("id, name")
+        .single();
+      if (companyError || !created) {
+        return {
+          imported: 0,
+          skipped: [...skipped, { row: 0, email: "", reason: "Bedrijven aanmaken is niet gelukt: " + (companyError?.message ?? "onbekende fout") }],
+        };
+      }
       companyByName.set(created.name.toLowerCase(), created.id);
     }
     invalidateQuery("bedrijven-page-data");

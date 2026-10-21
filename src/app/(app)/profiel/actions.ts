@@ -390,10 +390,6 @@ export async function changeEmailAction(_prevState: ChangeEmailState, formData: 
 
 export type UpdateCompanyMembershipState = { error?: string; success?: boolean; pending?: boolean };
 
-function slugify(name: string, suffix: string): string {
-  return `${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "")}-${suffix}`;
-}
-
 export async function updateMyCompanyAction(
   _prevState: UpdateCompanyMembershipState,
   formData: FormData
@@ -417,11 +413,21 @@ export async function updateMyCompanyAction(
   let targetCompanyId = companyId;
 
   if (companyMode === "new") {
+    // generate_unique_company_slug (0161): kale geslugde naam, alleen bij
+    // een échte botsing een oplopend "-2"/"-3" — i.p.v. de vroegere
+    // profiel-id-staart.
+    const { data: slug, error: slugError } = await supabase.rpc("generate_unique_company_slug", {
+      p_name: newCompanyName,
+    });
+    if (slugError || !slug) {
+      return { error: "Bedrijf aanmaken is niet gelukt. Probeer het opnieuw." };
+    }
+
     const { data: newCompany, error } = await supabase
       .from("companies")
       .insert({
         name: newCompanyName,
-        slug: slugify(newCompanyName, profile.id.slice(0, 8)),
+        slug,
         industry: newCompanyIndustry || null,
         city: newCompanyCity || null,
         website: newCompanyWebsite || null,
