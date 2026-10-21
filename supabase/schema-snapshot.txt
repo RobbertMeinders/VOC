@@ -19,6 +19,8 @@ public.activity_registrations | activity_registrations_members_select | cmd=SELE
   WHERE ((pr.id = activity_registrations.profile_id) AND (pr.show_attended_activities = true)))))) | check=
 public.activity_registrations | activity_registrations_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member())
 public.activity_registrations | activity_registrations_self_or_board_delete | cmd=DELETE | roles={public} | using=((profile_id = auth.uid()) OR is_board()) | check=
+public.activity_slug_aliases | activity_slug_aliases_insert | cmd=INSERT | roles={authenticated} | using= | check=is_board()
+public.activity_slug_aliases | activity_slug_aliases_select | cmd=SELECT | roles={authenticated} | using=is_active_member() | check=
 public.app_settings | app_settings_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=
 public.app_settings | app_settings_public_select | cmd=SELECT | roles={public} | using=true | check=
 public.audit_logs | audit_logs_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
@@ -453,6 +455,22 @@ begin
     );
   get diagnostics v_rows = row_count;
   return v_rows > 0;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.cleanup_old_events()
+ RETURNS bigint
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_deleted bigint;
+begin
+  delete from public.events where created_at < now() - interval '400 days';
+  get diagnostics v_deleted = row_count;
+  return v_deleted;
 end;
 $function$
 
@@ -1012,13 +1030,13 @@ $function$
 
 ---
 CREATE OR REPLACE FUNCTION public.get_companies_directory()
- RETURNS TABLE(id uuid, name text, industry text, city text, logo_url text, logo_thumb_url text, tagline text, latitude double precision, longitude double precision, show_address boolean)
+ RETURNS TABLE(id uuid, slug text, name text, industry text, city text, logo_url text, logo_thumb_url text, tagline text, latitude double precision, longitude double precision, show_address boolean)
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
   select
-    id, name, industry, city, logo_url, logo_thumb_url, tagline,
+    id, slug, name, industry, city, logo_url, logo_thumb_url, tagline,
     case when show_address then latitude else null end,
     case when show_address then longitude else null end,
     show_address
