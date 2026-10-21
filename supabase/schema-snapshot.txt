@@ -1,162 +1,170 @@
 == POLICIES ==
-public.access_requests | access_requests_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
-public.access_requests | access_requests_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.access_requests | access_requests_board_select | cmd=SELECT | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.access_requests | access_requests_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
 public.access_requests | access_requests_public_insert | cmd=INSERT | roles={public} | using= | check=true
-public.activities | activities_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
-public.activities | activities_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
-public.activities | activities_insert | cmd=INSERT | roles={public} | using= | check=is_active_member()
-public.activities | activities_members_select | cmd=SELECT | roles={authenticated} | using=((status = ANY (ARRAY['approved'::text, 'cancelled'::text])) OR (created_by = auth.uid()) OR is_board()) | check=
+public.activities | activities_board_delete | cmd=DELETE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.activities | activities_board_insert | cmd=INSERT | roles={public} | using= | check=( SELECT is_board() AS is_board)
+public.activities | activities_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.activities | activities_insert | cmd=INSERT | roles={public} | using= | check=( SELECT is_active_member() AS is_active_member)
+public.activities | activities_members_select | cmd=SELECT | roles={authenticated} | using=((status = ANY (ARRAY['approved'::text, 'cancelled'::text])) OR (created_by = ( SELECT auth.uid() AS uid)) OR ( SELECT is_board() AS is_board)) | check=
 public.activities | activities_public_select | cmd=SELECT | roles={anon} | using=((source = 'voc'::text) AND (status = ANY (ARRAY['approved'::text, 'cancelled'::text]))) | check=
-public.activities | activities_self_delete_pending | cmd=DELETE | roles={public} | using=((created_by = auth.uid()) AND (status = 'pending'::text)) | check=
-public.activity_attachments | activity_attachments_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
-public.activity_attachments | activity_attachments_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
-public.activity_attachments | activity_attachments_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.activity_registrations | activity_registrations_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
-public.activity_registrations | activity_registrations_members_select | cmd=SELECT | roles={public} | using=(is_active_member() AND ((profile_id = auth.uid()) OR is_board() OR (EXISTS ( SELECT 1
+public.activities | activities_self_delete_pending | cmd=DELETE | roles={public} | using=((created_by = ( SELECT auth.uid() AS uid)) AND (status = 'pending'::text)) | check=
+public.activity_attachments | activity_attachments_board_delete | cmd=DELETE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.activity_attachments | activity_attachments_board_insert | cmd=INSERT | roles={public} | using= | check=( SELECT is_board() AS is_board)
+public.activity_attachments | activity_attachments_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.activity_registrations | activity_registrations_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.activity_registrations | activity_registrations_members_select | cmd=SELECT | roles={public} | using=(( SELECT is_active_member() AS is_active_member) AND ((profile_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_board() AS is_board) OR (EXISTS ( SELECT 1
    FROM activities a
   WHERE ((a.id = activity_registrations.activity_id) AND (a.starts_at >= now())))) OR (EXISTS ( SELECT 1
    FROM profiles pr
   WHERE ((pr.id = activity_registrations.profile_id) AND (pr.show_attended_activities = true)))))) | check=
-public.activity_registrations | activity_registrations_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member())
-public.activity_registrations | activity_registrations_self_or_board_delete | cmd=DELETE | roles={public} | using=((profile_id = auth.uid()) OR is_board()) | check=
-public.activity_slug_aliases | activity_slug_aliases_insert | cmd=INSERT | roles={authenticated} | using= | check=is_board()
-public.activity_slug_aliases | activity_slug_aliases_select | cmd=SELECT | roles={authenticated} | using=is_active_member() | check=
-public.app_settings | app_settings_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=
+public.activity_registrations | activity_registrations_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member))
+public.activity_registrations | activity_registrations_self_or_board_delete | cmd=DELETE | roles={public} | using=((profile_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_board() AS is_board)) | check=
+public.activity_slug_aliases | activity_slug_aliases_insert | cmd=INSERT | roles={authenticated} | using= | check=( SELECT is_board() AS is_board)
+public.activity_slug_aliases | activity_slug_aliases_select | cmd=SELECT | roles={authenticated} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.app_settings | app_settings_admin_update | cmd=UPDATE | roles={public} | using=( SELECT is_admin() AS is_admin) | check=
 public.app_settings | app_settings_public_select | cmd=SELECT | roles={public} | using=true | check=
-public.audit_logs | audit_logs_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
-public.board_positions | board_positions_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
-public.board_positions | board_positions_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
-public.board_positions | board_positions_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
-public.board_positions | board_positions_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.commission_applications | commission_applications_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
-public.commission_applications | commission_applications_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member())
-public.commission_applications | commission_applications_self_or_board_select | cmd=SELECT | roles={public} | using=((profile_id = auth.uid()) OR is_board()) | check=
-public.commission_memberships | commission_memberships_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
-public.commission_memberships | commission_memberships_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
-public.commission_memberships | commission_memberships_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.commissions | commissions_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
-public.commissions | commissions_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
-public.commissions | commissions_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
-public.commissions | commissions_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.communication_contact_sends | board_manage_communication_contact_sends | cmd=ALL | roles={public} | using=is_board() | check=is_board()
-public.communication_deliveries | board_manage_communication_deliveries | cmd=ALL | roles={public} | using=is_board() | check=is_board()
-public.communication_recipient_contacts | board_manage_communication_recipient_contacts | cmd=ALL | roles={public} | using=is_board() | check=is_board()
-public.communication_recipient_lists | board_manage_communication_recipient_lists | cmd=ALL | roles={public} | using=is_board() | check=is_board()
-public.communication_recipient_profiles | board_manage_communication_recipient_profiles | cmd=ALL | roles={public} | using=is_board() | check=is_board()
-public.communication_send_attempts | board_manage_communication_send_attempts | cmd=ALL | roles={public} | using=is_board() | check=is_board()
-public.communications | communications_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
-public.communications | communications_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
-public.communications | communications_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
-public.communications | communications_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
-public.companies | companies_admin_delete | cmd=DELETE | roles={public} | using=is_admin() | check=
-public.companies | companies_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
-public.companies | companies_member_update | cmd=UPDATE | roles={public} | using=(is_active_member() AND (EXISTS ( SELECT 1
+public.audit_logs | audit_logs_board_select | cmd=SELECT | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.board_positions | board_positions_board_delete | cmd=DELETE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.board_positions | board_positions_board_insert | cmd=INSERT | roles={public} | using= | check=( SELECT is_board() AS is_board)
+public.board_positions | board_positions_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.board_positions | board_positions_members_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.commission_applications | commission_applications_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.commission_applications | commission_applications_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member))
+public.commission_applications | commission_applications_self_or_board_select | cmd=SELECT | roles={public} | using=((profile_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_board() AS is_board)) | check=
+public.commission_memberships | commission_memberships_board_delete | cmd=DELETE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.commission_memberships | commission_memberships_board_insert | cmd=INSERT | roles={public} | using= | check=( SELECT is_board() AS is_board)
+public.commission_memberships | commission_memberships_members_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.commissions | commissions_board_delete | cmd=DELETE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.commissions | commissions_board_insert | cmd=INSERT | roles={public} | using= | check=( SELECT is_board() AS is_board)
+public.commissions | commissions_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.commissions | commissions_members_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.communication_contact_sends | board_manage_communication_contact_sends | cmd=ALL | roles={public} | using=( SELECT is_board() AS is_board) | check=( SELECT is_board() AS is_board)
+public.communication_deliveries | board_manage_communication_deliveries | cmd=ALL | roles={public} | using=( SELECT is_board() AS is_board) | check=( SELECT is_board() AS is_board)
+public.communication_recipient_contacts | board_manage_communication_recipient_contacts | cmd=ALL | roles={public} | using=( SELECT is_board() AS is_board) | check=( SELECT is_board() AS is_board)
+public.communication_recipient_lists | board_manage_communication_recipient_lists | cmd=ALL | roles={public} | using=( SELECT is_board() AS is_board) | check=( SELECT is_board() AS is_board)
+public.communication_recipient_profiles | board_manage_communication_recipient_profiles | cmd=ALL | roles={public} | using=( SELECT is_board() AS is_board) | check=( SELECT is_board() AS is_board)
+public.communication_send_attempts | board_manage_communication_send_attempts | cmd=ALL | roles={public} | using=( SELECT is_board() AS is_board) | check=( SELECT is_board() AS is_board)
+public.communications | communications_board_delete | cmd=DELETE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.communications | communications_board_insert | cmd=INSERT | roles={public} | using= | check=( SELECT is_board() AS is_board)
+public.communications | communications_board_select | cmd=SELECT | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.communications | communications_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.companies | companies_admin_delete | cmd=DELETE | roles={public} | using=( SELECT is_admin() AS is_admin) | check=
+public.companies | companies_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.companies | companies_member_update | cmd=UPDATE | roles={public} | using=(( SELECT is_active_member() AS is_active_member) AND (EXISTS ( SELECT 1
    FROM company_members
-  WHERE ((company_members.company_id = companies.id) AND (company_members.profile_id = auth.uid()))))) | check=
-public.companies | companies_members_insert | cmd=INSERT | roles={public} | using= | check=is_active_member()
-public.companies | companies_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.company_billing_details | company_billing_details_member_insert | cmd=INSERT | roles={public} | using= | check=(is_board() OR (is_active_member() AND (EXISTS ( SELECT 1
+  WHERE ((company_members.company_id = companies.id) AND (company_members.profile_id = ( SELECT auth.uid() AS uid)))))) | check=
+public.companies | companies_members_insert | cmd=INSERT | roles={public} | using= | check=( SELECT is_active_member() AS is_active_member)
+public.companies | companies_members_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.company_billing_details | company_billing_details_member_insert | cmd=INSERT | roles={public} | using= | check=(( SELECT is_board() AS is_board) OR (( SELECT is_active_member() AS is_active_member) AND (EXISTS ( SELECT 1
    FROM company_members
-  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = auth.uid()))))))
-public.company_billing_details | company_billing_details_member_select | cmd=SELECT | roles={public} | using=(is_board() OR (is_active_member() AND (EXISTS ( SELECT 1
+  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = ( SELECT auth.uid() AS uid)))))))
+public.company_billing_details | company_billing_details_member_select | cmd=SELECT | roles={public} | using=(( SELECT is_board() AS is_board) OR (( SELECT is_active_member() AS is_active_member) AND (EXISTS ( SELECT 1
    FROM company_members
-  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = auth.uid())))))) | check=
-public.company_billing_details | company_billing_details_member_update | cmd=UPDATE | roles={public} | using=(is_board() OR (is_active_member() AND (EXISTS ( SELECT 1
+  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = ( SELECT auth.uid() AS uid))))))) | check=
+public.company_billing_details | company_billing_details_member_update | cmd=UPDATE | roles={public} | using=(( SELECT is_board() AS is_board) OR (( SELECT is_active_member() AS is_active_member) AND (EXISTS ( SELECT 1
    FROM company_members
-  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = auth.uid())))))) | check=
-public.company_members | company_members_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
-public.company_members | company_members_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
-public.company_members | company_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.company_members | company_members_self_new_company_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member() AND (EXISTS ( SELECT 1
+  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = ( SELECT auth.uid() AS uid))))))) | check=
+public.company_members | company_members_board_insert | cmd=INSERT | roles={public} | using= | check=( SELECT is_board() AS is_board)
+public.company_members | company_members_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.company_members | company_members_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.company_members | company_members_self_new_company_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member) AND (EXISTS ( SELECT 1
    FROM companies c
-  WHERE ((c.id = company_members.company_id) AND (c.created_by = auth.uid())))) AND (NOT (EXISTS ( SELECT 1
+  WHERE ((c.id = company_members.company_id) AND (c.created_by = ( SELECT auth.uid() AS uid))))) AND (NOT (EXISTS ( SELECT 1
    FROM company_members cm
   WHERE (cm.company_id = company_members.company_id)))))
-public.company_members | company_members_self_or_board_delete | cmd=DELETE | roles={public} | using=((profile_id = auth.uid()) OR is_board()) | check=
-public.company_membership_requests | company_membership_requests_decide_update | cmd=UPDATE | roles={public} | using=(is_board() OR (EXISTS ( SELECT 1
+public.company_members | company_members_self_or_board_delete | cmd=DELETE | roles={public} | using=((profile_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_board() AS is_board)) | check=
+public.company_membership_requests | company_membership_requests_decide_update | cmd=UPDATE | roles={public} | using=(( SELECT is_board() AS is_board) OR (EXISTS ( SELECT 1
    FROM company_members cm
-  WHERE ((cm.company_id = company_membership_requests.company_id) AND (cm.profile_id = auth.uid()) AND is_active_member())))) | check=
-public.company_membership_requests | company_membership_requests_select | cmd=SELECT | roles={public} | using=((profile_id = auth.uid()) OR is_board() OR (EXISTS ( SELECT 1
+  WHERE ((cm.company_id = company_membership_requests.company_id) AND (cm.profile_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member))))) | check=
+public.company_membership_requests | company_membership_requests_select | cmd=SELECT | roles={public} | using=((profile_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_board() AS is_board) OR (EXISTS ( SELECT 1
    FROM company_members cm
-  WHERE ((cm.company_id = company_membership_requests.company_id) AND (cm.profile_id = auth.uid()) AND is_active_member())))) | check=
-public.company_membership_requests | company_membership_requests_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member())
-public.company_membership_requests | company_membership_requests_self_or_board_delete | cmd=DELETE | roles={public} | using=(((profile_id = auth.uid()) AND (status = 'pending'::text)) OR is_board()) | check=
-public.contact_list_contacts | board_manage_contact_list_contacts | cmd=ALL | roles={public} | using=is_board() | check=is_board()
-public.contact_list_profiles | board_manage_contact_list_profiles | cmd=ALL | roles={public} | using=is_board() | check=is_board()
-public.contact_lists | board_manage_contact_lists | cmd=ALL | roles={public} | using=is_board() | check=is_board()
-public.contacts | board_manage_contacts | cmd=ALL | roles={public} | using=is_board() | check=is_board()
-public.documents | documents_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
-public.documents | documents_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
-public.documents | documents_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
-public.documents | documents_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.email_templates | email_templates_admin_select | cmd=SELECT | roles={public} | using=is_admin() | check=
-public.email_templates | email_templates_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=
-public.events | events_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
+  WHERE ((cm.company_id = company_membership_requests.company_id) AND (cm.profile_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member))))) | check=
+public.company_membership_requests | company_membership_requests_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member))
+public.company_membership_requests | company_membership_requests_self_or_board_delete | cmd=DELETE | roles={public} | using=(((profile_id = ( SELECT auth.uid() AS uid)) AND (status = 'pending'::text)) OR ( SELECT is_board() AS is_board)) | check=
+public.contact_list_contacts | board_manage_contact_list_contacts | cmd=ALL | roles={public} | using=( SELECT is_board() AS is_board) | check=( SELECT is_board() AS is_board)
+public.contact_list_profiles | board_manage_contact_list_profiles | cmd=ALL | roles={public} | using=( SELECT is_board() AS is_board) | check=( SELECT is_board() AS is_board)
+public.contact_lists | board_manage_contact_lists | cmd=ALL | roles={public} | using=( SELECT is_board() AS is_board) | check=( SELECT is_board() AS is_board)
+public.contacts | board_manage_contacts | cmd=ALL | roles={public} | using=( SELECT is_board() AS is_board) | check=( SELECT is_board() AS is_board)
+public.documents | documents_board_delete | cmd=DELETE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.documents | documents_board_insert | cmd=INSERT | roles={public} | using= | check=( SELECT is_board() AS is_board)
+public.documents | documents_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.documents | documents_members_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.email_templates | email_templates_admin_select | cmd=SELECT | roles={public} | using=( SELECT is_admin() AS is_admin) | check=
+public.email_templates | email_templates_admin_update | cmd=UPDATE | roles={public} | using=( SELECT is_admin() AS is_admin) | check=
+public.email_templates | email_templates_board_select | cmd=SELECT | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.email_templates | email_templates_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.events | events_board_select | cmd=SELECT | roles={public} | using=( SELECT is_board() AS is_board) | check=
 public.feed_attachments | feed_attachments_author_insert | cmd=INSERT | roles={public} | using= | check=(EXISTS ( SELECT 1
    FROM feed_posts
-  WHERE ((feed_posts.id = feed_attachments.post_id) AND (feed_posts.author_id = auth.uid()))))
-public.feed_attachments | feed_attachments_author_or_board_delete | cmd=DELETE | roles={public} | using=(is_board() OR (EXISTS ( SELECT 1
+  WHERE ((feed_posts.id = feed_attachments.post_id) AND (feed_posts.author_id = ( SELECT auth.uid() AS uid)))))
+public.feed_attachments | feed_attachments_author_or_board_delete | cmd=DELETE | roles={public} | using=(( SELECT is_board() AS is_board) OR (EXISTS ( SELECT 1
    FROM feed_posts
-  WHERE ((feed_posts.id = feed_attachments.post_id) AND (feed_posts.author_id = auth.uid()))))) | check=
-public.feed_attachments | feed_attachments_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.feed_comment_likes | feed_comment_likes_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.feed_comment_likes | feed_comment_likes_self_delete | cmd=DELETE | roles={public} | using=((profile_id = auth.uid()) OR is_board() OR (EXISTS ( SELECT 1
+  WHERE ((feed_posts.id = feed_attachments.post_id) AND (feed_posts.author_id = ( SELECT auth.uid() AS uid)))))) | check=
+public.feed_attachments | feed_attachments_members_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.feed_comment_likes | feed_comment_likes_members_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.feed_comment_likes | feed_comment_likes_self_delete | cmd=DELETE | roles={public} | using=((profile_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_board() AS is_board) OR (EXISTS ( SELECT 1
    FROM feed_comments
-  WHERE ((feed_comments.id = feed_comment_likes.comment_id) AND (feed_comments.author_id = auth.uid()))))) | check=
-public.feed_comment_likes | feed_comment_likes_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member())
-public.feed_comments | feed_comments_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=is_admin()
-public.feed_comments | feed_comments_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.feed_comments | feed_comments_self_insert | cmd=INSERT | roles={public} | using= | check=((author_id = auth.uid()) AND is_active_member())
-public.feed_comments | feed_comments_self_or_board_delete | cmd=DELETE | roles={public} | using=((author_id = auth.uid()) OR is_board()) | check=
-public.feed_comments | feed_comments_self_update | cmd=UPDATE | roles={public} | using=(author_id = auth.uid()) | check=(author_id = auth.uid())
-public.feed_likes | feed_likes_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.feed_likes | feed_likes_self_delete | cmd=DELETE | roles={public} | using=((profile_id = auth.uid()) OR is_board() OR (EXISTS ( SELECT 1
+  WHERE ((feed_comments.id = feed_comment_likes.comment_id) AND (feed_comments.author_id = ( SELECT auth.uid() AS uid)))))) | check=
+public.feed_comment_likes | feed_comment_likes_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member))
+public.feed_comments | feed_comments_admin_update | cmd=UPDATE | roles={public} | using=( SELECT is_admin() AS is_admin) | check=( SELECT is_admin() AS is_admin)
+public.feed_comments | feed_comments_members_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.feed_comments | feed_comments_self_insert | cmd=INSERT | roles={public} | using= | check=((author_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member))
+public.feed_comments | feed_comments_self_or_board_delete | cmd=DELETE | roles={public} | using=((author_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_board() AS is_board)) | check=
+public.feed_comments | feed_comments_self_update | cmd=UPDATE | roles={public} | using=(author_id = ( SELECT auth.uid() AS uid)) | check=(author_id = ( SELECT auth.uid() AS uid))
+public.feed_likes | feed_likes_members_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.feed_likes | feed_likes_self_delete | cmd=DELETE | roles={public} | using=((profile_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_board() AS is_board) OR (EXISTS ( SELECT 1
    FROM feed_posts
-  WHERE ((feed_posts.id = feed_likes.post_id) AND (feed_posts.author_id = auth.uid()))))) | check=
-public.feed_likes | feed_likes_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member())
-public.feed_post_reports | feed_post_reports_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
-public.feed_post_reports | feed_post_reports_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
-public.feed_post_reports | feed_post_reports_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=is_board()
-public.feed_post_reports | feed_post_reports_self_insert | cmd=INSERT | roles={public} | using= | check=((reporter_id = auth.uid()) AND is_active_member())
-public.feed_posts | feed_posts_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=is_admin()
-public.feed_posts | feed_posts_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.feed_posts | feed_posts_self_insert | cmd=INSERT | roles={public} | using= | check=((author_id = auth.uid()) AND is_active_member())
-public.feed_posts | feed_posts_self_or_board_delete | cmd=DELETE | roles={public} | using=((author_id = auth.uid()) OR is_board()) | check=
-public.feed_posts | feed_posts_self_update | cmd=UPDATE | roles={public} | using=(author_id = auth.uid()) | check=(author_id = auth.uid())
-public.invitations | invitations_board_select | cmd=SELECT | roles={public} | using=(is_admin() OR ((role = 'lid'::user_role) AND is_board())) | check=
-public.invitations | invitations_insert | cmd=INSERT | roles={public} | using= | check=((invited_by = auth.uid()) AND (is_admin() OR ((role = 'lid'::user_role) AND is_board())))
-public.invitations | invitations_update | cmd=UPDATE | roles={public} | using=(is_admin() OR ((role = 'lid'::user_role) AND is_board())) | check=
-public.message_templates | message_templates_admin_select | cmd=SELECT | roles={public} | using=is_admin() | check=
-public.message_templates | message_templates_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=
-public.news_items | news_items_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
-public.news_items | news_items_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
-public.news_items | news_items_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
-public.news_items | news_items_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.notification_type_settings | notification_type_settings_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
-public.notification_type_settings | notification_type_settings_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
-public.notifications | notifications_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
-public.notifications | notifications_self_delete | cmd=DELETE | roles={public} | using=(profile_id = auth.uid()) | check=
-public.notifications | notifications_self_select | cmd=SELECT | roles={public} | using=(profile_id = auth.uid()) | check=
-public.notifications | notifications_self_update | cmd=UPDATE | roles={public} | using=(profile_id = auth.uid()) | check=
-public.org_profile | org_profile_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
-public.org_profile | org_profile_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.profiles | profiles_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=
-public.profiles | profiles_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
-public.profiles | profiles_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
-public.profiles | profiles_self_select | cmd=SELECT | roles={public} | using=(id = auth.uid()) | check=
-public.profiles | profiles_self_update | cmd=UPDATE | roles={public} | using=((id = auth.uid()) AND is_active_member()) | check=((id = auth.uid()) AND is_active_member())
+  WHERE ((feed_posts.id = feed_likes.post_id) AND (feed_posts.author_id = ( SELECT auth.uid() AS uid)))))) | check=
+public.feed_likes | feed_likes_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member))
+public.feed_post_reports | feed_post_reports_author_or_board_delete | cmd=DELETE | roles={public} | using=(( SELECT is_board() AS is_board) OR (EXISTS ( SELECT 1
+   FROM feed_posts
+  WHERE ((feed_posts.id = feed_post_reports.post_id) AND (feed_posts.author_id = ( SELECT auth.uid() AS uid)))))) | check=
+public.feed_post_reports | feed_post_reports_board_delete | cmd=DELETE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.feed_post_reports | feed_post_reports_board_select | cmd=SELECT | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.feed_post_reports | feed_post_reports_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=( SELECT is_board() AS is_board)
+public.feed_post_reports | feed_post_reports_self_insert | cmd=INSERT | roles={public} | using= | check=((reporter_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member))
+public.feed_posts | feed_posts_admin_update | cmd=UPDATE | roles={public} | using=( SELECT is_admin() AS is_admin) | check=( SELECT is_admin() AS is_admin)
+public.feed_posts | feed_posts_members_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.feed_posts | feed_posts_self_insert | cmd=INSERT | roles={public} | using= | check=((author_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member))
+public.feed_posts | feed_posts_self_or_board_delete | cmd=DELETE | roles={public} | using=((author_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_board() AS is_board)) | check=
+public.feed_posts | feed_posts_self_update | cmd=UPDATE | roles={public} | using=(author_id = ( SELECT auth.uid() AS uid)) | check=(author_id = ( SELECT auth.uid() AS uid))
+public.invitations | invitations_board_select | cmd=SELECT | roles={public} | using=(( SELECT is_admin() AS is_admin) OR ((role = 'lid'::user_role) AND ( SELECT is_board() AS is_board))) | check=
+public.invitations | invitations_insert | cmd=INSERT | roles={public} | using= | check=((invited_by = ( SELECT auth.uid() AS uid)) AND (( SELECT is_admin() AS is_admin) OR ((role = 'lid'::user_role) AND ( SELECT is_board() AS is_board))))
+public.invitations | invitations_update | cmd=UPDATE | roles={public} | using=(( SELECT is_admin() AS is_admin) OR ((role = 'lid'::user_role) AND ( SELECT is_board() AS is_board))) | check=
+public.message_templates | message_templates_admin_select | cmd=SELECT | roles={public} | using=( SELECT is_admin() AS is_admin) | check=
+public.message_templates | message_templates_admin_update | cmd=UPDATE | roles={public} | using=( SELECT is_admin() AS is_admin) | check=
+public.news_items | news_items_board_delete | cmd=DELETE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.news_items | news_items_board_insert | cmd=INSERT | roles={public} | using= | check=( SELECT is_board() AS is_board)
+public.news_items | news_items_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.news_items | news_items_members_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.notification_type_settings | notification_type_settings_board_select | cmd=SELECT | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.notification_type_settings | notification_type_settings_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.notifications | notifications_board_select | cmd=SELECT | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.notifications | notifications_self_delete | cmd=DELETE | roles={public} | using=(profile_id = ( SELECT auth.uid() AS uid)) | check=
+public.notifications | notifications_self_select | cmd=SELECT | roles={public} | using=(profile_id = ( SELECT auth.uid() AS uid)) | check=
+public.notifications | notifications_self_update | cmd=UPDATE | roles={public} | using=(profile_id = ( SELECT auth.uid() AS uid)) | check=
+public.org_profile | org_profile_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.org_profile | org_profile_members_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.profiles | profiles_admin_update | cmd=UPDATE | roles={public} | using=( SELECT is_admin() AS is_admin) | check=
+public.profiles | profiles_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.profiles | profiles_members_select | cmd=SELECT | roles={public} | using=( SELECT is_active_member() AS is_active_member) | check=
+public.profiles | profiles_self_select | cmd=SELECT | roles={public} | using=(id = ( SELECT auth.uid() AS uid)) | check=
+public.profiles | profiles_self_update | cmd=UPDATE | roles={public} | using=((id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member)) | check=((id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member))
 public.prospects | prospects_board_delete | cmd=DELETE | roles={authenticated} | using=is_board() | check=
 public.prospects | prospects_board_select | cmd=SELECT | roles={authenticated} | using=is_board() | check=
 public.prospects | prospects_board_update | cmd=UPDATE | roles={authenticated} | using=is_board() | check=
-public.public_activity_registrations | public_activity_registrations_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
-public.push_subscriptions | push_subscriptions_self_delete | cmd=DELETE | roles={public} | using=(profile_id = auth.uid()) | check=
-public.push_subscriptions | push_subscriptions_self_insert | cmd=INSERT | roles={public} | using= | check=(profile_id = auth.uid())
-public.push_subscriptions | push_subscriptions_self_select | cmd=SELECT | roles={public} | using=(profile_id = auth.uid()) | check=
-public.push_subscriptions | push_subscriptions_self_update | cmd=UPDATE | roles={public} | using=(profile_id = auth.uid()) | check=
-public.push_templates | push_templates_admin_select | cmd=SELECT | roles={public} | using=is_admin() | check=
-public.push_templates | push_templates_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=
-public.testfase_feedback | testfase_feedback_admin_select | cmd=SELECT | roles={public} | using=is_admin() | check=
-public.testfase_feedback | testfase_feedback_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member())
+public.public_activity_registrations | public_activity_registrations_board_select | cmd=SELECT | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.push_subscriptions | push_subscriptions_self_delete | cmd=DELETE | roles={public} | using=(profile_id = ( SELECT auth.uid() AS uid)) | check=
+public.push_subscriptions | push_subscriptions_self_insert | cmd=INSERT | roles={public} | using= | check=(profile_id = ( SELECT auth.uid() AS uid))
+public.push_subscriptions | push_subscriptions_self_select | cmd=SELECT | roles={public} | using=(profile_id = ( SELECT auth.uid() AS uid)) | check=
+public.push_subscriptions | push_subscriptions_self_update | cmd=UPDATE | roles={public} | using=(profile_id = ( SELECT auth.uid() AS uid)) | check=
+public.push_templates | push_templates_admin_select | cmd=SELECT | roles={public} | using=( SELECT is_admin() AS is_admin) | check=
+public.push_templates | push_templates_admin_update | cmd=UPDATE | roles={public} | using=( SELECT is_admin() AS is_admin) | check=
+public.push_templates | push_templates_board_select | cmd=SELECT | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.push_templates | push_templates_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=
+public.testfase_feedback | testfase_feedback_admin_select | cmd=SELECT | roles={public} | using=( SELECT is_admin() AS is_admin) | check=
+public.testfase_feedback | testfase_feedback_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member))
 
 == FUNCTIONS ==
 CREATE OR REPLACE FUNCTION public.anonymize_expired_profiles()
@@ -192,6 +200,24 @@ begin
     from expired
     where p.id = expired.id
     returning p.id
+  ),
+  cleaned_registrations as (
+    delete from public.activity_registrations ar
+    using public.activities a, expired
+    where ar.profile_id = expired.id
+      and ar.activity_id = a.id
+      and a.starts_at > now()
+  ),
+  cleaned_commissions as (
+    delete from public.commission_memberships cm
+    using expired
+    where cm.profile_id = expired.id
+  ),
+  cleaned_requests as (
+    update public.company_membership_requests r
+    set status = 'rejected', decided_at = now()
+    from expired
+    where r.profile_id = expired.id and r.status = 'pending'
   )
   select expired.id, expired.avatar_url from expired;
 end;
@@ -230,6 +256,24 @@ begin
     from target
     where p.id = target.id
     returning p.id
+  ),
+  cleaned_registrations as (
+    delete from public.activity_registrations ar
+    using public.activities a, target
+    where ar.profile_id = target.id
+      and ar.activity_id = a.id
+      and a.starts_at > now()
+  ),
+  cleaned_commissions as (
+    delete from public.commission_memberships cm
+    using target
+    where cm.profile_id = target.id
+  ),
+  cleaned_requests as (
+    update public.company_membership_requests r
+    set status = 'rejected', decided_at = now()
+    from target
+    where r.profile_id = target.id and r.status = 'pending'
   )
   select target.id, target.avatar_url from target;
 end;
@@ -459,6 +503,30 @@ end;
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.claim_push_send_slot(p_profile_id uuid, p_type text, p_daily_limit integer)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_critical constant text[] := array['waitlist_promoted', 'activity_decision', 'company_membership_decision'];
+  v_count integer;
+begin
+  if p_type = any(v_critical) then
+    return true;
+  end if;
+
+  insert into public.push_daily_send_counts (profile_id, send_date, count)
+  values (p_profile_id, (now() at time zone 'Europe/Amsterdam')::date, 1)
+  on conflict (profile_id, send_date) do update set count = public.push_daily_send_counts.count + 1
+  returning count into v_count;
+
+  return v_count <= p_daily_limit;
+end;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.cleanup_old_events()
  RETURNS bigint
  LANGUAGE plpgsql
@@ -556,13 +624,24 @@ begin
     v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
   from public.activity_registrations r
   join public.activities a on a.id = r.activity_id
+  join public.profiles p on p.id = r.profile_id
   where a.starts_at > now()
     and a.starts_at <= now() + interval '2 days'
+    and a.status <> 'cancelled'
+    and not r.is_waitlisted
+    and p.is_active
     and not exists (
       select 1 from public.notifications n
       where n.profile_id = r.profile_id
         and n.type = 'activity_reminder'
-        and n.link = '/agenda/' || a.slug
+        and (
+          n.link = '/agenda/' || a.slug
+          or n.link in (
+            select '/agenda/' || alias.slug
+            from public.activity_slug_aliases alias
+            where alias.activity_id = a.id
+          )
+        )
     );
 
   get diagnostics v_count = row_count;
@@ -578,6 +657,23 @@ CREATE OR REPLACE FUNCTION public."current_role"()
  SET search_path TO 'public'
 AS $function$
   select role from public.profiles where id = auth.uid() and is_active = true;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.delete_expired_invitations()
+ RETURNS integer
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  deleted_count integer;
+begin
+  delete from public.invitations
+  where status = 'pending' and expires_at <= now() - interval '90 days';
+  get diagnostics deleted_count = row_count;
+  return deleted_count;
+end;
 $function$
 
 ---
@@ -1079,8 +1175,11 @@ CREATE OR REPLACE FUNCTION public.get_activity_registration_counts()
  SET search_path TO 'public'
 AS $function$
   select activity_id, count(*) as registered_count
-  from public.activity_registrations
-  where is_waitlisted = false
+  from (
+    select activity_id from public.activity_registrations where is_waitlisted = false
+    union all
+    select activity_id from public.public_activity_registrations
+  ) combined
   group by activity_id;
 $function$
 
@@ -1216,7 +1315,7 @@ $function$
 
 ---
 CREATE OR REPLACE FUNCTION public.get_member_profile(p_id text)
- RETURNS TABLE(id uuid, first_name text, last_name text, slug text, email text, phone text, job_title text, avatar_url text, avatar_thumb_url text, role user_role, is_active boolean, show_email boolean, show_phone boolean, show_attended_activities boolean, push_activities boolean, push_feed boolean, push_new_members boolean, email_activities boolean, email_feed boolean, email_new_members boolean, deactivated_at timestamp with time zone, anonymized_at timestamp with time zone, last_active_at timestamp with time zone, linkedin_url text, instagram_url text, facebook_url text, bio text, is_organization_account boolean, publicly_visible boolean, onboarding_dismissed_at timestamp with time zone, introduction_prompt_dismissed_at timestamp with time zone, created_at timestamp with time zone, updated_at timestamp with time zone)
+ RETURNS TABLE(id uuid, first_name text, last_name text, slug text, email text, phone text, job_title text, avatar_url text, avatar_thumb_url text, role user_role, is_active boolean, show_email boolean, show_phone boolean, show_attended_activities boolean, push_new_activity boolean, push_activity_reminder boolean, push_feed_comment boolean, push_feed_mention boolean, push_new_members boolean, email_new_activity boolean, email_activity_reminder boolean, email_feed_comment boolean, email_feed_mention boolean, email_new_members boolean, deactivated_at timestamp with time zone, anonymized_at timestamp with time zone, last_active_at timestamp with time zone, linkedin_url text, instagram_url text, facebook_url text, bio text, is_organization_account boolean, publicly_visible boolean, onboarding_dismissed_at timestamp with time zone, introduction_prompt_dismissed_at timestamp with time zone, created_at timestamp with time zone, updated_at timestamp with time zone)
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO 'public'
@@ -1227,8 +1326,8 @@ AS $function$
     case when p.id = auth.uid() or p.show_phone or public.is_board() then p.phone else null end,
     p.job_title, p.avatar_url, p.avatar_thumb_url, p.role, p.is_active,
     p.show_email, p.show_phone, p.show_attended_activities,
-    p.push_activities, p.push_feed, p.push_new_members,
-    p.email_activities, p.email_feed, p.email_new_members,
+    p.push_new_activity, p.push_activity_reminder, p.push_feed_comment, p.push_feed_mention, p.push_new_members,
+    p.email_new_activity, p.email_activity_reminder, p.email_feed_comment, p.email_feed_mention, p.email_new_members,
     p.deactivated_at, p.anonymized_at, p.last_active_at,
     p.linkedin_url, p.instagram_url, p.facebook_url, p.bio,
     p.is_organization_account, p.publicly_visible,
@@ -1240,13 +1339,12 @@ AS $function$
       when p_id ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$' then p.id::text = p_id
       else p.slug = p_id
     end
-  )
-  and (p.id = auth.uid() or public.is_active_member());
+  ) and (p.id = auth.uid() or public.is_active_member());
 $function$
 
 ---
 CREATE OR REPLACE FUNCTION public.get_members_directory()
- RETURNS TABLE(id uuid, first_name text, last_name text, slug text, email text, phone text, job_title text, avatar_url text, avatar_thumb_url text, role user_role, is_active boolean, show_email boolean, show_phone boolean, show_attended_activities boolean, push_activities boolean, push_feed boolean, push_new_members boolean, email_activities boolean, email_feed boolean, email_new_members boolean, deactivated_at timestamp with time zone, anonymized_at timestamp with time zone, last_active_at timestamp with time zone, linkedin_url text, instagram_url text, facebook_url text, bio text, is_organization_account boolean, publicly_visible boolean, onboarding_dismissed_at timestamp with time zone, introduction_prompt_dismissed_at timestamp with time zone, created_at timestamp with time zone, updated_at timestamp with time zone)
+ RETURNS TABLE(id uuid, first_name text, last_name text, slug text, email text, phone text, job_title text, avatar_url text, avatar_thumb_url text, role user_role, is_active boolean, show_email boolean, show_phone boolean, show_attended_activities boolean, push_new_activity boolean, push_activity_reminder boolean, push_feed_comment boolean, push_feed_mention boolean, push_new_members boolean, email_new_activity boolean, email_activity_reminder boolean, email_feed_comment boolean, email_feed_mention boolean, email_new_members boolean, deactivated_at timestamp with time zone, anonymized_at timestamp with time zone, last_active_at timestamp with time zone, linkedin_url text, instagram_url text, facebook_url text, bio text, is_organization_account boolean, publicly_visible boolean, onboarding_dismissed_at timestamp with time zone, introduction_prompt_dismissed_at timestamp with time zone, created_at timestamp with time zone, updated_at timestamp with time zone)
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO 'public'
@@ -1257,8 +1355,8 @@ AS $function$
     case when p.id = auth.uid() or p.show_phone or public.is_board() then p.phone else null end,
     p.job_title, p.avatar_url, p.avatar_thumb_url, p.role, p.is_active,
     p.show_email, p.show_phone, p.show_attended_activities,
-    p.push_activities, p.push_feed, p.push_new_members,
-    p.email_activities, p.email_feed, p.email_new_members,
+    p.push_new_activity, p.push_activity_reminder, p.push_feed_comment, p.push_feed_mention, p.push_new_members,
+    p.email_new_activity, p.email_activity_reminder, p.email_feed_comment, p.email_feed_mention, p.email_new_members,
     p.deactivated_at, p.anonymized_at, p.last_active_at,
     p.linkedin_url, p.instagram_url, p.facebook_url, p.bio,
     p.is_organization_account, p.publicly_visible,
@@ -1297,6 +1395,44 @@ AS $function$
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.get_pending_email_digest_notifications(p_limit integer DEFAULT 500)
+ RETURNS TABLE(notification_id uuid, profile_id uuid, type text, title text, body text, link text, email text, created_at timestamp with time zone)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  return query
+  with claimed as (
+    select n.id
+    from public.notifications n
+    join public.profiles p on p.id = n.profile_id
+    where n.emailed_at is null
+      and n.communication_id is null
+      and (n.email_claimed_at is null or n.email_claimed_at < now() - interval '10 minutes')
+      and (
+        (n.type = 'new_activity' and p.email_digest_new_activity)
+        or (n.type = 'feed_comment' and p.email_digest_feed_comment)
+        or (n.type = 'feed_mention' and p.email_digest_feed_mention)
+      )
+    order by n.created_at
+    limit p_limit
+    for update of n skip locked
+  ),
+  leased as (
+    update public.notifications n
+    set email_claimed_at = now()
+    from claimed c
+    where n.id = c.id
+    returning n.id, n.type, n.title, n.body, n.link, n.profile_id, n.created_at
+  )
+  select l.id, l.profile_id, l.type, l.title, l.body, l.link, p.email, l.created_at
+  from leased l
+  join public.profiles p on p.id = l.profile_id;
+end;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.get_pending_email_notifications(p_limit integer DEFAULT 50)
  RETURNS TABLE(notification_id uuid, type text, title text, body text, link text, email text)
  LANGUAGE plpgsql
@@ -1313,17 +1449,25 @@ begin
     and (
       not n.channel_email_allowed
       or n.type = 'new_member'
-      or (n.type in ('new_activity', 'activity_reminder') and not p.email_activities)
-      or (n.type in ('feed_comment', 'feed_mention') and not p.email_feed)
+      or (n.type = 'new_activity' and not p.email_new_activity)
+      or (n.type = 'activity_reminder' and not p.email_activity_reminder)
+      or (n.type = 'feed_comment' and not p.email_feed_comment)
+      or (n.type = 'feed_mention' and not p.email_feed_mention)
     );
 
   return query
   with claimed as (
     select n.id
     from public.notifications n
+    join public.profiles p on p.id = n.profile_id
     where n.emailed_at is null
       and n.communication_id is null
       and (n.email_claimed_at is null or n.email_claimed_at < now() - interval '10 minutes')
+      and not (
+        (n.type = 'new_activity' and p.email_digest_new_activity)
+        or (n.type = 'feed_comment' and p.email_digest_feed_comment)
+        or (n.type = 'feed_mention' and p.email_digest_feed_mention)
+      )
     order by n.created_at
     limit p_limit
     for update of n skip locked
@@ -1343,7 +1487,7 @@ $function$
 
 ---
 CREATE OR REPLACE FUNCTION public.get_pending_push_notifications(p_limit integer DEFAULT 50)
- RETURNS TABLE(notification_id uuid, type text, title text, body text, link text, endpoint text, p256dh text, auth text)
+ RETURNS TABLE(notification_id uuid, type text, title text, body text, link text, profile_id uuid, endpoint text, p256dh text, auth text)
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public'
@@ -1358,8 +1502,10 @@ begin
     and (
       not n.channel_push_allowed
       or n.type = 'new_member'
-      or (n.type in ('new_activity', 'activity_reminder') and not p.push_activities)
-      or (n.type in ('feed_comment', 'feed_mention') and not p.push_feed)
+      or (n.type = 'new_activity' and not p.push_new_activity)
+      or (n.type = 'activity_reminder' and not p.push_activity_reminder)
+      or (n.type = 'feed_comment' and not p.push_feed_comment)
+      or (n.type = 'feed_mention' and not p.push_feed_mention)
     );
 
   return query
@@ -1380,7 +1526,7 @@ begin
     where n.id = c.id
     returning n.id, n.type, n.title, n.body, n.link, n.profile_id
   )
-  select m.id, m.type, m.title, m.body, m.link, s.endpoint, s.p256dh, s.auth
+  select m.id, m.type, m.title, m.body, m.link, m.profile_id, s.endpoint, s.p256dh, s.auth
   from marked m
   join public.push_subscriptions s on s.profile_id = m.profile_id;
 end;
@@ -2002,10 +2148,22 @@ declare
   v_profile_id uuid;
 begin
   select profile_id into v_profile_id from public.notifications where id = p_notification_id;
-  if v_profile_id is not null then
-    insert into public.events (event_type, profile_id, target_type, target_id, metadata)
-    values ('notification_opened', v_profile_id, 'notification', p_notification_id, jsonb_build_object('channel', 'push'));
+  if v_profile_id is null then
+    return;
   end if;
+
+  if exists (
+    select 1 from public.events
+    where event_type = 'notification_opened'
+      and target_type = 'notification'
+      and target_id = p_notification_id
+      and profile_id = v_profile_id
+  ) then
+    return;
+  end if;
+
+  insert into public.events (event_type, profile_id, target_type, target_id, metadata)
+  values ('notification_opened', v_profile_id, 'notification', p_notification_id, jsonb_build_object('channel', 'push'));
 end;
 $function$
 
@@ -2321,7 +2479,9 @@ begin
       new.notify_email and v_cfg.channel_email,
       v_cfg.channel_inapp
     from public.profiles
-    where is_active and (new.created_by is null or id <> new.created_by);
+    where is_active
+      and role = any(coalesce(v_cfg.roles, array['lid', 'bestuurslid', 'beheerder']))
+      and (new.created_by is null or id <> new.created_by);
   end if;
   return new;
 end;
