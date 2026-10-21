@@ -16,7 +16,23 @@ import { DEFAULT_MAX_AGE, REMEMBERED_MAX_AGE, REMEMBER_ME_COOKIE, VERIFIED_USER_
 // i.p.v. gewoon door te laten (de routes zelf geven `profile: null`/publieke
 // data terug). Zie proxy.ts voor waarom deze routes toch door de middleware
 // moeten lopen i.p.v. er net als api/cron helemaal buiten te vallen.
-const PUBLIC_PATHS = ["/login", "/register", "/auth", "/wachtwoord-vergeten", "/toegang-aanvragen", "/embed", "/api/embed"];
+// /afmelden: de afmeldlink in elke verzonden nieuwsbrief/e-mailnotificatie
+// — een bezoeker die daarop klikt, is zo goed als altijd uitgelogd (die
+// klikt vanuit de eigen mailclient), en liep zonder deze regel eerst tegen
+// de inlogmuur aan i.p.v. de afmeldbevestiging te zien. /offline: de PWA's
+// eigen offline-terugvalpagina (manifest/service worker) — moet juist
+// laden zónder netwerk/sessie, anders faalt de terugval zelf ook.
+const PUBLIC_PATHS = [
+  "/login",
+  "/register",
+  "/auth",
+  "/wachtwoord-vergeten",
+  "/toegang-aanvragen",
+  "/embed",
+  "/api/embed",
+  "/afmelden",
+  "/offline",
+];
 
 function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
