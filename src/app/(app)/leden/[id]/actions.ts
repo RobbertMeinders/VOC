@@ -153,10 +153,26 @@ export async function deleteMemberAction(memberId: string): Promise<DeleteMember
     return { error: "Verwijderen is niet gelukt. Probeer het opnieuw." };
   }
 
+  // AVG-fix (portaal-gezondheidsonderzoek A6, migratie 0136): deze twee
+  // aanroepen lopen buiten de database-transactie van anonymize_profile_now()
+  // om. Mislukken ze (netwerkhik, tijdelijke storing), dan pakt de
+  // dagelijkse anonymize-members-cron deze rij alsnog op (anonymized_at
+  // staat al, auth_scrubbed_at/pending_avatar_cleanup pas na succes hier) —
+  // i.p.v. dat het echte e-mailadres voorgoed in auth.users blijft staan.
   const [{ old_avatar_url }] = anonymized;
-  await admin.auth.admin.updateUserById(memberId, { email: `verwijderd-${memberId}@voc-ledenportaal.invalid` });
+  const { error: authError } = await admin.auth.admin.updateUserById(memberId, {
+    email: `verwijderd-${memberId}@voc-ledenportaal.invalid`,
+  });
+  if (!authError) {
+    await admin.rpc("mark_profiles_auth_scrubbed", { p_ids: [memberId] });
+  } else {
+    console.error(`[leden] deleteMemberAction: auth.users-update mislukt voor ${memberId}:`, authError);
+  }
   if (old_avatar_url) {
-    await admin.storage.from("avatars").remove([old_avatar_url]);
+    const { error: storageError } = await admin.storage.from("avatars").remove([old_avatar_url]);
+    if (!storageError) {
+      await admin.rpc("mark_profiles_avatar_cleaned", { p_ids: [memberId] });
+    }
   }
 
   await logAuditAction("member_deleted", "profile", memberId);

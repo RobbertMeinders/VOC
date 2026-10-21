@@ -40,6 +40,8 @@ export interface Database {
           email_campaigns: boolean;
           deactivated_at: string | null;
           anonymized_at: string | null;
+          auth_scrubbed_at: string | null;
+          pending_avatar_cleanup: string | null;
           last_active_at: string | null;
           linkedin_url: string | null;
           instagram_url: string | null;
@@ -963,6 +965,18 @@ export interface Database {
       anonymize_profile_now: {
         Args: { p_id: string };
         Returns: { profile_id: string; old_avatar_url: string | null }[];
+      };
+      get_profiles_pending_auth_scrub: {
+        Args: Record<string, never>;
+        Returns: { profile_id: string; pending_avatar_cleanup: string | null }[];
+      };
+      mark_profiles_auth_scrubbed: {
+        Args: { p_ids: string[] };
+        Returns: undefined;
+      };
+      mark_profiles_avatar_cleaned: {
+        Args: { p_ids: string[] };
+        Returns: undefined;
       };
       force_logout_member: {
         Args: { p_id: string };
