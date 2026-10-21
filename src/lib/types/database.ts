@@ -882,6 +882,28 @@ export interface Database {
         Args: Record<string, never>;
         Returns: Database["public"]["Tables"]["companies"]["Row"][];
       };
+      // Statistieken-foutenrapport M12/M13: SQL-side aggregatie i.p.v. alle
+      // rijen van een groeiende tabel naar de client halen (0160).
+      get_post_view_counts: {
+        Args: Record<string, never>;
+        Returns: { post_id: string; views: number }[];
+      };
+      get_feed_comment_counts: {
+        Args: Record<string, never>;
+        Returns: { post_id: string; comment_count: number }[];
+      };
+      get_communication_delivery_stats: {
+        Args: Record<string, never>;
+        Returns: { communication_id: string; sent: number; failed: number; total: number }[];
+      };
+      get_registration_counts_by_profile: {
+        Args: { p_since: string };
+        Returns: { profile_id: string; registrations: number }[];
+      };
+      get_notification_type_counts: {
+        Args: { p_start: string; p_end: string };
+        Returns: { type: string; cnt: number }[];
+      };
       get_invitation_preview: {
         Args: { p_token: string };
         Returns: {

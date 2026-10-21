@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 import { Mail, MessagesSquare, Megaphone } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { StatsTabs, type StatsTabKey } from "@/components/beheer/statistics/StatsTabs";
+import { StatsTabs, StatsTabLink, type StatsTabKey } from "@/components/beheer/statistics/StatsTabs";
 import { PeriodMenu } from "@/components/beheer/statistics/PeriodMenu";
 import { StatsNavProvider } from "@/components/beheer/statistics/StatsNavContext";
 import { StatsContentArea } from "@/components/beheer/statistics/StatsContentArea";
@@ -43,7 +43,9 @@ function ChartCard({
 }
 
 function KpiGrid({ children }: { children: ReactNode }) {
-  return <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">{children}</div>;
+  // Foutenrapport M1: 6 tegels naast elkaar op desktop (lg:grid-cols-6) gaf
+  // afgekapte labels en een delta over 2-3 regels — het ontwerp vraagt 3x2.
+  return <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">{children}</div>;
 }
 
 const CHART_COLORS = { primary: "var(--chart-primary)", secondary: "var(--chart-secondary)", compare: "var(--chart-compare)" };
@@ -51,6 +53,11 @@ const CHART_COLORS = { primary: "var(--chart-primary)", secondary: "var(--chart-
 async function OverviewTab({ period, compare }: { period: ReturnType<typeof resolvePeriodRange>; compare: boolean }) {
   const stats = await getOverviewStats(period);
   const compareLabel = prevPeriodLabel(period.period);
+  // Foutenrapport L5: de tooltip (via de series-naam) gebruikte de kleine
+  // letter-variant ("vorige 30 dagen"), de legenda ernaast de hoofdletter-
+  // variant ("Vorige 30 dagen") — één variabele i.p.v. de capitalize-
+  // expressie op twee plekken te herhalen (en zo op één ervan te vergeten).
+  const compareLabelCapitalized = compareLabel.charAt(0).toUpperCase() + compareLabel.slice(1);
   const trendLabels = stats.activeMembersTrend.map((p) => p.label);
 
   return (
@@ -71,7 +78,14 @@ async function OverviewTab({ period, compare }: { period: ReturnType<typeof reso
             series={[
               { name: "Deze periode", color: CHART_COLORS.primary, values: stats.activeMembersTrend.map((p) => p.value) },
               ...(compare
-                ? [{ name: compareLabel, color: CHART_COLORS.compare, dashed: true, values: stats.activeMembersTrendPrev.map((p) => p.value) }]
+                ? [
+                    {
+                      name: compareLabelCapitalized,
+                      color: CHART_COLORS.compare,
+                      dashed: true,
+                      values: stats.activeMembersTrendPrev.map((p) => p.value),
+                    },
+                  ]
                 : []),
             ]}
           />
@@ -79,7 +93,7 @@ async function OverviewTab({ period, compare }: { period: ReturnType<typeof reso
             <Legend
               items={[
                 { label: "Deze periode", color: CHART_COLORS.primary },
-                { label: compareLabel.charAt(0).toUpperCase() + compareLabel.slice(1), color: CHART_COLORS.compare, dashed: true },
+                { label: compareLabelCapitalized, color: CHART_COLORS.compare, dashed: true },
               ]}
             />
           )}
@@ -95,19 +109,23 @@ async function OverviewTab({ period, compare }: { period: ReturnType<typeof reso
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
-        <ChartCard title="Activiteiten in deze periode" action={<Link href="/beheer/statistieken?tab=activiteiten" className="text-xs font-semibold text-petrol hover:underline">Activiteiten</Link>}>
+        <ChartCard title="Activiteiten in deze periode" action={<StatsTabLink tab="activiteiten" periode={period.period} compare={compare} label="Activiteiten" />}>
           <HorizontalBars
             rows={stats.activiteiten.map((a) => ({
               id: a.id,
               label: a.title,
+              sublabel: formatActivityDate(a.startsAt),
               href: a.href,
               value: a.value,
               secondary: a.waitlist,
-              max: a.max ?? undefined,
+              max: a.max,
               valueLabel: a.subtitle,
             }))}
           />
-          <p className="text-xs text-muted">Balk = bezetting: aanmeldingen ten opzichte van het maximum.</p>
+          <p className="text-xs text-muted">
+            Balk = bezetting: aanmeldingen ten opzichte van het maximum. Een grijze, halfdoorzichtige balk betekent dat er geen maximum
+            is ingesteld.
+          </p>
         </ChartCard>
 
         <ChartCard title="Signalen" subtitle="vragen om actie">
@@ -116,7 +134,7 @@ async function OverviewTab({ period, compare }: { period: ReturnType<typeof reso
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <ChartCard title="Ledenontwikkeling" action={<Link href="/beheer/statistieken?tab=leden" className="text-xs font-semibold text-petrol hover:underline">Leden</Link>}>
+        <ChartCard title="Ledenontwikkeling" action={<StatsTabLink tab="leden" periode={period.period} compare={compare} label="Leden" />}>
           <BarChart
             labels={stats.ledenontwikkeling.map((p) => p.label)}
             series={[
@@ -127,7 +145,7 @@ async function OverviewTab({ period, compare }: { period: ReturnType<typeof reso
           <Legend items={[{ label: "Nieuw", color: CHART_COLORS.primary }, { label: "Uitgeschreven", color: CHART_COLORS.secondary }]} />
         </ChartCard>
 
-        <ChartCard title="Bereik" action={<Link href="/beheer/statistieken?tab=communicatie" className="text-xs font-semibold text-petrol hover:underline">Communicatie</Link>}>
+        <ChartCard title="Bereik" action={<StatsTabLink tab="communicatie" periode={period.period} compare={compare} label="Communicatie" />}>
           <IconStatList
             items={[
               {
@@ -233,14 +251,18 @@ async function ActiviteitenTab({ period, compare }: { period: ReturnType<typeof 
             rows={stats.bezetting.map((a) => ({
               id: a.id,
               label: a.title,
+              sublabel: formatActivityDate(a.startsAt),
               href: a.href,
               value: a.value,
               secondary: a.waitlist,
-              max: a.max ?? undefined,
+              max: a.max,
               valueLabel: a.subtitle,
             }))}
           />
-          <p className="text-xs text-muted">Balk = bezetting: aanmeldingen ten opzichte van het maximum.</p>
+          <p className="text-xs text-muted">
+            Balk = bezetting: aanmeldingen ten opzichte van het maximum. Een grijze, halfdoorzichtige balk betekent dat er geen maximum
+            is ingesteld.
+          </p>
         </ChartCard>
 
         <ChartCard title="Wie komt er?">
@@ -388,6 +410,12 @@ function toBarRows(items: { label: string; value: number }[]): BarRow[] {
   return items.map((item, i) => ({ id: `${item.label}-${i}`, label: item.label, value: item.value, valueLabel: nl.format(item.value) }));
 }
 
+// Foutenrapport L2 (ontwerpafwijking): datum per activiteit naast de
+// bezettingsbalk, zoals het ontwerp toont (bv. "do 8 okt").
+function formatActivityDate(iso: string): string {
+  return new Intl.DateTimeFormat("nl-NL", { weekday: "short", day: "numeric", month: "short" }).format(new Date(iso)).replace(".", "");
+}
+
 export default async function StatistiekenPage({
   searchParams,
 }: {
@@ -409,7 +437,10 @@ export default async function StatistiekenPage({
       <div className="flex flex-col gap-4">
         <PageHeader title="Statistieken" description="Hoe gaat het met de vereniging en het portaal." />
 
-        <div className="flex items-end justify-between gap-3 border-b border-border">
+        {/* Foutenrapport M2: op mobiel verdrong de periodeknop de tabs (die
+            breekt zelf ook in drie regels) — in het ontwerp staat de
+            periodeknop op mobiel op een eigen regel ónder de tabs. */}
+        <div className="flex flex-col-reverse gap-2 border-b border-border sm:flex-row sm:items-end sm:justify-between sm:gap-3">
           <StatsTabs active={activeTab} />
           <div className="pb-2">
             <PeriodMenu period={period} compare={compare} />
@@ -420,7 +451,7 @@ export default async function StatistiekenPage({
           {compare ? ` · vergeleken met ${prevPeriodLabel(period)}` : ""}
         </p>
 
-        <StatsContentArea>
+        <StatsContentArea active={activeTab}>
           {activeTab === "overzicht" && <OverviewTab period={range} compare={compare} />}
           {activeTab === "leden" && <LedenTab period={range} compare={compare} />}
           {activeTab === "activiteiten" && <ActiviteitenTab period={range} compare={compare} />}

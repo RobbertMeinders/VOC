@@ -42,6 +42,7 @@ export function BeheerSidebar({
   })).filter((section) => section.items.length > 0);
 
   const activeItem = sections.flatMap((section) => section.items).find((item) => isActive(item.href));
+  const totalBadgeCount = Object.values(badges).reduce((sum, count) => sum + count, 0);
 
   useEscapeKey(open, () => setOpen(false));
 
@@ -119,6 +120,10 @@ export function BeheerSidebar({
           >
             {activeItem && <activeItem.icon size={16} className="text-voc-red-text" />}
             {activeItem?.label ?? "Beheer"}
+            {/* Foutenrapport L10: je zag pas na het openklappen dat er ergens
+                iets wachtte — dezelfde som als de "Beheer"-badge in het
+                ledenmenu, nu ook hier zichtbaar vóór het openklappen. */}
+            {totalBadgeCount > 0 && <NavBadge count={totalBadgeCount} label={`${totalBadgeCount} item(s) wachten op jou`} />}
             <ChevronDown size={16} className={clsx("ml-auto transition-transform duration-200", open && "rotate-180")} />
           </button>
           {open && (

@@ -15,12 +15,88 @@ function ChartTooltip({ x, y, align = "center", children }: { x: number; y: numb
   return (
     <foreignObject x={tx} y={Math.max(y, 0)} width={width} height={60} style={{ overflow: "visible" }} className="pointer-events-none">
       <div className={clsx("flex", align === "start" ? "justify-start" : align === "end" ? "justify-end" : "justify-center")}>
-        <div className="flex flex-col gap-0.5 whitespace-nowrap rounded-lg bg-foreground px-2.5 py-1.5 text-[11px] font-medium text-background opacity-0 shadow-sm transition-opacity group-hover:opacity-100">
+        {/* Foutenrapport L4: transition-opacity van 150ms liet de tooltip
+            merkbaar vertraagd verschijnen ("niet echt direct") — duration-75
+            i.p.v. de standaard 150ms.
+            Foutenrapport M3: group-focus-within i.p.v. alleen group-hover —
+            op touch bestaat er geen echte hover, maar het hitvlak hieronder
+            krijgt een tabIndex en kan dus focus (en dus :focus-within)
+            krijgen bij een tik. */}
+        <div className="flex flex-col gap-0.5 whitespace-nowrap rounded-lg bg-foreground px-2.5 py-1.5 text-[11px] font-medium text-background opacity-0 shadow-sm transition-opacity duration-75 group-hover:opacity-100 group-focus-within:opacity-100">
           {children}
         </div>
       </div>
     </foreignObject>
   );
+}
+
+// Foutenrapport M3: SVG-tekst (<text fontSize={10}>) schaalt mee met de
+// viewBox — op een smalle mobiele kaart (viewBox 640 breed, kaart 326px)
+// kwam dat neer op zo'n 6px daadwerkelijke tekengrootte. Een foreignObject
+// met gewone CSS (zoals de tooltip hierboven al doet) rendert in échte
+// pixels, onafhankelijk van hoe sterk de SVG zelf is uitgerekt.
+function AxisLabel({
+  x,
+  y,
+  width = 70,
+  height = 16,
+  align = "center",
+  children,
+}: {
+  x: number;
+  y: number;
+  width?: number;
+  height?: number;
+  align?: "start" | "center" | "end";
+  children: ReactNode;
+}) {
+  const tx = align === "start" ? x : align === "end" ? x - width : x - width / 2;
+  return (
+    <foreignObject x={tx} y={y} width={width} height={height} style={{ overflow: "visible" }} className="pointer-events-none">
+      <div className={clsx("flex h-full items-center", align === "start" ? "justify-start" : align === "end" ? "justify-end" : "justify-center")}>
+        <span className="whitespace-nowrap text-[11px] text-muted">{children}</span>
+      </div>
+    </foreignObject>
+  );
+}
+
+// Foutenrapport M10: "Trendgrafiek"/"Staafdiagram" zonder titel, waarden of
+// periode was het enige tekstalternatief — plus een visueel verborgen
+// tabel met labels/waarden per reeks, voor wie de SVG zelf niet kan lezen.
+function ChartSrTable({ labels, series }: { labels: string[]; series: ChartSeries[] }) {
+  return (
+    <table className="sr-only">
+      <caption>Waarden per {series.length > 1 ? "reeks en " : ""}periode</caption>
+      <thead>
+        <tr>
+          <th>Periode</th>
+          {series.map((s) => (
+            <th key={s.name}>{s.name}</th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {labels.map((label, i) => (
+          <tr key={label + i}>
+            <td>{label}</td>
+            {series.map((s) => (
+              <td key={s.name}>{s.values[i] ?? 0}</td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+function describeChart(kind: "Trendgrafiek" | "Staafdiagram", labels: string[], series: ChartSeries[]): string {
+  if (labels.length === 0) return kind;
+  const allValues = series.flatMap((s) => s.values);
+  const max = Math.max(...allValues, 0);
+  const maxIndex = series.flatMap((s) => s.values).indexOf(max);
+  const maxLabel = labels[maxIndex % labels.length];
+  const seriesNames = series.map((s) => s.name).join(", ");
+  return `${kind}: ${seriesNames}, periode ${labels[0]} tot ${labels[labels.length - 1]}; hoogste waarde ${max}${maxLabel ? ` op ${maxLabel}` : ""}.`;
 }
 
 const CHART_WIDTH = 640;
@@ -82,13 +158,14 @@ export function LineChart({
   const labelIdx = sparseLabelIndexes(labels.length);
 
   return (
-    <svg viewBox={`0 0 ${CHART_WIDTH} ${height}`} className="w-full overflow-visible" role="img" aria-label="Trendgrafiek">
+    <>
+      <svg viewBox={`0 0 ${CHART_WIDTH} ${height}`} className="w-full overflow-visible" role="img" aria-label={describeChart("Trendgrafiek", labels, series)}>
       {gridLines.map((v) => (
         <g key={v}>
           <line x1={PADDING.left} x2={CHART_WIDTH - PADDING.right} y1={y(v)} y2={y(v)} stroke="var(--chart-grid)" strokeWidth={1} />
-          <text x={PADDING.left - 8} y={y(v) + 3.5} textAnchor="end" fontSize={10} fill="var(--muted)">
+          <AxisLabel x={PADDING.left - 8} y={y(v) - 7} align="end">
             {Math.round(v)}
-          </text>
+          </AxisLabel>
         </g>
       ))}
 
@@ -113,7 +190,20 @@ export function LineChart({
 
       {labels.map((label, i) => (
         <g key={label + i} className="group">
-          <rect x={PADDING.left + colWidth * (i - 0.5)} y={PADDING.top} width={colWidth} height={innerH} fill="transparent" />
+          {/* Foutenrapport M3: tabIndex maakt dit hitvlak focusbaar — op
+              touch bestaat geen echte :hover, maar een tik geeft wel focus,
+              en group-focus-within (ChartTooltip) toont de tooltip dan
+              alsnog. */}
+          <rect
+            x={PADDING.left + colWidth * (i - 0.5)}
+            y={PADDING.top}
+            width={colWidth}
+            height={innerH}
+            fill="transparent"
+            tabIndex={0}
+            role="img"
+            aria-label={`${label}: ${series.map((s) => `${s.name} ${s.values[i] ?? 0}`).join(", ")}`}
+          />
           <line
             x1={x(i)}
             x2={x(i)}
@@ -158,19 +248,19 @@ export function LineChart({
       {labels.map(
         (label, i) =>
           labelIdx.has(i) && (
-            <text
+            <AxisLabel
               key={label + i}
               x={x(i)}
-              y={height - 6}
-              textAnchor={i === 0 ? "start" : i === labels.length - 1 ? "end" : "middle"}
-              fontSize={10}
-              fill="var(--muted)"
+              y={height - 16}
+              align={i === 0 ? "start" : i === labels.length - 1 ? "end" : "center"}
             >
               {label}
-            </text>
+            </AxisLabel>
           )
       )}
-    </svg>
+      </svg>
+      <ChartSrTable labels={labels} series={series} />
+    </>
   );
 }
 
@@ -203,13 +293,14 @@ export function BarChart({
   for (let v = 0; v <= niceMax + 1e-9; v += step) gridLines.push(v);
 
   return (
-    <svg viewBox={`0 0 ${CHART_WIDTH} ${height}`} className="w-full overflow-visible" role="img" aria-label="Staafdiagram">
+    <>
+      <svg viewBox={`0 0 ${CHART_WIDTH} ${height}`} className="w-full overflow-visible" role="img" aria-label={describeChart("Staafdiagram", labels, series)}>
       {gridLines.map((v) => (
         <g key={v}>
           <line x1={PADDING.left} x2={CHART_WIDTH - PADDING.right} y1={y(v)} y2={y(v)} stroke="var(--chart-grid)" strokeWidth={1} />
-          <text x={PADDING.left - 8} y={y(v) + 3.5} textAnchor="end" fontSize={10} fill="var(--muted)">
+          <AxisLabel x={PADDING.left - 8} y={y(v) - 7} align="end">
             {Math.round(v)}
-          </text>
+          </AxisLabel>
         </g>
       ))}
       {labels.map((label, i) => {
@@ -218,7 +309,17 @@ export function BarChart({
         const startX = center - groupWidth / 2;
         return (
           <g key={label + i} className="group">
-            <rect x={PADDING.left + band * i} y={PADDING.top} width={band} height={innerH} fill="transparent" />
+            {/* Foutenrapport M3: zie LineChart hierboven. */}
+            <rect
+              x={PADDING.left + band * i}
+              y={PADDING.top}
+              width={band}
+              height={innerH}
+              fill="transparent"
+              tabIndex={0}
+              role="img"
+              aria-label={`${label}: ${series.map((s) => `${s.name} ${s.values[i] ?? 0}`).join(", ")}`}
+            />
             {series.map((s, si) => {
               const v = s.values[i] ?? 0;
               const barX = startX + si * (barWidth + gap);
@@ -244,20 +345,16 @@ export function BarChart({
               ))}
             </ChartTooltip>
             {labelIdx.has(i) && (
-              <text
-                x={center}
-                y={height - 6}
-                textAnchor={i === 0 ? "start" : i === labels.length - 1 ? "end" : "middle"}
-                fontSize={10}
-                fill="var(--muted)"
-              >
+              <AxisLabel x={center} y={height - 16} align={i === 0 ? "start" : i === labels.length - 1 ? "end" : "center"}>
                 {label}
-              </text>
+              </AxisLabel>
             )}
           </g>
         );
       })}
-    </svg>
+      </svg>
+      <ChartSrTable labels={labels} series={series} />
+    </>
   );
 }
 
@@ -282,17 +379,38 @@ export function Sparkline({ values, color }: { values: number[]; color: string }
   );
 }
 
-export type BarRow = { id: string; label: string; sublabel?: string; value: number; secondary?: number; max?: number; valueLabel: string; href?: string };
+export type BarRow = {
+  id: string;
+  label: string;
+  sublabel?: string;
+  value: number;
+  secondary?: number;
+  // undefined = geen max-concept voor deze lijst (branche/plaats, "wie komt
+  // er"): balken zijn relatief aan elkaar. null = deze rij heeft zelf geen
+  // maximum, binnen een lijst waar andere rijen dat wel hebben (bezetting
+  // per activiteit zonder max_participants) — zie foutenrapport L2.
+  max?: number | null;
+  valueLabel: string;
+  href?: string;
+};
 
 // Horizontale balken (bezetting per activiteit, branche/plaats, "wie komt
 // er") — `secondary` tekent een tweede segment in een andere kleur
 // (bv. wachtlijst) ná het eerste, binnen dezelfde track.
 export function HorizontalBars({ rows, max: fixedMax }: { rows: BarRow[]; max?: number }) {
   if (rows.length === 0) return <p className="text-sm text-muted">Nog geen gegevens.</p>;
-  const max = fixedMax ?? Math.max(...rows.map((r) => r.max ?? r.value + (r.secondary ?? 0)), 1);
+  // Foutenrapport L2: voorheen viel een rij zonder eigen max terug op haar
+  // eigen waarde als max ("r.max ?? r.value + secondary"), waardoor die ene
+  // rij altijd een volle balk kreeg — alsof hij vol zit, terwijl er
+  // helemaal geen maximum is ingesteld. De schaal is nu voor alle rijen
+  // hetzelfde: het hoogste áchte maximum in de lijst, of anders de hoogste
+  // waarde (nooit de eigen waarde van een maxloze rij).
+  const explicitMaxes = rows.map((r) => r.max).filter((m): m is number => typeof m === "number");
+  const max = fixedMax ?? Math.max(...explicitMaxes, ...rows.map((r) => r.value + (r.secondary ?? 0)), 1);
   return (
     <div className="flex flex-col gap-2.5">
       {rows.map((row) => {
+        const noMax = row.max === null;
         const primaryPct = Math.min(100, (row.value / max) * 100);
         const secondaryPct = row.secondary ? Math.min(100 - primaryPct, (row.secondary / max) * 100) : 0;
         return (
@@ -308,7 +426,10 @@ export function HorizontalBars({ rows, max: fixedMax }: { rows: BarRow[]; max?: 
               {row.sublabel && <span className="ml-1.5 text-xs text-muted">{row.sublabel}</span>}
             </span>
             <span className="flex h-2.5 overflow-hidden rounded-full bg-raised">
-              <span className="h-full rounded-l-full" style={{ width: `${primaryPct}%`, backgroundColor: "var(--chart-primary)" }} />
+              <span
+                className="h-full rounded-l-full"
+                style={{ width: `${primaryPct}%`, backgroundColor: noMax ? "var(--muted)" : "var(--chart-primary)", opacity: noMax ? 0.5 : 1 }}
+              />
               {secondaryPct > 0 && <span className="h-full" style={{ width: `${secondaryPct}%`, backgroundColor: "var(--chart-secondary)" }} />}
             </span>
             <span className="whitespace-nowrap text-right font-semibold text-foreground tabular-nums">

@@ -28,11 +28,18 @@ export type OccupancyRow = {
   max: number | null;
   waitlist: number;
   subtitle: string;
+  // Foutenrapport L2 (ontwerpafwijking): het ontwerp toont de datum per
+  // activiteit naast de bezettingsbalk.
+  startsAt: string;
 };
 
 export type Kpi = {
   label: string;
-  value: number;
+  // Foutenrapport L1: null i.p.v. 0 voor een KPI die in deze periode geen
+  // zinvolle waarde heeft (bv. gemiddelde bezetting zonder een enkele
+  // activiteit met een maximum) — KpiTile toont dan "–" i.p.v. een
+  // misleidend getal.
+  value: number | null;
   unit?: string;
   /** null = geen vergelijkingscijfer beschikbaar (nooit tonen als "0"). */
   previousValue: number | null;
@@ -56,6 +63,39 @@ export async function getAllPushSubscriptions(
 
 export function pctDelta(value: number, previous: number | null): number | null {
   return previous === null ? null : value - previous;
+}
+
+// Foutenrapport M4: Overzicht → Signalen ("Nooit naar een activiteit") en
+// Activiteiten → "Wie komt er?" telden dit voorheen allebei anders
+// (opkomst vs. aanmelding incl. wachtlijst/gedeactiveerde profielen) en
+// kwamen zo op verschillende aantallen uit voor dezelfde vraag. Eén
+// definitie — aanmelding zonder wachtlijst, geteld in SQL (M12) i.p.v.
+// alle rijen naar de client te halen — gebruikt op beide plekken.
+// Foutenrapport L6: "Leden" telde voorheen alle ooit aangemaakte profielen,
+// ook al lang gedeactiveerde — nu nog toevallig gelijk aan "actieve leden"
+// (0 gedeactiveerd in de testdata), maar loopt uiteen zodra iemand zich
+// uitschrijft. "Actief op moment X": aangemaakt vóór X, en nog niet (of pas
+// ná X) gedeactiveerd.
+export async function getActiveMemberCountAsOf(supabase: SupabaseClient<Database>, asOf: Date): Promise<number> {
+  const asOfIso = asOf.toISOString();
+  const { count } = await supabase
+    .from("profiles")
+    .select("id", { count: "exact", head: true })
+    .lt("created_at", asOfIso)
+    .or(`deactivated_at.is.null,deactivated_at.gt.${asOfIso}`);
+  return count ?? 0;
+}
+
+export async function getRegistrationCountsByProfile(
+  supabase: SupabaseClient<Database>,
+  since: Date
+): Promise<Map<string, number>> {
+  const { data } = await supabase.rpc("get_registration_counts_by_profile", { p_since: since.toISOString() });
+  const counts = new Map<string, number>();
+  for (const row of data ?? []) {
+    counts.set(row.profile_id, Number(row.registrations));
+  }
+  return counts;
 }
 
 // Unieke "iets gedaan"-telling per periodevak, gereconstrueerd uit elke

@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { cachedQuery } from "@/lib/cache/queryCache";
 import type { PeriodRange } from "./period";
 import { buildBuckets, resolvePeriodRange } from "./period";
-import type { Kpi } from "./shared";
+import { getActiveMemberCountAsOf, type Kpi } from "./shared";
 
 const TTL_MS = 60_000;
 
@@ -35,8 +35,8 @@ export async function getMembersStats(range: PeriodRange): Promise<MembersStats>
     const twelveMonthsAgo = resolvePeriodRange("12m").start;
 
     const [
-      { count: totalMembers },
-      { count: totalMembersPrev },
+      totalMembers,
+      totalMembersPrev,
       { count: nieuweLeden },
       { count: nieuweLedenPrev },
       { count: uitgeschreven },
@@ -49,8 +49,10 @@ export async function getMembersStats(range: PeriodRange): Promise<MembersStats>
       { data: newByMonthRows },
       { data: deactivatedByMonthRows },
     ] = await Promise.all([
-      supabase.from("profiles").select("id", { count: "exact", head: true }).lt("created_at", range.end.toISOString()),
-      supabase.from("profiles").select("id", { count: "exact", head: true }).lt("created_at", range.prevEnd.toISOString()),
+      // Foutenrapport L6: "actief op moment X" i.p.v. elk ooit aangemaakt
+      // profiel (ook al lang gedeactiveerde) te blijven meetellen.
+      getActiveMemberCountAsOf(supabase, range.end),
+      getActiveMemberCountAsOf(supabase, range.prevEnd),
       supabase
         .from("profiles")
         .select("id", { count: "exact", head: true })
@@ -94,6 +96,7 @@ export async function getMembersStats(range: PeriodRange): Promise<MembersStats>
     ]);
 
     const linkedProfileIds = new Set((linkedProfiles ?? []).map((m) => m.profile_id));
+    const activeProfileIds = new Set((activeProfiles ?? []).map((p) => p.id));
     const completeCount = (activeProfiles ?? []).filter((p) => p.avatar_url && linkedProfileIds.has(p.id)).length;
     const completePct = activeProfiles && activeProfiles.length > 0 ? Math.round((completeCount / activeProfiles.length) * 100) : 0;
 
@@ -143,8 +146,12 @@ export async function getMembersStats(range: PeriodRange): Promise<MembersStats>
     // Branche/plaats: via het primaire bedrijf van elk actief lid (of het
     // enige, als er geen primaire markering is) — all-time, geen
     // periodefilter (dit is "hoe is het netwerk samengesteld", geen trend).
+    // Foutenrapport L7: het commentaar zei al "elk actief lid", maar de
+    // code filterde linkedProfiles niet op is_active — een gedeactiveerd
+    // lid met een bedrijfskoppeling telde hier dus gewoon mee.
     const primaryCompanyByProfile = new Map<string, { name: string; city: string | null; industry: string | null }>();
     for (const m of linkedProfiles ?? []) {
+      if (!activeProfileIds.has(m.profile_id)) continue;
       const company = m.company;
       if (!company) continue;
       if (m.is_primary || !primaryCompanyByProfile.has(m.profile_id)) {

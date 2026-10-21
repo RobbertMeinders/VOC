@@ -40,7 +40,7 @@ export async function getCommunityStats(range: PeriodRange): Promise<CommunitySt
       { data: commentsPrev },
       { count: activeMemberCount },
       { data: allPostsForTop },
-      { data: viewEvents },
+      { data: postViewCounts },
     ] = await Promise.all([
       supabase
         .from("feed_posts")
@@ -69,7 +69,10 @@ export async function getCommunityStats(range: PeriodRange): Promise<CommunitySt
         .order("created_at", { ascending: false })
         .limit(200)
         .returns<TopPostRow[]>(),
-      supabase.from("events").select("target_id").eq("event_type", "post_viewed"),
+      // Foutenrapport M12/M13: get_post_view_counts() groepeert in SQL i.p.v.
+      // alle post_viewed-events (all-time, ongelimiteerd, kan het grootst
+      // groeiende log in de hele database zijn) naar de client te halen.
+      supabase.rpc("get_post_view_counts"),
     ]);
 
     const postRows = posts ?? [];
@@ -99,14 +102,17 @@ export async function getCommunityStats(range: PeriodRange): Promise<CommunitySt
     // Meest gelezen: all-time (geen periodefilter — een goed bericht van drie
     // maanden terug mag gewoon blijven staan), top 2 op unieke views.
     const viewsByPost = new Map<string, number>();
-    for (const e of viewEvents ?? []) {
-      if (!e.target_id) continue;
-      viewsByPost.set(e.target_id, (viewsByPost.get(e.target_id) ?? 0) + 1);
+    for (const row of postViewCounts ?? []) {
+      viewsByPost.set(row.post_id, Number(row.views));
     }
+    // Foutenrapport M12/M13: get_feed_comment_counts() groepeert in SQL i.p.v.
+    // alle feed_comments (all-time, ongelimiteerd) naar de client te halen —
+    // deze aanroep liep voorheen ook nog ná de eerste Promise.all, dus
+    // sequentieel op de rest van de pagina (M13).
+    const { data: commentCountRows } = await supabase.rpc("get_feed_comment_counts");
     const commentCountByPost = new Map<string, number>();
-    const { data: allComments } = await supabase.from("feed_comments").select("post_id");
-    for (const c of allComments ?? []) {
-      commentCountByPost.set(c.post_id, (commentCountByPost.get(c.post_id) ?? 0) + 1);
+    for (const row of commentCountRows ?? []) {
+      commentCountByPost.set(row.post_id, Number(row.comment_count));
     }
     const meestGelezen = (allPostsForTop ?? [])
       .map((p) => ({

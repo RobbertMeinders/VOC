@@ -7,7 +7,10 @@ import { resolvePeriodRange, type PeriodRange, type TrendPoint } from "./period"
 import {
   getAllPushSubscriptions,
   getActivityRows,
+  getRegistrationCountsByProfile,
+  getActiveMemberCountAsOf,
   bucketUniqueSeries,
+  bucketCountSeries,
   bucketsFor,
   alignPreviousSeries,
   type Kpi,
@@ -62,8 +65,8 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
     const buckets = bucketsFor(range);
 
     const [
-      { count: totalMembers },
-      { count: totalMembersPrev },
+      totalMembers,
+      totalMembersPrev,
       { count: aanmeldingen },
       { count: aanmeldingenPrev },
       { data: registrationsForUnique },
@@ -83,14 +86,16 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
       { data: incompleteCandidates },
       { data: linkedProfiles },
       { count: staleLoginCount },
-      { data: neverAttendedRows },
+      registrationCountsByProfile,
       { data: deliveriesLatest },
       { count: communityPostsPeriodCount },
-      { data: topPostEvents },
+      postViewCounts,
       { data: newMembersByMonth },
     ] = await Promise.all([
-      supabase.from("profiles").select("id", { count: "exact", head: true }).lt("created_at", range.end.toISOString()),
-      supabase.from("profiles").select("id", { count: "exact", head: true }).lt("created_at", range.prevEnd.toISOString()),
+      // Foutenrapport L6: "actief op moment X" i.p.v. elk ooit aangemaakt
+      // profiel (ook al lang gedeactiveerde) te blijven meetellen.
+      getActiveMemberCountAsOf(supabase, range.end),
+      getActiveMemberCountAsOf(supabase, range.prevEnd),
       supabase
         .from("activity_registrations")
         .select("id", { count: "exact", head: true })
@@ -172,15 +177,18 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
         .select("id", { count: "exact", head: true })
         .eq("is_active", true)
         .or(`last_active_at.is.null,last_active_at.lt.${new Date(Date.now() - 90 * 86400000).toISOString()}`),
-      supabase
-        .from("activity_registrations")
-        .select("profile_id")
-        .eq("attended", true)
-        .gte("created_at", new Date(Date.now() - 365 * 86400000).toISOString()),
+      // Foutenrapport M4/M12: zelfde definitie en SQL-side telling als
+      // "Wie komt er?" (activities.ts) i.p.v. een eigen, afwijkende losse
+      // all-time select van attended=true-rijen naar de client te halen.
+      getRegistrationCountsByProfile(supabase, new Date(Date.now() - 365 * 86400000)),
+      // Foutenrapport M6: een deels verstuurde nieuwsbrief (status
+      // verzenden_mislukt na een gedeeltelijke verzending) viel hier
+      // voorheen buiten de boot — "verzonden" was de enige status die
+      // meetelde, terwijl er al wel communication_deliveries bestaan.
       supabase
         .from("communications")
         .select("subject, communication_deliveries(status)")
-        .eq("status", "verzonden")
+        .in("status", ["verzonden", "verzenden_mislukt"])
         .order("sent_at", { ascending: false })
         .limit(1)
         .maybeSingle(),
@@ -189,11 +197,9 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
         .select("id", { count: "exact", head: true })
         .gte("created_at", range.start.toISOString())
         .lt("created_at", range.end.toISOString()),
-      supabase
-        .from("events")
-        .select("target_id")
-        .eq("event_type", "post_viewed")
-        .gte("created_at", range.start.toISOString()),
+      // Foutenrapport M12: get_post_view_counts() groepeert in SQL i.p.v. alle
+      // events-rijen (all-time, ongelimiteerd) naar de client te halen.
+      supabase.rpc("get_post_view_counts"),
       supabase
         .from("profiles")
         .select("created_at")
@@ -234,6 +240,35 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
         .map((r) => r.profile_id)
     ).size;
 
+    // ---- Actieve leden-trend (reconstructie uit timestamped acties, zie
+    // shared.ts — last_active_at zelf heeft geen geschiedenis) ----
+    // Foutenrapport M13: activityRows dekt nu al vanaf prevStart (zie de
+    // getActivityRows-aanroep hierboven), dus geen tweede, overlappende
+    // fetch meer nodig voor de vorige periode — bucketUniqueSeries/
+    // uniqueCountByBucket negeren rijen die buiten alle buckets vallen toch
+    // al, dus dezelfde rijenlijst volstaat voor beide reeksen.
+    const activeMembersTrend = bucketUniqueSeries(activityRows, buckets);
+
+    // Foutenrapport M1: het ontwerp vraagt een sparkline in alle zes
+    // KPI-tegels, niet alleen "Leden" — hieronder de reeksen die al
+    // goedkoop uit al opgehaalde data af te leiden zijn. "Berichten en
+    // reacties" en "Nieuwsbrief afgeleverd" blijven zonder sparkline: dat
+    // zou een aparte, extra per-bucket query vergen voor een KPI die
+    // ofwel al een trendgrafiek elders op het tabblad heeft (berichten,
+    // via de Community-tab), ofwel geen zinvolle trend kent (een
+    // percentage van de laatst verstuurde nieuwsbrief).
+    const aanmeldingenSparkline = bucketCountSeries(
+      (registrationsForUnique ?? []).map((r) => r.created_at),
+      buckets
+    ).map((p) => p.value);
+    const uniekeDeelnemersSparkline = bucketUniqueSeries(
+      (registrationsForUnique ?? []).map((r) => ({ profile_id: r.profile_id ?? "", created_at: r.created_at })),
+      buckets
+    ).map((p) => p.value);
+    const actieveLedenSparkline = activeMembersTrend.map((p) =>
+      activeMemberCount ? Math.round((p.value / activeMemberCount) * 100) : 0
+    );
+
     const kpis: OverviewStats["kpis"] = {
       leden: {
         label: "Leden",
@@ -246,16 +281,19 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
         value: activeMemberCount ? Math.round((activeInRange / activeMemberCount) * 100) : 0,
         unit: "%",
         previousValue: activeMemberCount ? Math.round((activeInPrevRange / activeMemberCount) * 100) : 0,
+        sparkline: actieveLedenSparkline,
       },
       aanmeldingen: {
         label: "Aanmeldingen activiteiten",
         value: aanmeldingen ?? 0,
         previousValue: aanmeldingenPrev ?? 0,
+        sparkline: aanmeldingenSparkline,
       },
       uniekeDeelnemers: {
         label: "Unieke deelnemers",
         value: uniqueDeelnemersSet.size,
         previousValue: uniqueDeelnemersPrevSet.size,
+        sparkline: uniekeDeelnemersSparkline,
       },
       berichten: {
         label: "Berichten en reacties",
@@ -270,15 +308,6 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
         note: newsletterPct === null ? "nog geen nieuwsbrief verstuurd" : "laatst verstuurde nieuwsbrief",
       },
     };
-
-    // ---- Actieve leden-trend (reconstructie uit timestamped acties, zie
-    // shared.ts — last_active_at zelf heeft geen geschiedenis) ----
-    // Foutenrapport M13: activityRows dekt nu al vanaf prevStart (zie de
-    // getActivityRows-aanroep hierboven), dus geen tweede, overlappende
-    // fetch meer nodig voor de vorige periode — bucketUniqueSeries/
-    // uniqueCountByBucket negeren rijen die buiten alle buckets vallen toch
-    // al, dus dezelfde rijenlijst volstaat voor beide reeksen.
-    const activeMembersTrend = bucketUniqueSeries(activityRows, buckets);
 
     const prevBuckets = bucketsFor({ ...range, start: range.prevStart, end: range.prevEnd });
     const prevSeries = bucketUniqueSeries(activityRows, prevBuckets);
@@ -329,6 +358,7 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
           max: a.max_participants,
           waitlist,
           subtitle: a.max_participants ? `${confirmed} / ${a.max_participants}` : `${confirmed} aanmelding${confirmed === 1 ? "" : "en"}`,
+          startsAt: a.starts_at,
         };
       })
       .sort((a, b) => b.value - a.value)
@@ -338,8 +368,7 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
     const avatarByProfile = new Map((incompleteCandidates ?? []).map((p) => [p.id, Boolean(p.avatar_url)]));
     const linkedProfileIds = new Set((linkedProfiles ?? []).map((l) => l.profile_id));
     const incompleteCount = [...avatarByProfile.entries()].filter(([id, hasAvatar]) => !hasAvatar || !linkedProfileIds.has(id)).length;
-    const attendedProfileIds = new Set((neverAttendedRows ?? []).map((r) => r.profile_id));
-    const neverAttendedCount = [...avatarByProfile.keys()].filter((id) => !attendedProfileIds.has(id)).length;
+    const neverAttendedCount = [...avatarByProfile.keys()].filter((id) => !registrationCountsByProfile.has(id)).length;
     const fullActivity = (upcomingActivities ?? []).find((a) => (registrationsByActivityId.get(a.id) ?? []).some((r) => r.is_waitlisted));
 
     const signalen: SignalItem[] = [
@@ -361,7 +390,10 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
         ? [
             {
               label: "Profiel incompleet",
-              sublabel: "Geen foto of nog niet aan een bedrijf gekoppeld",
+              // Foutenrapport L9: de volledige tekst werd op mobiel afgekapt
+              // ("...nog niet aan een bedrijf geko…") — kortere versie zoals
+              // in het ontwerp.
+              sublabel: "Geen foto of bedrijf",
               count: incompleteCount,
               tone: "warning" as const,
               href: "/beheer/leden?signaal=incompleet",
@@ -431,7 +463,7 @@ export async function getOverviewStats(range: PeriodRange): Promise<OverviewStat
       row.uitgeschreven = uitgeschrevenByMonth[i] ?? 0;
     });
 
-    const topPostId = mostViewedPostId(topPostEvents);
+    const topPostId = mostViewedPostId(postViewCounts.data);
     let meestGelezenTitel: string | null = null;
     if (topPostId) {
       const { data: topPostRow } = await supabase.from("feed_posts").select("content").eq("id", topPostId).maybeSingle();
@@ -482,19 +514,14 @@ function countMonthly(dates: string[], buckets: { start: Date; end: Date }[]): n
   return counts;
 }
 
-function mostViewedPostId(rows: { target_id: string | null }[] | null): string | null {
+function mostViewedPostId(rows: { post_id: string; views: number }[] | null): string | null {
   if (!rows || rows.length === 0) return null;
-  const counts = new Map<string, number>();
-  for (const r of rows) {
-    if (!r.target_id) continue;
-    counts.set(r.target_id, (counts.get(r.target_id) ?? 0) + 1);
-  }
   let best: string | null = null;
   let bestCount = 0;
-  for (const [id, count] of counts) {
-    if (count > bestCount) {
-      best = id;
-      bestCount = count;
+  for (const { post_id, views } of rows) {
+    if (views > bestCount) {
+      best = post_id;
+      bestCount = views;
     }
   }
   return best;

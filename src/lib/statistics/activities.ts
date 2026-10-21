@@ -5,7 +5,7 @@ import { cachedQuery } from "@/lib/cache/queryCache";
 import { activityHref } from "@/lib/agenda/slug";
 import type { PeriodRange } from "./period";
 import { buildBuckets, resolvePeriodRange } from "./period";
-import type { Kpi, OccupancyRow } from "./shared";
+import { getRegistrationCountsByProfile, type Kpi, type OccupancyRow } from "./shared";
 
 const TTL_MS = 60_000;
 
@@ -29,18 +29,21 @@ export async function getActivitiesStats(range: PeriodRange): Promise<Activities
     const twelveMonthsAgo = resolvePeriodRange("12m").start;
 
     const [
-      { count: activeMemberCount },
+      { data: activeProfiles },
       { data: periodActivities },
       { data: periodRegistrationsForUnique },
       { data: prevPeriodRegistrationsForUnique },
       { count: registrationsCount },
       { count: registrationsCountPrev },
-      { data: attendedLast12mo },
-      { data: registeredLast12mo },
+      registrationCountsByProfile,
       { data: memberRegsByMonth },
       { data: guestRegsByMonth },
     ] = await Promise.all([
-      supabase.from("profiles").select("id", { count: "exact", head: true }).eq("is_active", true),
+      // Foutenrapport M4: de volledige id-lijst (i.p.v. alleen een head-
+      // count) is nodig om "Wie komt er?" exact te kunnen partitioneren op
+      // actieve leden — anders kan een gedeactiveerd lid dat ooit
+      // aanmeldde de telling scheeftrekken.
+      supabase.from("profiles").select("id").eq("is_active", true),
       supabase
         .from("activities")
         .select("id, title, slug, max_participants, starts_at")
@@ -68,12 +71,11 @@ export async function getActivitiesStats(range: PeriodRange): Promise<Activities
         .select("id", { count: "exact", head: true })
         .gte("created_at", range.prevStart.toISOString())
         .lt("created_at", range.prevEnd.toISOString()),
-      supabase
-        .from("activity_registrations")
-        .select("profile_id")
-        .eq("attended", true)
-        .gte("created_at", twelveMonthsAgo.toISOString()),
-      supabase.from("activity_registrations").select("profile_id").gte("created_at", twelveMonthsAgo.toISOString()),
+      // Foutenrapport M4/M12: zelfde definitie en SQL-side telling als het
+      // signaal "Nooit naar een activiteit" op Overzicht (overview.ts) —
+      // aanmelding zonder wachtlijst, i.p.v. hier op opkomst (attended) en
+      // daar op een andere, bredere set te filteren.
+      getRegistrationCountsByProfile(supabase, twelveMonthsAgo),
       supabase.from("activity_registrations").select("profile_id, created_at").gte("created_at", twelveMonthsAgo.toISOString()),
       supabase.from("public_activity_registrations").select("created_at").gte("created_at", twelveMonthsAgo.toISOString()),
     ]);
@@ -103,39 +105,53 @@ export async function getActivitiesStats(range: PeriodRange): Promise<Activities
           max: a.max_participants,
           waitlist,
           subtitle: a.max_participants ? `${confirmed} / ${a.max_participants}` : `${confirmed} aanmelding${confirmed === 1 ? "" : "en"}`,
+          startsAt: a.starts_at,
         };
       })
       .sort((a, b) => b.value - a.value)
       .slice(0, 8);
 
+    // Foutenrapport L1: 0% suggereert ten onrechte lege activiteiten als
+    // geen enkele activiteit in de periode een maximum heeft ingesteld —
+    // null laat de KPI-tegel "–" tonen in plaats van een misleidend getal.
     const occupancyRates = (periodActivities ?? [])
       .filter((a) => a.max_participants)
       .map((a) => {
         const regs = regsByActivity.get(a.id) ?? [];
         return (regs.filter((r) => !r.is_waitlisted).length / a.max_participants!) * 100;
       });
-    const avgOccupancy = occupancyRates.length > 0 ? Math.round(occupancyRates.reduce((s, v) => s + v, 0) / occupancyRates.length) : 0;
+    const avgOccupancy =
+      occupancyRates.length > 0 ? Math.round(occupancyRates.reduce((s, v) => s + v, 0) / occupancyRates.length) : null;
 
     // ---- Unieke deelnemers (periode) ----
     const uniqueNow = new Set((periodRegistrationsForUnique ?? []).map((r) => r.profile_id)).size;
     const uniquePrev = new Set((prevPeriodRegistrationsForUnique ?? []).map((r) => r.profile_id)).size;
 
+    const activeProfileIds = new Set((activeProfiles ?? []).map((p) => p.id));
+    const activeMemberCount = activeProfileIds.size;
+
     // ---- Bereik (12 mnd, leden die minstens één keer kwamen) ----
-    const attendedIds = new Set((attendedLast12mo ?? []).map((r) => r.profile_id));
-    const bereikPct = activeMemberCount ? Math.round((attendedIds.size / activeMemberCount) * 100) : 0;
+    // Foutenrapport M4: zelfde definitie (aanmelding zonder wachtlijst) en
+    // bron (registrationCountsByProfile, shared.ts) als het signaal "Nooit
+    // naar een activiteit" op Overzicht — voorheen gebruikte deze KPI
+    // opkomst (attended) terwijl "Wie komt er?" hieronder op aanmeldingen
+    // incl. wachtlijst en gedeactiveerde profielen telde, met twee
+    // verschillende antwoorden op dezelfde vraag tot gevolg.
+    const attendedActiveCount = [...activeProfileIds].filter((id) => registrationCountsByProfile.has(id)).length;
+    const bereikPct = activeMemberCount ? Math.round((attendedActiveCount / activeMemberCount) * 100) : 0;
 
     // ---- Wie komt er (12 mnd): vaste bezoekers (3+), af en toe (1-2), nooit ----
-    const regCountByProfile = new Map<string, number>();
-    for (const r of registeredLast12mo ?? []) {
-      regCountByProfile.set(r.profile_id, (regCountByProfile.get(r.profile_id) ?? 0) + 1);
-    }
+    // Alleen actieve leden meegeteld (i.p.v. alle registranten, incl.
+    // gedeactiveerde profielen) — anders kan deze driedeling meer dan
+    // activeMemberCount optellen of "nooit" negatief maken.
     let vast = 0;
     let afEnToe = 0;
-    for (const count of regCountByProfile.values()) {
+    for (const id of activeProfileIds) {
+      const count = registrationCountsByProfile.get(id) ?? 0;
       if (count >= 3) vast += 1;
-      else afEnToe += 1;
+      else if (count >= 1) afEnToe += 1;
     }
-    const nooit = Math.max((activeMemberCount ?? 0) - regCountByProfile.size, 0);
+    const nooit = activeMemberCount - vast - afEnToe;
     const wieKomtEr = [
       { label: "Vaste bezoekers (3+ keer)", value: vast },
       { label: "Af en toe (1–2 keer)", value: afEnToe },
@@ -163,7 +179,13 @@ export async function getActivitiesStats(range: PeriodRange): Promise<Activities
     return {
       kpis: {
         aanmeldingen: { label: "Aanmeldingen", value: registrationsCount ?? 0, previousValue: registrationsCountPrev ?? 0 },
-        gemiddeldeBezetting: { label: "Gemiddelde bezetting", value: avgOccupancy, unit: "%", previousValue: null },
+        gemiddeldeBezetting: {
+          label: "Gemiddelde bezetting",
+          value: avgOccupancy,
+          unit: "%",
+          previousValue: null,
+          note: avgOccupancy === null ? "geen activiteit met een maximum" : undefined,
+        },
         uniekeDeelnemers: { label: "Unieke deelnemers", value: uniqueNow, previousValue: uniquePrev },
         bereik: {
           label: "Bereik: leden die kwamen",
