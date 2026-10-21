@@ -1,0 +1,57 @@
+name: Schema-snapshot bijwerken
+
+# Portaal-gezondheidsonderzoek Blok B1: handmatig te starten (Actions-tab ->
+# deze workflow -> "Run workflow") wanneer een bedoelde wijziging aan een
+# RLS-policy of functie de B1-regressietest in ci.yml terecht laat falen, of
+# om het allereerste referentiebestand aan te maken. Draait dezelfde
+# wegwerp-Supabase-stack als ci.yml, genereert supabase/schema-snapshot.txt
+# opnieuw en commit het rechtstreeks naar de branch waarop de workflow
+# gestart is — geen lokale Docker-installatie nodig om de baseline bij te
+# werken.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-snapshot:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Lokale Supabase-stack starten (past alle migraties toe)
+        run: supabase start
+
+      - name: Lokale API-URL/sleutel doorgeven aan de volgende stap
+        run: |
+          supabase status -o env \
+            --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
+            --override-name api.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
+            >> "$GITHUB_ENV"
+
+      - name: Snapshot genereren
+        run: npm run db:snapshot
+
+      - name: Committen en pushen (alleen als er iets veranderde)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- supabase/schema-snapshot.txt; then
+            echo "Geen wijziging in supabase/schema-snapshot.txt."
+            exit 0
+          fi
+          git add supabase/schema-snapshot.txt
+          git commit -m "Schema-snapshot bijgewerkt (B1)"
+          git push

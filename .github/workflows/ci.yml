@@ -3,8 +3,14 @@ name: CI
 # Portaal-gezondheidsonderzoek Blok B2: er was tot nu toe geen enkele
 # geautomatiseerde check — een fout kon zo in elke push meegaan. Draait
 # dezelfde verificatie die elke commit op deze repo al handmatig doorloopt
-# (tsc + lint + build + tests), plus (best-effort, zie db-snapshot-check
-# hieronder) de B1-regressietest op databasepolicies/functies.
+# (tsc + lint + build + tests), plus de B1-regressietest op
+# databasepolicies/functies.
+#
+# De B1-check draait tegen een wegwerp-Supabase-stack die ALLE
+# supabase/migrations/*.sql in volgorde toepast — niet tegen de live
+# database. Daardoor is er geen productie-service-role-sleutel nodig (en
+# dus geen risico die ooit in een PR-build van deze repo te laten
+# meelopen); de lokale stack heeft haar eigen, niet-geheime demo-sleutels.
 on:
   push:
     branches: ["**"]
@@ -38,18 +44,23 @@ jobs:
       - name: Tests
         run: npm test
 
-      - name: Schema-snapshot beschikbaar?
-        id: snapshot_secrets
-        run: echo "available=${{ secrets.SUPABASE_SERVICE_ROLE_KEY != '' && secrets.NEXT_PUBLIC_SUPABASE_URL != '' }}" >> "$GITHUB_OUTPUT"
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Lokale Supabase-stack starten (past alle migraties toe)
+        run: supabase start
+
+      - name: Lokale API-URL/sleutel doorgeven aan de volgende stap
+        # --override-name zet de standaard status-variabelen direct onder
+        # dezelfde naam als createAdminClient() (src/lib/supabase/admin.ts)
+        # verwacht — zelfde patroon als het officiële CLI-voorbeeld
+        # ("supabase status --help").
+        run: |
+          supabase status -o env \
+            --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
+            --override-name api.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
+            >> "$GITHUB_ENV"
 
       - name: DB-regressietest (policies/functies)
-        # B1: pas uitvoerbaar zodra het eerste referentiebestand
-        # (supabase/schema-snapshot.txt) is vastgelegd EN de
-        # service-role-sleutel als repository-secret beschikbaar is gemaakt
-        # — tot die tijd best-effort overgeslagen i.p.v. elke run te laten
-        # falen om iets dat nog niet opgezet is.
-        if: steps.snapshot_secrets.outputs.available == 'true'
-        env:
-          NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
         run: npm run db:snapshot:check

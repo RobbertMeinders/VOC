@@ -15,8 +15,14 @@
 //                                  (exit 1) bij een verschil, voor gebruik
 //                                  in CI.
 //
-// Vereist dezelfde omgevingsvariabelen als createAdminClient()
-// (src/lib/supabase/admin.ts): NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY.
+// Verwacht dezelfde omgevingsvariabelen als createAdminClient()
+// (src/lib/supabase/admin.ts): NEXT_PUBLIC_SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY
+// — maar bewust GEEN productiesleutel: .github/workflows/ci.yml en
+// update-schema-snapshot.yml wijzen dit naar een wegwerp-Supabase-stack
+// (`supabase start`, alle migraties toegepast, niet-geheime demo-sleutels),
+// nooit naar de live database. Lokaal met je eigen Docker-installatie kan
+// dat net zo: `supabase start` en de omgevingsvariabelen overnemen uit
+// `supabase status -o env`.
 import { createClient } from "@supabase/supabase-js";
 import { readFile, writeFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
