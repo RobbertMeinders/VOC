@@ -14,9 +14,15 @@ const variantClasses: Record<Variant, string> = {
   ghost: "text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]",
 };
 
+// md was h-9 w-9 (36px) — onder de 44px-tikdoelrichtlijn voor mobiel. sm
+// (28px) blijft bewust kleiner: die wordt vooral inline in dichte rijen
+// gebruikt (bv. een rij chips/acties naast elkaar) waar 44px de layout op
+// veel plekken zou breken — dat moet per plek met visuele controle
+// (niet mogelijk in deze sandbox, geen live Supabase/browser) beoordeeld
+// worden, niet blind hier aangepast.
 const sizeClasses: Record<Size, string> = {
   sm: "h-7 w-7",
-  md: "h-9 w-9",
+  md: "h-11 w-11",
 };
 
 export const IconButton = forwardRef<

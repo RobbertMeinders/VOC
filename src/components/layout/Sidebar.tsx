@@ -49,6 +49,7 @@ export function Sidebar({
       <Link
         key={href}
         href={href}
+        aria-current={active ? "page" : undefined}
         // Stijlronde "zelfde indeling, nieuwe stijl": actief item is een
         // gevuld vlak (bg-raised) met een rood streepje bínnen het vlak
         // i.p.v. een linkerrand die het item zelf naar rechts duwt — geen
@@ -89,6 +90,7 @@ export function Sidebar({
       <Link
         key={href}
         href={href}
+        aria-current={active ? "page" : undefined}
         className={clsx(
           "relative flex items-center gap-3 rounded-lg py-2.5 pl-3 pr-3 text-sm transition-colors",
           active

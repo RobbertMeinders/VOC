@@ -1,10 +1,11 @@
 "use client";
 
-import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useId, useState, type ReactNode } from "react";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { Button } from "@/components/ui/Button";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
+import { useFocusTrap } from "@/lib/dom/useFocusTrap";
 
 // Koppelverzoeken onder Aanvragen (Beheer -> Aanvragen -> Bedrijfskoppelingen):
 // afwijzen vraagt om bevestiging mét een optionele toelichting. confirm()
@@ -84,8 +85,12 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
 
   useEscapeKey(Boolean(pending), () => close(false));
   useBodyScrollLock(Boolean(pending));
+  const confirmTrapRef = useFocusTrap(Boolean(pending));
+  const confirmTitleId = useId();
   useEscapeKey(Boolean(pendingReason), () => closeReason(false));
   useBodyScrollLock(Boolean(pendingReason));
+  const reasonTrapRef = useFocusTrap(Boolean(pendingReason));
+  const reasonTitleId = useId();
 
   return (
     <ConfirmDialogContext.Provider value={confirm}>
@@ -98,10 +103,17 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
               onClick={() => close(false)}
             >
               <div
-                className="animate-scale-in w-full max-w-sm rounded-2xl bg-surface p-5 shadow-lg"
+                ref={confirmTrapRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={confirmTitleId}
+                tabIndex={-1}
+                className="animate-scale-in w-full max-w-sm rounded-2xl bg-surface p-5 shadow-lg focus:outline-none"
                 onClick={(e) => e.stopPropagation()}
               >
-                <h2 className="text-base font-semibold text-foreground">{pending.title}</h2>
+                <h2 id={confirmTitleId} className="text-base font-semibold text-foreground">
+                  {pending.title}
+                </h2>
                 {pending.description && <p className="mt-1.5 text-sm text-muted">{pending.description}</p>}
                 <div className="mt-5 flex justify-end gap-2">
                   <Button type="button" variant="ghost" size="sm" onClick={() => close(false)}>
@@ -122,10 +134,17 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
               onClick={() => closeReason(false)}
             >
               <div
-                className="animate-scale-in w-full max-w-sm rounded-2xl bg-surface p-5 shadow-lg"
+                ref={reasonTrapRef}
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={reasonTitleId}
+                tabIndex={-1}
+                className="animate-scale-in w-full max-w-sm rounded-2xl bg-surface p-5 shadow-lg focus:outline-none"
                 onClick={(e) => e.stopPropagation()}
               >
-                <h2 className="text-base font-semibold text-foreground">{pendingReason.title}</h2>
+                <h2 id={reasonTitleId} className="text-base font-semibold text-foreground">
+                  {pendingReason.title}
+                </h2>
                 {pendingReason.description && <p className="mt-1.5 text-sm text-muted">{pendingReason.description}</p>}
                 <label className="mt-3 block text-xs font-medium text-muted">
                   {pendingReason.reasonLabel ?? "Reden (optioneel)"}

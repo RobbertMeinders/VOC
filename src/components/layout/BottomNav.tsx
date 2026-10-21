@@ -41,6 +41,7 @@ export function BottomNav({
             <li key={href} className="flex-1">
               <Link
                 href={href}
+                aria-current={active ? "page" : undefined}
                 className={clsx(
                   "relative flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-transform duration-150 active:scale-90",
                   active ? "text-voc-red-text" : "text-muted"

@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { Button } from "@/components/ui/Button";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
+import { useFocusTrap } from "@/lib/dom/useFocusTrap";
 import { dismissWelcomeDialogAction } from "@/app/(app)/profiel/actions";
 
 // B (onboarding-opdracht): eerste-login dialoog — toont precies één keer
@@ -55,17 +56,29 @@ export function WelcomeDialog({ shouldShow }: { shouldShow: boolean }) {
 
   useEscapeKey(open, handleDismiss);
   useBodyScrollLock(open);
+  const trapRef = useFocusTrap(open);
+  const titleId = useId();
 
   if (!open) return null;
 
   return (
     <FloatingPortal>
       <div className="animate-fade-in fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" onClick={handleDismiss}>
-        <div className="animate-scale-in w-full max-w-sm rounded-2xl bg-surface p-6 shadow-lg" onClick={(e) => e.stopPropagation()}>
+        <div
+          ref={trapRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          tabIndex={-1}
+          className="animate-scale-in w-full max-w-sm rounded-2xl bg-surface p-6 shadow-lg focus:outline-none"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-petrol-soft text-petrol">
             <Sparkles size={20} />
           </div>
-          <h2 className="font-display text-xl font-extrabold tracking-[-0.02em] text-foreground">Je bent een van de eersten</h2>
+          <h2 id={titleId} className="font-display text-xl font-extrabold tracking-[-0.02em] text-foreground">
+            Je bent een van de eersten
+          </h2>
           <p className="mt-2 text-sm text-muted">
             Je gebruikt de proefversie van het ledenportaal. Bijna alles werkt al, maar soms hapert er nog iets.
             Loop je ergens tegenaan? Laat het ons weten via Feedback geven.

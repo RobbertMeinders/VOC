@@ -121,6 +121,8 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
     // last van hebben, want dan verandert pathname niet.
     <div
       key={pathname}
+      role="dialog"
+      aria-modal="true"
       className="animate-sheet-in fixed inset-x-0 bottom-14 top-0 z-30 overflow-y-auto rounded-t-2xl bg-background pt-[env(safe-area-inset-top)] md:inset-y-0 md:bottom-0 md:left-72 md:top-0 md:rounded-none md:pt-0"
       style={{
         transform: `translateY(${dragY}px)`,
