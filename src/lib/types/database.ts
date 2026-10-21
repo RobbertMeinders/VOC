@@ -928,6 +928,10 @@ export interface Database {
         Args: Record<string, never>;
         Returns: { activity_id: string; registered_count: number }[];
       };
+      delete_feed_post: {
+        Args: { p_id: string };
+        Returns: void;
+      };
       get_companies_directory: {
         Args: Record<string, never>;
         Returns: {

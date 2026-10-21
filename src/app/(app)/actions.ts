@@ -167,7 +167,12 @@ export async function updatePostAction(
 export async function deletePostAction(postId: string): Promise<{ error?: string }> {
   await requireProfile();
   const supabase = await createClient();
-  const { error } = await supabase.from("feed_posts").delete().eq("id", postId);
+  // delete_feed_post (M11) i.p.v. een rechtstreekse DELETE: de ON DELETE
+  // CASCADE naar feed_post_reports mag niet meer via een brede RLS-regel
+  // die ook losse report-deletes toestaat (zie de migratie) — deze
+  // SECURITY DEFINER-functie doet zelf de autorisatiecheck en bypasst RLS
+  // voor de cascade.
+  const { error } = await supabase.rpc("delete_feed_post", { p_id: postId });
   if (error) {
     return { error: "Verwijderen is niet gelukt. Probeer het opnieuw." };
   }
