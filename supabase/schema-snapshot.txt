@@ -1,0 +1,2524 @@
+== POLICIES ==
+public.access_requests | access_requests_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
+public.access_requests | access_requests_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.access_requests | access_requests_public_insert | cmd=INSERT | roles={public} | using= | check=true
+public.activities | activities_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
+public.activities | activities_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.activities | activities_insert | cmd=INSERT | roles={public} | using= | check=is_active_member()
+public.activities | activities_members_select | cmd=SELECT | roles={authenticated} | using=((status = ANY (ARRAY['approved'::text, 'cancelled'::text])) OR (created_by = auth.uid()) OR is_board()) | check=
+public.activities | activities_public_select | cmd=SELECT | roles={anon} | using=((source = 'voc'::text) AND (status = ANY (ARRAY['approved'::text, 'cancelled'::text]))) | check=
+public.activities | activities_self_delete_pending | cmd=DELETE | roles={public} | using=((created_by = auth.uid()) AND (status = 'pending'::text)) | check=
+public.activity_attachments | activity_attachments_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
+public.activity_attachments | activity_attachments_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
+public.activity_attachments | activity_attachments_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.activity_registrations | activity_registrations_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.activity_registrations | activity_registrations_members_select | cmd=SELECT | roles={public} | using=(is_active_member() AND ((profile_id = auth.uid()) OR is_board() OR (EXISTS ( SELECT 1
+   FROM activities a
+  WHERE ((a.id = activity_registrations.activity_id) AND (a.starts_at >= now())))) OR (EXISTS ( SELECT 1
+   FROM profiles pr
+  WHERE ((pr.id = activity_registrations.profile_id) AND (pr.show_attended_activities = true)))))) | check=
+public.activity_registrations | activity_registrations_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member())
+public.activity_registrations | activity_registrations_self_or_board_delete | cmd=DELETE | roles={public} | using=((profile_id = auth.uid()) OR is_board()) | check=
+public.app_settings | app_settings_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=
+public.app_settings | app_settings_public_select | cmd=SELECT | roles={public} | using=true | check=
+public.audit_logs | audit_logs_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
+public.board_positions | board_positions_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
+public.board_positions | board_positions_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
+public.board_positions | board_positions_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.board_positions | board_positions_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.commission_applications | commission_applications_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.commission_applications | commission_applications_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member())
+public.commission_applications | commission_applications_self_or_board_select | cmd=SELECT | roles={public} | using=((profile_id = auth.uid()) OR is_board()) | check=
+public.commission_memberships | commission_memberships_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
+public.commission_memberships | commission_memberships_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
+public.commission_memberships | commission_memberships_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.commissions | commissions_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
+public.commissions | commissions_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
+public.commissions | commissions_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.commissions | commissions_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.communication_contact_sends | board_manage_communication_contact_sends | cmd=ALL | roles={public} | using=is_board() | check=is_board()
+public.communication_deliveries | board_manage_communication_deliveries | cmd=ALL | roles={public} | using=is_board() | check=is_board()
+public.communication_recipient_contacts | board_manage_communication_recipient_contacts | cmd=ALL | roles={public} | using=is_board() | check=is_board()
+public.communication_recipient_lists | board_manage_communication_recipient_lists | cmd=ALL | roles={public} | using=is_board() | check=is_board()
+public.communication_recipient_profiles | board_manage_communication_recipient_profiles | cmd=ALL | roles={public} | using=is_board() | check=is_board()
+public.communication_send_attempts | board_manage_communication_send_attempts | cmd=ALL | roles={public} | using=is_board() | check=is_board()
+public.communications | communications_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
+public.communications | communications_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
+public.communications | communications_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
+public.communications | communications_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.companies | companies_admin_delete | cmd=DELETE | roles={public} | using=is_admin() | check=
+public.companies | companies_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.companies | companies_member_update | cmd=UPDATE | roles={public} | using=(EXISTS ( SELECT 1
+   FROM company_members
+  WHERE ((company_members.company_id = companies.id) AND (company_members.profile_id = auth.uid())))) | check=
+public.companies | companies_members_insert | cmd=INSERT | roles={public} | using= | check=is_active_member()
+public.companies | companies_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.company_billing_details | company_billing_details_member_insert | cmd=INSERT | roles={public} | using= | check=(is_board() OR (EXISTS ( SELECT 1
+   FROM company_members
+  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = auth.uid())))))
+public.company_billing_details | company_billing_details_member_select | cmd=SELECT | roles={public} | using=(is_board() OR (EXISTS ( SELECT 1
+   FROM company_members
+  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = auth.uid()))))) | check=
+public.company_billing_details | company_billing_details_member_update | cmd=UPDATE | roles={public} | using=(is_board() OR (EXISTS ( SELECT 1
+   FROM company_members
+  WHERE ((company_members.company_id = company_billing_details.company_id) AND (company_members.profile_id = auth.uid()))))) | check=
+public.company_members | company_members_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
+public.company_members | company_members_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.company_members | company_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.company_members | company_members_self_new_company_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member() AND (EXISTS ( SELECT 1
+   FROM companies c
+  WHERE ((c.id = company_members.company_id) AND (c.created_by = auth.uid())))) AND (NOT (EXISTS ( SELECT 1
+   FROM company_members cm
+  WHERE (cm.company_id = company_members.company_id)))))
+public.company_members | company_members_self_or_board_delete | cmd=DELETE | roles={public} | using=((profile_id = auth.uid()) OR is_board()) | check=
+public.company_membership_requests | company_membership_requests_decide_update | cmd=UPDATE | roles={public} | using=(is_board() OR (EXISTS ( SELECT 1
+   FROM company_members cm
+  WHERE ((cm.company_id = company_membership_requests.company_id) AND (cm.profile_id = auth.uid()) AND is_active_member())))) | check=
+public.company_membership_requests | company_membership_requests_select | cmd=SELECT | roles={public} | using=((profile_id = auth.uid()) OR is_board() OR (EXISTS ( SELECT 1
+   FROM company_members cm
+  WHERE ((cm.company_id = company_membership_requests.company_id) AND (cm.profile_id = auth.uid()) AND is_active_member())))) | check=
+public.company_membership_requests | company_membership_requests_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member())
+public.company_membership_requests | company_membership_requests_self_or_board_delete | cmd=DELETE | roles={public} | using=(((profile_id = auth.uid()) AND (status = 'pending'::text)) OR is_board()) | check=
+public.contact_list_contacts | board_manage_contact_list_contacts | cmd=ALL | roles={public} | using=is_board() | check=is_board()
+public.contact_list_profiles | board_manage_contact_list_profiles | cmd=ALL | roles={public} | using=is_board() | check=is_board()
+public.contact_lists | board_manage_contact_lists | cmd=ALL | roles={public} | using=is_board() | check=is_board()
+public.contacts | board_manage_contacts | cmd=ALL | roles={public} | using=is_board() | check=is_board()
+public.documents | documents_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
+public.documents | documents_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
+public.documents | documents_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.documents | documents_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.email_templates | email_templates_admin_select | cmd=SELECT | roles={public} | using=is_admin() | check=
+public.email_templates | email_templates_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=
+public.events | events_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
+public.feed_attachments | feed_attachments_author_insert | cmd=INSERT | roles={public} | using= | check=(EXISTS ( SELECT 1
+   FROM feed_posts
+  WHERE ((feed_posts.id = feed_attachments.post_id) AND (feed_posts.author_id = auth.uid()))))
+public.feed_attachments | feed_attachments_author_or_board_delete | cmd=DELETE | roles={public} | using=(is_board() OR (EXISTS ( SELECT 1
+   FROM feed_posts
+  WHERE ((feed_posts.id = feed_attachments.post_id) AND (feed_posts.author_id = auth.uid()))))) | check=
+public.feed_attachments | feed_attachments_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.feed_comment_likes | feed_comment_likes_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.feed_comment_likes | feed_comment_likes_self_delete | cmd=DELETE | roles={public} | using=((profile_id = auth.uid()) OR is_board() OR (EXISTS ( SELECT 1
+   FROM feed_comments
+  WHERE ((feed_comments.id = feed_comment_likes.comment_id) AND (feed_comments.author_id = auth.uid()))))) | check=
+public.feed_comment_likes | feed_comment_likes_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member())
+public.feed_comments | feed_comments_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=is_admin()
+public.feed_comments | feed_comments_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.feed_comments | feed_comments_self_insert | cmd=INSERT | roles={public} | using= | check=((author_id = auth.uid()) AND is_active_member())
+public.feed_comments | feed_comments_self_or_board_delete | cmd=DELETE | roles={public} | using=((author_id = auth.uid()) OR is_board()) | check=
+public.feed_comments | feed_comments_self_update | cmd=UPDATE | roles={public} | using=(author_id = auth.uid()) | check=(author_id = auth.uid())
+public.feed_likes | feed_likes_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.feed_likes | feed_likes_self_delete | cmd=DELETE | roles={public} | using=((profile_id = auth.uid()) OR is_board() OR (EXISTS ( SELECT 1
+   FROM feed_posts
+  WHERE ((feed_posts.id = feed_likes.post_id) AND (feed_posts.author_id = auth.uid()))))) | check=
+public.feed_likes | feed_likes_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member())
+public.feed_post_reports | feed_post_reports_author_or_board_delete | cmd=DELETE | roles={public} | using=(is_board() OR (EXISTS ( SELECT 1
+   FROM feed_posts
+  WHERE ((feed_posts.id = feed_post_reports.post_id) AND (feed_posts.author_id = auth.uid()))))) | check=
+public.feed_post_reports | feed_post_reports_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
+public.feed_post_reports | feed_post_reports_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=is_board()
+public.feed_post_reports | feed_post_reports_self_insert | cmd=INSERT | roles={public} | using= | check=((reporter_id = auth.uid()) AND is_active_member())
+public.feed_posts | feed_posts_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=is_admin()
+public.feed_posts | feed_posts_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.feed_posts | feed_posts_self_insert | cmd=INSERT | roles={public} | using= | check=((author_id = auth.uid()) AND is_active_member())
+public.feed_posts | feed_posts_self_or_board_delete | cmd=DELETE | roles={public} | using=((author_id = auth.uid()) OR is_board()) | check=
+public.feed_posts | feed_posts_self_update | cmd=UPDATE | roles={public} | using=(author_id = auth.uid()) | check=(author_id = auth.uid())
+public.invitations | invitations_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
+public.invitations | invitations_insert | cmd=INSERT | roles={public} | using= | check=((invited_by = auth.uid()) AND (is_admin() OR ((role = 'lid'::user_role) AND is_board())))
+public.invitations | invitations_update | cmd=UPDATE | roles={public} | using=(is_admin() OR ((role = 'lid'::user_role) AND is_board())) | check=
+public.message_templates | message_templates_admin_select | cmd=SELECT | roles={public} | using=is_admin() | check=
+public.message_templates | message_templates_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=
+public.news_items | news_items_board_delete | cmd=DELETE | roles={public} | using=is_board() | check=
+public.news_items | news_items_board_insert | cmd=INSERT | roles={public} | using= | check=is_board()
+public.news_items | news_items_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.news_items | news_items_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.notification_type_settings | notification_type_settings_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
+public.notification_type_settings | notification_type_settings_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.notifications | notifications_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
+public.notifications | notifications_self_delete | cmd=DELETE | roles={public} | using=(profile_id = auth.uid()) | check=
+public.notifications | notifications_self_select | cmd=SELECT | roles={public} | using=(profile_id = auth.uid()) | check=
+public.notifications | notifications_self_update | cmd=UPDATE | roles={public} | using=(profile_id = auth.uid()) | check=
+public.org_profile | org_profile_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.org_profile | org_profile_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.profiles | profiles_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=
+public.profiles | profiles_board_update | cmd=UPDATE | roles={public} | using=is_board() | check=
+public.profiles | profiles_members_select | cmd=SELECT | roles={public} | using=is_active_member() | check=
+public.profiles | profiles_self_select | cmd=SELECT | roles={public} | using=(id = auth.uid()) | check=
+public.profiles | profiles_self_update | cmd=UPDATE | roles={public} | using=((id = auth.uid()) AND is_active_member()) | check=((id = auth.uid()) AND is_active_member())
+public.prospects | prospects_board_delete | cmd=DELETE | roles={authenticated} | using=is_board() | check=
+public.prospects | prospects_board_select | cmd=SELECT | roles={authenticated} | using=is_board() | check=
+public.prospects | prospects_board_update | cmd=UPDATE | roles={authenticated} | using=is_board() | check=
+public.public_activity_registrations | public_activity_registrations_board_select | cmd=SELECT | roles={public} | using=is_board() | check=
+public.push_subscriptions | push_subscriptions_self_delete | cmd=DELETE | roles={public} | using=(profile_id = auth.uid()) | check=
+public.push_subscriptions | push_subscriptions_self_insert | cmd=INSERT | roles={public} | using= | check=(profile_id = auth.uid())
+public.push_subscriptions | push_subscriptions_self_select | cmd=SELECT | roles={public} | using=(profile_id = auth.uid()) | check=
+public.push_subscriptions | push_subscriptions_self_update | cmd=UPDATE | roles={public} | using=(profile_id = auth.uid()) | check=
+public.push_templates | push_templates_admin_select | cmd=SELECT | roles={public} | using=is_admin() | check=
+public.push_templates | push_templates_admin_update | cmd=UPDATE | roles={public} | using=is_admin() | check=
+public.testfase_feedback | testfase_feedback_admin_select | cmd=SELECT | roles={public} | using=is_admin() | check=
+public.testfase_feedback | testfase_feedback_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = auth.uid()) AND is_active_member())
+
+== FUNCTIONS ==
+CREATE OR REPLACE FUNCTION public.anonymize_expired_profiles()
+ RETURNS TABLE(profile_id uuid, old_avatar_url text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  return query
+  with expired as (
+    select id, avatar_url
+    from public.profiles
+    where is_active = false
+      and deactivated_at is not null
+      and deactivated_at <= now() - interval '90 days'
+      and anonymized_at is null
+    for update
+  ),
+  updated as (
+    update public.profiles p
+    set
+      first_name = 'Verwijderd',
+      last_name = 'lid',
+      email = 'verwijderd-' || p.id || '@voc-ledenportaal.invalid',
+      phone = null,
+      job_title = null,
+      bio = null,
+      avatar_url = null,
+      linkedin_url = null,
+      anonymized_at = now(),
+      pending_avatar_cleanup = expired.avatar_url
+    from expired
+    where p.id = expired.id
+    returning p.id
+  )
+  select expired.id, expired.avatar_url from expired;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.anonymize_profile_now(p_id uuid)
+ RETURNS TABLE(profile_id uuid, old_avatar_url text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  return query
+  with target as (
+    select id, avatar_url
+    from public.profiles
+    where id = p_id and anonymized_at is null
+    for update
+  ),
+  updated as (
+    update public.profiles p
+    set
+      first_name = 'Verwijderd',
+      last_name = 'lid',
+      email = 'verwijderd-' || p.id || '@voc-ledenportaal.invalid',
+      phone = null,
+      job_title = null,
+      bio = null,
+      avatar_url = null,
+      linkedin_url = null,
+      is_active = false,
+      deactivated_at = coalesce(p.deactivated_at, now()),
+      anonymized_at = now(),
+      pending_avatar_cleanup = target.avatar_url
+    from target
+    where p.id = target.id
+    returning p.id
+  )
+  select target.id, target.avatar_url from target;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.claim_newsletter_contact_recipients(p_communication_id uuid)
+ RETURNS TABLE(send_id uuid, contact_id uuid, email text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_filter text;
+begin
+  if not (public.is_board() or auth.role() = 'service_role') then
+    raise exception 'not authorized';
+  end if;
+
+  select recipient_filter into v_filter from public.communications where id = p_communication_id;
+
+  insert into public.communication_contact_sends (communication_id, contact_id)
+  select p_communication_id, ct.id
+  from public.contacts ct
+  where not ct.opted_out
+    and (
+      (v_filter = 'lijsten' and exists (
+        select 1
+        from public.communication_recipient_lists crl
+        join public.contact_list_contacts clc on clc.list_id = crl.list_id
+        where crl.communication_id = p_communication_id and clc.contact_id = ct.id
+      ))
+      or exists (
+        select 1 from public.communication_recipient_contacts crc
+        where crc.communication_id = p_communication_id and crc.contact_id = ct.id
+      )
+    )
+  on conflict (communication_id, contact_id) do nothing;
+
+  update public.communications
+  set total_recipients = (
+    (select count(*) from public.notifications where communication_id = p_communication_id)
+    + (select count(*) from public.communication_contact_sends where communication_id = p_communication_id)
+  )
+  where id = p_communication_id;
+
+  return query
+  select s.id, s.contact_id, ct.email
+  from public.communication_contact_sends s
+  join public.contacts ct on ct.id = s.contact_id
+  where s.communication_id = p_communication_id
+    and s.emailed_at is null;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.claim_newsletter_deliveries(p_communication_id uuid, p_kind text)
+ RETURNS TABLE(delivery_id uuid, profile_id uuid, contact_id uuid, email text, attempt_id uuid)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_filter text;
+  v_attempt_id uuid;
+begin
+  if not (public.is_board() or auth.role() = 'service_role') then
+    raise exception 'not authorized';
+  end if;
+  if p_kind not in ('eerste_verzending', 'nasturen', 'opnieuw_proberen') then
+    raise exception 'ongeldig soort verzendpoging: %', p_kind;
+  end if;
+
+  select recipient_filter into v_filter from public.communications where id = p_communication_id;
+  if v_filter is null then
+    raise exception 'nieuwsbrief niet gevonden';
+  end if;
+
+  insert into public.communication_send_attempts (communication_id, kind, started_by)
+  values (p_communication_id, p_kind, auth.uid())
+  returning id into v_attempt_id;
+
+  insert into public.communication_deliveries (communication_id, profile_id, email, status, failure_reason)
+  select
+    p_communication_id,
+    p.id,
+    lower(trim(p.email)),
+    case when p.email_campaigns then 'wachten' else 'overgeslagen' end,
+    case when p.email_campaigns then null else 'afgemeld' end
+  from public.profiles p
+  where p.is_active
+    and (
+      v_filter = 'alle_actieve_leden'
+      or exists (
+        select 1 from public.communication_recipient_lists crl
+        join public.contact_list_profiles clp on clp.list_id = crl.list_id
+        where crl.communication_id = p_communication_id and clp.profile_id = p.id
+      )
+      or exists (
+        select 1 from public.communication_recipient_profiles crp
+        where crp.communication_id = p_communication_id and crp.profile_id = p.id
+      )
+    )
+  on conflict (communication_id, email) do nothing;
+
+  insert into public.communication_deliveries (communication_id, contact_id, email, status, failure_reason)
+  select
+    p_communication_id,
+    ct.id,
+    lower(trim(ct.email)),
+    case when ct.opted_out then 'overgeslagen' else 'wachten' end,
+    case when ct.opted_out then 'afgemeld' else null end
+  from public.contacts ct
+  where (
+      v_filter = 'lijsten' and exists (
+        select 1 from public.communication_recipient_lists crl
+        join public.contact_list_contacts clc on clc.list_id = crl.list_id
+        where crl.communication_id = p_communication_id and clc.contact_id = ct.id
+      )
+    )
+    or exists (
+      select 1 from public.communication_recipient_contacts crc
+      where crc.communication_id = p_communication_id and crc.contact_id = ct.id
+    )
+  on conflict (communication_id, email) do nothing;
+
+  update public.communications
+  set total_recipients = (select count(*) from public.communication_deliveries where communication_id = p_communication_id)
+  where id = p_communication_id;
+
+  update public.communication_deliveries
+  set attempt_id = v_attempt_id, status = 'wachten', failure_reason = null
+  where communication_id = p_communication_id
+    and status in ('wachten', 'mislukt');
+
+  return query
+  select d.id, d.profile_id, d.contact_id, d.email, d.attempt_id
+  from public.communication_deliveries d
+  where d.communication_id = p_communication_id
+    and d.attempt_id = v_attempt_id
+    and d.status = 'wachten';
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.claim_newsletter_recipients(p_communication_id uuid)
+ RETURNS TABLE(notification_id uuid, profile_id uuid, email text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_filter text;
+begin
+  if not (public.is_board() or auth.role() = 'service_role') then
+    raise exception 'not authorized';
+  end if;
+
+  select recipient_filter into v_filter from public.communications where id = p_communication_id;
+
+  insert into public.notifications (profile_id, type, title, communication_id, channel_push_allowed, channel_email_allowed)
+  select p.id, 'newsletter', c.subject, c.id, false, false
+  from public.profiles p
+  cross join public.communications c
+  where c.id = p_communication_id
+    and p.is_active
+    and p.email_campaigns
+    and (
+      v_filter = 'alle_actieve_leden'
+      or (v_filter = 'lijsten' and exists (
+        select 1
+        from public.communication_recipient_lists crl
+        join public.contact_list_profiles clp on clp.list_id = crl.list_id
+        where crl.communication_id = c.id and clp.profile_id = p.id
+      ))
+      or exists (
+        select 1 from public.communication_recipient_profiles crp
+        where crp.communication_id = c.id and crp.profile_id = p.id
+      )
+    )
+  on conflict (communication_id, profile_id) where communication_id is not null do nothing;
+
+  -- Niet langer "only if null" (0067): de doelgroep kan na een eerste
+  -- verzending nog groeien (nasturen), dus total_recipients telt bij elke
+  -- claim-aanroep opnieuw de volledige, cumulatieve bedoelde ontvangerslijst
+  -- (leden + contacten) na.
+  update public.communications
+  set total_recipients = (
+    (select count(*) from public.notifications where communication_id = p_communication_id)
+    + (select count(*) from public.communication_contact_sends where communication_id = p_communication_id)
+  )
+  where id = p_communication_id;
+
+  return query
+  select n.id, n.profile_id, p.email
+  from public.notifications n
+  join public.profiles p on p.id = n.profile_id
+  where n.communication_id = p_communication_id
+    and n.emailed_at is null;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.claim_newsletter_send(p_communication_id uuid)
+ RETURNS boolean
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_rows integer;
+begin
+  if not (public.is_board() or auth.role() = 'service_role') then
+    raise exception 'not authorized';
+  end if;
+
+  update public.communications
+  set status = 'versturen'
+  where id = p_communication_id
+    and (
+      status in ('concept', 'ingepland', 'verzenden_mislukt', 'verzonden')
+      or (status = 'versturen' and updated_at < now() - interval '10 minutes')
+    );
+  get diagnostics v_rows = row_count;
+  return v_rows > 0;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.create_activity_reminders()
+ RETURNS integer
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_count integer;
+  v_cfg record;
+begin
+  select * into v_cfg from public.notification_dispatch_config('activity_reminder');
+  if not v_cfg.enabled then
+    return 0;
+  end if;
+
+  insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+  select
+    r.profile_id,
+    'activity_reminder',
+    'Herinnering: ' || a.title,
+    'Deze activiteit vindt plaats op ' ||
+      to_char(a.starts_at at time zone 'Europe/Amsterdam', 'DD-MM-YYYY "om" HH24:MI') ||
+      coalesce(' bij ' || a.location, '') || '.',
+    '/agenda/' || a.id,
+    v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
+  from public.activity_registrations r
+  join public.activities a on a.id = r.activity_id
+  where a.starts_at > now()
+    and a.starts_at <= now() + interval '2 days'
+    and not exists (
+      select 1 from public.notifications n
+      where n.profile_id = r.profile_id
+        and n.type = 'activity_reminder'
+        and n.link = '/agenda/' || a.id
+    );
+
+  get diagnostics v_count = row_count;
+  return v_count;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public."current_role"()
+ RETURNS user_role
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select role from public.profiles where id = auth.uid() and is_active = true;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.delete_expired_prospects()
+ RETURNS integer
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  deleted_count integer;
+begin
+  delete from public.prospects where last_seen_at <= now() - interval '90 days';
+  get diagnostics deleted_count = row_count;
+  return deleted_count;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.dispatch_mention_notifications(p_content text, p_author_id uuid, p_context text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_author_name text;
+  v_match text[];
+  v_profile_ids uuid[] := '{}';
+  v_company_ids uuid[] := '{}';
+  v_target_ids uuid[];
+begin
+  if p_content is null then
+    return;
+  end if;
+
+  for v_match in
+    select regexp_matches(p_content, '@\[[^\]]+\]\((profiel|bedrijf):([0-9a-fA-F-]{36})\)', 'g')
+  loop
+    if v_match[1] = 'profiel' then
+      v_profile_ids := array_append(v_profile_ids, v_match[2]::uuid);
+    else
+      v_company_ids := array_append(v_company_ids, v_match[2]::uuid);
+    end if;
+  end loop;
+
+  if array_length(v_profile_ids, 1) is null and array_length(v_company_ids, 1) is null then
+    return;
+  end if;
+
+  select first_name || ' ' || last_name into v_author_name
+    from public.profiles where id = p_author_id;
+
+  select array_agg(distinct target) into v_target_ids
+  from (
+    select p.id as target
+    from public.profiles p
+    where p.id = any(v_profile_ids) and p.is_active and p.id <> p_author_id
+
+    union
+
+    select cm.profile_id as target
+    from public.company_members cm
+    join public.profiles p on p.id = cm.profile_id
+    where cm.company_id = any(v_company_ids) and p.is_active and cm.profile_id <> p_author_id
+  ) t;
+
+  if v_target_ids is null then
+    return;
+  end if;
+
+  insert into public.notifications (profile_id, type, title, body, link)
+  select target, 'feed_mention', 'Je bent genoemd in de feed',
+    coalesce(v_author_name, 'Iemand') || ' heeft je genoemd in ' || p_context || '.',
+    '/'
+  from unnest(v_target_ids) as target;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.dispatch_mention_notifications(p_content text, p_author_id uuid, p_context text, p_target_id uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_author_name text;
+  v_match text[];
+  v_profile_ids uuid[] := '{}';
+  v_company_ids uuid[] := '{}';
+  v_target_ids uuid[];
+  v_cfg record;
+begin
+  if p_content is null then
+    return;
+  end if;
+
+  for v_match in
+    select regexp_matches(p_content, '@\[[^\]]+\]\((profiel|bedrijf):([0-9a-fA-F-]{36})\)', 'g')
+  loop
+    if v_match[1] = 'profiel' then
+      v_profile_ids := array_append(v_profile_ids, v_match[2]::uuid);
+    else
+      v_company_ids := array_append(v_company_ids, v_match[2]::uuid);
+    end if;
+  end loop;
+
+  if array_length(v_profile_ids, 1) is null and array_length(v_company_ids, 1) is null then
+    return;
+  end if;
+
+  select * into v_cfg from public.notification_dispatch_config('feed_mention');
+  if not v_cfg.enabled then
+    return;
+  end if;
+
+  select first_name || ' ' || last_name into v_author_name
+    from public.profiles where id = p_author_id;
+
+  select array_agg(distinct target) into v_target_ids
+  from (
+    select p.id as target
+    from public.profiles p
+    where p.id = any(v_profile_ids) and p.is_active and p.id <> p_author_id
+
+    union
+
+    select cm.profile_id as target
+    from public.company_members cm
+    join public.profiles p on p.id = cm.profile_id
+    where cm.company_id = any(v_company_ids) and p.is_active and cm.profile_id <> p_author_id
+  ) t;
+
+  if v_target_ids is null then
+    return;
+  end if;
+
+  insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+  select target, 'feed_mention', 'Je bent genoemd in de feed',
+    coalesce(v_author_name, 'Iemand') || ' heeft je genoemd in ' || p_context || '.',
+    '/community?highlight=' || p_target_id,
+    v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
+  from unnest(v_target_ids) as target;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.enforce_access_request_rate_limit()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_normalized_email text := lower(trim(new.email));
+  v_recent_attempts integer;
+begin
+  select count(*) into v_recent_attempts
+    from public.access_requests
+    where lower(email) = v_normalized_email
+      and created_at > now() - interval '15 minutes';
+
+  if v_recent_attempts >= 5 then
+    raise exception 'Te veel aanvragen met dit e-mailadres. Probeer het over een kwartier opnieuw.';
+  end if;
+
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.enforce_activity_registration_rules()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_deadline timestamptz;
+  v_max integer;
+  v_status text;
+  v_confirmed_count integer;
+begin
+  select registration_deadline, max_participants, status
+    into v_deadline, v_max, v_status
+    from public.activities
+    where id = new.activity_id
+    for update;
+
+  if v_status = 'cancelled' then
+    raise exception 'Deze activiteit is afgelast.';
+  end if;
+
+  if v_deadline is not null and now() > v_deadline then
+    raise exception 'De aanmelddeadline voor deze activiteit is verstreken.';
+  end if;
+
+  if v_max is not null then
+    select
+      (select count(*) from public.activity_registrations where activity_id = new.activity_id and not is_waitlisted)
+      + (select count(*) from public.public_activity_registrations where activity_id = new.activity_id)
+      into v_confirmed_count;
+
+    new.is_waitlisted := v_confirmed_count >= v_max;
+  else
+    new.is_waitlisted := false;
+  end if;
+
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.enforce_testfase_feedback_rate_limit()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_recent_count integer;
+begin
+  select count(*) into v_recent_count
+    from public.testfase_feedback
+    where profile_id = new.profile_id
+      and created_at > now() - interval '1 day';
+
+  if v_recent_count >= 10 then
+    raise exception 'Je hebt vandaag al genoeg feedback achtergelaten. Probeer het morgen opnieuw.';
+  end if;
+
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.finalize_newsletter_send(p_communication_id uuid)
+ RETURNS TABLE(total integer, sent integer)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_total integer;
+  v_sent integer;
+begin
+  if not (public.is_board() or auth.role() = 'service_role') then
+    raise exception 'not authorized';
+  end if;
+
+  select
+    (select count(*) from public.notifications where communication_id = p_communication_id)
+    + (select count(*) from public.communication_contact_sends where communication_id = p_communication_id),
+    (select count(*) from public.notifications where communication_id = p_communication_id and emailed_at is not null)
+    + (select count(*) from public.communication_contact_sends where communication_id = p_communication_id and emailed_at is not null)
+  into v_total, v_sent;
+
+  update public.communications
+  set status = case when v_total > 0 and v_sent >= v_total then 'verzonden' else 'verzenden_mislukt' end,
+      sent_at = case when v_total > 0 and v_sent >= v_total and sent_at is null then now() else sent_at end
+  where id = p_communication_id;
+
+  return query select v_total, v_sent;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.finalize_newsletter_send_v2(p_communication_id uuid)
+ RETURNS TABLE(total integer, sent integer, failed integer, skipped integer)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_total integer;
+  v_sent integer;
+  v_failed integer;
+  v_skipped integer;
+begin
+  if not (public.is_board() or auth.role() = 'service_role') then
+    raise exception 'not authorized';
+  end if;
+
+  select
+    count(*),
+    count(*) filter (where status = 'verstuurd'),
+    count(*) filter (where status = 'mislukt'),
+    count(*) filter (where status = 'overgeslagen')
+  into v_total, v_sent, v_failed, v_skipped
+  from public.communication_deliveries
+  where communication_id = p_communication_id;
+
+  update public.communications
+  set status = case when v_total > 0 and (v_sent + v_skipped) >= v_total then 'verzonden' else 'verzenden_mislukt' end,
+      sent_at = case
+        when v_total > 0 and (v_sent + v_skipped) >= v_total and sent_at is null then now()
+        else sent_at
+      end
+  where id = p_communication_id;
+
+  return query select v_total, v_sent, v_failed, v_skipped;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.force_logout_all_members(p_except_id uuid DEFAULT NULL::uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  delete from auth.refresh_tokens
+  where p_except_id is null or user_id <> p_except_id::text;
+  delete from auth.sessions
+  where p_except_id is null or user_id <> p_except_id;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.force_logout_member(p_id uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  delete from auth.refresh_tokens where user_id = p_id::text;
+  delete from auth.sessions where user_id = p_id;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.generate_unique_profile_slug(p_first_name text, p_last_name text)
+ RETURNS text
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_base text;
+  v_candidate text;
+  v_suffix int := 1;
+begin
+  v_base := nullif(trim(both '-' from regexp_replace(lower(p_first_name || '-' || p_last_name), '[^a-z0-9]+', '-', 'g')), '');
+  v_base := coalesce(v_base, 'lid');
+  v_candidate := v_base;
+  while exists (select 1 from public.profiles where slug = v_candidate) loop
+    v_suffix := v_suffix + 1;
+    v_candidate := v_base || '-' || v_suffix;
+  end loop;
+  return v_candidate;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_activity_interest_count(p_activity_id uuid)
+ RETURNS integer
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select
+    (select count(*) from public.activity_registrations where activity_id = p_activity_id)
+    + (select count(*) from public.public_activity_registrations where activity_id = p_activity_id);
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_activity_registration_counts()
+ RETURNS TABLE(activity_id uuid, registered_count bigint)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select activity_id, count(*) as registered_count
+  from public.activity_registrations
+  where is_waitlisted = false
+  group by activity_id;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_activity_registration_export(p_activity_id uuid)
+ RETURNS TABLE(first_name text, last_name text, email text, is_waitlisted boolean, attended boolean)
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not public.is_board() then
+    raise exception 'not authorized';
+  end if;
+
+  return query
+  select p.first_name, p.last_name, p.email, r.is_waitlisted, r.attended
+  from public.activity_registrations r
+  join public.profiles p on p.id = r.profile_id
+  where r.activity_id = p_activity_id
+  order by r.created_at;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_email_template(p_key text)
+ RETURNS TABLE(subject text, body_html text)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select subject, body_html from public.email_templates where key = p_key;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_invitation_preview(p_token text)
+ RETURNS TABLE(valid boolean, role user_role, email text, first_name text, last_name text, phone text, job_title text, company_id uuid, company_name text, company_city text)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select
+    (i.status = 'pending' and i.expires_at is not null and i.expires_at > now()) as valid,
+    i.role,
+    i.email,
+    i.first_name,
+    i.last_name,
+    i.phone,
+    i.job_title,
+    i.company_id,
+    c.name as company_name,
+    c.city as company_city
+  from public.invitations i
+  left join public.companies c on c.id = i.company_id
+  where i.token = p_token;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_member_profile(p_id text)
+ RETURNS TABLE(id uuid, first_name text, last_name text, slug text, email text, phone text, job_title text, avatar_url text, avatar_thumb_url text, role user_role, is_active boolean, show_email boolean, show_phone boolean, show_attended_activities boolean, push_activities boolean, push_feed boolean, push_new_members boolean, email_activities boolean, email_feed boolean, email_new_members boolean, deactivated_at timestamp with time zone, anonymized_at timestamp with time zone, last_active_at timestamp with time zone, linkedin_url text, instagram_url text, facebook_url text, bio text, is_organization_account boolean, publicly_visible boolean, onboarding_dismissed_at timestamp with time zone, introduction_prompt_dismissed_at timestamp with time zone, created_at timestamp with time zone, updated_at timestamp with time zone)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select
+    p.id, p.first_name, p.last_name, p.slug,
+    case when p.id = auth.uid() or p.show_email or public.is_board() then p.email else null end,
+    case when p.id = auth.uid() or p.show_phone or public.is_board() then p.phone else null end,
+    p.job_title, p.avatar_url, p.avatar_thumb_url, p.role, p.is_active,
+    p.show_email, p.show_phone, p.show_attended_activities,
+    p.push_activities, p.push_feed, p.push_new_members,
+    p.email_activities, p.email_feed, p.email_new_members,
+    p.deactivated_at, p.anonymized_at, p.last_active_at,
+    p.linkedin_url, p.instagram_url, p.facebook_url, p.bio,
+    p.is_organization_account, p.publicly_visible,
+    p.onboarding_dismissed_at, p.introduction_prompt_dismissed_at,
+    p.created_at, p.updated_at
+  from public.profiles p
+  where (p.id::text = p_id or p.slug = p_id) and (p.id = auth.uid() or public.is_active_member());
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_members_directory()
+ RETURNS TABLE(id uuid, first_name text, last_name text, slug text, email text, phone text, job_title text, avatar_url text, avatar_thumb_url text, role user_role, is_active boolean, show_email boolean, show_phone boolean, show_attended_activities boolean, push_activities boolean, push_feed boolean, push_new_members boolean, email_activities boolean, email_feed boolean, email_new_members boolean, deactivated_at timestamp with time zone, anonymized_at timestamp with time zone, last_active_at timestamp with time zone, linkedin_url text, instagram_url text, facebook_url text, bio text, is_organization_account boolean, publicly_visible boolean, onboarding_dismissed_at timestamp with time zone, introduction_prompt_dismissed_at timestamp with time zone, created_at timestamp with time zone, updated_at timestamp with time zone)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select
+    p.id, p.first_name, p.last_name, p.slug,
+    case when p.id = auth.uid() or p.show_email or public.is_board() then p.email else null end,
+    case when p.id = auth.uid() or p.show_phone or public.is_board() then p.phone else null end,
+    p.job_title, p.avatar_url, p.avatar_thumb_url, p.role, p.is_active,
+    p.show_email, p.show_phone, p.show_attended_activities,
+    p.push_activities, p.push_feed, p.push_new_members,
+    p.email_activities, p.email_feed, p.email_new_members,
+    p.deactivated_at, p.anonymized_at, p.last_active_at,
+    p.linkedin_url, p.instagram_url, p.facebook_url, p.bio,
+    p.is_organization_account, p.publicly_visible,
+    p.onboarding_dismissed_at, p.introduction_prompt_dismissed_at,
+    p.created_at, p.updated_at
+  from public.profiles p
+  where p.id = auth.uid() or public.is_active_member()
+  order by p.last_name, p.first_name;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_message_template(p_key text)
+ RETURNS TABLE(subject text, body_html text, cta_label text, after_html text, signature_type text, push_title text, push_body text)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select subject, body_html, cta_label, after_html, signature_type, push_title, push_body
+  from public.message_templates where key = p_key;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_pending_email_notifications(p_limit integer DEFAULT 50)
+ RETURNS TABLE(notification_id uuid, type text, title text, body text, link text, email text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  update public.notifications n
+  set emailed_at = now()
+  from public.profiles p
+  where n.profile_id = p.id
+    and n.emailed_at is null
+    and n.communication_id is null
+    and (
+      not n.channel_email_allowed
+      or n.type = 'new_member'
+      or (n.type in ('new_activity', 'activity_reminder') and not p.email_activities)
+      or (n.type in ('feed_comment', 'feed_mention') and not p.email_feed)
+    );
+
+  return query
+  with claimed as (
+    select n.id
+    from public.notifications n
+    where n.emailed_at is null
+      and n.communication_id is null
+      and (n.email_claimed_at is null or n.email_claimed_at < now() - interval '10 minutes')
+    order by n.created_at
+    limit p_limit
+    for update of n skip locked
+  ),
+  leased as (
+    update public.notifications n
+    set email_claimed_at = now()
+    from claimed c
+    where n.id = c.id
+    returning n.id, n.type, n.title, n.body, n.link, n.profile_id
+  )
+  select l.id, l.type, l.title, l.body, l.link, p.email
+  from leased l
+  join public.profiles p on p.id = l.profile_id;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_pending_push_notifications(p_limit integer DEFAULT 50)
+ RETURNS TABLE(notification_id uuid, type text, title text, body text, link text, endpoint text, p256dh text, auth text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  update public.notifications n
+  set pushed_at = now()
+  from public.profiles p
+  where n.profile_id = p.id
+    and n.pushed_at is null
+    and n.communication_id is null
+    and (
+      not n.channel_push_allowed
+      or n.type = 'new_member'
+      or (n.type in ('new_activity', 'activity_reminder') and not p.push_activities)
+      or (n.type in ('feed_comment', 'feed_mention') and not p.push_feed)
+    );
+
+  return query
+  with claimed as (
+    select n.id, n.type, n.title, n.body, n.link, n.profile_id
+    from public.notifications n
+    where n.pushed_at is null
+      and n.communication_id is null
+      and exists (select 1 from public.push_subscriptions s where s.profile_id = n.profile_id)
+    order by n.created_at
+    limit p_limit
+    for update of n skip locked
+  ),
+  marked as (
+    update public.notifications n
+    set pushed_at = now()
+    from claimed c
+    where n.id = c.id
+    returning n.id, n.type, n.title, n.body, n.link, n.profile_id
+  )
+  select m.id, m.type, m.title, m.body, m.link, s.endpoint, s.p256dh, s.auth
+  from marked m
+  join public.push_subscriptions s on s.profile_id = m.profile_id;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_profiles_pending_auth_scrub()
+ RETURNS TABLE(profile_id uuid, pending_avatar_cleanup text)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select id, pending_avatar_cleanup
+  from public.profiles
+  where anonymized_at is not null
+    and (auth_scrubbed_at is null or pending_avatar_cleanup is not null);
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_public_companies()
+ RETURNS TABLE(id uuid, slug text, name text, logo_url text, tagline text, industry text, city text, latitude double precision, longitude double precision)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select
+    id, slug, name, logo_url, tagline, industry, city,
+    case when show_address then latitude else null end,
+    case when show_address then longitude else null end
+  from public.companies
+  where is_publicly_visible = true
+  order by name;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_public_company(p_slug text)
+ RETURNS TABLE(id uuid, slug text, name text, logo_url text, tagline text, description text, industry text, city text, address text, postal_code text, website text, linkedin_url text, instagram_url text, facebook_url text, employees jsonb)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select
+    c.id, c.slug, c.name, c.logo_url, c.tagline, c.description, c.industry, c.city,
+    case when c.show_address then c.address else null end,
+    case when c.show_address then c.postal_code else null end,
+    c.website, c.linkedin_url, c.instagram_url, c.facebook_url,
+    coalesce(
+      (
+        select jsonb_agg(jsonb_build_object(
+                 'id', p.id,
+                 'first_name', p.first_name,
+                 'last_name', p.last_name,
+                 'job_title', p.job_title,
+                 'avatar_url', p.avatar_url
+               ) order by p.first_name)
+        from public.company_members cm
+        join public.profiles p on p.id = cm.profile_id
+        where cm.company_id = c.id and p.publicly_visible = true and p.is_active = true
+      ),
+      '[]'::jsonb
+    ) as employees
+  from public.companies c
+  where c.slug = p_slug and c.is_publicly_visible = true;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.get_push_template(p_key text)
+ RETURNS TABLE(title text, body text)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select title, body from public.push_templates where key = p_key;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gin_extract_query_trgm(text, internal, smallint, internal, internal, internal, internal)
+ RETURNS internal
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gin_extract_query_trgm$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gin_extract_value_trgm(text, internal)
+ RETURNS internal
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gin_extract_value_trgm$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gin_trgm_consistent(internal, smallint, text, integer, internal, internal, internal, internal)
+ RETURNS boolean
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gin_trgm_consistent$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gin_trgm_triconsistent(internal, smallint, text, integer, internal, internal, internal)
+ RETURNS "char"
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gin_trgm_triconsistent$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gtrgm_compress(internal)
+ RETURNS internal
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_compress$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gtrgm_consistent(internal, text, smallint, oid, internal)
+ RETURNS boolean
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_consistent$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gtrgm_decompress(internal)
+ RETURNS internal
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_decompress$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gtrgm_distance(internal, text, smallint, oid, internal)
+ RETURNS double precision
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_distance$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gtrgm_in(cstring)
+ RETURNS gtrgm
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_in$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gtrgm_options(internal)
+ RETURNS void
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE
+AS '$libdir/pg_trgm', $function$gtrgm_options$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gtrgm_out(gtrgm)
+ RETURNS cstring
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_out$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gtrgm_penalty(internal, internal, internal)
+ RETURNS internal
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_penalty$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gtrgm_picksplit(internal, internal)
+ RETURNS internal
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_picksplit$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gtrgm_same(gtrgm, gtrgm, internal)
+ RETURNS internal
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_same$function$
+
+---
+CREATE OR REPLACE FUNCTION public.gtrgm_union(internal, internal)
+ RETURNS gtrgm
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$gtrgm_union$function$
+
+---
+CREATE OR REPLACE FUNCTION public.guard_company_privileges()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not public.is_board() then
+    new.slug := old.slug;
+    new.created_by := old.created_by;
+  end if;
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.guard_profile_privileges()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not public.is_admin() then
+    new.role := old.role;
+    if not (
+      public.is_board()
+      or (new.id = auth.uid() and old.is_active and not new.is_active)
+    ) then
+      new.is_active := old.is_active;
+    end if;
+  end if;
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.handle_company_membership_decision()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_cfg record;
+begin
+  if new.status = 'approved' and old.status is distinct from 'approved' then
+    delete from public.company_members
+    where profile_id = new.profile_id and company_id <> new.company_id;
+
+    insert into public.company_members (company_id, profile_id)
+    values (new.company_id, new.profile_id)
+    on conflict do nothing;
+  end if;
+
+  if new.status in ('approved', 'rejected') and old.status is distinct from new.status then
+    new.decided_at = now();
+
+    select * into v_cfg from public.notification_dispatch_config('company_membership_decision');
+    if v_cfg.enabled then
+      insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+      values (
+        new.profile_id,
+        'company_membership_decision',
+        case when new.status = 'approved' then 'Bedrijfskoppeling goedgekeurd' else 'Bedrijfskoppeling afgewezen' end,
+        case
+          when new.status = 'approved' then 'Je aanvraag om aan dit bedrijf gekoppeld te worden is goedgekeurd.'
+          when new.decision_reason is not null and new.decision_reason <> ''
+            then 'Je aanvraag om aan dit bedrijf gekoppeld te worden is afgewezen. Reden: ' || new.decision_reason
+          else 'Je aanvraag om aan dit bedrijf gekoppeld te worden is afgewezen.'
+        end,
+        '/bedrijven/' || new.company_id,
+        v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
+      );
+    end if;
+  end if;
+
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_meta jsonb := new.raw_user_meta_data;
+  v_token text := v_meta ->> 'invitation_token';
+  v_invitation public.invitations;
+  v_company_id uuid := nullif(v_meta ->> 'company_id', '')::uuid;
+  v_new_company_name text := v_meta ->> 'new_company_name';
+  v_created_company_id uuid;
+  v_first_name text := coalesce(v_meta ->> 'first_name', '');
+  v_last_name text := coalesce(v_meta ->> 'last_name', '');
+begin
+  if v_token is null then
+    raise exception 'Registratie vereist een geldige uitnodiging.';
+  end if;
+
+  select * into v_invitation
+    from public.invitations
+    where token = v_token
+    for update;
+
+  if v_invitation is null
+     or v_invitation.status <> 'pending'
+     or v_invitation.expires_at is null
+     or v_invitation.expires_at < now()
+  then
+    raise exception 'Deze uitnodiging is ongeldig of verlopen.';
+  end if;
+
+  if v_invitation.email is not null and lower(v_invitation.email) <> lower(new.email) then
+    raise exception 'Dit e-mailadres komt niet overeen met de uitnodiging.';
+  end if;
+
+  insert into public.profiles (id, first_name, last_name, email, phone, job_title, role, slug)
+  values (
+    new.id,
+    v_first_name,
+    v_last_name,
+    new.email,
+    v_meta ->> 'phone',
+    v_meta ->> 'job_title',
+    v_invitation.role,
+    public.generate_unique_profile_slug(v_first_name, v_last_name)
+  );
+
+  if v_new_company_name is not null and v_new_company_name <> '' then
+    insert into public.companies (name, slug, industry, website, city)
+    values (
+      v_new_company_name,
+      lower(regexp_replace(v_new_company_name, '[^a-zA-Z0-9]+', '-', 'g')) || '-' || substr(new.id::text, 1, 8),
+      v_meta ->> 'new_company_industry',
+      v_meta ->> 'new_company_website',
+      v_meta ->> 'new_company_city'
+    )
+    returning id into v_created_company_id;
+
+    insert into public.company_members (company_id, profile_id) values (v_created_company_id, new.id);
+  elsif v_company_id is not null then
+    if v_invitation.company_id is not null and v_invitation.company_id = v_company_id then
+      insert into public.company_members (company_id, profile_id) values (v_company_id, new.id);
+    else
+      insert into public.company_membership_requests (company_id, profile_id) values (v_company_id, new.id);
+    end if;
+  end if;
+
+  update public.invitations
+    set status = 'accepted', accepted_by = new.id, accepted_at = now()
+    where id = v_invitation.id;
+
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.handle_user_email_change()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  update public.profiles set email = new.email where id = new.id;
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.has_any_profiles()
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select exists (select 1 from public.profiles);
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.is_active_member()
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select exists (select 1 from public.profiles where id = auth.uid() and is_active = true);
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.is_admin()
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select coalesce(public.current_role() = 'beheerder', false);
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.is_board()
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select coalesce(public.current_role() in ('bestuurslid', 'beheerder'), false);
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.is_public_company(p_company_id uuid)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select exists (select 1 from public.companies where id = p_company_id and is_publicly_visible = true);
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.is_public_employee(p_profile_id uuid)
+ RETURNS boolean
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select exists (
+    select 1
+    from public.profiles p
+    join public.company_members cm on cm.profile_id = p.id
+    join public.companies c on c.id = cm.company_id
+    where p.id = p_profile_id
+      and p.is_active = true
+      and p.publicly_visible = true
+      and c.is_publicly_visible = true
+  );
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.list_push_subscriptions()
+ RETURNS TABLE(profile_id uuid, endpoint text, p256dh text, auth text, created_at timestamp with time zone)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not public.is_admin() then
+    raise exception 'not authorized';
+  end if;
+
+  return query select s.profile_id, s.endpoint, s.p256dh, s.auth, s.created_at from public.push_subscriptions s;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.log_audit_action(p_action text, p_target_type text DEFAULT NULL::text, p_target_id uuid DEFAULT NULL::uuid, p_metadata jsonb DEFAULT '{}'::jsonb)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not public.is_board() then
+    return;
+  end if;
+
+  insert into public.audit_logs (action, actor_id, target_type, target_id, metadata)
+  values (p_action, auth.uid(), p_target_type, p_target_id, p_metadata);
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.log_email_clicked(p_provider_id text, p_link text DEFAULT NULL::text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_notification_id uuid;
+  v_profile_id uuid;
+begin
+  select id, profile_id into v_notification_id, v_profile_id
+    from public.notifications where email_provider_id = p_provider_id;
+
+  if v_notification_id is not null then
+    insert into public.events (event_type, profile_id, target_type, target_id, metadata)
+    values ('notification_clicked', v_profile_id, 'notification', v_notification_id, jsonb_build_object('channel', 'email', 'link', p_link));
+  end if;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.log_email_opened(p_provider_id text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_notification_id uuid;
+  v_profile_id uuid;
+begin
+  select id, profile_id into v_notification_id, v_profile_id
+    from public.notifications where email_provider_id = p_provider_id;
+
+  if v_notification_id is not null then
+    insert into public.events (event_type, profile_id, target_type, target_id, metadata)
+    values ('notification_opened', v_profile_id, 'notification', v_notification_id, jsonb_build_object('channel', 'email'));
+  end if;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.log_event(p_event_type text, p_target_type text DEFAULT NULL::text, p_target_id uuid DEFAULT NULL::uuid, p_metadata jsonb DEFAULT '{}'::jsonb)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if auth.uid() is null then
+    return;
+  end if;
+
+  insert into public.events (event_type, profile_id, target_type, target_id, metadata)
+  values (p_event_type, auth.uid(), p_target_type, p_target_id, p_metadata);
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.log_notification_click(p_notification_id uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_profile_id uuid;
+begin
+  select profile_id into v_profile_id from public.notifications where id = p_notification_id;
+  if v_profile_id is not null then
+    insert into public.events (event_type, profile_id, target_type, target_id, metadata)
+    values ('notification_opened', v_profile_id, 'notification', p_notification_id, jsonb_build_object('channel', 'push'));
+  end if;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.log_push_unsubscribed(p_endpoint text, p_profile_id uuid DEFAULT NULL::uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_owner_id uuid;
+begin
+  select profile_id into v_owner_id from public.push_subscriptions where endpoint = p_endpoint;
+
+  if auth.uid() is not null and v_owner_id is not null and v_owner_id <> auth.uid() then
+    return;
+  end if;
+
+  delete from public.push_subscriptions where endpoint = p_endpoint;
+  insert into public.events (event_type, profile_id, target_type, metadata)
+  values ('push_unsubscribed', coalesce(v_owner_id, p_profile_id, auth.uid()), 'push_subscription', jsonb_build_object('endpoint', p_endpoint));
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.mark_newsletter_contact_sent(p_send_id uuid, p_provider_id text DEFAULT NULL::text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not (public.is_board() or auth.role() = 'service_role') then
+    raise exception 'not authorized';
+  end if;
+
+  update public.communication_contact_sends
+  set emailed_at = now(), email_provider_id = p_provider_id
+  where id = p_send_id;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.mark_newsletter_delivery_failed(p_delivery_id uuid, p_reason text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not (public.is_board() or auth.role() = 'service_role') then
+    raise exception 'not authorized';
+  end if;
+
+  update public.communication_deliveries
+  set status = 'mislukt', failure_reason = left(coalesce(p_reason, 'Onbekende fout'), 500)
+  where id = p_delivery_id;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.mark_newsletter_delivery_sent(p_delivery_id uuid, p_provider_id text DEFAULT NULL::text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not (public.is_board() or auth.role() = 'service_role') then
+    raise exception 'not authorized';
+  end if;
+
+  update public.communication_deliveries
+  set status = 'verstuurd', sent_at = now(), provider_id = p_provider_id, failure_reason = null
+  where id = p_delivery_id;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.mark_newsletter_delivery_skipped(p_delivery_id uuid, p_reason text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not (public.is_board() or auth.role() = 'service_role') then
+    raise exception 'not authorized';
+  end if;
+
+  update public.communication_deliveries
+  set status = 'overgeslagen', failure_reason = left(coalesce(p_reason, 'Overgeslagen'), 500)
+  where id = p_delivery_id;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.mark_newsletter_notification_sent(p_notification_id uuid, p_provider_id text DEFAULT NULL::text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not (public.is_board() or auth.role() = 'service_role') then
+    raise exception 'not authorized';
+  end if;
+
+  update public.notifications
+  set emailed_at = now(), email_provider_id = p_provider_id
+  where id = p_notification_id and communication_id is not null;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.mark_notifications_emailed(p_ids uuid[])
+ RETURNS void
+ LANGUAGE sql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  update public.notifications set emailed_at = now() where id = any(p_ids);
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.mark_notifications_pushed(p_ids uuid[])
+ RETURNS void
+ LANGUAGE sql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  update public.notifications set pushed_at = now() where id = any(p_ids);
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.mark_profiles_auth_scrubbed(p_ids uuid[])
+ RETURNS void
+ LANGUAGE sql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  update public.profiles set auth_scrubbed_at = now() where id = any(p_ids) and auth_scrubbed_at is null;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.mark_profiles_avatar_cleaned(p_ids uuid[])
+ RETURNS void
+ LANGUAGE sql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  update public.profiles set pending_avatar_cleanup = null where id = any(p_ids);
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.normalize_activity_submission()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if public.is_board() then
+    if new.source = 'lid' then
+      new.status = 'pending';
+    else
+      new.source = 'voc';
+      new.status = 'approved';
+    end if;
+  else
+    new.source = 'lid';
+    new.status = 'pending';
+  end if;
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.notification_dispatch_config(p_type text)
+ RETURNS TABLE(enabled boolean, roles text[], channel_inapp boolean, channel_push boolean, channel_email boolean)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select
+    coalesce(s.enabled, true),
+    s.roles,
+    coalesce(s.channel_inapp, true),
+    coalesce(s.channel_push, true),
+    coalesce(s.channel_email, true)
+  from (select p_type as type) t
+  left join public.notification_type_settings s on s.type = t.type;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.notify_access_request()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_cfg record;
+begin
+  select * into v_cfg from public.notification_dispatch_config('access_request');
+  if not v_cfg.enabled then
+    return new;
+  end if;
+
+  insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+  select id, 'access_request', 'Nieuwe aanmelding',
+    new.name || ' heeft toegang aangevraagd voor het ledenportaal.',
+    '/beheer/aanvragen',
+    v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
+  from public.profiles
+  where is_active and role = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder']));
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.notify_activity_decision()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_cfg record;
+begin
+  if new.created_by is not null
+     and new.status in ('approved', 'rejected')
+     and old.status = 'pending'
+     and new.status is distinct from old.status
+  then
+    select * into v_cfg from public.notification_dispatch_config('activity_decision');
+    if not v_cfg.enabled then
+      return new;
+    end if;
+
+    insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+    values (
+      new.created_by,
+      'activity_decision',
+      case when new.status = 'approved' then 'Activiteit goedgekeurd' else 'Activiteit afgewezen' end,
+      case
+        when new.status = 'approved' then 'Je activiteit "' || new.title || '" is goedgekeurd en staat nu in de agenda.'
+        when new.rejection_reason is not null and new.rejection_reason <> ''
+          then 'Je activiteit "' || new.title || '" is afgewezen: ' || new.rejection_reason
+        else 'Je activiteit "' || new.title || '" is afgewezen.'
+      end,
+      '/agenda/' || new.id,
+      v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
+    );
+  end if;
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.notify_activity_participants(p_activity_id uuid, p_type text, p_title text, p_body text)
+ RETURNS TABLE(email text, name text)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_cfg record;
+begin
+  if not public.is_board() then
+    raise exception 'Alleen bestuur kan dit.';
+  end if;
+
+  select * into v_cfg from public.notification_dispatch_config(p_type);
+  if v_cfg.enabled then
+    insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+    select profile_id, p_type, p_title, p_body, '/agenda/' || p_activity_id,
+      v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
+    from public.activity_registrations
+    where activity_id = p_activity_id;
+  end if;
+
+  return query
+  select par.email, par.name
+  from public.public_activity_registrations par
+  where par.activity_id = p_activity_id;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.notify_activity_published()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_cfg record;
+begin
+  if new.status = 'approved' and (tg_op = 'INSERT' or old.status is distinct from 'approved') then
+    select * into v_cfg from public.notification_dispatch_config('new_activity');
+    if not v_cfg.enabled then
+      return new;
+    end if;
+
+    insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+    select id, 'new_activity', 'Nieuwe activiteit: ' || new.title,
+      'Op ' || to_char(new.starts_at at time zone 'Europe/Amsterdam', 'DD-MM-YYYY "om" HH24:MI') ||
+        coalesce(' bij ' || new.location, '') || '.',
+      '/agenda/' || new.id,
+      new.notify_push and v_cfg.channel_push,
+      new.notify_email and v_cfg.channel_email,
+      v_cfg.channel_inapp
+    from public.profiles
+    where is_active and (new.created_by is null or id <> new.created_by);
+  end if;
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.notify_activity_submission()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_submitter_name text;
+  v_cfg record;
+begin
+  if new.status = 'pending' then
+    select * into v_cfg from public.notification_dispatch_config('activity_submission');
+    if not v_cfg.enabled then
+      return new;
+    end if;
+
+    select first_name || ' ' || last_name into v_submitter_name
+      from public.profiles where id = new.created_by;
+
+    insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+    select id, 'activity_submission', 'Nieuwe activiteit ter goedkeuring',
+      coalesce(v_submitter_name, 'Een lid') || ' heeft "' || new.title || '" ingediend.',
+      '/agenda/' || new.id,
+      v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
+    from public.profiles
+    where is_active and role = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder']));
+  end if;
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.notify_company_membership_request()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_applicant_name text;
+  v_company_name text;
+  v_cfg record;
+begin
+  select * into v_cfg from public.notification_dispatch_config('company_membership_request');
+  if not v_cfg.enabled then
+    return new;
+  end if;
+
+  select first_name || ' ' || last_name into v_applicant_name from public.profiles where id = new.profile_id;
+  select name into v_company_name from public.companies where id = new.company_id;
+
+  insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+  select distinct recipient_id, 'company_membership_request', 'Nieuwe bedrijfskoppeling ter goedkeuring',
+    coalesce(v_applicant_name, 'Iemand') || ' wil gekoppeld worden aan ' || coalesce(v_company_name, 'een bedrijf') || '.',
+    '/bedrijven/' || new.company_id,
+    v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
+  from (
+    -- collega's van het bedrijf blijven onvoorwaardelijk ontvanger — de
+    -- rolinstelling geldt alleen voor de bestuur/beheer-tak hieronder.
+    select profile_id as recipient_id from public.company_members where company_id = new.company_id
+    union
+    select id as recipient_id from public.profiles where is_active and role = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder']))
+  ) recipients
+  where recipient_id <> new.profile_id;
+
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.notify_feed_comment_mentions()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  perform public.dispatch_mention_notifications(new.content, new.author_id, 'een reactie', new.id);
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.notify_feed_post_mentions()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  perform public.dispatch_mention_notifications(new.content, new.author_id, 'een bericht', new.id);
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.notify_feed_post_report()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_reporter_name text;
+  v_cfg record;
+begin
+  select * into v_cfg from public.notification_dispatch_config('feed_post_report');
+  if not v_cfg.enabled then
+    return new;
+  end if;
+
+  select first_name || ' ' || last_name into v_reporter_name
+    from public.profiles where id = new.reporter_id;
+
+  insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+  select id, 'feed_post_report', 'Bericht gerapporteerd',
+    coalesce(v_reporter_name, 'Een lid') || ' heeft een bericht gerapporteerd (' || new.reason || ').',
+    '/beheer/rapportages',
+    v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
+  from public.profiles
+  where is_active and role = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder']));
+
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.notify_new_member()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_cfg record;
+begin
+  if new.is_active then
+    select * into v_cfg from public.notification_dispatch_config('new_member');
+    if not v_cfg.enabled then
+      return new;
+    end if;
+
+    insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+    select id, 'new_member', 'Nieuw lid',
+      new.first_name || ' ' || new.last_name || ' is lid geworden van de VOC.',
+      '/leden/' || new.id,
+      v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
+    from public.profiles
+    where is_active and role = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder'])) and id <> new.id;
+  end if;
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.notify_on_feed_comment()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_post_author uuid;
+  v_commenter_name text;
+  v_cfg record;
+begin
+  select author_id into v_post_author from public.feed_posts where id = new.post_id;
+
+  if v_post_author is not null and v_post_author <> new.author_id then
+    select * into v_cfg from public.notification_dispatch_config('feed_comment');
+    if not v_cfg.enabled then
+      return new;
+    end if;
+
+    select first_name || ' ' || last_name into v_commenter_name
+      from public.profiles where id = new.author_id;
+
+    insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+    values (
+      v_post_author,
+      'feed_comment',
+      'Nieuwe reactie op je bericht',
+      coalesce(v_commenter_name, 'Iemand') || ' heeft gereageerd op je bericht.',
+      '/community?highlight=' || new.id,
+      v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
+    );
+  end if;
+
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.notify_report_resolved(p_report_id uuid, p_decision text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_reporter_id uuid;
+  v_cfg record;
+begin
+  if not public.is_board() then
+    raise exception 'not authorized';
+  end if;
+
+  select reporter_id into v_reporter_id from public.feed_post_reports where id = p_report_id;
+  if v_reporter_id is null then
+    return;
+  end if;
+
+  select * into v_cfg from public.notification_dispatch_config('report_resolved');
+  if not v_cfg.enabled then
+    return;
+  end if;
+
+  insert into public.notifications (profile_id, type, title, body, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+  values (
+    v_reporter_id,
+    'report_resolved',
+    'Je melding is behandeld',
+    case
+      when p_decision = 'deleted' then 'Het gemelde bericht is verwijderd.'
+      else 'De melding is beoordeeld; het bericht blijft staan.'
+    end,
+    v_cfg.channel_push,
+    v_cfg.channel_email,
+    v_cfg.channel_inapp
+  );
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.promote_next_waitlisted()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_next public.activity_registrations;
+  v_title text;
+  v_cfg record;
+begin
+  if old.is_waitlisted then
+    return old;
+  end if;
+
+  select * into v_next
+    from public.activity_registrations
+    where activity_id = old.activity_id and is_waitlisted
+    order by created_at
+    limit 1
+    for update;
+
+  if v_next.id is null then
+    return old;
+  end if;
+
+  update public.activity_registrations set is_waitlisted = false where id = v_next.id;
+
+  select * into v_cfg from public.notification_dispatch_config('waitlist_promoted');
+  if v_cfg.enabled then
+    select title into v_title from public.activities where id = old.activity_id;
+
+    insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+    values (
+      v_next.profile_id,
+      'waitlist_promoted',
+      'Je staat nu op de deelnemerslijst',
+      'Er is een plek vrijgekomen voor "' || coalesce(v_title, 'de activiteit') || '". Je bent van de wachtlijst af.',
+      '/agenda/' || old.activity_id,
+      v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
+    );
+  end if;
+
+  return old;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.record_manual_push_broadcast(p_reached_profile_ids uuid[], p_dead_endpoints text[], p_title text, p_body text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not public.is_admin() then
+    raise exception 'not authorized';
+  end if;
+
+  insert into public.notifications (profile_id, type, title, body, pushed_at)
+  select unnest(p_reached_profile_ids), 'manual_broadcast', p_title, p_body, now();
+
+  if array_length(p_dead_endpoints, 1) > 0 then
+    insert into public.events (event_type, target_type, metadata)
+    select 'push_unsubscribed', 'push_subscription', jsonb_build_object('endpoint', endpoint)
+    from unnest(p_dead_endpoints) as endpoint;
+
+    delete from public.push_subscriptions where endpoint = any(p_dead_endpoints);
+  end if;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.search_companies_for_signup(p_query text)
+ RETURNS TABLE(id uuid, name text, city text)
+ LANGUAGE sql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  select id, name, city
+  from public.companies
+  where p_query is not null and length(trim(p_query)) >= 2 and name ilike '%' || trim(p_query) || '%'
+  order by name
+  limit 10;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.set_company_publicly_visible(p_company_id uuid, p_visible boolean)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not (
+    public.is_board()
+    or exists (
+      select 1 from public.company_members
+      where company_id = p_company_id and profile_id = auth.uid()
+    )
+  ) then
+    raise exception 'not authorized';
+  end if;
+
+  update public.companies set is_publicly_visible = p_visible where id = p_company_id;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.set_company_show_address(p_company_id uuid, p_visible boolean)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not (
+    public.is_board()
+    or exists (
+      select 1 from public.company_members
+      where company_id = p_company_id and profile_id = auth.uid()
+    )
+  ) then
+    raise exception 'not authorized';
+  end if;
+
+  update public.companies set show_address = p_visible where id = p_company_id;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.set_limit(real)
+ RETURNS real
+ LANGUAGE c
+ STRICT
+AS '$libdir/pg_trgm', $function$set_limit$function$
+
+---
+CREATE OR REPLACE FUNCTION public.set_notification_email_provider_id(p_notification_id uuid, p_provider_id text)
+ RETURNS void
+ LANGUAGE sql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+  update public.notifications set email_provider_id = p_provider_id where id = p_notification_id;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.set_updated_at()
+ RETURNS trigger
+ LANGUAGE plpgsql
+AS $function$
+begin
+  new.updated_at = now();
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.show_limit()
+ RETURNS real
+ LANGUAGE c
+ STABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$show_limit$function$
+
+---
+CREATE OR REPLACE FUNCTION public.show_trgm(text)
+ RETURNS text[]
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$show_trgm$function$
+
+---
+CREATE OR REPLACE FUNCTION public.similarity(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$similarity$function$
+
+---
+CREATE OR REPLACE FUNCTION public.similarity_dist(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$similarity_dist$function$
+
+---
+CREATE OR REPLACE FUNCTION public.similarity_op(text, text)
+ RETURNS boolean
+ LANGUAGE c
+ STABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$similarity_op$function$
+
+---
+CREATE OR REPLACE FUNCTION public.strict_word_similarity(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$strict_word_similarity$function$
+
+---
+CREATE OR REPLACE FUNCTION public.strict_word_similarity_commutator_op(text, text)
+ RETURNS boolean
+ LANGUAGE c
+ STABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$strict_word_similarity_commutator_op$function$
+
+---
+CREATE OR REPLACE FUNCTION public.strict_word_similarity_dist_commutator_op(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$strict_word_similarity_dist_commutator_op$function$
+
+---
+CREATE OR REPLACE FUNCTION public.strict_word_similarity_dist_op(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$strict_word_similarity_dist_op$function$
+
+---
+CREATE OR REPLACE FUNCTION public.strict_word_similarity_op(text, text)
+ RETURNS boolean
+ LANGUAGE c
+ STABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$strict_word_similarity_op$function$
+
+---
+CREATE OR REPLACE FUNCTION public.sync_prospect_from_public_registration()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  insert into public.prospects (email, name, company_name, last_seen_at)
+  values (lower(new.email), new.name, new.company_name, now())
+  on conflict (email) do update set
+    name = excluded.name,
+    company_name = coalesce(excluded.company_name, public.prospects.company_name),
+    last_seen_at = now();
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.upsert_public_activity_registration(p_activity_id uuid, p_name text, p_email text, p_company_name text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_deadline timestamptz;
+  v_max integer;
+  v_status text;
+  v_allow boolean;
+  v_exists boolean;
+  v_confirmed_count integer;
+  v_normalized_email text := lower(trim(p_email));
+  v_recent_attempts integer;
+begin
+  select count(*) into v_recent_attempts
+    from public.events
+    where event_type = 'public_activity_registration_attempted'
+      and created_at > now() - interval '15 minutes'
+      and metadata ->> 'email' = v_normalized_email;
+
+  if v_recent_attempts >= 5 then
+    raise exception 'Te veel pogingen met dit e-mailadres. Probeer het over een kwartier opnieuw.';
+  end if;
+
+  insert into public.events (event_type, metadata)
+  values ('public_activity_registration_attempted', jsonb_build_object('email', v_normalized_email));
+
+  select registration_deadline, max_participants, status, allow_public_registration
+    into v_deadline, v_max, v_status, v_allow
+    from public.activities
+    where id = p_activity_id
+    for update;
+
+  if v_status is distinct from 'approved' or not coalesce(v_allow, false) then
+    raise exception 'Deze activiteit staat niet open voor aanmelden.';
+  end if;
+
+  select exists (
+    select 1 from public.public_activity_registrations
+    where activity_id = p_activity_id and email = p_email
+  ) into v_exists;
+
+  if not v_exists then
+    if v_deadline is not null and now() > v_deadline then
+      raise exception 'De aanmelddeadline voor deze activiteit is verstreken.';
+    end if;
+
+    if v_max is not null then
+      select
+        (select count(*) from public.activity_registrations where activity_id = p_activity_id and not is_waitlisted)
+        + (select count(*) from public.public_activity_registrations where activity_id = p_activity_id)
+        into v_confirmed_count;
+
+      if v_confirmed_count >= v_max then
+        raise exception 'Deze activiteit heeft het maximum aantal deelnemers bereikt.';
+      end if;
+    end if;
+  end if;
+
+  insert into public.public_activity_registrations (activity_id, name, email, company_name)
+  values (p_activity_id, p_name, p_email, p_company_name)
+  on conflict (activity_id, email)
+  do update set name = excluded.name, company_name = excluded.company_name;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.word_similarity(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$word_similarity$function$
+
+---
+CREATE OR REPLACE FUNCTION public.word_similarity_commutator_op(text, text)
+ RETURNS boolean
+ LANGUAGE c
+ STABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$word_similarity_commutator_op$function$
+
+---
+CREATE OR REPLACE FUNCTION public.word_similarity_dist_commutator_op(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$word_similarity_dist_commutator_op$function$
+
+---
+CREATE OR REPLACE FUNCTION public.word_similarity_dist_op(text, text)
+ RETURNS real
+ LANGUAGE c
+ IMMUTABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$word_similarity_dist_op$function$
+
+---
+CREATE OR REPLACE FUNCTION public.word_similarity_op(text, text)
+ RETURNS boolean
+ LANGUAGE c
+ STABLE PARALLEL SAFE STRICT
+AS '$libdir/pg_trgm', $function$word_similarity_op$function$
