@@ -137,8 +137,18 @@ function AppShellBody({
   const pathname = usePathname();
   const wide = pathname.startsWith("/beheer");
   const contentWidth = (() => {
-    if (/^\/agenda\/[^/]+/.test(pathname)) return "lezen";
-    if (/^\/(leden|bedrijven)\/[^/]+/.test(pathname)) return "lezen";
+    // /agenda/[id], /leden/[id] en /bedrijven/[id] zijn @modal-intercepted
+    // routes (RouteOverlayPanel): bij een soft-nav naar zo'n detailpagina
+    // blijft `children` hier gewoon de LIJST erachter tonen (Next rendert
+    // het detail apart in de `modal`-parallel-slot) — alleen bij een hard
+    // load/deep link (geen matchende @modal-intercept, dus modal is dan
+    // leeg) bevat children écht de volle detailpagina en klopt "lezen".
+    // Zonder deze modal-check werd de lijst-children bij elke soft-nav naar
+    // zo'n detailpagina ten onrechte naar 720px geperst (normaal onzichtbaar
+    // achter de fixed overlay, maar wel zichtbaar zodra die overlay om een
+    // andere reden niet rendert).
+    if (/^\/agenda\/[^/]+/.test(pathname)) return modal ? "lijst" : "lezen";
+    if (/^\/(leden|bedrijven)\/[^/]+/.test(pathname)) return modal ? "breed" : "lezen";
     if (pathname === "/privacy" || pathname.startsWith("/nieuws/")) return "lezen";
     if (["/agenda", "/community", "/documenten", "/notificaties", "/nieuws", "/instellingen"].includes(pathname)) return "lijst";
     return "breed";

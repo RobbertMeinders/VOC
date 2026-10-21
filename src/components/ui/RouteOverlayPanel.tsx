@@ -61,11 +61,15 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
   // verbergen we het paneel zelf meteen. Aanpassen tijdens render (i.p.v. in
   // een effect) volgt React's eigen patroon voor "state aanpassen naar
   // aanleiding van een wijzigende prop", zonder een extra gecascadeerde render.
+  //
+  // Expliciet herberekenen i.p.v. alleen op true latchen: Next hergebruikt
+  // deze @modal-laag-instantie tussen navigaties, dus zonder een terug-naar-
+  // false-tak bleef dismissed vanaf de EERSTE keer wegnavigeren voorgoed op
+  // true staan — elke volgende overlay-navigatie rendert dan stilletjes
+  // null (geen overlay, de lijst erachter blijft zichtbaar).
   if (pathname !== lastPathname) {
     setLastPathname(pathname);
-    if (!isOverlayRoute(pathname)) {
-      setDismissed(true);
-    }
+    setDismissed(!isOverlayRoute(pathname));
   }
 
   function close() {
