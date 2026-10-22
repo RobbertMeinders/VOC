@@ -10,10 +10,13 @@ import { CompanyLocationMap } from "@/components/company/CompanyLocationMap";
 import { CompanyMemberList, type CompanyMember } from "@/components/company/CompanyMemberList";
 import { CompanyMembershipRequests, type PendingMembershipRequest } from "@/components/company/CompanyMembershipRequests";
 import { InviteColleagueForm } from "@/components/company/InviteColleagueForm";
+import { CompanyMembershipSection } from "@/components/company/CompanyMembershipSection";
 import type { Database } from "@/lib/types/database";
 
 type Company = Database["public"]["Tables"]["companies"]["Row"];
 type MemberRow = {
+  profile_id: string;
+  is_primary: boolean;
   profile: {
     id: string;
     slug: string;
@@ -88,7 +91,7 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
   const [{ data: memberRows }, { data: requestRows }] = await Promise.all([
     supabase
       .from("company_members")
-      .select("profile:profiles(id, slug, first_name, last_name, job_title, avatar_url, is_active)")
+      .select("profile_id, is_primary, profile:profiles(id, slug, first_name, last_name, job_title, avatar_url, is_active)")
       .eq("company_id", company.id)
       .returns<MemberRow[]>(),
     // Foutenrapport §0: company_membership_requests heeft twee foreign keys
@@ -113,6 +116,7 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
   // een lid van dit bedrijf mag zowel aanvragen afhandelen als de
   // bedrijfs-/factuurgegevens bewerken (companies_member_update, RLS).
   const canManage = isBoard(profile.role) || activeMemberRows.some((row) => row.profile.id === profile.id);
+  const isPrimaryContact = (memberRows ?? []).some((row) => row.profile_id === profile.id && row.is_primary);
 
   const [logoUrl, avatarUrls] = await Promise.all([
     getSignedStorageUrl("company-logos", company.logo_url),
@@ -153,6 +157,17 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
           binnenkomt en de kaart+ledenlijst het scherm al vullen. */}
       {canManage && <CompanyMembershipRequests companyId={company.id} requests={pendingRequests} />}
       {canManage && <InviteColleagueForm companyId={company.id} />}
+      {canManage && (
+        <CompanyMembershipSection
+          companyId={company.id}
+          membershipStatus={company.membership_status}
+          memberSince={company.member_since}
+          membershipEndDate={company.membership_end_date}
+          canManage={canManage}
+          isPrimaryContact={isPrimaryContact}
+          isBoard={isBoard(profile.role)}
+        />
+      )}
 
       {/* UX-review V6: deze kaart liet op bijna elk bedrijf alleen "Nog geen
           leden gekoppeld aan dit bedrijf." zien — een lege sectie verbergen

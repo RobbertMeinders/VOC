@@ -7,7 +7,7 @@ import { clsx } from "clsx";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { CompanyQuickEditForm } from "@/components/beheer/CompanyQuickEditForm";
-import { ListToolbar } from "@/components/ui/ListToolbar";
+import { ListToolbar, type ListToolbarFilter } from "@/components/ui/ListToolbar";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { matchesSearch } from "@/lib/search/normalize";
 import { useUrlFilterState } from "@/lib/dom/useUrlFilterState";
@@ -28,25 +28,61 @@ export type BeheerCompanyRow = {
   effectiveEmail: string | null;
   vatNumber: string | null;
   pendingMembershipRequests: number;
+  membershipStatus: string;
 };
+
+const MEMBERSHIP_STATUS_LABELS: Record<string, string> = {
+  prospect: "Prospect",
+  lid: "Lid",
+  opgezegd: "Opgezegd",
+  "oud-lid": "Oud-lid",
+};
+
+// Lidmaatschapsstatus is een beheer-begrip (zie companies.membership_status,
+// migratie 0175) — "lid" blijft bewust neutraal (geen badge, dat is de
+// overgrote meerderheid van de lijst en zou alleen ruis toevoegen); de
+// overige 3 statussen zijn wel de moeite waard om in één oogopslag te zien.
+function membershipStatusBadgeClass(status: string): string | null {
+  if (status === "prospect") return "bg-black/[.06] text-muted dark:bg-white/[.08]";
+  if (status === "opgezegd") return "bg-status-warning-soft text-status-warning";
+  if (status === "oud-lid") return "bg-black/[.06] text-muted dark:bg-white/[.08]";
+  return null;
+}
 
 function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerCompanyRow[]; canDelete: boolean }) {
   const { getInitial, setParam } = useUrlFilterState();
   const [query, setQuery] = useState(() => getInitial("q"));
+  const [status, setStatus] = useState(() => getInitial("status"));
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
   function handleQueryChange(value: string) {
     setQuery(value);
     setParam("q", value);
   }
+  function handleStatusChange(value: string) {
+    setStatus(value);
+    setParam("status", value);
+  }
 
   const filtered = useMemo(
     () =>
-      companies.filter((c) =>
-        matchesSearch([c.name, c.industry, c.city, c.email, c.phone, c.website, c.vatNumber], query)
+      companies.filter(
+        (c) =>
+          matchesSearch([c.name, c.industry, c.city, c.email, c.phone, c.website, c.vatNumber], query) &&
+          (!status || c.membershipStatus === status)
       ),
-    [companies, query]
+    [companies, query, status]
   );
+
+  const filters: ListToolbarFilter[] = [
+    {
+      key: "status",
+      label: "Status",
+      value: status,
+      options: Object.entries(MEMBERSHIP_STATUS_LABELS).map(([value, label]) => ({ value, label })),
+      onChange: handleStatusChange,
+    },
+  ];
 
   return (
     <>
@@ -57,6 +93,7 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
         resultCount={filtered.length}
         totalCount={companies.length}
         itemLabel="bedrijven"
+        filters={filters}
       />
 
       <div className="flex flex-col gap-2">
@@ -109,14 +146,26 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
                     <Link href={companyHref(company)} className="block min-w-0 hover:opacity-80">
                       <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-none">{company.name}</p>
                     </Link>
-                    {company.pendingMembershipRequests > 0 && (
-                      <Link
-                        href="/beheer/instroom?tab=koppelingen"
-                        className="mt-0.5 inline-block rounded-full bg-petrol-soft px-2 py-0.5 text-[11px] font-medium text-petrol hover:underline"
-                      >
-                        {company.pendingMembershipRequests} koppelverzoek{company.pendingMembershipRequests === 1 ? "" : "en"}
-                      </Link>
-                    )}
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                      {membershipStatusBadgeClass(company.membershipStatus) && (
+                        <span
+                          className={clsx(
+                            "inline-block rounded-full px-2 py-0.5 text-[11px] font-medium",
+                            membershipStatusBadgeClass(company.membershipStatus)
+                          )}
+                        >
+                          {MEMBERSHIP_STATUS_LABELS[company.membershipStatus] ?? company.membershipStatus}
+                        </span>
+                      )}
+                      {company.pendingMembershipRequests > 0 && (
+                        <Link
+                          href="/beheer/instroom?tab=koppelingen"
+                          className="inline-block rounded-full bg-petrol-soft px-2 py-0.5 text-[11px] font-medium text-petrol hover:underline"
+                        >
+                          {company.pendingMembershipRequests} koppelverzoek{company.pendingMembershipRequests === 1 ? "" : "en"}
+                        </Link>
+                      )}
+                    </div>
                   </div>
                   <div className="ml-auto flex shrink-0 items-center gap-2 sm:hidden">{actions}</div>
                 </div>
@@ -182,6 +231,7 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
                   phone={company.phone}
                   email={company.email}
                   website={company.website}
+                  membershipStatus={company.membershipStatus}
                   onSaved={() => setExpandedId(null)}
                 />
               )}

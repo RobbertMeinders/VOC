@@ -214,6 +214,10 @@ export async function quickUpdateCompanyAction(
     return { error: "Bedrijfsnaam is verplicht." };
   }
 
+  const membershipStatus = String(formData.get("membership_status") ?? "").trim();
+  const MEMBERSHIP_STATUSES = ["prospect", "lid", "opgezegd", "oud-lid"] as const;
+  const validStatus = MEMBERSHIP_STATUSES.find((s) => s === membershipStatus);
+
   const { data, error, count } = await supabase
     .from("companies")
     .update(
@@ -224,6 +228,7 @@ export async function quickUpdateCompanyAction(
         phone: String(formData.get("phone") ?? "").trim() || null,
         email: String(formData.get("email") ?? "").trim() || null,
         website: String(formData.get("website") ?? "").trim() || null,
+        ...(validStatus ? { membership_status: validStatus } : {}),
       },
       { count: "exact" }
     )

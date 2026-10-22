@@ -30,6 +30,13 @@ function SubmitButton() {
 // website) en die je als bestuur/beheer het vaakst even snel bijwerkt,
 // zonder naar de volledige bewerkpagina te hoeven — adres, logo, omschrijving,
 // socials en factuurgegevens blijven daar (link onderaan dit paneel).
+const MEMBERSHIP_STATUS_LABELS: Record<string, string> = {
+  prospect: "Prospect",
+  lid: "Lid",
+  opgezegd: "Opgezegd (loopt af)",
+  "oud-lid": "Oud-lid",
+};
+
 export function CompanyQuickEditForm({
   companyId,
   companySlug,
@@ -39,6 +46,7 @@ export function CompanyQuickEditForm({
   phone,
   email,
   website,
+  membershipStatus,
   onSaved,
 }: {
   companyId: string;
@@ -49,6 +57,7 @@ export function CompanyQuickEditForm({
   phone: string | null;
   email: string | null;
   website: string | null;
+  membershipStatus: string;
   onSaved: () => void;
 }) {
   const updateWithId = quickUpdateCompanyAction.bind(null, companyId);
@@ -108,6 +117,22 @@ export function CompanyQuickEditForm({
             Website
           </label>
           <Input id={`qe-website-${companyId}`} name="website" defaultValue={website ?? ""} className="h-9" />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor={`qe-status-${companyId}`} className="text-xs font-medium text-foreground">
+            Lidmaatschapsstatus
+          </label>
+          {/* Beheer-begrip, niet member-facing — "opgezegd" hier handmatig
+              zetten slaat de bevestigingsmail-stap over (zie de opzegknop op
+              de bedrijfspagina zelf voor die flow); dit is voor correcties/
+              de eerste handmatige indeling na de Deel 1-migratie. */}
+          <Select id={`qe-status-${companyId}`} name="membership_status" defaultValue={membershipStatus} className="h-9 pl-3">
+            {Object.entries(MEMBERSHIP_STATUS_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>
+                {label}
+              </option>
+            ))}
+          </Select>
         </div>
       </div>
 

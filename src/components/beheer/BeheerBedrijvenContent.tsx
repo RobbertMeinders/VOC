@@ -21,6 +21,7 @@ type CompanyRow = {
   phone: string | null;
   email: string | null;
   website: string | null;
+  membership_status: string;
 };
 type BillingRow = {
   company_id: string;
@@ -58,7 +59,9 @@ export async function BeheerBedrijvenContent() {
     cachedQuery("beheer-bedrijven-page-data", 300_000, () =>
       supabase
         .rpc("companies_for_members")
-        .select("id, slug, name, industry, city, address, postal_code, logo_url, logo_thumb_url, phone, email, website")
+        .select(
+          "id, slug, name, industry, city, address, postal_code, logo_url, logo_thumb_url, phone, email, website, membership_status"
+        )
         .order("name")
         .returns<CompanyRow[]>()
     ),
@@ -119,6 +122,7 @@ export async function BeheerBedrijvenContent() {
       effectiveEmail: billing?.invoice_email ?? c.email,
       vatNumber: billing?.vat_number ?? null,
       pendingMembershipRequests: pendingRequestsByCompany.get(c.id) ?? 0,
+      membershipStatus: c.membership_status,
     };
   });
 
