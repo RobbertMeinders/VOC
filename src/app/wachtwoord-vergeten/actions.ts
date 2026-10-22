@@ -32,7 +32,14 @@ export async function requestPasswordResetAction(
 
       if (hashedToken) {
         const link = `${process.env.SITE_URL ?? ""}/auth/confirm?token_hash=${hashedToken}&type=recovery&next=/wachtwoord-instellen`;
-        const { data: matchedProfile } = await admin.from("profiles").select("first_name").eq("email", email).maybeSingle();
+        // Zelfde fix als login/actions.ts: opzoeken via het user-id uit
+        // generateLink's eigen respons i.p.v. profiles.email, dat een
+        // afgeleide sync-kopie van auth.users.email is (0112) en voor
+        // accounts van vóór die sync leeg kan staan.
+        const userId = data?.user?.id;
+        const { data: matchedProfile } = userId
+          ? await admin.from("profiles").select("first_name").eq("id", userId).maybeSingle()
+          : { data: null };
         const rendered = await renderMessageEmail("reset", link, { greeting: invitationGreeting(matchedProfile?.first_name) });
         if (rendered) await sendRawHtmlEmail(email, rendered.subject, rendered.html, rendered.text);
       }

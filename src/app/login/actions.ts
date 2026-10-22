@@ -97,7 +97,16 @@ export async function signInWithMagicLinkAction(
       if (hashedToken) {
         const next = safeRedirectPath(redirectTo);
         const link = `${process.env.SITE_URL ?? ""}/auth/confirm?token_hash=${hashedToken}&type=magiclink&next=${encodeURIComponent(next)}`;
-        const { data: matchedProfile } = await admin.from("profiles").select("first_name").eq("email", email).maybeSingle();
+        // Opzoeken via het user-id uit generateLink's eigen respons i.p.v.
+        // profiles.email -- die kolom is een afgeleide sync-kopie van
+        // auth.users.email (0112), geen bron van waarheid, en kan voor
+        // accounts van vóór die sync-trigger leeg staan. Daardoor viel de
+        // aanhef voor bestaande leden stil terug op "Hallo," i.p.v. "Beste
+        // <naam>," (live feedback).
+        const userId = data?.user?.id;
+        const { data: matchedProfile } = userId
+          ? await admin.from("profiles").select("first_name").eq("id", userId).maybeSingle()
+          : { data: null };
         const rendered = await renderMessageEmail("magic", link, { greeting: invitationGreeting(matchedProfile?.first_name) });
         if (rendered) await sendRawHtmlEmail(email, rendered.subject, rendered.html, rendered.text);
       }
