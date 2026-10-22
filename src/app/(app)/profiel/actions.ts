@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/session";
@@ -145,6 +145,25 @@ export async function subscribeToPushAction(subscription: {
   }
 
   const supabase = await createClient();
+  const userAgent = (await headers()).get("user-agent");
+
+  // Vervang i.p.v. stapelen: hetzelfde apparaat kan na verloop van tijd een
+  // nieuw push-endpoint krijgen (browser-update, opnieuw toestemming
+  // gevraagd, ...) -- zonder dit bleef het oude abonnement van dat apparaat
+  // gewoon staan en kreeg een lid dubbele pushmeldingen vanaf hetzelfde
+  // toestel. user_agent is een grove, niet-waterdichte apparaatherkenning
+  // (twee identieke toestel-/browserversies van hetzelfde lid kunnen
+  // botsen), maar beter dan niets. Alleen bij een bekende user_agent
+  // uitvoeren -- zonder dat zou een lege/ontbrekende header alle
+  // abonnementen van dit lid als "hetzelfde apparaat" behandelen.
+  if (userAgent) {
+    await supabase
+      .from("push_subscriptions")
+      .delete()
+      .eq("profile_id", profile.id)
+      .eq("user_agent", userAgent)
+      .neq("endpoint", subscription.endpoint);
+  }
 
   const { error } = await supabase.from("push_subscriptions").upsert(
     {
@@ -152,6 +171,7 @@ export async function subscribeToPushAction(subscription: {
       endpoint: subscription.endpoint,
       p256dh: subscription.keys.p256dh,
       auth: subscription.keys.auth,
+      user_agent: userAgent,
     },
     { onConflict: "endpoint" }
   );

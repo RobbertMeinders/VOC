@@ -653,6 +653,7 @@ export interface Database {
           endpoint: string;
           p256dh: string;
           auth: string;
+          user_agent: string | null;
           created_at: string;
         };
         Insert: Partial<Database["public"]["Tables"]["push_subscriptions"]["Row"]> & {

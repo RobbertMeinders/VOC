@@ -30,9 +30,22 @@ export async function POST(request: Request) {
   }
 
   const supabase = await createClient();
+  const userAgent = request.headers.get("user-agent");
+
+  // Zelfde vervang-i.p.v.-stapelen-logica als subscribeToPushAction
+  // (profiel/actions.ts) -- zie de toelichting daar.
+  if (userAgent) {
+    await supabase
+      .from("push_subscriptions")
+      .delete()
+      .eq("profile_id", profile.id)
+      .eq("user_agent", userAgent)
+      .neq("endpoint", endpoint);
+  }
+
   const { error } = await supabase
     .from("push_subscriptions")
-    .upsert({ profile_id: profile.id, endpoint, p256dh, auth }, { onConflict: "endpoint" });
+    .upsert({ profile_id: profile.id, endpoint, p256dh, auth, user_agent: userAgent }, { onConflict: "endpoint" });
 
   if (error) {
     return NextResponse.json({ error: "Opnieuw abonneren is niet gelukt." }, { status: 500 });
