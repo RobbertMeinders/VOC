@@ -9,8 +9,10 @@ import { hasIntroductionPost } from "@/lib/feed/queries";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { CompanyMembershipForm } from "@/components/profile/CompanyMembershipForm";
 import { IntroductionPrompt } from "@/components/feed/IntroductionPrompt";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { ROLE_BADGE_CLASS, ROLE_LABELS } from "@/lib/auth/roles";
 import { companyHref } from "@/lib/company/slug";
+import { memberHref } from "@/lib/members/slug";
 
 export const metadata: Metadata = { title: "Profiel" };
 
@@ -44,9 +46,12 @@ export default async function ProfielPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Profiel bewerken</h1>
-        <span className={clsx("rounded-full px-2.5 py-0.5 text-xs font-medium", ROLE_BADGE_CLASS[profile.role])}>
+      <div className="flex items-start justify-between gap-3">
+        <PageHeader
+          title="Profiel bewerken"
+          back={{ href: memberHref(profile), label: "Terug naar je profiel" }}
+        />
+        <span className={clsx("mt-1.5 shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium", ROLE_BADGE_CLASS[profile.role])}>
           {ROLE_LABELS[profile.role]}
         </span>
       </div>
