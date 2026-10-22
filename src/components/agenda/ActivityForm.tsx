@@ -312,6 +312,44 @@ export function ActivityForm({
         />
       </div>
 
+      {/* UX-review feedback-ronde 2, punt 4: een afbeelding is in de praktijk
+          vrijwel altijd gewenst (de agendakaart toont 'm prominent) — stond
+          eerder verstopt achter "Meer opties", wat het voor veel aanmakers
+          een gemiste stap maakte. Nu een vast, altijd zichtbaar veld. */}
+      {canUploadImage && (
+        <div className="flex flex-col gap-1.5">
+          <label htmlFor="image" className="text-sm font-medium text-foreground">
+            Afbeelding
+          </label>
+          {shownImage && (
+            <Image src={shownImage} alt="" width={160} height={100} className="h-[100px] w-[160px] rounded-lg object-cover" />
+          )}
+          <FileSelectButton
+            id="image"
+            name="image"
+            accept="image/png,image/jpeg,image/webp"
+            onChange={async (e) => {
+              const input = e.target;
+              const compressed = await compressInputFile(input);
+              if (!compressed) return;
+              setPreview(URL.createObjectURL(compressed));
+
+              // Klein tweede bestand voor de agendakaart (performance-
+              // audit #1) — meegestuurd via een los, verborgen
+              // file-input i.p.v. een extra formulierveld.
+              const thumbInput = imageThumbInputRef.current;
+              if (thumbInput) {
+                const thumb = await createThumbnailFile(compressed, CARD_THUMBNAIL_DIMENSION);
+                const transfer = new DataTransfer();
+                if (thumb) transfer.items.add(thumb);
+                thumbInput.files = transfer.files;
+              }
+            }}
+          />
+          <input ref={imageThumbInputRef} type="file" name="image_thumb" className="hidden" tabIndex={-1} aria-hidden="true" />
+        </div>
+      )}
+
       <div className="flex flex-col gap-1.5">
         <label htmlFor="location" className="text-sm font-medium text-foreground">
           Locatie
@@ -442,39 +480,6 @@ export function ActivityForm({
             </div>
           )}
 
-          {canUploadImage && (
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="image" className="text-sm font-medium text-foreground">
-                Afbeelding
-              </label>
-              {shownImage && (
-                <Image src={shownImage} alt="" width={160} height={100} className="h-[100px] w-[160px] rounded-lg object-cover" />
-              )}
-              <FileSelectButton
-                id="image"
-                name="image"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={async (e) => {
-                  const input = e.target;
-                  const compressed = await compressInputFile(input);
-                  if (!compressed) return;
-                  setPreview(URL.createObjectURL(compressed));
-
-                  // Klein tweede bestand voor de agendakaart (performance-
-                  // audit #1) — meegestuurd via een los, verborgen
-                  // file-input i.p.v. een extra formulierveld.
-                  const thumbInput = imageThumbInputRef.current;
-                  if (thumbInput) {
-                    const thumb = await createThumbnailFile(compressed, CARD_THUMBNAIL_DIMENSION);
-                    const transfer = new DataTransfer();
-                    if (thumb) transfer.items.add(thumb);
-                    thumbInput.files = transfer.files;
-                  }
-                }}
-              />
-              <input ref={imageThumbInputRef} type="file" name="image_thumb" className="hidden" tabIndex={-1} aria-hidden="true" />
-            </div>
-          )}
         </div>
       </details>
 

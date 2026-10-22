@@ -151,8 +151,8 @@ function AppShellBody({
     // andere reden niet rendert).
     if (/^\/agenda\/[^/]+/.test(pathname)) return modal ? "lijst" : "lezen";
     if (/^\/(leden|bedrijven)\/[^/]+/.test(pathname)) return modal ? "breed" : "lezen";
-    if (pathname === "/privacy" || pathname.startsWith("/nieuws/")) return "lezen";
-    if (["/agenda", "/community", "/documenten", "/notificaties", "/nieuws", "/instellingen"].includes(pathname)) return "lijst";
+    if (pathname === "/privacy" || pathname === "/profiel" || pathname === "/community" || pathname.startsWith("/nieuws/")) return "lezen";
+    if (["/agenda", "/documenten", "/notificaties", "/nieuws", "/instellingen"].includes(pathname)) return "lijst";
     return "breed";
   })();
   return (

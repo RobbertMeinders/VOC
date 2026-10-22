@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { UsersRound } from "lucide-react";
+import { CalendarPlus, UsersRound } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
@@ -116,6 +116,21 @@ export default async function CommissiesPage() {
                       );
                     })}
                   </div>
+                )}
+
+                {/* UX-review feedback-ronde 2 punt 9: geen aparte
+                    commissie-activiteitfunctie — de bestaande
+                    activiteit-aanmaakflow staat al open voor elk actief lid
+                    (activities_insert-policy), dit is alleen een duidelijke,
+                    vindbare ingang ernaartoe voor commissieleden. */}
+                {isMember && (
+                  <Link
+                    href="/agenda/nieuw"
+                    className="mt-4 flex items-center gap-2 border-t border-border pt-4 text-sm font-medium text-petrol hover:underline"
+                  >
+                    <CalendarPlus size={16} />
+                    VOC-activiteit aanmaken
+                  </Link>
                 )}
               </div>
             );

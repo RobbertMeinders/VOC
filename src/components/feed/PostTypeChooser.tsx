@@ -36,12 +36,14 @@ export function PostTypeChooser({ onChoose }: { onChoose: (type: FeedPostType) =
             type="button"
             onClick={() => onChoose(type)}
             style={{ animationDelay: `${STAGGER_BASE_MS + i * STAGGER_STEP_MS}ms` }}
-            className="animate-stagger-item flex flex-col items-center gap-2 rounded-2xl border border-border p-4 text-center hover:border-muted hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+            className="group animate-stagger-item flex flex-col items-center gap-2 rounded-2xl border border-border p-4 text-center transition-colors duration-150 hover:border-petrol hover:bg-petrol"
           >
-            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/5 text-foreground dark:bg-white/10">
+            <span className="flex h-11 w-11 items-center justify-center rounded-full bg-black/5 text-foreground transition-colors duration-150 group-hover:bg-white/15 group-hover:text-white dark:bg-white/10">
               <Icon size={22} />
             </span>
-            <span className="text-sm font-semibold text-foreground">{POST_TYPE_LABELS[type]}</span>
+            <span className="text-sm font-semibold text-foreground transition-colors duration-150 group-hover:text-white">
+              {POST_TYPE_LABELS[type]}
+            </span>
           </button>
         );
       })}

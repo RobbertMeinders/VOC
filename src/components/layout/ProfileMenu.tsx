@@ -35,13 +35,14 @@ function menuItems(profile: Profile, companySlug: string | null, showTestfase: b
     // staat een "Profiel aanpassen"-knop naar /profiel voor wie wil wijzigen.
     { href: memberHref(profile), label: "Mijn profiel", icon: UserIcon },
     ...(companySlug ? [{ href: companyHref({ slug: companySlug }), label: "Mijn bedrijf", icon: Building2 }] : []),
-    // Privacy & veiligheid staat niet hier — die link staat al op
-    // Instellingen zelf, twee ingangen naar dezelfde pagina is overbodig.
-    { href: "/instellingen", label: "Instellingen", icon: Settings },
     // H (onboarding-opdracht): alleen zolang de testfase-schakelaar aan
     // staat.
     ...(showTestfase ? [{ href: "/testfase", label: "Feedback geven", icon: MessageSquareText }] : []),
     ...(isBoard(profile.role) ? [{ href: "/beheer", label: "Beheer", icon: LayoutDashboard }] : []),
+    // Instellingen staat altijd onderaan. Privacy & veiligheid staat niet
+    // hier — die link staat al op Instellingen zelf, twee ingangen naar
+    // dezelfde pagina is overbodig.
+    { href: "/instellingen", label: "Instellingen", icon: Settings },
   ];
 }
 

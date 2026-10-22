@@ -83,7 +83,7 @@ export function ActivityCard({
     return (
       <Link
         href={activityHref(activity)}
-        className="card-surface card-hover-lift animate-rise-in overflow-hidden hover:border-foreground/20"
+        className="card-surface card-hover-lift overflow-hidden hover:border-foreground/20"
       >
         {imageUrl ? (
           <div className="relative h-44 w-full sm:h-52">
@@ -126,7 +126,7 @@ export function ActivityCard({
     <Link
       href={activityHref(activity)}
       className={clsx(
-        "card-hover-lift animate-rise-in flex items-start gap-3 overflow-hidden rounded-2xl bg-surface p-3",
+        "card-hover-lift flex items-start gap-3 overflow-hidden rounded-2xl bg-surface p-3",
         isOfficial ? "shadow-[inset_4px_0_0_0_var(--voc-red),var(--shadow-sm)]" : "shadow-[inset_4px_0_0_0_var(--petrol),var(--shadow-sm)]"
       )}
     >

@@ -82,8 +82,8 @@ export function Sidebar({
   const accountItems: { href: string; label: string; icon: LucideIcon; badge?: number }[] = [
     { href: memberHref(profile), label: "Mijn profiel", icon: UserIcon },
     ...(companySlug ? [{ href: companyHref({ slug: companySlug }), label: "Mijn bedrijf", icon: Building2 }] : []),
-    { href: "/instellingen", label: "Instellingen", icon: Settings },
     ...(isBoard(profile.role) ? [{ href: "/beheer", label: "Beheer", icon: LayoutDashboard, badge: beheerWaitingCount }] : []),
+    { href: "/instellingen", label: "Instellingen", icon: Settings },
   ];
 
   function renderAccountItem({ href, label, icon: Icon, badge }: (typeof accountItems)[number]) {
