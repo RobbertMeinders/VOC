@@ -91,10 +91,9 @@ export function WelcomeDialog({ shouldShow }: { shouldShow: boolean }) {
           >
             <X size={16} />
           </button>
-          <p className="text-xs font-bold uppercase tracking-wide text-voc-red-text">Proefversie</p>
-          <h2 id={titleId} className="mt-1 font-display text-xl font-extrabold tracking-[-0.02em] text-foreground">
-            Welkom, je bent er vroeg bij
-          </h2>
+          <p id={titleId} className="text-xs font-bold uppercase tracking-wide text-voc-red-text">
+            Proefversie
+          </p>
           <p className="mt-2 text-sm text-muted">
             Je gebruikt de proefversie van het ledenportaal. Bijna alles werkt al, maar het kan zijn dat er nog
             fouten in zitten. Loop je ergens tegenaan? Laat het ons weten.
