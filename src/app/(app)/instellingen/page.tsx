@@ -73,9 +73,11 @@ export default async function InstellingenPage() {
 
       <SettingGroup label="Meldingen" description="Berichten over je eigen aanvragen krijg je altijd.">
 
-        <SettingSubRow label="Dit apparaat">
-          <PushToggle />
-        </SettingSubRow>
+        {/* Geen SettingSubRow: PushToggle regelt de label/schakelaar-rij nu
+            zelf, zodat de installatie-uitleg eronder (mobiel, nog niet
+            geinstalleerd) de volle breedte krijgt i.p.v. de smalle kolom
+            rechts van een label (zie PushToggle.tsx). */}
+        <PushToggle />
 
         <SettingSubRow label="Nieuwsbrieven">
           <EmailCampaignsToggle initialEnabled={data?.email_campaigns ?? true} />
