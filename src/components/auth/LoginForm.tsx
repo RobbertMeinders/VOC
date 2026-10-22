@@ -67,7 +67,7 @@ function MagicLinkLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSw
       <div className="flex flex-col gap-4">
         <div className="rounded-lg bg-status-success-soft px-4 py-3 text-sm text-status-success">
           Als dit e-mailadres bij ons bekend is, ontvang je binnen enkele minuten een inloglink. Geen
-          wachtwoord nodig - klik de link in je mail en je bent binnen.
+          wachtwoord nodig - klik de link in je mail en je bent binnen. De link is één uur geldig.
         </div>
         <button
           type="button"
