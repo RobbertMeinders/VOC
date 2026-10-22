@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, Clock, Mail, Pencil, Phone, Users } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, Clock, Mail, Pencil, Phone, Users } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
 import { MemberRowMenu } from "@/components/members/MemberRowMenu";
@@ -56,10 +56,22 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
   const [active, setActive] = useState(() => getInitial("active") || "actief");
   const [signaal, setSignaal] = useState(() => getInitial("signaal"));
   const [laatstActief, setLaatstActief] = useState(() => getInitial("laatstActief"));
+  // "" = geen sortering (standaardvolgorde), "desc" = meest recent actief
+  // eerst, "asc" = langst geleden (nooit ingelogd eerst) eerst.
+  const [sort, setSort] = useState<"" | "desc" | "asc">(() => {
+    const initial = getInitial("sort");
+    return initial === "desc" || initial === "asc" ? initial : "";
+  });
   // Lazy initializer i.p.v. Date.now() rechtstreeks in de useMemo hieronder
   // aanroepen — die laatste telt als een onzuivere render-aanroep.
   const [ninetyDaysAgo] = useState(() => Date.now() - NINETY_DAYS_MS);
   const [now] = useState(() => Date.now());
+
+  function cycleSort() {
+    const next = sort === "" ? "desc" : sort === "desc" ? "asc" : "";
+    setSort(next);
+    setParam("sort", next);
+  }
 
   function handleQueryChange(value: string) {
     setQuery(value);
@@ -106,6 +118,23 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
       return matchesQuery && matchesRole && matchesActive && matchesSignaal && matchesLaatstActief;
     });
   }, [members, query, role, active, signaal, laatstActief, ninetyDaysAgo, now]);
+
+  // Nooit-ingelogd (null) telt als "oneindig lang geleden": staat bij
+  // aflopend (meest recent eerst) altijd onderaan, bij oplopend bovenaan.
+  const sorted = useMemo(() => {
+    if (!sort) return filtered;
+    const withTime = filtered.map((member) => ({
+      member,
+      time: member.last_active_at ? new Date(member.last_active_at).getTime() : null,
+    }));
+    withTime.sort((a, b) => {
+      if (a.time === null && b.time === null) return 0;
+      if (a.time === null) return sort === "asc" ? -1 : 1;
+      if (b.time === null) return sort === "asc" ? 1 : -1;
+      return sort === "asc" ? a.time - b.time : b.time - a.time;
+    });
+    return withTime.map((entry) => entry.member);
+  }, [filtered, sort]);
 
   const filters: ListToolbarFilter[] = [
     {
@@ -162,15 +191,31 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
         searchValue={query}
         onSearchChange={handleQueryChange}
         searchPlaceholder="Zoek op naam, e-mailadres of bedrijf…"
-        resultCount={filtered.length}
+        resultCount={sorted.length}
         totalCount={members.length}
         itemLabel="leden"
         filters={filters}
       />
 
+      <div className="mb-3 flex justify-end">
+        <button
+          type="button"
+          onClick={cycleSort}
+          className={clsx(
+            "flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium",
+            sort ? "border-foreground/20 bg-raised text-foreground" : "border-border bg-surface text-muted hover:text-foreground"
+          )}
+        >
+          {sort === "desc" ? <ArrowDown size={13} /> : sort === "asc" ? <ArrowUp size={13} /> : <ArrowUpDown size={13} />}
+          Laatst actief
+          {sort === "desc" && ": meest recent eerst"}
+          {sort === "asc" && ": langst geleden eerst"}
+        </button>
+      </div>
+
       <div className="flex flex-col gap-3">
-        {filtered.length === 0 && <ComingSoon icon={Users} title="Geen leden gevonden" description="Pas je zoekopdracht of filter aan." />}
-        {filtered.map((member) => {
+        {sorted.length === 0 && <ComingSoon icon={Users} title="Geen leden gevonden" description="Pas je zoekopdracht of filter aan." />}
+        {sorted.map((member) => {
           const expanded = expandedId === member.id;
           // Eén keer gedefinieerd, twee keer gerenderd (hieronder): op mobiel
           // naast de naam, op sm+ aan het einde van de regel — zelfde
