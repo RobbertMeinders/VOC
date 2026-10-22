@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Plus, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { useToast } from "@/lib/ui/ToastContext";
 import { updateCommunicationAudienceAction } from "@/app/(app)/beheer/communicatie/actions";
 import { createContactAction } from "@/app/(app)/beheer/contacten/actions";
 
@@ -47,7 +46,6 @@ export function AudiencePicker({
   extraContactIds: string[];
 }) {
   const router = useRouter();
-  const toast = useToast();
   const [filter, setFilter] = useState<"alle_actieve_leden" | "lijsten" | "iedereen" | "niet_leden">(
     initialFilter === "lijsten" || initialFilter === "iedereen" || initialFilter === "niet_leden"
       ? initialFilter
@@ -68,6 +66,35 @@ export function AudiencePicker({
 
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Live gevonden: de doelgroep moest eerst expliciet opgeslagen worden
+  // (los van de rest van de pagina), maar "Versturen" bleef gewoon
+  // klikbaar zonder die opslag -- een bestuurslid kon zo onopgemerkt naar
+  // de oude/verkeerde doelgroep versturen. Nu wordt elke wijziging hier
+  // automatisch (gedebounced) opgeslagen, zodat er nooit meer een
+  // "aangevinkt maar niet opgeslagen"-toestand bestaat. skipFirstRun
+  // voorkomt dat de net-vanaf-de-server geladen beginwaarden zichzelf
+  // meteen opnieuw opslaan.
+  const skipFirstRun = useRef(true);
+  useEffect(() => {
+    if (skipFirstRun.current) {
+      skipFirstRun.current = false;
+      return;
+    }
+    setSaving(true);
+    setSaveError(null);
+    const timeoutId = setTimeout(async () => {
+      const result = await updateCommunicationAudienceAction(communicationId, filter, listIds, extraProfileIds, extraContactIds);
+      setSaving(false);
+      if (result.error) {
+        setSaveError(result.error);
+        return;
+      }
+      router.refresh();
+    }, 600);
+    return () => clearTimeout(timeoutId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filter, listIds, extraProfileIds, extraContactIds]);
 
   const extraProfiles = activeProfiles.filter((p) => extraProfileIds.includes(p.id));
   const extraContacts = contacts.filter((c) => extraContactIds.includes(c.id));
@@ -92,19 +119,6 @@ export function AudiencePicker({
     setNewContactName("");
     setNewContactEmail("");
     setShowNewContact(false);
-  }
-
-  async function handleSave() {
-    setSaving(true);
-    setSaveError(null);
-    const result = await updateCommunicationAudienceAction(communicationId, filter, listIds, extraProfileIds, extraContactIds);
-    setSaving(false);
-    if (result.error) {
-      setSaveError(result.error);
-      return;
-    }
-    toast("Doelgroep opgeslagen.");
-    router.refresh();
   }
 
   return (
@@ -255,11 +269,9 @@ export function AudiencePicker({
         {newContactError && <p className="mt-1 text-sm text-danger-text">{newContactError}</p>}
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
-        <Button type="button" variant="secondary" onClick={handleSave} disabled={saving}>
-          {saving ? "Bezig…" : "Doelgroep opslaan"}
-        </Button>
-        {saveError && <p className="text-sm text-danger-text">{saveError}</p>}
+      <div className="mt-4 border-t border-border pt-4">
+        <p className="text-xs text-muted">{saving ? "Bezig met opslaan…" : "Wijzigingen worden automatisch opgeslagen."}</p>
+        {saveError && <p className="mt-1 text-sm text-danger-text">{saveError}</p>}
       </div>
     </div>
   );
