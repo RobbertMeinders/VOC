@@ -62,12 +62,17 @@ export async function sendPushBroadcastAction(
     }
   }
 
+  // Eén lid kan meerdere apparaten/abonnementen hebben; dedupen vóór het
+  // doorgeven voorkomt dubbele notifications-rijen voor hetzelfde lid (de
+  // RPC zelf dedupet ook, zie 0196, maar dit telt "sent" meteen correct).
+  const uniqueReachedProfileIds = [...new Set(reachedProfileIds)];
+
   await supabase.rpc("record_manual_push_broadcast", {
-    p_reached_profile_ids: reachedProfileIds,
+    p_reached_profile_ids: uniqueReachedProfileIds,
     p_dead_endpoints: deadEndpoints,
     p_title: title,
     p_body: message,
   });
 
-  return { sent: reachedProfileIds.length, total: subscriptions?.length ?? 0 };
+  return { sent: uniqueReachedProfileIds.length, total: subscriptions?.length ?? 0 };
 }
