@@ -68,10 +68,10 @@ const INSTALL_STEPS: Record<Platform, InstallStep[] | null> = {
 // werkt de schakelaar hierboven gewoon en hoort dit blokje niet in de weg
 // te staan. null bij de eerste render (geen window/navigator op de server)
 // voorkomt een hydratie-mismatch i.p.v. de hint eerst te laten flashen.
-// Standaard uitgeklapt (defaultOpen): de vorige, platte-tekst versie was
-// bewust meteen zichtbaar omdat de schakelaar anders een doodlopend eindje
-// leek, en dat blijft hier het uitgangspunt — inklapbaar is voor wie 'm al
-// kent, niet om 'm bij voorbaat te verbergen.
+// Standaard ingeklapt (geen defaultOpen): live feedback -- de uitleg mag
+// niet meteen in beeld springen, alleen de klikbare regel zelf (in de
+// petrol-accentkleur, zie AnimatedDisclosure's accent-prop) maakt
+// duidelijk dat er meer te vinden is.
 //
 // Geen eigen breedte-beperking (eerder self-stretch binnen een door
 // SettingSubRow afgedwongen smalle rechterkolom) — dat liet het label
@@ -86,7 +86,7 @@ function InstallHint({ platform }: { platform: Platform }) {
   }
   return (
     <div className="text-left sm:hidden">
-      <AnimatedDisclosure label="Zo krijg je meldingen op je telefoon" defaultOpen>
+      <AnimatedDisclosure label="Zo krijg je meldingen op je telefoon" accent>
         <ol className="flex flex-col gap-2">
           {steps.map(({ Icon, text }, i) => (
             <li key={i} className="flex items-center gap-2 text-xs text-muted">

@@ -12,11 +12,17 @@ export function AnimatedDisclosure({
   label,
   contentClassName,
   defaultOpen = false,
+  // Voor plekken waar het klapblok zelf de link-achtige call-to-action is
+  // (bv. "Zo krijg je meldingen op je telefoon") i.p.v. een neutrale
+  // sectiekop — petrol/accentkleur op tekst én pijltje i.p.v. de standaard
+  // gedempte tint, zodat zichtbaar is dat de regel klikbaar is.
+  accent = false,
   children,
 }: {
   label: ReactNode;
   contentClassName?: string;
   defaultOpen?: boolean;
+  accent?: boolean;
   children: ReactNode;
 }) {
   const [open, setOpen] = useState(defaultOpen);
@@ -27,7 +33,7 @@ export function AnimatedDisclosure({
         type="button"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        className="flex items-center gap-1.5 text-sm font-semibold text-muted"
+        className={clsx("flex items-center gap-1.5 text-sm font-semibold", accent ? "text-petrol" : "text-muted")}
       >
         <ChevronDown size={16} className={clsx("transition-transform duration-200", open && "rotate-180")} />
         {label}
