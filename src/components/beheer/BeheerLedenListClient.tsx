@@ -293,7 +293,9 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
 
                 <span className="flex min-w-0 items-center gap-1 text-xs text-muted">
                   <Clock size={11} className="shrink-0" />
-                  <span className="truncate">Laatst actief: {formatLastActive(member.last_active_at)}</span>
+                  <span className="truncate" title={`Laatst actief: ${formatLastActive(member.last_active_at)}`}>
+                    {formatLastActive(member.last_active_at)}
+                  </span>
                 </span>
 
                 <div className="hidden shrink-0 items-center gap-2 sm:flex">{actions}</div>
