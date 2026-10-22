@@ -68,7 +68,7 @@ export function InviteColleagueForm({ companyId }: { companyId: string }) {
 
   return (
     <form action={formAction} className="rounded-2xl bg-surface p-4 shadow-sm">
-      <h2 className="mb-3 text-sm font-semibold text-foreground">Collega uitnodigen</h2>
+      <h2 className="mb-3 text-sm font-semibold text-foreground">Collega uitnodigen voor het ledenportaal</h2>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex-1">
           <label htmlFor="colleague-email" className="mb-1.5 block text-sm font-medium text-foreground">
