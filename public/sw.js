@@ -136,7 +136,15 @@ self.addEventListener("pushsubscriptionchange", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const link = event.notification.data?.link || "/";
+  // Same-origin-only: link komt uit de push-payload (server-gestuurd, dus
+  // in de praktijk altijd een relatief pad), maar openWindow() navigeert
+  // zonder vragen naar wat hier ook staat -- een enkel absoluut of
+  // protocol-relatief adres (bv. "//evil.example" of "https://evil.example")
+  // zou dan een externe site openen i.p.v. het portaal. Alleen een pad dat
+  // met één "/" begint (geen tweede "/" erna) is toegestaan, anders terug
+  // naar de homepage.
+  const rawLink = event.notification.data?.link || "/";
+  const link = typeof rawLink === "string" && rawLink.startsWith("/") && !rawLink.startsWith("//") ? rawLink : "/";
   const notificationId = event.notification.data?.notificationId;
 
   // Los, best-effort — het profiel wordt server-side afgeleid uit de

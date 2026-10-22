@@ -20,4 +20,9 @@ describe("csvEscape", () => {
   it("laat een gewone waarde die toevallig een = elders bevat met rust", () => {
     expect(csvEscape("a=b")).toBe('"a=b"');
   });
+
+  it("verwijdert \\r en vervangt \\t door een spatie", () => {
+    expect(csvEscape("Jan\r\nJansen")).toBe('"Jan\nJansen"');
+    expect(csvEscape("Jan\tJansen")).toBe('"Jan Jansen"');
+  });
 });

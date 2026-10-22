@@ -48,6 +48,19 @@ const ALLOWED_ATTACHMENT_TYPES: Record<string, "image" | "pdf"> = {
   "image/webp": "image",
   "application/pdf": "pdf",
 };
+// Extensie voor het storage-pad hieronder — uit het al tegen de allowlist
+// hierboven gevalideerde file.type i.p.v. uit file.name: dat laatste is
+// client-gestuurd (een server action is rechtstreeks aan te roepen buiten
+// de echte <input type=file> om) en kan dus bijna elke string bevatten,
+// inclusief een "/"-teken als de naam geen punt bevat (split(".").pop()
+// geeft dan de hele naam terug) — dat zou een extra padsegment in de
+// storage-sleutel injecteren.
+const ATTACHMENT_EXTENSIONS: Record<string, string> = {
+  "image/png": "png",
+  "image/jpeg": "jpg",
+  "image/webp": "webp",
+  "application/pdf": "pdf",
+};
 const MAX_ATTACHMENT_BYTES = 15 * 1024 * 1024;
 const MAX_ATTACHMENTS = 10;
 
@@ -101,7 +114,7 @@ export async function createPostAction(_prevState: CreatePostState, formData: Fo
   const uploads = await Promise.all(
     files.map(async (file, index) => {
       const attachmentType = ALLOWED_ATTACHMENT_TYPES[file.type];
-      const extension = file.name.split(".").pop() || (attachmentType === "pdf" ? "pdf" : "jpg");
+      const extension = ATTACHMENT_EXTENSIONS[file.type];
       const path = `${profile.id}/${newPost.id}-${index}.${extension}`;
       const { error: uploadError } = await supabase.storage.from("feed-media").upload(path, file, {
         contentType: file.type,

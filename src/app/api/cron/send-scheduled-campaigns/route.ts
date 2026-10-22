@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { performNewsletterSend } from "@/lib/newsletter/send";
+import { isValidCronSecret } from "@/lib/auth/cron-secret";
 
 // Zelfde maxDuration-overweging als /beheer/communicatie/[id] (performNewsletterSend
 // loopt sequentieel over elke ontvanger, en deze cron kan in één run meerdere
@@ -12,8 +13,7 @@ export const maxDuration = 300;
 // voor waarom claim/mark/finalize nu ook auth.role() = 'service_role'
 // toestaan naast is_board()).
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isValidCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -26,7 +26,8 @@ export async function GET(request: Request) {
     .lte("scheduled_at", nowIso);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[cron/send-scheduled-campaigns] ophalen ingeplande campagnes mislukt:", error);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 
   // Portaal-gezondheid Blok C: begrenst elke aanroep tot 200 verstuurde

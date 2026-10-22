@@ -8,8 +8,19 @@
 // aanhalingstekens gezet.
 const FORMULA_PREFIX_CHARS = new Set(["=", "+", "-", "@"]);
 
+// \r (los, zonder \n) en \t binnen een cel zijn al onschadelijk binnen de
+// aanhalingstekens hieronder voor een correcte CSV-parser, maar een
+// naïevere downstream-consument die handmatig op regel/tab splitst i.p.v.
+// een echte CSV-parser te gebruiken, kan zo'n cel toch als rij-/kolom-
+// grens lezen — vervangen door respectievelijk niets en een spatie, zodat
+// de celinhoud zelf nooit als structuur gelezen kan worden.
+function neutralizeControlChars(value: string): string {
+  return value.replace(/\r/g, "").replace(/\t/g, " ");
+}
+
 export function csvEscape(value: string): string {
-  const safeValue = FORMULA_PREFIX_CHARS.has(value[0]) ? `'${value}` : value;
+  const neutralized = neutralizeControlChars(value);
+  const safeValue = FORMULA_PREFIX_CHARS.has(neutralized[0]) ? `'${neutralized}` : neutralized;
   return `"${safeValue.replace(/"/g, '""')}"`;
 }
 

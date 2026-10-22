@@ -33,9 +33,20 @@ export async function updateNotificationRuleAction(
   }
 
   const supabase = await createClient();
+  // Expliciet per veld i.p.v. "...patch" — een server action is rechtstreeks
+  // aan te roepen buiten de TypeScript-typen om (die gelden alleen
+  // compile-time voor aanroepen vanuit de eigen app), dus een los
+  // meegestuurd extra veld in patch zou anders ook meegaan in de update.
   const { error } = await supabase
     .from("notification_type_settings")
-    .update({ ...patch, updated_by: profile.id })
+    .update({
+      enabled: patch.enabled,
+      channel_inapp: patch.channel_inapp,
+      channel_push: patch.channel_push,
+      channel_email: patch.channel_email,
+      roles: patch.roles,
+      updated_by: profile.id,
+    })
     .eq("type", type);
 
   if (error) {

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isValidCronSecret } from "@/lib/auth/cron-secret";
 
 // Hit once a day by Vercel Cron (see vercel.json). 90 dagen na deactivering
 // (profiles.deactivated_at, gezet door updateMemberActiveAction) worden
@@ -31,8 +32,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 // geanonimiseerd zijn — zodat dit altijd een retry krijgt i.p.v. stil te
 // blijven liggen.
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isValidCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
@@ -67,12 +67,14 @@ export async function GET(request: Request) {
   }
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[cron/anonymize-members] anonymize_expired_profiles mislukt:", error);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 
   const { data: pending, error: pendingError } = await admin.rpc("get_profiles_pending_auth_scrub");
   if (pendingError) {
-    return NextResponse.json({ error: pendingError.message }, { status: 500 });
+    console.error("[cron/anonymize-members] get_profiles_pending_auth_scrub mislukt:", pendingError);
+    return NextResponse.json({ error: "Internal error" }, { status: 500 });
   }
 
   const authScrubbedIds: string[] = [];

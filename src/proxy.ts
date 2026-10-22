@@ -44,7 +44,18 @@ export const config = {
      * profile id (IDOR). api/embed is listed in PUBLIC_PATHS (middleware.ts)
      * instead, so it still never gets redirected to /login for an
      * anonymous visitor, while the header keeps getting verified.
+     *
+     * Each exact-file exclusion (manifest.webmanifest/sw.js/favicon.ico/
+     * icon.png/apple-icon.png/api/notifications/click) is anchored with
+     * (?:$) and each subtree exclusion (api/cron, api/webhooks) with
+     * (?:/|$) — the negative lookahead otherwise only checks the START of
+     * the path, so an unanchored "api/cron" would also match a future,
+     * unrelated route like /api/cronjob-foo (same bug class as the
+     * image-extension incident above: that route would then skip this
+     * middleware entirely, leaving x-voc-verified-user-id unverified on
+     * it). icons/ and brand/ already end in their own "/" so a bare prefix
+     * match can't spill into an unrelated path the same way.
      */
-    "/((?!_next/static|_next/image|manifest.webmanifest|sw.js|favicon.ico|icon.png|apple-icon.png|icons/|brand/|api/cron|api/notifications/click|api/webhooks).*)",
+    "/((?!_next/static|_next/image|manifest\\.webmanifest(?:$)|sw\\.js(?:$)|favicon\\.ico(?:$)|icon\\.png(?:$)|apple-icon\\.png(?:$)|icons/|brand/|api/cron(?:/|$)|api/notifications/click(?:$)|api/webhooks(?:/|$)).*)",
   ],
 };

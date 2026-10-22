@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { dispatchPendingPushNotifications } from "@/lib/notifications/dispatch-push";
+import { isValidCronSecret } from "@/lib/auth/cron-secret";
 
 // Hit periodically by Vercel Cron (see vercel.json) — vangnet voor alles wat
 // niet via een directe after()-aanroep (zie agenda/actions.ts, (app)/
@@ -7,8 +8,7 @@ import { dispatchPendingPushNotifications } from "@/lib/notifications/dispatch-p
 // zonder zo'n directe aanroeppunt (bv. activity_reminder, die alleen uit een
 // eigen cron komt).
 export async function GET(request: Request) {
-  const authHeader = request.headers.get("authorization");
-  if (!process.env.CRON_SECRET || authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  if (!isValidCronSecret(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
