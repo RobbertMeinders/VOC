@@ -96,6 +96,8 @@ Benodigde environment variables (zie `.env.local.example`):
 - `SITE_URL` — basis-URL zonder trailing slash, gebruikt om links in de mails op te bouwen.
 - `SUPABASE_SERVICE_ROLE_KEY` — nodig voor `auth.admin.generateLink()` (genereert alleen de
   reset-token, zonder dat Supabase zelf een mail verstuurt); server-only, nooit in clientcode.
+- `UNSUBSCRIBE_SECRET` — verplicht om de afmeld-/voorkeurenlink onder nieuwsbrieven te ondertekenen;
+  zonder deze variabele kan geen nieuwsbrief verstuurd worden. Genereer met `openssl rand -hex 32`.
 
 Verstuurt de e-mail niet (ontbrekende/foutieve SMTP-configuratie), dan blijft de rest van de flow
 werken: een uitnodiging is nog steeds aangemaakt en de link nog steeds handmatig te kopiëren en

@@ -104,10 +104,20 @@ function renderImageBlock(block: Extract<NewsletterBlock, { type: "image" }>): s
 // een losse, enkel-op-de-link gestylede "knop" laten inzakken tot een kale
 // onderstreepte link. Met de kleur ook op de cel blijft er overal een
 // gevulde knopvorm staan, desnoods met rechte in plaats van ronde hoeken.
+//
+// Live gevonden (screenshot): de kleur op de <td> loste het inzakken op,
+// maar de padding stond nog alleen op de <a> (padding:12px 24px) --
+// Outlook negeert padding op een <a>-tag net zo goed als border-radius, dus
+// de groene achtergrond vulde alleen het kale, ongepadde tekstgebied i.p.v.
+// een echte knopvorm. Fix: padding naar de <td> zelf (die respecteert
+// Outlook wel, net als de achtergrondkleur), bgcolor-attribuut erbij voor
+// clients die CSS background op <td> onbetrouwbaar vinden, <a> wordt
+// display:block zodat die de volle (al gepadde) cel vult i.p.v. zelf nog
+// ruimte te moeten claimen.
 function renderButton(url: string, label: string, align: NewsletterAlign | undefined): string {
   return `<table role="presentation" cellpadding="0" cellspacing="0" align="${align === "right" ? "right" : align === "center" ? "center" : "left"}" style="margin:0;">
-    <tr><td style="border-radius:${BUTTON_RADIUS};background:${COLORS.green};">
-      <a href="${escapeHtml(url)}" style="display:inline-block;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;padding:12px 24px;font-family:${FONT};">${escapeHtml(label)}</a>
+    <tr><td bgcolor="${COLORS.green}" style="border-radius:${BUTTON_RADIUS};background:${COLORS.green};padding:12px 24px;">
+      <a href="${escapeHtml(url)}" style="display:block;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;font-family:${FONT};">${escapeHtml(label)}</a>
     </td></tr>
   </table>`;
 }
