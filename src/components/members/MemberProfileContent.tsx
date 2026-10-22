@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { cache } from "react";
-import { Clock, Mail, Pencil, Phone } from "lucide-react";
+import { Clock, Mail, Phone } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
@@ -9,6 +9,7 @@ import { formatLastActive } from "@/lib/format/date";
 import { Avatar } from "@/components/ui/Avatar";
 import { ExpandableText } from "@/components/ui/ExpandableText";
 import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
+import { ProfileColumns, ProfileHero, type HeroPill } from "@/components/ui/ProfileLayout";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { MemberPostList } from "@/components/members/MemberPostList";
 import { AttendedActivitiesSection } from "@/components/members/AttendedActivitiesSection";
@@ -103,8 +104,9 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
   // Deze twee hangen wél van elkaars resultaat (member.avatar_url) of van
   // membership af, dus die blijven na de Promise.all hierboven — maar wel
   // weer samen parallel i.p.v. na elkaar.
-  const [avatarUrl, logoUrl] = await Promise.all([
+  const [avatarUrl, coverUrl, logoUrl] = await Promise.all([
     getSignedStorageUrl("avatars", member.avatar_url),
+    getSignedStorageUrl("profile-covers", member.cover_url),
     membership?.company?.logo_url ? getSignedStorageUrl("company-logos", membership.company.logo_url) : null,
   ]);
 
@@ -118,145 +120,150 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
         .sort((a, b) => b.starts_at.localeCompare(a.starts_at))
     : [];
 
+  // Profielhero-herontwerp: de hero-knop is alleen "Profiel aanpassen" op je
+  // eigen profiel — op andermans profiel vervalt die en is de
+  // ContactMemberButton in de Contact-kaart het alternatief (geen dubbele
+  // knop meer). "Lid sinds" bestaat niet als los profielveld (dat is een
+  // bedrijfsbegrip, zie companies.member_since) — de pillenrij gebruikt
+  // daarom alleen wat het profiel/de koppeling echt heeft: het bedrijf waar
+  // iemand werkt, de plaats van dat bedrijf, en een "Gedeactiveerd"-pil i.p.v.
+  // de losse badge die hier eerder stond.
+  const pills: HeroPill[] = [];
+  if (membership?.company) pills.push({ label: membership.company.name, tone: "petrol" });
+  if (membership?.company?.city) pills.push({ label: membership.company.city });
+  if (!member.is_active) pills.push({ label: "Gedeactiveerd", tone: "danger" });
+
+  const hasVisibleContact = member.show_email || canSeePrivate || (member.phone && (member.show_phone || canSeePrivate));
+
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-2xl bg-surface p-6 shadow-sm">
-        <div className="flex items-start justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-4">
-            <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={avatarUrl} size={64} />
-            <div className="min-w-0">
-              <p className="break-words text-lg font-semibold text-foreground">
-                {member.first_name} {member.last_name}
-              </p>
-              {member.job_title && <p className="text-sm text-muted">{member.job_title}</p>}
-              {!member.is_active && (
-                <span className="mt-1 inline-block rounded-full bg-black/5 px-2.5 py-0.5 text-xs font-medium text-muted dark:bg-white/10">
-                  Gedeactiveerd
-                </span>
-              )}
-              {isBoard(viewer.role) && (
-                <p className="mt-1.5 flex items-center gap-1.5 text-xs text-muted">
-                  <Clock size={12} />
-                  Laatst actief: {formatLastActive(member.last_active_at)}
-                </p>
+      <ProfileHero
+        eyebrow="Lid"
+        name={`${member.first_name} ${member.last_name}`}
+        subtitle={member.job_title}
+        coverUrl={coverUrl}
+        editHref={isOwnProfile ? "/profiel" : undefined}
+        editLabel="Profiel aanpassen"
+        pills={pills}
+        avatar={
+          <Avatar
+            firstName={member.first_name}
+            lastName={member.last_name}
+            avatarUrl={avatarUrl}
+            size={76}
+            className="ring-4 ring-surface"
+          />
+        }
+      />
+
+      <ProfileColumns
+        main={
+          <>
+            {member.bio && (
+              <div className="rounded-2xl bg-surface p-6 shadow-sm">
+                <h2 className="mb-3 text-sm font-semibold text-foreground">Over {member.first_name}</h2>
+                <ExpandableText text={member.bio} lines={5} expandLabel="Meer weergeven" collapseLabel="Minder weergeven" />
+              </div>
+            )}
+
+            {attendedActivities.length > 0 && (
+              <div className="rounded-2xl bg-surface p-6 shadow-sm">
+                <h2 className="mb-3 text-sm font-semibold text-foreground">Bijgewoonde activiteiten</h2>
+                <AttendedActivitiesSection memberId={id} activities={attendedActivities} />
+              </div>
+            )}
+
+            {isOwnProfile && posts.length > 0 && (
+              <div className="rounded-2xl bg-surface p-6 shadow-sm">
+                <h2 className="mb-3 text-sm font-semibold text-foreground">Berichten</h2>
+                <MemberPostList
+                  memberId={id}
+                  initialPosts={posts}
+                  currentUserId={viewer.id}
+                  canModerate={isBoard(viewer.role)}
+                  canEditOthers={isAdmin(viewer.role)}
+                />
+              </div>
+            )}
+          </>
+        }
+        sidebar={
+          <>
+            <div className="rounded-2xl bg-surface p-6 shadow-sm">
+              <h2 className="mb-3 text-sm font-semibold text-foreground">Contact</h2>
+              <div className="flex flex-col gap-1 -mx-3">
+                {hasVisibleContact ? (
+                  <>
+                    {(member.show_email || canSeePrivate) && (
+                      <a
+                        href={`mailto:${member.email}`}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                      >
+                        <Mail size={16} className="text-muted" />
+                        {member.email}
+                      </a>
+                    )}
+                    {member.phone && (member.show_phone || canSeePrivate) && (
+                      <a
+                        href={`tel:${member.phone}`}
+                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                      >
+                        <Phone size={16} className="text-muted" />
+                        {member.phone}
+                      </a>
+                    )}
+                  </>
+                ) : (
+                  <p className="flex items-center gap-3 px-3 py-2 text-sm text-muted">
+                    <Mail size={16} />
+                    Contactgegevens zijn verborgen
+                  </p>
+                )}
+                <EntitySocialLinks linkedinUrl={member.linkedin_url} />
+              </div>
+              {/* VOC Hub — Veilige e-mailcontactfunctie: alleen op andermans
+                  profiel, en alleen als dat lid nog bereikbaar is. Dit is nu
+                  ook het alternatief voor de hero-knop (die hier vervalt). */}
+              {!isOwnProfile && member.is_active && (
+                <div className="mt-2">
+                  <ContactMemberButton recipientId={member.id} recipientName={`${member.first_name} ${member.last_name}`} />
+                </div>
               )}
             </div>
-          </div>
-          {isOwnProfile && (
-            <>
-              {/* Op mobiel alleen het potloodje — "Profiel aanpassen" als
-                  volledige pil drukte naam/functie anders te veel opzij. */}
-              <Link
-                href="/profiel"
-                aria-label="Profiel aanpassen"
-                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-muted hover:text-foreground sm:hidden"
-              >
-                <Pencil size={14} />
-              </Link>
-              <Link
-                href="/profiel"
-                className="hidden shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-muted hover:text-foreground sm:flex"
-              >
-                <Pencil size={14} />
-                Profiel aanpassen
-              </Link>
-            </>
-          )}
-        </div>
 
-        {member.bio && (
-          <ExpandableText
-            text={member.bio}
-            lines={5}
-            className="mt-4"
-            expandLabel="Meer weergeven"
-            collapseLabel="Minder weergeven"
-          />
-        )}
-
-        <div className="mt-4 flex flex-col gap-1 border-t border-border pt-4">
-          {member.show_email || canSeePrivate ? (
-            <a
-              href={`mailto:${member.email}`}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-            >
-              <Mail size={16} className="text-muted" />
-              {member.email}
-            </a>
-          ) : (
-            <p className="flex items-center gap-3 px-3 py-2 text-sm text-muted">
-              <Mail size={16} />
-              E-mailadres is verborgen
-            </p>
-          )}
-          {member.phone && (member.show_phone || canSeePrivate) && (
-            <a
-              href={`tel:${member.phone}`}
-              className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-            >
-              <Phone size={16} className="text-muted" />
-              {member.phone}
-            </a>
-          )}
-          {/* VOC Hub — Veilige e-mailcontactfunctie: alleen op andermans
-              profiel, en alleen als dat lid nog bereikbaar is. Bij de
-              overige contactgegevens i.p.v. los bovenaan — hoort daar
-              inhoudelijk bij. */}
-          {!isOwnProfile && member.is_active && (
-            <ContactMemberButton recipientId={member.id} recipientName={`${member.first_name} ${member.last_name}`} />
-          )}
-          <EntitySocialLinks linkedinUrl={member.linkedin_url} />
-        </div>
-      </div>
-
-      {/* Los blok net als "Werkzaam bij dit bedrijf" op de bedrijfspagina,
-          i.p.v. genest in de profielkaart hierboven. */}
-      {membership?.company && (
-        <div className="rounded-2xl bg-surface p-6 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij</h2>
-          <Link
-            href={companyHref(membership.company)}
-            className="flex items-center gap-3 rounded-xl border border-border p-3 hover:border-muted"
-          >
-            <CompanyLogo logoUrl={logoUrl} name={membership.company.name} size={44} />
-            <div className="min-w-0">
-              <p className="truncate text-sm font-medium text-foreground">{membership.company.name}</p>
-              <p className="truncate text-xs text-muted">
-                {membership.company.industry && <span>{membership.company.industry}</span>}
-                {membership.company.industry && membership.company.city && <span> · </span>}
-                {membership.company.city && <span>{membership.company.city}</span>}
-              </p>
-            </div>
-          </Link>
-        </div>
-      )}
-
-      {attendedActivities.length > 0 && (
-        <div className="rounded-2xl bg-surface p-6 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-foreground">Bijgewoonde activiteiten</h2>
-          <AttendedActivitiesSection memberId={id} activities={attendedActivities} />
-        </div>
-      )}
-
-      {isOwnProfile && posts.length > 0 && (
-        <div className="rounded-2xl bg-surface p-6 shadow-sm">
-          <h2 className="mb-3 text-sm font-semibold text-foreground">Berichten</h2>
-          <MemberPostList
-            memberId={id}
-            initialPosts={posts}
-            currentUserId={viewer.id}
-            canModerate={isBoard(viewer.role)}
-            canEditOthers={isAdmin(viewer.role)}
-          />
-        </div>
-      )}
+            {membership?.company && (
+              <div className="rounded-2xl bg-surface p-6 shadow-sm">
+                <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij</h2>
+                <Link
+                  href={companyHref(membership.company)}
+                  className="flex items-center gap-3 rounded-xl border border-border p-3 hover:border-muted"
+                >
+                  <CompanyLogo logoUrl={logoUrl} name={membership.company.name} size={44} />
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-medium text-foreground">{membership.company.name}</p>
+                    <p className="truncate text-xs text-muted">
+                      {membership.company.industry && <span>{membership.company.industry}</span>}
+                      {membership.company.industry && membership.company.city && <span> · </span>}
+                      {membership.company.city && <span>{membership.company.city}</span>}
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            )}
+          </>
+        }
+      />
 
       {isBoard(viewer.role) && (
         <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Beheer</h2>
+          <p className="mb-3 flex items-center gap-1.5 text-xs text-muted">
+            <Clock size={12} />
+            Laatst actief: {formatLastActive(member.last_active_at)}
+          </p>
           <div className="flex flex-col gap-3">
             {isAdmin(viewer.role) && <RoleEditor memberId={member.id} currentRole={member.role} />}
-            <AdminEditProfile member={member} avatarUrl={avatarUrl} />
+            <AdminEditProfile member={member} avatarUrl={avatarUrl} coverUrl={coverUrl} />
             {member.id !== viewer.id && <MemberActiveToggle memberId={member.id} initialActive={member.is_active} />}
             {member.id !== viewer.id && member.is_active && <GenerateLoginLinkButton memberId={member.id} />}
             {member.id !== viewer.id && (
