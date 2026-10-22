@@ -13,6 +13,15 @@ import { invalidateQuery } from "@/lib/cache/queryCache";
 // actions.ts) — de uitnodigingsmail noemt deze termijn ook letterlijk.
 const INVITATION_VALIDITY_MS = 14 * 24 * 60 * 60 * 1000;
 
+// Tweede laag bovenop de DB-CHECK-constraint (access_requests_logo_path_
+// scoped e.a.) — logo_path/logo_thumb_path komen uit een anoniem
+// ingediende rij en gaan hieronder rechtstreeks naar een service-role
+// storage move()/remove(); zonder deze check zou een vervalst pad een
+// willekeurig ander storage-object kunnen laten verplaatsen/verwijderen.
+function isScopedPendingLogoPath(path: string | null, requestId: string): path is string {
+  return path != null && path.startsWith(`pending/${requestId}/`);
+}
+
 // Robbert: "ik kan een aanvraag niet afwijzen" — in de UI (AccessRequestRow)
 // heet deze knop nu "Afwijzen" i.p.v. het vage "Afgehandeld", al blijft het
 // onderliggende gedrag en de statuswaarde ('handled') ongewijzigd: dit is de
@@ -73,10 +82,12 @@ export async function createInvitationFromAccessRequestAction(requestId: string)
       // aanvrager voor ogen had, niet bij dit toevallig gelijknamige bestaande
       // bedrijf (dat kan al een eigen logo hebben) — best-effort opruimen,
       // nooit de rest van deze actie blokkeren.
-      if (request.logo_path) {
+      if (request.logo_path && isScopedPendingLogoPath(request.logo_path, request.id)) {
         try {
           const admin = createAdminClient();
-          const paths = [request.logo_path, request.logo_thumb_path].filter((p): p is string => Boolean(p));
+          const paths = [request.logo_path, request.logo_thumb_path].filter((p): p is string =>
+            isScopedPendingLogoPath(p, request.id)
+          );
           await admin.storage.from("company-logos").remove(paths);
         } catch (cause) {
           console.error("[beheer/aanvragen] opruimen ongebruikt pending-logo mislukt:", cause);
@@ -121,10 +132,11 @@ export async function createInvitationFromAccessRequestAction(requestId: string)
       // koppelen. Best-effort: een mislukte verplaatsing laat het bedrijf
       // gewoon zonder logo (net als vandaag, zonder deze functionaliteit),
       // en blokkeert nooit het aanmaken van de uitnodiging zelf.
-      if (request.logo_path) {
+      if (request.logo_path && isScopedPendingLogoPath(request.logo_path, request.id)) {
         try {
           const admin = createAdminClient();
           const movePending = async (fromPath: string): Promise<string | null> => {
+            if (!isScopedPendingLogoPath(fromPath, request.id)) return null;
             const toPath = `${companyId}/${fromPath.split("/").pop()}`;
             const { error: moveError } = await admin.storage.from("company-logos").move(fromPath, toPath);
             return moveError ? null : toPath;
