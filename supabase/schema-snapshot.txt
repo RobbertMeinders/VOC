@@ -1475,12 +1475,12 @@ $function$
 
 ---
 CREATE OR REPLACE FUNCTION public.get_message_template(p_key text)
- RETURNS TABLE(subject text, body_html text, cta_label text, after_html text, signature_type text, push_title text, push_body text)
+ RETURNS TABLE(subject text, body_html text, cta_label text, after_html text, signature_type text, push_title text, push_body text, preheader text)
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
-  select subject, body_html, cta_label, after_html, signature_type, push_title, push_body
+  select subject, body_html, cta_label, after_html, signature_type, push_title, push_body, preheader
   from public.message_templates where key = p_key;
 $function$
 
