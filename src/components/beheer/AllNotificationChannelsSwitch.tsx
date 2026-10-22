@@ -38,7 +38,7 @@ export function AllNotificationChannelsSwitch({ initialEnabled }: { initialEnabl
     <div className="flex items-center justify-between gap-3 rounded-2xl bg-surface px-4 py-3 shadow-sm">
       <div className="min-w-0">
         <p className="text-sm font-medium text-foreground">Alles</p>
-        {error && <p className="mt-1 text-xs text-voc-red-text">{error}</p>}
+        {error && <p className="mt-1 text-xs text-danger-text">{error}</p>}
       </div>
       <Switch checked={enabled} onChange={handleChange} disabled={pending} label="Alle regels aan/uit" />
     </div>

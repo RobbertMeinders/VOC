@@ -43,7 +43,7 @@ export function DeleteAccountButton() {
         <Trash2 size={14} />
         {isPending ? "Bezig…" : "Account verwijderen"}
       </button>
-      {error && <p className="text-right text-xs text-voc-red-text">{error}</p>}
+      {error && <p className="text-right text-xs text-danger-text">{error}</p>}
     </div>
   );
 }

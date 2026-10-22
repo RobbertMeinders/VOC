@@ -372,7 +372,7 @@ function PostComposerForm({
               )}
 
               {state.error && (
-                <p role="alert" className="mt-2 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text sm:ml-[52px]">
+                <p role="alert" className="mt-2 rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text sm:ml-[52px]">
                   {state.error}
                 </p>
               )}

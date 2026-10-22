@@ -80,12 +80,12 @@ export function AccessRequestRow({
           </p>
         )}
         {request.message && <p className="mt-1 text-sm text-foreground">{request.message}</p>}
-        {inviteState.error && <p className="mt-1.5 text-xs text-voc-red-text">{inviteState.error}</p>}
+        {inviteState.error && <p className="mt-1.5 text-xs text-danger-text">{inviteState.error}</p>}
         {inviteState.success && inviteState.emailSent && (
           <p className="mt-1.5 text-xs text-status-success">Uitnodiging aangemaakt en per e-mail verstuurd.</p>
         )}
         {inviteState.success && !inviteState.emailSent && (
-          <p className="mt-1.5 text-xs text-voc-red-text">
+          <p className="mt-1.5 text-xs text-danger-text">
             Uitnodiging aangemaakt, maar de e-mail versturen is niet gelukt{inviteState.emailError ? ` (${inviteState.emailError})` : ""}.
             Verstuur &apos;m opnieuw via Uitnodigingen.
           </p>

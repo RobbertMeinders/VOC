@@ -22,7 +22,7 @@ export function ForgotPasswordForm() {
 
   if (state.submitted) {
     return (
-      <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-500/10 dark:text-green-400">
+      <div className="rounded-lg bg-status-success-soft px-4 py-3 text-sm text-status-success">
         Als dit e-mailadres bij ons bekend is, ontvang je binnen enkele minuten een link om je
         wachtwoord opnieuw in te stellen.
       </div>
@@ -38,7 +38,7 @@ export function ForgotPasswordForm() {
         <Input id="email" name="email" type="email" autoComplete="email" required placeholder="naam@bedrijf.nl" />
       </div>
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+        <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
           {state.error}
         </p>
       )}

@@ -107,12 +107,12 @@ export function InviteForm({ canInviteBoard }: { canInviteBoard: boolean }) {
         </div>
       )}
 
-      {state.error && <p className="text-sm text-voc-red-text">{state.error}</p>}
+      {state.error && <p className="text-sm text-danger-text">{state.error}</p>}
       {state.success && state.emailSent && (
         <p className="text-sm text-status-success">Uitnodiging aangemaakt en per e-mail verstuurd.</p>
       )}
       {state.success && state.emailError && (
-        <p className="text-sm text-voc-red-text">
+        <p className="text-sm text-danger-text">
           Uitnodiging aangemaakt, maar de e-mail versturen is niet gelukt ({state.emailError}). Deel de link
           hieronder zelf.
         </p>

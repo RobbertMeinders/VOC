@@ -71,7 +71,7 @@ function HeaderImageUpload({ currentImageUrl }: { currentImageUrl: string | null
         )}
       </div>
       {state.error && (
-        <p role="alert" className="text-sm text-voc-red-text">
+        <p role="alert" className="text-sm text-danger-text">
           {state.error}
         </p>
       )}
@@ -130,7 +130,7 @@ export function OrgProfileForm({ orgProfile, headerImageUrl }: { orgProfile: Org
         </FormSections>
 
         {state.error && (
-          <p role="alert" className="mt-4 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+          <p role="alert" className="mt-4 rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
             {state.error}
           </p>
         )}

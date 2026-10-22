@@ -77,7 +77,7 @@ function EditPostForm({
         <PostTypePicker defaultValue={post.type} />
       </div>
       {state.error && (
-        <p role="alert" className="mt-1.5 text-xs text-voc-red-text">
+        <p role="alert" className="mt-1.5 text-xs text-danger-text">
           {state.error}
         </p>
       )}
@@ -134,7 +134,7 @@ function EditCommentForm({
         autoFocus
       />
       {state.error && (
-        <p role="alert" className="mt-1 text-xs text-voc-red-text">
+        <p role="alert" className="mt-1 text-xs text-danger-text">
           {state.error}
         </p>
       )}

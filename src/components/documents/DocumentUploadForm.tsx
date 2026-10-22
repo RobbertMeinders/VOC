@@ -62,7 +62,7 @@ export function DocumentUploadForm({ categories }: { categories: string[] }) {
       </div>
       <FileSelectButton name="file" accept="application/pdf,image/png,image/jpeg,.doc,.docx,.ppt,.pptx" required />
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+        <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
           {state.error}
         </p>
       )}

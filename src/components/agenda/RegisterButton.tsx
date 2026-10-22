@@ -99,7 +99,7 @@ export function RegisterButton({
           {pending ? "Bezig…" : waitlisted ? "Wachtlijst verlaten" : externalEvent ? "Niet meer aanwezig" : "Afmelden"}
         </button>
         {error && (
-          <p role="alert" className="text-sm text-voc-red-text">
+          <p role="alert" className="text-sm text-danger-text">
             {error}
           </p>
         )}
@@ -114,7 +114,7 @@ export function RegisterButton({
       </Button>
       {isFull && <p className="text-xs text-muted">Deze activiteit is vol, maar je kunt je op de wachtlijst zetten.</p>}
       {error && (
-        <p role="alert" className="text-sm text-voc-red-text">
+        <p role="alert" className="text-sm text-danger-text">
           {error}
         </p>
       )}

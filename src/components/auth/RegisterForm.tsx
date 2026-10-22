@@ -146,12 +146,12 @@ export function RegisterForm({
             value={passwordRepeat}
             onChange={(e) => setPasswordRepeat(e.target.value)}
           />
-          {mismatch && <p className="text-xs text-voc-red-text">Komt niet overeen.</p>}
+          {mismatch && <p className="text-xs text-danger-text">Komt niet overeen.</p>}
         </div>
       </div>
 
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+        <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
           {state.error}
         </p>
       )}

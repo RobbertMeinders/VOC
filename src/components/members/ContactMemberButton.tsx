@@ -77,7 +77,7 @@ export function ContactMemberButton({ recipientId, recipientName }: { recipientI
             className="w-full rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
           />
           {error && (
-            <p role="alert" className="text-xs text-voc-red-text">
+            <p role="alert" className="text-xs text-danger-text">
               {error}
             </p>
           )}

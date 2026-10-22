@@ -48,7 +48,7 @@ export function CompanyMembershipRequests({
         Alleen zichtbaar voor bestaande collega&apos;s bij dit bedrijf en bestuur/beheer.
       </p>
       {error && (
-        <p role="alert" className="mb-3 rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+        <p role="alert" className="mb-3 rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
           {error}
         </p>
       )}

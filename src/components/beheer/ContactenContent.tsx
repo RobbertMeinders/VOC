@@ -69,7 +69,7 @@ function ContactEditRow({ contact, onDone }: { contact: Contact; onDone: () => v
           </Button>
         </div>
       </div>
-      {error && <p className="text-sm text-voc-red-text">{error}</p>}
+      {error && <p className="text-sm text-danger-text">{error}</p>}
     </div>
   );
 }
@@ -174,7 +174,7 @@ function ContactsSection({ contacts }: { contacts: Contact[] }) {
           Toevoegen
         </Button>
       </div>
-      {error && <p className="mt-2 text-sm text-voc-red-text">{error}</p>}
+      {error && <p className="mt-2 text-sm text-danger-text">{error}</p>}
     </div>
   );
 }
@@ -253,7 +253,7 @@ function ListCard({
             </Button>
           </div>
         </div>
-        {renameError && <p className="mt-2 text-sm text-voc-red-text">{renameError}</p>}
+        {renameError && <p className="mt-2 text-sm text-danger-text">{renameError}</p>}
       </div>
     );
   }
@@ -434,7 +434,7 @@ function ListsSection({
           Lijst aanmaken
         </Button>
       </div>
-      {error && <p className="mt-2 text-sm text-voc-red-text">{error}</p>}
+      {error && <p className="mt-2 text-sm text-danger-text">{error}</p>}
     </div>
   );
 }

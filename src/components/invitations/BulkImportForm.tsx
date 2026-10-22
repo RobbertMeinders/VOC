@@ -96,7 +96,7 @@ export function BulkImportForm() {
           .
         </p>
         {fileError && (
-          <p role="alert" className="mt-2 text-xs text-voc-red-text">
+          <p role="alert" className="mt-2 text-xs text-danger-text">
             {fileError}
           </p>
         )}
@@ -169,7 +169,7 @@ export function BulkImportForm() {
           )}
           {result.skipped.length > 0 && (
             <div className="mt-2">
-              <p className="text-sm font-medium text-voc-red-text">{result.skipped.length} rij(en) overgeslagen:</p>
+              <p className="text-sm font-medium text-danger-text">{result.skipped.length} rij(en) overgeslagen:</p>
               <ul className="mt-1 list-inside list-disc text-xs text-muted">
                 {result.skipped.map((s, i) => (
                   <li key={i}>

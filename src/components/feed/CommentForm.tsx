@@ -65,7 +65,7 @@ function CommentFormInner({ postId, onPosted }: { postId: string; onPosted: (com
         <SubmitButton />
       </form>
       {state.error && (
-        <p role="alert" className="text-xs text-voc-red-text">
+        <p role="alert" className="text-xs text-danger-text">
           {state.error}
         </p>
       )}

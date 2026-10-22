@@ -242,14 +242,14 @@ export function AudiencePicker({
             </Button>
           </div>
         )}
-        {newContactError && <p className="mt-1 text-sm text-voc-red-text">{newContactError}</p>}
+        {newContactError && <p className="mt-1 text-sm text-danger-text">{newContactError}</p>}
       </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-border pt-4">
         <Button type="button" variant="secondary" onClick={handleSave} disabled={saving}>
           {saving ? "Bezig…" : "Doelgroep opslaan"}
         </Button>
-        {saveError && <p className="text-sm text-voc-red-text">{saveError}</p>}
+        {saveError && <p className="text-sm text-danger-text">{saveError}</p>}
       </div>
     </div>
   );

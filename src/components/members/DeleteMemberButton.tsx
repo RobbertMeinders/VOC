@@ -48,7 +48,7 @@ export function DeleteMemberButton({ memberId, memberName }: { memberId: string;
         <Trash2 size={14} />
         {isPending ? "Bezig…" : "Verwijderen"}
       </button>
-      {error && <p className="text-xs text-voc-red-text">{error}</p>}
+      {error && <p className="text-xs text-danger-text">{error}</p>}
     </div>
   );
 }

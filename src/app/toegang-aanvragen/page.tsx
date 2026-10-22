@@ -24,7 +24,7 @@ export default async function AccessRequestPage() {
           <AccessRequestForm />
         </div>
         <p className="mt-6 text-center text-sm text-muted">
-          <Link href="/login" className="font-medium text-voc-red-text hover:underline">
+          <Link href="/login" className="font-medium text-petrol hover:underline">
             Terug naar inloggen
           </Link>
         </p>

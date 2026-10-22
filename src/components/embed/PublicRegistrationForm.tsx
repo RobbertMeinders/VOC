@@ -25,7 +25,7 @@ export function PublicRegistrationForm({ activityId }: { activityId: string }) {
 
   if (state.success) {
     return (
-      <p className="rounded-xl border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700">
+      <p className="rounded-xl border border-status-success/30 bg-status-success-soft px-4 py-3 text-sm text-status-success">
         Bedankt voor je aanmelding! Tot dan.
       </p>
     );
@@ -68,7 +68,7 @@ export function PublicRegistrationForm({ activityId }: { activityId: string }) {
         />
       </div>
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+        <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
           {state.error}
         </p>
       )}

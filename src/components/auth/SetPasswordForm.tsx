@@ -36,7 +36,7 @@ export function SetPasswordForm() {
 
   if (state.success) {
     return (
-      <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-500/10 dark:text-green-400">
+      <div className="rounded-lg bg-status-success-soft px-4 py-3 text-sm text-status-success">
         Wachtwoord ingesteld. Je wordt doorgestuurd…
       </div>
     );
@@ -74,10 +74,10 @@ export function SetPasswordForm() {
           value={passwordRepeat}
           onChange={(e) => setPasswordRepeat(e.target.value)}
         />
-        {mismatch && <p className="text-xs text-voc-red-text">De wachtwoorden komen niet overeen.</p>}
+        {mismatch && <p className="text-xs text-danger-text">De wachtwoorden komen niet overeen.</p>}
       </div>
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+        <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
           {state.error}
         </p>
       )}

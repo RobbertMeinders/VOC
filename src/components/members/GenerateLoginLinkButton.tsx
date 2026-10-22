@@ -39,7 +39,7 @@ export function GenerateLoginLinkButton({ memberId }: { memberId: string }) {
         {isPending ? "Bezig…" : copied ? "Link gekopieerd" : "Inloglink kopiëren"}
       </button>
       <p className="text-xs text-muted">Eenmalig bruikbaar en verloopt automatisch; alleen te gebruiken om dit lid te helpen inloggen.</p>
-      {error && <p className="text-xs text-voc-red-text">{error}</p>}
+      {error && <p className="text-xs text-danger-text">{error}</p>}
     </div>
   );
 }

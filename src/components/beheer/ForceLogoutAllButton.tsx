@@ -42,7 +42,7 @@ export function ForceLogoutAllButton() {
         <LogOut size={14} />
         {isPending ? "Bezig…" : done ? "Iedereen uitgelogd" : "Alle leden uitloggen"}
       </button>
-      {error && <p className="text-xs text-voc-red-text">{error}</p>}
+      {error && <p className="text-xs text-danger-text">{error}</p>}
     </div>
   );
 }

@@ -73,7 +73,7 @@ function AddBoardMemberForm({ memberOptions }: { memberOptions: MemberOption[] }
         </Button>
       </div>
       {state.error && (
-        <p role="alert" className="mt-2 text-sm text-voc-red-text">
+        <p role="alert" className="mt-2 text-sm text-danger-text">
           {state.error}
         </p>
       )}
@@ -161,7 +161,7 @@ function BoardMemberRowItem({ member }: { member: BoardMemberRow }) {
           </Button>
         </form>
       )}
-      {error && <p className="mt-1.5 text-xs text-voc-red-text">{error}</p>}
+      {error && <p className="mt-1.5 text-xs text-danger-text">{error}</p>}
     </div>
   );
 }

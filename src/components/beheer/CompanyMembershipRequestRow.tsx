@@ -99,7 +99,7 @@ export function CompanyMembershipRequestRow({
             {request.decisionReason && ` · Reden: ${request.decisionReason}`}
           </p>
         )}
-        {error && <p className="mt-1.5 text-xs text-voc-red-text">{error}</p>}
+        {error && <p className="mt-1.5 text-xs text-danger-text">{error}</p>}
       </div>
       {outcome ? (
         <span

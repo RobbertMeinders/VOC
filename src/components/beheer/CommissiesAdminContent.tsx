@@ -87,7 +87,7 @@ function NewCommissionForm({ onCreated }: { onCreated: () => void }) {
         <SubmitButton label="Aanmaken" pendingLabel="Aanmaken…" />
       </div>
       {state.error && (
-        <p role="alert" className="mt-2 text-sm text-voc-red-text">
+        <p role="alert" className="mt-2 text-sm text-danger-text">
           {state.error}
         </p>
       )}
@@ -234,7 +234,7 @@ function CommissionCard({ commission, memberOptions }: { commission: CommissionA
           <Button type="submit" size="sm" disabled={isPending}>
             {isPending ? "Opslaan…" : "Opslaan"}
           </Button>
-          {editError && <p className="text-sm text-voc-red-text">{editError}</p>}
+          {editError && <p className="text-sm text-danger-text">{editError}</p>}
         </form>
       )}
 
@@ -318,7 +318,7 @@ function CommissionCard({ commission, memberOptions }: { commission: CommissionA
                 </Button>
               </form>
             )}
-            {addMemberState.error && <p className="mt-1 text-xs text-voc-red-text">{addMemberState.error}</p>}
+            {addMemberState.error && <p className="mt-1 text-xs text-danger-text">{addMemberState.error}</p>}
           </div>
         </div>
       )}

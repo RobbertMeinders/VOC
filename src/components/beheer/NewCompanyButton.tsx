@@ -56,7 +56,7 @@ export function NewCompanyButton() {
         Je komt daarna meteen op het volledige bewerkformulier (logo, adres, social media, ...).
       </p>
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+        <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
           {state.error}
         </p>
       )}

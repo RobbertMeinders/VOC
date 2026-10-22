@@ -6,7 +6,7 @@ export function FormErrorSummary({ errors }: { errors: Record<string, string> })
   if (messages.length < 2) return null;
 
   return (
-    <div role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+    <div role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
       <p className="font-medium">Controleer de volgende velden:</p>
       <ul className="mt-1 list-disc pl-4">
         {messages.map((message, index) => (

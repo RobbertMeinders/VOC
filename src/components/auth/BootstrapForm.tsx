@@ -22,7 +22,7 @@ export function BootstrapForm() {
 
   if (state.success) {
     return (
-      <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-500/10 dark:text-green-400">
+      <div className="rounded-lg bg-status-success-soft px-4 py-3 text-sm text-status-success">
         {state.needsEmailConfirmation
           ? "Bijna klaar! Check je e-mail en klik op de bevestigingslink om je account te activeren."
           : "Account aangemaakt. Je wordt automatisch ingelogd…"}
@@ -60,7 +60,7 @@ export function BootstrapForm() {
         <p className="text-xs text-muted">Minimaal 8 tekens.</p>
       </div>
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+        <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
           {state.error}
         </p>
       )}

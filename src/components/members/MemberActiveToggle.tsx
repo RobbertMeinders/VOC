@@ -57,7 +57,7 @@ export function MemberActiveToggle({
           {pending ? "Bezig…" : active ? "Deactiveren" : "Activeren"}
         </Button>
       </div>
-      {error && <p className="text-xs text-voc-red-text">{error}</p>}
+      {error && <p className="text-xs text-danger-text">{error}</p>}
     </div>
   );
 }

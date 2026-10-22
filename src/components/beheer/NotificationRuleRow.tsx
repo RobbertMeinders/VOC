@@ -46,7 +46,7 @@ export function NotificationRuleRow({ type, initial, isRoleBased }: { type: Conf
       <td className="px-4 py-3">
         <p className="font-medium text-foreground">{info.label}</p>
         <p className="text-xs text-muted">{type}</p>
-        {error && <p className="mt-1 text-xs text-voc-red-text">{error}</p>}
+        {error && <p className="mt-1 text-xs text-danger-text">{error}</p>}
       </td>
       <td className="px-4 py-3">
         {isRoleBased ? (

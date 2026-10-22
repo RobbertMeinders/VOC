@@ -41,7 +41,7 @@ function PasswordLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSwi
         Blijf ingelogd
       </label>
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+        <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
           {state.error}
         </p>
       )}
@@ -50,7 +50,7 @@ function PasswordLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSwi
         <button
           type="button"
           onClick={onSwitch}
-          className="text-center text-sm font-medium text-voc-red-text hover:underline"
+          className="text-center text-sm font-medium text-petrol hover:underline"
         >
           Inloggen zonder wachtwoord
         </button>
@@ -65,14 +65,14 @@ function MagicLinkLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSw
   if (state.submitted) {
     return (
       <div className="flex flex-col gap-4">
-        <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-500/10 dark:text-green-400">
+        <div className="rounded-lg bg-status-success-soft px-4 py-3 text-sm text-status-success">
           Als dit e-mailadres bij ons bekend is, ontvang je binnen enkele minuten een inloglink. Geen
           wachtwoord nodig - klik de link in je mail en je bent binnen.
         </div>
         <button
           type="button"
           onClick={onSwitch}
-          className="text-center text-sm font-medium text-voc-red-text hover:underline"
+          className="text-center text-sm font-medium text-petrol hover:underline"
         >
           Terug naar inloggen met wachtwoord
         </button>
@@ -102,7 +102,7 @@ function MagicLinkLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSw
         Blijf ingelogd
       </label>
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+        <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
           {state.error}
         </p>
       )}
@@ -110,7 +110,7 @@ function MagicLinkLoginForm({ redirectTo, onSwitch }: { redirectTo: string; onSw
       <button
         type="button"
         onClick={onSwitch}
-        className="text-center text-sm font-medium text-voc-red-text hover:underline"
+        className="text-center text-sm font-medium text-petrol hover:underline"
       >
         Inloggen met wachtwoord
       </button>

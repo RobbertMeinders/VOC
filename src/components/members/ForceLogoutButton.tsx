@@ -42,7 +42,7 @@ export function ForceLogoutButton({ memberId, memberName }: { memberId: string; 
         <LogOut size={14} />
         {isPending ? "Bezig…" : done ? "Uitgelogd" : "Uitloggen"}
       </button>
-      {error && <p className="text-xs text-voc-red-text">{error}</p>}
+      {error && <p className="text-xs text-danger-text">{error}</p>}
     </div>
   );
 }

@@ -202,7 +202,7 @@ function BlockImageUpload({ onUploaded }: { onUploaded: (url: string) => void })
         }}
       />
       <UploadButtonSmall />
-      {state.error && <span className="text-sm text-voc-red-text">{state.error}</span>}
+      {state.error && <span className="text-sm text-danger-text">{state.error}</span>}
     </form>
   );
 }
@@ -329,7 +329,7 @@ function EventBlockEditor({
             </option>
           ))}
         </Select>
-        {error && <p className="text-sm text-voc-red-text">{error}</p>}
+        {error && <p className="text-sm text-danger-text">{error}</p>}
       </div>
     );
   }
@@ -375,7 +375,7 @@ function EventBlockEditor({
         className={inputSizeClass()}
       />
 
-      {error && <p className="text-sm text-voc-red-text">{error}</p>}
+      {error && <p className="text-sm text-danger-text">{error}</p>}
       <div className="flex flex-col gap-1.5">
         <div className="flex flex-wrap items-center gap-3">
           <Button type="button" variant="secondary" onClick={() => applySnapshot(block.activityId)} disabled={pending}>
@@ -972,7 +972,7 @@ export function NewsletterEditor({
           <input type="hidden" name="show_footer" value={showFooter ? "true" : "false"} />
 
           {state.error && (
-            <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+            <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
               {state.error}
             </p>
           )}
@@ -1016,7 +1016,7 @@ export function NewsletterEditor({
               {testSendPending ? "Versturen…" : "Testmail versturen naar mij"}
             </Button>
             {testSendResult?.success && <p className="text-sm text-status-success">Testmail verstuurd.</p>}
-            {testSendResult?.error && <p className="text-sm text-voc-red-text">{testSendResult.error}</p>}
+            {testSendResult?.error && <p className="text-sm text-danger-text">{testSendResult.error}</p>}
           </div>
         </div>
       </div>
@@ -1048,7 +1048,7 @@ export function NewsletterEditor({
                 <X size={16} />
                 {schedulePending ? "Bezig…" : "Annuleer planning"}
               </Button>
-              {scheduleError && <p className="text-sm text-voc-red-text">{scheduleError}</p>}
+              {scheduleError && <p className="text-sm text-danger-text">{scheduleError}</p>}
             </div>
           </div>
         )}
@@ -1081,9 +1081,9 @@ export function NewsletterEditor({
                       ? "Opnieuw proberen"
                       : "Versturen"}
               </Button>
-              {sendResult?.error && <p className="text-sm text-voc-red-text">{sendResult.error}</p>}
+              {sendResult?.error && <p className="text-sm text-danger-text">{sendResult.error}</p>}
               {sendResult && sendResult.total !== undefined && sendResult.sent !== undefined && (
-                <p className={`text-sm ${sendResult.done ? "text-status-success" : "text-voc-red-text"}`}>
+                <p className={`text-sm ${sendResult.done ? "text-status-success" : "text-danger-text"}`}>
                   {sendResult.sent} van {sendResult.total} verzonden
                   {!sendResult.done && ` - ${sendResult.failed ?? 0} mislukt, probeer het later opnieuw voor de rest.`}
                 </p>

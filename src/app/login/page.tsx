@@ -40,7 +40,7 @@ export default async function LoginPage({
           {emailEnabled ? (
             <Link
               href="/wachtwoord-vergeten"
-              className="mt-4 block text-center text-sm font-medium text-voc-red-text hover:underline"
+              className="mt-4 block text-center text-sm font-medium text-petrol hover:underline"
             >
               Wachtwoord vergeten?
             </Link>
@@ -52,7 +52,7 @@ export default async function LoginPage({
         </div>
         <p className="mt-6 text-center text-sm text-muted">
           Nieuw lid?{" "}
-          <Link href="/toegang-aanvragen" className="font-medium text-voc-red-text hover:underline">
+          <Link href="/toegang-aanvragen" className="font-medium text-petrol hover:underline">
             Vraag toegang aan
           </Link>
           .

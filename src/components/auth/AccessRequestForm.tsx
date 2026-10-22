@@ -34,7 +34,7 @@ export function AccessRequestForm() {
 
   if (state.success) {
     return (
-      <div className="rounded-lg bg-green-50 px-4 py-3 text-sm text-green-700 dark:bg-green-500/10 dark:text-green-400">
+      <div className="rounded-lg bg-status-success-soft px-4 py-3 text-sm text-status-success">
         Bedankt! Je aanvraag voor het lidmaatschap wordt beoordeeld binnen het bestuur. Kom je in
         aanmerking, dan ontvang je een bevestiging met de volgende stappen.
       </div>
@@ -214,7 +214,7 @@ export function AccessRequestForm() {
         </span>
       </label>
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+        <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
           {state.error}
         </p>
       )}

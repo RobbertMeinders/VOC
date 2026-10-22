@@ -56,7 +56,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 {t.variant === "success" ? (
                   <CheckCircle2 size={18} className="shrink-0 text-status-success" />
                 ) : (
-                  <XCircle size={18} className="shrink-0 text-voc-red-text" />
+                  <XCircle size={18} className="shrink-0 text-danger-text" />
                 )}
                 <span className="min-w-0 flex-1">{t.message}</span>
                 {t.action && (

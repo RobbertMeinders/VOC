@@ -30,7 +30,7 @@ export function CompanyMembershipForm({
 
   if (state.success) {
     return (
-      <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700 dark:bg-green-500/10 dark:text-green-400">
+      <p className="rounded-lg bg-status-success-soft px-3 py-2 text-sm text-status-success">
         {state.pending
           ? "Aanvraag verzonden - een collega bij dit bedrijf of bestuur/beheerder moet 'm nog goedkeuren."
           : "Bedrijfskoppeling opgeslagen."}
@@ -56,7 +56,7 @@ export function CompanyMembershipForm({
       <p className="text-sm font-medium text-foreground">Bij welk bedrijf werk je?</p>
       <CompanySelector />
       {state.error && (
-        <p role="alert" className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+        <p role="alert" className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
           {state.error}
         </p>
       )}

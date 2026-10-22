@@ -297,7 +297,7 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
 
           <div className="mt-5">
             {activity.status === "cancelled" ? (
-              <p className="rounded-lg bg-voc-red-light px-3 py-2 text-sm text-voc-red-text">
+              <p className="rounded-lg bg-danger-soft px-3 py-2 text-sm text-danger-text">
                 Deze activiteit is afgelast. Aanmelden is niet meer mogelijk.
               </p>
             ) : (

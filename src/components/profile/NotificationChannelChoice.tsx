@@ -111,7 +111,7 @@ export function NotificationChannelChoice({
           </Chip>
         ))}
       </div>
-      {error && <p className="text-right text-xs text-voc-red-text">{error}</p>}
+      {error && <p className="text-right text-xs text-danger-text">{error}</p>}
 
       {/* Alleen tonen als e-mail voor dit type ook echt aan staat — een
           digestkeuze is zinloos zolang er toch geen e-mail verstuurd wordt. */}
@@ -133,7 +133,7 @@ export function NotificationChannelChoice({
           </Chip>
         </div>
       )}
-      {digestError && <p className="text-right text-xs text-voc-red-text">{digestError}</p>}
+      {digestError && <p className="text-right text-xs text-danger-text">{digestError}</p>}
     </div>
   );
 }
