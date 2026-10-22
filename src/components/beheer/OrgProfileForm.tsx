@@ -50,23 +50,25 @@ function HeaderImageUpload({ currentImageUrl }: { currentImageUrl: string | null
 
   return (
     <div className="flex flex-col gap-3">
-      {currentImageUrl && (
-        <div className="relative aspect-[21/9] w-full overflow-hidden rounded-xl border border-border bg-black/5 dark:bg-white/5">
-          <Image src={currentImageUrl} alt="" fill unoptimized className="object-cover" />
-        </div>
-      )}
-      <div className="flex flex-wrap items-center gap-2">
-        <form ref={formRef} action={formAction} className="flex flex-wrap items-center gap-2">
-          <FileSelectButton name="image" accept="image/png,image/jpeg,image/webp,image/avif" required label="Foto kiezen" />
-          <UploadButton />
-        </form>
+      <div className="flex flex-wrap items-center gap-3">
         {currentImageUrl && (
-          <form action={removeOrgHeaderImageAction}>
-            <button type="submit" className="text-xs font-medium text-muted hover:text-petrol">
-              Foto verwijderen
-            </button>
-          </form>
+          <div className="relative aspect-[21/9] w-32 shrink-0 overflow-hidden rounded-lg border border-border bg-black/5 dark:bg-white/5">
+            <Image src={currentImageUrl} alt="" fill unoptimized className="object-cover" />
+          </div>
         )}
+        <div className="flex flex-wrap items-center gap-2">
+          <form ref={formRef} action={formAction} className="flex flex-wrap items-center gap-2">
+            <FileSelectButton name="image" accept="image/png,image/jpeg,image/webp,image/avif" required label="Foto kiezen" />
+            <UploadButton />
+          </form>
+          {currentImageUrl && (
+            <form action={removeOrgHeaderImageAction}>
+              <button type="submit" className="text-xs font-medium text-muted hover:text-petrol">
+                Foto verwijderen
+              </button>
+            </form>
+          )}
+        </div>
       </div>
       {state.error && (
         <p role="alert" className="text-sm text-danger-text">
