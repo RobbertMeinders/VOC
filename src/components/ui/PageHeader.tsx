@@ -57,7 +57,6 @@ export function PageHeader({
           {floatingAction}
         </div>
       )}
-      <div aria-hidden className="gradient-rule mt-4 rounded-full" />
     </div>
   );
 }

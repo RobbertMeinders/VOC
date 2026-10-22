@@ -238,9 +238,11 @@ export default async function HomePage() {
           )}
         </div>
       </div>
-      {/* Identiteit Fase 2: petrol->rood verloop als verbindend lijntje
-          onder het welkomstblok. */}
-      <div aria-hidden className="gradient-rule mx-1 rounded-full" />
+      {/* Identiteit-verfijning: het petrol->rood lijntje hing hier los
+          tussen het welkomstblok en de proefversie-melding (de gap-6 van de
+          omringende flex-kolom gaf evenveel ruimte aan weerszijden van de
+          lijn) en was op mobiel bovendien dubbel met het lijntje dat
+          MobileHeader al onder de header toont — hier dus weggehaald. */}
 
       {/* H (onboarding-opdracht), opnieuw vormgegeven (Opdracht 2): een
           waarschuwingskleur is hier passend — dit ís een waarschuwing dat
