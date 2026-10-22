@@ -1406,6 +1406,30 @@ AS $function$
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.get_members_export()
+ RETURNS TABLE(company_id uuid, company_name text, company_slug text, membership_status text, member_since date, membership_end_date date, company_address text, company_postal_code text, company_city text, company_email text, company_phone text, company_website text, contact_profile_id uuid, contact_first_name text, contact_last_name text, contact_email text, contact_phone text, contact_job_title text, contact_is_primary boolean)
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not public.is_admin() then
+    raise exception 'not authorized';
+  end if;
+
+  return query
+    select
+      c.id, c.name, c.slug, c.membership_status, c.member_since, c.membership_end_date,
+      c.address, c.postal_code, c.city, c.email, c.phone, c.website,
+      cm.profile_id, p.first_name, p.last_name, p.email, p.phone, p.job_title, cm.is_primary
+    from public.companies c
+    left join public.company_members cm on cm.company_id = c.id
+    left join public.profiles p on p.id = cm.profile_id
+    order by c.name, cm.is_primary desc nulls last, p.last_name;
+end;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.get_message_template(p_key text)
  RETURNS TABLE(subject text, body_html text, cta_label text, after_html text, signature_type text, push_title text, push_body text)
  LANGUAGE sql
