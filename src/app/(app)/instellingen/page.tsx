@@ -166,16 +166,15 @@ export default async function InstellingenPage() {
 
       <SettingRow
         label="Mijn gegevens downloaden"
-        description="Een bestand met je profielgegevens, geplaatste berichten/reacties en activiteit-aanmeldingen."
+        description="Een overzicht van je profielgegevens, geplaatste berichten/reacties en activiteit-aanmeldingen."
       >
-        <a
-          href="/api/profiel/export"
-          download
+        <Link
+          href="/profiel/export"
           className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:border-muted hover:text-foreground"
         >
           <Download size={14} />
-          Downloaden
-        </a>
+          Bekijken
+        </Link>
       </SettingRow>
 
       <div className="rounded-2xl border border-voc-red/30 bg-surface p-6 shadow-sm">
