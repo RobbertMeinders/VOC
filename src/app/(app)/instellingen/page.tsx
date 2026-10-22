@@ -98,7 +98,6 @@ export default async function InstellingenPage() {
             type="new_activity"
             initialPush={profile.push_new_activity}
             initialEmail={profile.email_new_activity}
-            digest={{ type: "new_activity", initialDigest: data?.email_digest_new_activity ?? false }}
           />
         </div>
 
@@ -113,7 +112,6 @@ export default async function InstellingenPage() {
             type="feed_comment"
             initialPush={profile.push_feed_comment}
             initialEmail={profile.email_feed_comment}
-            digest={{ type: "feed_comment", initialDigest: data?.email_digest_feed_comment ?? false }}
           />
         </div>
 
@@ -123,7 +121,6 @@ export default async function InstellingenPage() {
             type="feed_mention"
             initialPush={profile.push_feed_mention}
             initialEmail={profile.email_feed_mention}
-            digest={{ type: "feed_mention", initialDigest: data?.email_digest_feed_mention ?? false }}
           />
         </div>
       </SettingGroup>
