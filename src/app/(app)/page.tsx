@@ -81,7 +81,7 @@ export default async function HomePage() {
       .eq("is_organization_account", false)
       .neq("id", profile.id)
       .order("created_at", { ascending: false })
-      .limit(5)
+      .limit(6)
       .returns<NewMemberRow[]>(),
     // Afwerkronde blok 2: "Laatst in de community" op desktop — de 3 meest
     // recente berichten, zelfde ophaalfunctie als de Community-pagina zelf.
