@@ -40,6 +40,13 @@ function isPublicPath(pathname: string) {
   return PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`));
 }
 
+// Zelfde uitzondering als X-Frame-Options hieronder in next.config.ts: /embed
+// en /api/embed zijn bewust wél iframe-baar (ingebed op de publieke
+// WordPress-site), de rest van de app nooit.
+function isEmbedPath(pathname: string) {
+  return pathname === "/embed" || pathname.startsWith("/embed/") || pathname === "/api/embed" || pathname.startsWith("/api/embed/");
+}
+
 /**
  * Refreshes the Supabase session cookie on every request and redirects
  * unauthenticated visitors away from protected routes. This is the only
@@ -60,7 +67,7 @@ function isPublicPath(pathname: string) {
 // (bedrijvenkaart) en unpkg.com (Leaflet's eigen marker-iconen). CARTO's
 // gedempte basemaps (kort geprobeerd in de afwerkronde) bleken een API-key
 // te vereisen — teruggedraaid naar de gratis, geen-key-nodig OSM-tegels.
-function buildCsp(nonce: string): string {
+function buildCsp(nonce: string, embed: boolean): string {
   return [
     `default-src 'self'`,
     `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
@@ -78,6 +85,13 @@ function buildCsp(nonce: string): string {
     // webmanifest (installeerbaarheid/PWA-metadata) op dezelfde manier.
     `worker-src 'self'`,
     `manifest-src 'self'`,
+    // VOC-16: CSP-eigen (modernere) tegenhanger van de X-Frame-Options-header
+    // in next.config.ts — defense-in-depth, X-Frame-Options: DENY blokkeerde
+    // hier al wel framen op elk ander pad. /embed en /api/embed zijn bewust
+    // wél iframe-baar (de publieke WordPress-site van de VOC zelf, zie
+    // beheer/embed-codes), en die hostname staat nergens vast in de app —
+    // dus net als X-Frame-Options daar helemaal weglaten, geen restrictie.
+    embed ? `frame-ancestors *` : `frame-ancestors 'self'`,
   ].join("; ");
 }
 
@@ -85,7 +99,7 @@ export async function updateSession(request: NextRequest) {
   const maxAge = request.cookies.get(REMEMBER_ME_COOKIE)?.value === "1" ? REMEMBERED_MAX_AGE : DEFAULT_MAX_AGE;
   let pendingCookies: { name: string; value: string; options: CookieOptions }[] = [];
   const nonce = crypto.randomUUID();
-  const csp = buildCsp(nonce);
+  const csp = buildCsp(nonce, isEmbedPath(request.nextUrl.pathname));
 
   const supabase = createServerClient<Database>(supabaseUrl(), supabaseAnonKey(), {
     // Zie dezelfde toelichting in supabase/server.ts.
