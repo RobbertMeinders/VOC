@@ -294,7 +294,7 @@ export default async function HomePage() {
         />
       )}
 
-      {showContactVisibilityPrompt && <ContactVisibilityPrompt />}
+      {showContactVisibilityPrompt && <ContactVisibilityPrompt email={profile.email} phone={profile.phone} />}
 
       {/* Mobiel: ongewijzigd t.o.v. voor de afwerkronde-herindeling —
           "Snel naar" als los blok, dan "Nieuw in het netwerk" als rij

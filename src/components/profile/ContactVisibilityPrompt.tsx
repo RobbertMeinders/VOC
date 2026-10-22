@@ -10,7 +10,7 @@ import { updateShowEmailAction, updateShowPhoneAction, dismissContactVisibilityP
 // bestaande dunne rise-in-regeltjes (ProfilePhotoPrompt/IntroductionPrompt):
 // twee volwaardige knoppen i.p.v. één klikbare tekstregel, dus een eigen,
 // iets grotere kaart. Bewust NIET op de (eerste-login) welkomstdialoog.
-export function ContactVisibilityPrompt() {
+export function ContactVisibilityPrompt({ email, phone }: { email: string | null; phone: string | null }) {
   const [isPending, startTransition] = useTransition();
 
   function handleShow() {
@@ -25,10 +25,12 @@ export function ContactVisibilityPrompt() {
     });
   }
 
+  const currentValues = phone ? `${email} · ${phone}` : email;
+
   return (
     <div className="animate-rise-in flex flex-col gap-3 rounded-2xl bg-surface p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
       <p className="text-sm text-foreground">
-        Andere leden zien je e-mail en telefoonnummer nu niet — een bericht sturen kan altijd. Mogen ze je gegevens
+        Andere leden zien je e-mail en telefoonnummer nu niet. Een bericht sturen kan altijd. Mogen ze je gegevens
         wel zien?
       </p>
       <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
@@ -51,7 +53,7 @@ export function ContactVisibilityPrompt() {
           </button>
         </div>
         <Link href="/profiel" className="text-xs text-muted hover:text-petrol hover:underline">
-          Kloppen je gegevens niet? Wijzig ze hier.
+          Kloppen je gegevens niet? {currentValues} - wijzig ze hier.
         </Link>
       </div>
     </div>

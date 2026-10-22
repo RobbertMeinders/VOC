@@ -161,7 +161,7 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
           (0180_privacy_defaults_hidden.sql) — alleen tonen zolang het adres
           nog verborgen staat EN nog niet weggeklikt. */}
       {canManage && !company.show_address && !company.address_visibility_prompt_dismissed_at && (
-        <AddressVisibilityPrompt companyId={company.id} companySlug={company.slug} />
+        <AddressVisibilityPrompt companyId={company.id} companySlug={company.slug} address={company.address} />
       )}
 
       {/* UX-review V6: deze kaart liet op bijna elk bedrijf alleen "Nog geen

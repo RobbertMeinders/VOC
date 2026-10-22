@@ -12,10 +12,12 @@ import { companyHref } from "@/lib/company/slug";
 export function AddressVisibilityPrompt({
   companyId,
   companySlug,
+  address,
   message = "Andere leden zien je bedrijfsadres nu niet, en het staat niet op de kaart. Mogen ze het wel zien?",
 }: {
   companyId: string;
   companySlug: string;
+  address: string | null;
   message?: string;
 }) {
   const [isPending, startTransition] = useTransition();
@@ -55,7 +57,7 @@ export function AddressVisibilityPrompt({
           </button>
         </div>
         <Link href={`${companyHref({ slug: companySlug })}/bewerken`} className="text-xs text-muted hover:text-petrol hover:underline">
-          Kloppen je gegevens niet? Wijzig ze hier.
+          Kloppen je gegevens niet?{address ? ` ${address}` : ""} - wijzig ze hier.
         </Link>
       </div>
     </div>

@@ -14,6 +14,7 @@ type OwnCompanyMapPromptRow = {
   company: {
     id: string;
     slug: string;
+    address: string | null;
     show_address: boolean;
     address_visibility_prompt_dismissed_at: string | null;
     latitude: number | null;
@@ -59,7 +60,7 @@ export default async function BedrijvenPage() {
   const { data: ownCompanyRows } = await supabase
     .from("company_members")
     .select(
-      "company:companies(id, slug, show_address, address_visibility_prompt_dismissed_at, latitude, longitude)"
+      "company:companies(id, slug, address, show_address, address_visibility_prompt_dismissed_at, latitude, longitude)"
     )
     .eq("profile_id", profile.id)
     .returns<OwnCompanyMapPromptRow[]>();
@@ -111,6 +112,7 @@ export default async function BedrijvenPage() {
           <AddressVisibilityPrompt
             companyId={ownCompanyForMapPrompt.id}
             companySlug={ownCompanyForMapPrompt.slug}
+            address={ownCompanyForMapPrompt.address}
             message="Je bezoekersadres staat op verborgen. Mogen andere leden het op de kaart zien?"
           />
         </div>
