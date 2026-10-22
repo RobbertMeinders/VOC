@@ -66,6 +66,19 @@ export async function updateProfileAction(
     }
   }
 
+  // Profielhero-herontwerp: coverUrl ongedefinieerd laten = kolom ongemoeid
+  // laten, null = losgekoppeld (CoverPhotoField's verborgen "cover_remove"-
+  // veld, want uploadImage/removePreviousImage kennen zelf geen "leegmaken").
+  let coverPath: string | null | undefined;
+  const coverFile = formData.get("cover");
+  if (coverFile instanceof File && coverFile.size > 0) {
+    const result = await uploadImage(supabase, "profile-covers", profile.id, coverFile);
+    if ("error" in result) return { error: result.error };
+    coverPath = result.path;
+  } else if (formData.get("cover_remove") === "true") {
+    coverPath = null;
+  }
+
   // F2 (UX-audit): show_email/show_phone worden niet meer via dit formulier
   // opgeslagen — ShowContactToggle (nu ook ingezet op /profiel, zie
   // ProfileForm) is daar via updateShowEmailAction/updateShowPhoneAction al
@@ -83,6 +96,7 @@ export async function updateProfileAction(
       phone: phone || null,
       linkedin_url: linkedinUrl || null,
       ...(avatarPath ? { avatar_url: avatarPath, avatar_thumb_url: avatarThumbPath } : {}),
+      ...(coverPath !== undefined ? { cover_url: coverPath } : {}),
     })
     .eq("id", profile.id);
 
@@ -97,6 +111,9 @@ export async function updateProfileAction(
   if (avatarPath) {
     await removePreviousImage(supabase, "avatars", profile.avatar_url);
     await removePreviousImage(supabase, "avatars", profile.avatar_thumb_url);
+  }
+  if (coverPath !== undefined) {
+    await removePreviousImage(supabase, "profile-covers", profile.cover_url);
   }
 
   // Naam/functie/avatar staan ook in de ledenlijst.

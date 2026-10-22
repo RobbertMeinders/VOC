@@ -6,6 +6,7 @@ import { Camera } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Avatar } from "@/components/ui/Avatar";
+import { CoverPhotoField } from "@/components/ui/CoverPhotoField";
 import { ShowContactToggle } from "@/components/profile/ShowContactToggle";
 import { FieldError } from "@/components/ui/FieldError";
 import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
@@ -32,10 +33,12 @@ function SubmitButton() {
 export function ProfileForm({
   profile,
   avatarUrl,
+  coverUrl,
   action = updateProfileAction,
 }: {
   profile: Profile;
   avatarUrl: string | null;
+  coverUrl: string | null;
   action?: (prevState: UpdateProfileState, formData: FormData) => Promise<UpdateProfileState>;
 }) {
   const [state, formAction] = useActionState(action, initialState);
@@ -63,6 +66,7 @@ export function ProfileForm({
       className="flex flex-col gap-5"
     >
       <FormErrorSummary errors={errors} />
+      <CoverPhotoField name="cover" initialUrl={coverUrl} />
       <div className="flex items-center gap-4">
         <div className="relative shrink-0">
           <Avatar

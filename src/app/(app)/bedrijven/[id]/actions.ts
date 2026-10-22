@@ -95,6 +95,19 @@ export async function updateCompanyAction(
     }
   }
 
+  // Profielhero-herontwerp: zelfde optioneel-leegmaken-patroon als bij
+  // ProfileForm/updateProfileAction — undefined = kolom ongemoeid laten,
+  // null = losgekoppeld via CoverPhotoField's verborgen "cover_remove"-veld.
+  let coverPath: string | null | undefined;
+  const coverFile = formData.get("cover");
+  if (coverFile instanceof File && coverFile.size > 0) {
+    const result = await uploadImage(supabase, "company-covers", companyId, coverFile);
+    if ("error" in result) return { error: result.error };
+    coverPath = result.path;
+  } else if (formData.get("cover_remove") === "true") {
+    coverPath = null;
+  }
+
   // Opnieuw geocoderen (Nominatim-aanroep) als het adres wijzigde, of als
   // er nog helemaal geen coördinaten bekend zijn — dat laatste vangt zowel
   // bedrijven die vóór deze functie al een adres hadden ingevuld, als een
@@ -108,7 +121,7 @@ export async function updateCompanyAction(
   // nu dicht voor authenticated, dus moet via deze functie gelezen worden.
   const { data: existing } = await supabase
     .rpc("companies_for_members")
-    .select("address, postal_code, city, latitude, longitude, logo_url, logo_thumb_url, slug")
+    .select("address, postal_code, city, latitude, longitude, logo_url, logo_thumb_url, cover_url, slug")
     .eq("id", companyId)
     .maybeSingle();
 
@@ -159,6 +172,7 @@ export async function updateCompanyAction(
         instagram_url: instagramUrl || null,
         facebook_url: facebookUrl || null,
         ...(logoPath ? { logo_url: logoPath, logo_thumb_url: logoThumbPath } : {}),
+        ...(coverPath !== undefined ? { cover_url: coverPath } : {}),
         ...coordinateUpdate,
       },
       { count: "exact" }
@@ -177,6 +191,9 @@ export async function updateCompanyAction(
   if (logoPath) {
     await removePreviousImage(supabase, "company-logos", existing?.logo_url);
     await removePreviousImage(supabase, "company-logos", existing?.logo_thumb_url);
+  }
+  if (coverPath !== undefined) {
+    await removePreviousImage(supabase, "company-covers", existing?.cover_url);
   }
 
   await logAuditAction("company_updated", "company", companyId);
@@ -228,7 +245,6 @@ export async function quickUpdateCompanyAction(
         phone: String(formData.get("phone") ?? "").trim() || null,
         email: String(formData.get("email") ?? "").trim() || null,
         website: String(formData.get("website") ?? "").trim() || null,
-        ...(validStatus ? { membership_status: validStatus } : {}),
       },
       { count: "exact" }
     )
@@ -237,6 +253,18 @@ export async function quickUpdateCompanyAction(
 
   if (error || !count) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+  }
+
+  // membership_status loopt via een eigen RPC (0186): de kolom zelf staat
+  // niet meer in de UPDATE-kolomrechten van authenticated.
+  if (validStatus) {
+    const { error: statusError } = await supabase.rpc("set_company_membership_status", {
+      p_company_id: companyId,
+      p_status: validStatus,
+    });
+    if (statusError) {
+      return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+    }
   }
 
   await logAuditAction("company_updated", "company", companyId);

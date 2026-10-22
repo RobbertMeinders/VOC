@@ -60,6 +60,7 @@ export interface Database {
           introduction_prompt_dismissed_at: string | null;
           contact_visibility_prompt_dismissed_at: string | null;
           welcome_dialog_dismissed_at: string | null;
+          cover_url: string | null;
           created_at: string;
           updated_at: string;
         };
@@ -99,6 +100,7 @@ export interface Database {
           member_since: string | null;
           membership_end_date: string | null;
           address_visibility_prompt_dismissed_at: string | null;
+          cover_url: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -1032,6 +1034,10 @@ export interface Database {
       };
       set_company_publicly_visible: {
         Args: { p_company_id: string; p_visible: boolean };
+        Returns: void;
+      };
+      set_company_membership_status: {
+        Args: { p_company_id: string; p_status: string };
         Returns: void;
       };
       get_members_export: {

@@ -74,8 +74,9 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
     isPrimaryContact = memberRow.is_primary;
   }
 
-  const [logoUrl, { data: billing }] = await Promise.all([
+  const [logoUrl, coverUrl, { data: billing }] = await Promise.all([
     getSignedStorageUrl("company-logos", company.logo_url),
+    getSignedStorageUrl("company-covers", company.cover_url),
     supabase.from("company_billing_details").select("*").eq("company_id", company.id).maybeSingle<CompanyBillingDetails>(),
   ]);
 
@@ -84,7 +85,7 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
       <PageHeader title="Bedrijfsgegevens bewerken" back={{ href: companyHref(company), label: `Terug naar ${company.name}` }} />
       <CompanyEditFormsGuard>
         <div className="rounded-2xl bg-surface p-6 shadow-sm">
-          <CompanyForm company={company} logoUrl={logoUrl} />
+          <CompanyForm company={company} logoUrl={logoUrl} coverUrl={coverUrl} />
         </div>
         <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <h2 className="mb-1 text-sm font-semibold text-foreground">Factuurgegevens</h2>

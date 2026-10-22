@@ -12,7 +12,9 @@ type Bucket =
   | "activity-images"
   | "activity-attachments"
   | "news-images"
-  | "feedback-screenshots";
+  | "feedback-screenshots"
+  | "company-covers"
+  | "profile-covers";
 
 // Elke signed URL kreeg tot nu toe bij elke aanroep een gloednieuwe, unieke
 // token — ook voor exact hetzelfde bestand. Omdat die URL de cache-sleutel

@@ -359,13 +359,31 @@ export async function updateMemberProfileAction(
   let avatarPath: string | undefined;
   let previousAvatarUrl: string | null = null;
   const avatarFile = formData.get("avatar");
-  if (avatarFile instanceof File && avatarFile.size > 0) {
-    const { data: existing } = await supabase.from("profiles").select("avatar_url").eq("id", memberId).maybeSingle();
+  // Profielhero-herontwerp: ook de coverfoto kan hier (board bewerkt
+  // andermans profiel) wijzigen — bestaand profiel-pad voor de oude url nodig
+  // bij beide, dus die ene select hieronder voor zowel avatar als cover.
+  let coverPath: string | null | undefined;
+  const coverFile = formData.get("cover");
+  const needsExisting = (avatarFile instanceof File && avatarFile.size > 0) || coverFile instanceof File || formData.get("cover_remove") === "true";
+  let previousCoverUrl: string | null = null;
+  if (needsExisting) {
+    const { data: existing } = await supabase.from("profiles").select("avatar_url, cover_url").eq("id", memberId).maybeSingle();
     previousAvatarUrl = existing?.avatar_url ?? null;
+    previousCoverUrl = existing?.cover_url ?? null;
+  }
 
+  if (avatarFile instanceof File && avatarFile.size > 0) {
     const result = await uploadImage(supabase, "avatars", memberId, avatarFile);
     if ("error" in result) return { error: result.error };
     avatarPath = result.path;
+  }
+
+  if (coverFile instanceof File && coverFile.size > 0) {
+    const result = await uploadImage(supabase, "profile-covers", memberId, coverFile);
+    if ("error" in result) return { error: result.error };
+    coverPath = result.path;
+  } else if (formData.get("cover_remove") === "true") {
+    coverPath = null;
   }
 
   const { data, error, count } = await supabase
@@ -381,6 +399,7 @@ export async function updateMemberProfileAction(
         show_phone: showPhone,
         linkedin_url: linkedinUrl || null,
         ...(avatarPath ? { avatar_url: avatarPath } : {}),
+        ...(coverPath !== undefined ? { cover_url: coverPath } : {}),
       },
       { count: "exact" }
     )
@@ -393,6 +412,9 @@ export async function updateMemberProfileAction(
 
   if (avatarPath) {
     await removePreviousImage(supabase, "avatars", previousAvatarUrl);
+  }
+  if (coverPath !== undefined) {
+    await removePreviousImage(supabase, "profile-covers", previousCoverUrl);
   }
 
   await logAuditAction("member_profile_updated", "profile", memberId);

@@ -21,7 +21,7 @@ export default async function ProfielPage() {
   const profile = await requireProfile();
   const supabase = await createClient();
 
-  const [{ data: membership }, { data: pendingRequest }, avatarUrl, hasIntroduced] = await Promise.all([
+  const [{ data: membership }, { data: pendingRequest }, avatarUrl, coverUrl, hasIntroduced] = await Promise.all([
     supabase
       .from("company_members")
       .select("company:companies(id, slug, name, city)")
@@ -38,6 +38,7 @@ export default async function ProfielPage() {
       .maybeSingle()
       .returns<PendingRequest>(),
     getSignedStorageUrl("avatars", profile.avatar_url),
+    getSignedStorageUrl("profile-covers", profile.cover_url),
     hasIntroductionPost(supabase, profile.id),
   ]);
 
@@ -108,7 +109,7 @@ export default async function ProfielPage() {
       )}
 
       <div className="rounded-2xl bg-surface p-6 shadow-sm">
-        <ProfileForm profile={profile} avatarUrl={avatarUrl} />
+        <ProfileForm profile={profile} avatarUrl={avatarUrl} coverUrl={coverUrl} />
       </div>
 
       {membership?.company && (

@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Switch } from "@/components/ui/Switch";
+import { CoverPhotoField } from "@/components/ui/CoverPhotoField";
 import { FieldError } from "@/components/ui/FieldError";
 import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
 import { FormSection, FormSections, FormToggleRow } from "@/components/ui/FormSection";
@@ -34,7 +35,15 @@ function SubmitButton() {
   );
 }
 
-export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: string | null }) {
+export function CompanyForm({
+  company,
+  logoUrl,
+  coverUrl,
+}: {
+  company: Company;
+  logoUrl: string | null;
+  coverUrl: string | null;
+}) {
   const updateWithId = updateCompanyAction.bind(null, company.id);
   const [state, formAction] = useActionState(updateWithId, initialState);
   const [preview, setPreview] = useState<string | null>(null);
@@ -96,6 +105,7 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
       className="flex flex-col gap-5"
     >
       <FormErrorSummary errors={errors} />
+      <CoverPhotoField name="cover" initialUrl={coverUrl} />
       <div className="flex items-center gap-4">
         <div className="relative shrink-0">
           <CompanyLogo logoUrl={shownLogo} name={company.name} size={72} />

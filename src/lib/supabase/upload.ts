@@ -48,7 +48,16 @@ function sanitizeSvg(svg: string): string {
  */
 export async function uploadImage(
   supabase: SupabaseClient<Database>,
-  bucket: "avatars" | "company-logos" | "activity-images" | "email-assets" | "news-images" | "feed-media" | "feedback-screenshots",
+  bucket:
+    | "avatars"
+    | "company-logos"
+    | "activity-images"
+    | "email-assets"
+    | "news-images"
+    | "feed-media"
+    | "feedback-screenshots"
+    | "company-covers"
+    | "profile-covers",
   folder: string,
   file: File
 ): Promise<ImageUploadResult> {
@@ -105,7 +114,7 @@ export async function uploadImage(
  */
 export async function removePreviousImage(
   supabase: SupabaseClient<Database>,
-  bucket: "avatars" | "company-logos" | "activity-images" | "email-assets" | "news-images",
+  bucket: "avatars" | "company-logos" | "activity-images" | "email-assets" | "news-images" | "company-covers" | "profile-covers",
   previousPath: string | null | undefined
 ): Promise<void> {
   if (!previousPath) return;

@@ -6,7 +6,15 @@ import { ProfileForm } from "@/components/profile/ProfileForm";
 import { updateMemberProfileAction } from "@/app/(app)/leden/[id]/actions";
 import type { Profile } from "@/lib/auth/session";
 
-export function AdminEditProfile({ member, avatarUrl }: { member: Profile; avatarUrl: string | null }) {
+export function AdminEditProfile({
+  member,
+  avatarUrl,
+  coverUrl,
+}: {
+  member: Profile;
+  avatarUrl: string | null;
+  coverUrl: string | null;
+}) {
   const [open, setOpen] = useState(false);
   const action = updateMemberProfileAction.bind(null, member.id);
 
@@ -25,7 +33,7 @@ export function AdminEditProfile({ member, avatarUrl }: { member: Profile; avata
 
   return (
     <div className="rounded-xl border border-border bg-background p-4">
-      <ProfileForm profile={member} avatarUrl={avatarUrl} action={action} />
+      <ProfileForm profile={member} avatarUrl={avatarUrl} coverUrl={coverUrl} action={action} />
       <button type="button" onClick={() => setOpen(false)} className="mt-3 text-xs text-muted hover:underline">
         Sluiten
       </button>
