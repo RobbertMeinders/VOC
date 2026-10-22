@@ -1,8 +1,8 @@
 "use client";
 
-import { useId, useState, useTransition } from "react";
+import { useEffect, useId, useState, useTransition } from "react";
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { X } from "lucide-react";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { Button } from "@/components/ui/Button";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
@@ -22,6 +22,9 @@ import { dismissWelcomeDialogAction } from "@/app/(app)/profiel/actions";
 // en de dialoog telkens terugkomen — met deze vlag blijft hij in elk geval
 // dicht voor de rest van de sessie.
 const DISMISS_SESSION_KEY = "voc-welcome-dialog-dismissed";
+// Polish-ronde: niet meteen bij het laden tonen, zodat de Home eerst rustig
+// in beeld komt.
+const SHOW_DELAY_MS = 2500;
 
 export function WelcomeDialog({ shouldShow }: { shouldShow: boolean }) {
   const [dismissed, setDismissed] = useState(() => {
@@ -32,8 +35,15 @@ export function WelcomeDialog({ shouldShow }: { shouldShow: boolean }) {
       return false;
     }
   });
+  const [delayElapsed, setDelayElapsed] = useState(false);
   const [isPending, startTransition] = useTransition();
-  const open = shouldShow && !dismissed;
+  const open = shouldShow && !dismissed && delayElapsed;
+
+  useEffect(() => {
+    if (!shouldShow || dismissed) return;
+    const timer = setTimeout(() => setDelayElapsed(true), SHOW_DELAY_MS);
+    return () => clearTimeout(timer);
+  }, [shouldShow, dismissed]);
 
   function handleDismiss() {
     setDismissed(true);
@@ -70,27 +80,37 @@ export function WelcomeDialog({ shouldShow }: { shouldShow: boolean }) {
           aria-modal="true"
           aria-labelledby={titleId}
           tabIndex={-1}
-          className="animate-scale-in w-full max-w-sm rounded-2xl bg-surface p-6 shadow-lg focus:outline-none"
+          className="animate-scale-in relative w-full max-w-sm rounded-2xl bg-surface p-6 pt-8 text-center shadow-lg focus:outline-none"
           onClick={(e) => e.stopPropagation()}
         >
-          <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-petrol-soft text-petrol">
-            <Sparkles size={20} />
-          </div>
-          <h2 id={titleId} className="font-display text-xl font-extrabold tracking-[-0.02em] text-foreground">
-            Je bent een van de eersten
+          <button
+            type="button"
+            onClick={handleDismiss}
+            aria-label="Sluiten"
+            className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-muted hover:bg-black/[.04] hover:text-foreground dark:hover:bg-white/[.08]"
+          >
+            <X size={16} />
+          </button>
+          <p className="text-xs font-bold uppercase tracking-wide text-voc-red-text">Proefversie</p>
+          <h2 id={titleId} className="mt-1 font-display text-xl font-extrabold tracking-[-0.02em] text-foreground">
+            Welkom, je bent er vroeg bij
           </h2>
           <p className="mt-2 text-sm text-muted">
-            Je gebruikt de proefversie van het ledenportaal. Bijna alles werkt al, maar soms hapert er nog iets.
-            Loop je ergens tegenaan? Laat het ons weten via Feedback geven.
+            Je gebruikt de proefversie van het ledenportaal. Bijna alles werkt al, maar het kan zijn dat er nog
+            fouten in zitten. Loop je ergens tegenaan? Laat het ons weten.
           </p>
-          <div className="mt-5 flex items-center justify-between gap-3">
-            <Link href="/testfase" onClick={handleDismiss} className="text-sm font-medium text-petrol hover:underline">
-              Meer over de proefversie
-            </Link>
+          <div className="mt-5 flex justify-center">
             <Button type="button" size="sm" disabled={isPending} onClick={handleDismiss}>
               Aan de slag
             </Button>
           </div>
+          <Link
+            href="/testfase"
+            onClick={handleDismiss}
+            className="mt-3 inline-block text-sm font-medium text-petrol hover:underline"
+          >
+            Meer over de proefversie
+          </Link>
         </div>
       </div>
     </FloatingPortal>
