@@ -17,14 +17,30 @@ export type MessageTemplateRow = {
   push_body: string | null;
 };
 
-// Zelfde rode knopkleur als het ontwerpvoorbeeld (docs/design/automatische-
-// berichten), maar als table/td-knop i.p.v. een los gestylede <a> — zelfde
-// reden/fix als renderButton in newsletter/render.ts: Outlook (en andere
-// Word-rendering-mailclients) negeert padding/border-radius op een <a>-tag,
-// waardoor de knop als een kaal, onopvallend stukje tekst oogde i.p.v. een
-// echte knop.
+// Outlook (de Word-rendering-engine) ondersteunt CSS border-radius op geen
+// enkel element — de eerdere <td>-fix loste alleen de ontbrekende padding
+// op, de hoeken bleven haaks (live feedback: "knop is nog niet mooi" bleef
+// terugkomen, ook na die fix). VML is de enige manier om in Outlook toch
+// afgeronde hoeken te krijgen, en is alleen zichtbaar binnen een
+// <!--[if mso]>-blok: elke andere mailclient leest dat als gewoon
+// HTML-commentaar en toont in plaats daarvan het blok na
+// <!--[if !mso]><!-->. Zelfde patroon als renderButton in
+// newsletter/render.ts. v:roundrect kent geen automatische breedte, dus
+// die wordt hier ruw geschat op basis van de labellengte.
 function renderCta(url: string, label: string): string {
-  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:4px 0 16px;"><tr><td bgcolor="#e8000f" style="border-radius:8px;background:#e8000f;padding:11px 20px;"><a href="${escapeHtml(url)}" style="display:block;color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;">${escapeHtml(label)}</a></td></tr></table>`;
+  const escapedUrl = escapeHtml(url);
+  const escapedLabel = escapeHtml(label);
+  const width = Math.max(140, label.length * 9 + 48);
+  return `<div style="margin:4px 0 16px;">
+<!--[if mso]>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapedUrl}" style="height:44px;v-text-anchor:middle;width:${width}px;" arcsize="18%" stroke="f" fillcolor="#e8000f">
+<center style="color:#ffffff;font-family:sans-serif;font-size:14px;font-weight:bold;">${escapedLabel}</center>
+</v:roundrect>
+<![endif]-->
+<!--[if !mso]><!-->
+<a href="${escapedUrl}" style="background-color:#e8000f;border-radius:8px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:14px;font-weight:700;line-height:44px;padding:0 20px;text-align:center;text-decoration:none;">${escapedLabel}</a>
+<!--<![endif]-->
+</div>`;
 }
 
 // Zelfde bewoording/stijl als de bestaande notificatiemail-voettekst

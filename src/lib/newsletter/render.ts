@@ -114,17 +114,34 @@ function renderImageBlock(block: Extract<NewsletterBlock, { type: "image" }>): s
 // clients die CSS background op <td> onbetrouwbaar vinden, <a> wordt
 // display:block zodat die de volle (al gepadde) cel vult i.p.v. zelf nog
 // ruimte te moeten claimen.
-function renderButton(url: string, label: string, align: NewsletterAlign | undefined): string {
-  return `<table role="presentation" cellpadding="0" cellspacing="0" align="${align === "right" ? "right" : align === "center" ? "center" : "left"}" style="margin:0;">
-    <tr><td bgcolor="${COLORS.green}" style="border-radius:${BUTTON_RADIUS};background:${COLORS.green};padding:12px 24px;">
-      <a href="${escapeHtml(url)}" style="display:block;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;font-family:${FONT};">${escapeHtml(label)}</a>
-    </td></tr>
-  </table>`;
+// Outlook (de Word-rendering-engine) ondersteunt CSS border-radius op geen
+// enkel element -- de eerdere <td>-fix loste alleen de ontbrekende padding
+// op, de hoeken bleven haaks (live feedback: "knop is nog niet mooi" bleef
+// terugkomen). VML is de enige manier om in Outlook toch afgeronde hoeken
+// te krijgen, en is alleen zichtbaar binnen een <!--[if mso]>-blok: elke
+// andere mailclient (en de live preview hier in de beheereditor) leest dat
+// als gewoon HTML-commentaar en toont in plaats daarvan het blok na
+// <!--[if !mso]><!-->. v:roundrect kent geen automatische breedte, dus die
+// wordt hier ruw geschat op basis van de labellengte -- de omliggende
+// <td align>/text-align (renderButtonBlock) regelt de uitlijning, dus dat
+// hoeft deze functie zelf niet meer te doen.
+function renderButton(url: string, label: string): string {
+  const escapedUrl = escapeHtml(url);
+  const escapedLabel = escapeHtml(label);
+  const width = Math.max(120, label.length * 8 + 48);
+  return `<!--[if mso]>
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapedUrl}" style="height:40px;v-text-anchor:middle;width:${width}px;" arcsize="20%" stroke="f" fillcolor="${COLORS.green}">
+<center style="color:#ffffff;font-family:sans-serif;font-size:14px;font-weight:600;">${escapedLabel}</center>
+</v:roundrect>
+<![endif]-->
+<!--[if !mso]><!-->
+<a href="${escapedUrl}" style="background-color:${COLORS.green};border-radius:${BUTTON_RADIUS};color:#ffffff;display:inline-block;font-family:${FONT};font-size:14px;font-weight:600;line-height:40px;padding:0 24px;text-align:center;text-decoration:none;">${escapedLabel}</a>
+<!--<![endif]-->`;
 }
 
 function renderButtonBlock(block: Extract<NewsletterBlock, { type: "button" }>): string {
   return `<tr><td align="${block.align ?? "left"}" style="padding:0 24px 28px;${alignStyle(block.align)}">
-    ${renderButton(block.url, block.label, block.align)}
+    ${renderButton(block.url, block.label)}
   </td></tr>`;
 }
 
@@ -159,7 +176,7 @@ function renderEventBlock(block: Extract<NewsletterBlock, { type: "event" }>): s
       ${dateLine}
       ${locationLine}
       ${description}
-      <div style="margin-top:14px;">${renderButton(block.linkUrl, block.buttonLabel || "Bekijk activiteit", "left")}</div>
+      <div style="margin-top:14px;">${renderButton(block.linkUrl, block.buttonLabel || "Bekijk activiteit")}</div>
     </div>
   </td></tr>`;
 }
