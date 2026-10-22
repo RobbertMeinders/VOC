@@ -66,6 +66,10 @@ export async function sendPushBroadcastAction(
   // doorgeven voorkomt dubbele notifications-rijen voor hetzelfde lid (de
   // RPC zelf dedupet ook, zie 0196, maar dit telt "sent" meteen correct).
   const uniqueReachedProfileIds = [...new Set(reachedProfileIds)];
+  // "total" moet in dezelfde eenheid tellen als "sent" (leden, niet losse
+  // abonnementen) — anders klopt bv. "1 van 4" niet meer zodra een lid met
+  // 2 apparaten meetelt als 2 in total maar maar 1x in sent.
+  const uniqueTotalProfileIds = new Set((subscriptions ?? []).map((s) => s.profile_id)).size;
 
   await supabase.rpc("record_manual_push_broadcast", {
     p_reached_profile_ids: uniqueReachedProfileIds,
@@ -74,5 +78,5 @@ export async function sendPushBroadcastAction(
     p_body: message,
   });
 
-  return { sent: uniqueReachedProfileIds.length, total: subscriptions?.length ?? 0 };
+  return { sent: uniqueReachedProfileIds.length, total: uniqueTotalProfileIds };
 }

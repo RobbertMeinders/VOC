@@ -76,7 +76,7 @@ export function PushBroadcastForm() {
       )}
       {state.sent !== undefined && (
         <p className="text-sm text-status-success">
-          {state.sent} van {state.total} abonnementen bereikt.
+          {state.sent} van {state.total} leden bereikt.
         </p>
       )}
 
