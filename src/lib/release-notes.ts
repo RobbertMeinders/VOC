@@ -6,6 +6,17 @@ export type ReleaseNote = { version: string; items: string[] };
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "0.13.0",
+    items: [
+      "Diverse extra beveiligingsmaatregelen doorgevoerd (o.a. rond formulieren, koppelingen en bestanden).",
+      "\"Collega uitnodigen\" bij je eigen bedrijf werkt weer voor gewone leden.",
+      "Een tweede aanmelding voor een activiteit met hetzelfde e-mailadres maar afwijkende gegevens geeft nu een duidelijke melding, in plaats van de eerdere aanmelding stilletjes te overschrijven.",
+      "Beheer → Leden: nieuwe sorteerknop en kolom \"Laatst actief\".",
+      "Je ledenprofiel toont op mobiel voortaan eerst je contactgegevens, werkgever en bijgewoonde activiteiten, en daarna pas je berichten.",
+      "Het welkomstscherm bij je eerste keer inloggen is iets compacter gemaakt.",
+    ],
+  },
+  {
     version: "0.12.0",
     items: [
       "E-mailknoppen zijn nu overal groen en helemaal rond, in plaats van rood met rechte hoeken.",
