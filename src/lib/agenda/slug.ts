@@ -11,8 +11,13 @@ const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 const NL_TIMEZONE = "Europe/Amsterdam";
 
-export function activityHref(activity: { slug: string }, suffix = ""): string {
-  return `/agenda/${activity.slug}${suffix}`;
+// Terugval op `id` als `slug` onverwacht ontbreekt (bv. een query die de
+// kolom niet heeft geselecteerd) — anders bouwt dit stilzwijgend
+// `/agenda/undefined` i.p.v. een werkende link. `id` is optioneel: op de
+// meeste plekken staat de slug al vast (bv. na een eigen slug-opzoeking) en
+// is er geen losse id bij de hand.
+export function activityHref(activity: { slug: string; id?: string }, suffix = ""): string {
+  return `/agenda/${activity.slug ?? activity.id}${suffix}`;
 }
 
 // Oude, rechtstreeks verstuurde links (kaal UUID, bv. in eerder verstuurde

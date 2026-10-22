@@ -30,7 +30,7 @@ type ActivityRow = Database["public"]["Tables"]["activities"]["Row"];
 // nodig hebben (title/beschrijving/externe-link/deadline enz. staan pas op
 // het activiteitdetail) — scheelt onnodige kolommen op een query die elke
 // keer deze pagina geladen wordt opnieuw draait.
-const ACTIVITY_LIST_COLUMNS = "id, title, starts_at, location, status, source, max_participants, image_url, image_thumb_url";
+const ACTIVITY_LIST_COLUMNS = "id, slug, title, starts_at, location, status, source, max_participants, image_url, image_thumb_url";
 
 // Verleden activiteiten blijven zich ophopen (bron van de inklapbare
 // "Eerdere activiteiten"-sectie) terwijl toekomstige/actuele er typisch maar
