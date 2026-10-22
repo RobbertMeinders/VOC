@@ -133,10 +133,14 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
   if (membership?.company?.city) pills.push({ label: membership.company.city });
   if (!member.is_active) pills.push({ label: "Gedeactiveerd", tone: "danger" });
 
+  // Hero-fix (lege-kolom-bug): op andermans profiel zonder bio en zonder
+  // bijgewoonde activiteiten (berichten tonen we daar sowieso nooit) is de
+  // hoofdkolom anders leeg, met een eenzame Contact-kaart ver rechts.
+  const hasMain = Boolean(member.bio) || attendedActivities.length > 0 || (isOwnProfile && posts.length > 0);
+
   return (
     <div className="flex flex-col gap-4">
       <ProfileHero
-        eyebrow="Lid"
         name={`${member.first_name} ${member.last_name}`}
         subtitle={member.job_title}
         coverUrl={coverUrl}
@@ -155,6 +159,7 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
       />
 
       <ProfileColumns
+        hasMain={hasMain}
         main={
           <>
             {member.bio && (

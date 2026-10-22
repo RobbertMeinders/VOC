@@ -154,11 +154,9 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
       }))
     : [];
 
-  // Profielhero-herontwerp: "Lid-bedrijf" uit de mockup zou voor een
-  // prospect/opgezegd/oud-lid-bedrijf onjuist zijn — de eyebrow blijft
-  // daarom neutraal, de echte status staat in de Lidmaatschap-kaart in de
-  // zijbalk. Industrie komt alleen als losse pil als 'ie niet al als
-  // subtitel getoond wordt (tagline heeft daar voorrang) — anders dubbelop.
+  // Profielhero-herontwerp: industrie komt alleen als losse pil als 'ie niet
+  // al als subtitel getoond wordt (tagline heeft daar voorrang) — anders
+  // dubbelop.
   const subtitle = company.tagline || company.industry;
   const pills: HeroPill[] = [];
   if (company.membership_status === "lid" && company.member_since) {
@@ -171,11 +169,15 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
 
   const hasContact = company.phone || company.email || company.website || company.linkedin_url || company.instagram_url || company.facebook_url;
   const hasLocation = company.show_address && company.address;
+  // Hero-fix (lege-kolom-bug): canManage telt mee omdat die altijd het
+  // koppelverzoeken-/uitnodigen-blok toont (ook als er 0 openstaande
+  // koppelverzoeken zijn) — een bedrijf zonder omschrijving/teamleden dat
+  // niemand hier mag beheren, heeft anders een lege hoofdkolom.
+  const hasMain = Boolean(company.description) || canManage || members.length > 0;
 
   return (
     <div className="flex flex-col gap-4">
       <ProfileHero
-        eyebrow="Bedrijf"
         name={company.name}
         subtitle={subtitle}
         coverUrl={coverUrl}
@@ -189,6 +191,7 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
       />
 
       <ProfileColumns
+        hasMain={hasMain}
         main={
           <>
             {company.description && (

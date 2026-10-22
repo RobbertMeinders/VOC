@@ -150,7 +150,13 @@ function AppShellBody({
     // achter de fixed overlay, maar wel zichtbaar zodra die overlay om een
     // andere reden niet rendert).
     if (/^\/agenda\/[^/]+/.test(pathname)) return modal ? "lijst" : "lezen";
-    if (/^\/(leden|bedrijven)\/[^/]+/.test(pathname)) return modal ? "breed" : "lezen";
+    // Hero-fix: deze twee hadden tot nu toe "lezen" (720px) op een volledige
+    // page-load maar "breed" (max-w-6xl) in de @modal-overlay — zichtbaar
+    // verspringende breedte tussen een harde reload en een soft-navigatie
+    // naar dezelfde pagina. Sinds het profielhero-herontwerp is de content
+    // op beide altijd een tweekoloms-grid (hoofdinhoud + zijbalk), die bij
+    // 720px te smal zou staan — nu consistent "breed" in beide gevallen.
+    if (/^\/(leden|bedrijven)\/[^/]+/.test(pathname)) return "breed";
     if (pathname === "/privacy" || pathname === "/profiel" || pathname === "/community" || pathname.startsWith("/nieuws/")) return "lezen";
     if (["/agenda", "/documenten", "/notificaties", "/nieuws", "/instellingen"].includes(pathname)) return "lijst";
     return "breed";
