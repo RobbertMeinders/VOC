@@ -166,7 +166,7 @@ export default async function HomePage() {
   // lid dat het zelf al op zichtbaar heeft gezet via Instellingen hoeft 'm
   // niet meer te zien).
   const showContactVisibilityPrompt =
-    !profile.contact_visibility_prompt_dismissed_at && !profile.show_email && !profile.show_phone;
+    !profile.contact_visibility_prompt_dismissed_at && (!profile.show_email || !profile.show_phone);
 
   return (
     <div className="flex flex-col gap-6">

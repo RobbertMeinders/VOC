@@ -10,17 +10,6 @@ import { AddressVisibilityPrompt } from "@/components/company/AddressVisibilityP
 export const metadata: Metadata = { title: "Bedrijven" };
 
 type MembershipRow = { company_id: string; profile: { first_name: string; last_name: string } | null };
-type OwnCompanyMapPromptRow = {
-  company: {
-    id: string;
-    slug: string;
-    address: string | null;
-    show_address: boolean;
-    address_visibility_prompt_dismissed_at: string | null;
-    latitude: number | null;
-    longitude: number | null;
-  } | null;
-};
 
 export default async function BedrijvenPage() {
   const supabase = await createClient();
@@ -56,17 +45,17 @@ export default async function BedrijvenPage() {
   // (bewust los van de gedeelde cachedQuery hierboven — die is expliciet
   // viewer-onafhankelijk, en of DEZE kijker zelf een bedrijf beheert is dat
   // per definitie niet). Alleen relevant als het eigen bedrijf een locatie
-  // heeft maar door het verborgen adres niet op de kaart staat.
-  const { data: ownCompanyRows } = await supabase
-    .from("company_members")
-    .select(
-      "company:companies(id, slug, address, show_address, address_visibility_prompt_dismissed_at, latitude, longitude)"
-    )
-    .eq("profile_id", profile.id)
-    .returns<OwnCompanyMapPromptRow[]>();
-  const ownCompanyForMapPrompt = (ownCompanyRows ?? [])
-    .map((row) => row.company)
-    .find((c) => c && !c.show_address && !c.address_visibility_prompt_dismissed_at && c.latitude !== null && c.longitude !== null);
+  // heeft maar door het verborgen adres niet op de kaart staat. Via
+  // companies_for_members() i.p.v. een directe select op companies(...):
+  // address/latitude/longitude staan sinds 0145/0186 niet meer in de
+  // kolomrechten van authenticated, dus een rechtstreekse join hierop geeft
+  // altijd null terug.
+  const { data: ownMemberships } = await supabase.from("company_members").select("company_id").eq("profile_id", profile.id);
+  const ownCompanyIds = new Set((ownMemberships ?? []).map((m) => m.company_id));
+  const { data: ownCompanies } = ownCompanyIds.size > 0 ? await supabase.rpc("companies_for_members") : { data: null };
+  const ownCompanyForMapPrompt = (ownCompanies ?? [])
+    .filter((c) => ownCompanyIds.has(c.id))
+    .find((c) => !c.show_address && !c.address_visibility_prompt_dismissed_at && c.latitude !== null && c.longitude !== null);
 
   const peopleByCompany = new Map<string, string[]>();
   for (const membership of memberships ?? []) {
