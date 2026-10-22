@@ -223,14 +223,29 @@ function NotificationRow({
         }}
       >
         <Bell size={16} className={clsx("mt-0.5 shrink-0", n.is_read ? "text-muted" : "text-petrol")} />
-        <Link href={n.link ?? "/"} onClick={handleLinkClick} className="min-w-0 flex-1">
-          <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
-            {!n.is_read && <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-voc-red" />}
-            {n.title}
-          </p>
-          {n.body && <p className="text-sm text-muted">{n.body}</p>}
-          <p className="mt-0.5 text-xs text-muted">{formatActivityDateShort(n.created_at)}</p>
-        </Link>
+        {/* Zonder eigen bestemming (bv. een los aangekondigde mededeling)
+            leidde dit altijd naar de homepage, wat een doel suggereerde dat
+            er niet is — dan liever helemaal niet klikbaar i.p.v. een
+            misleidende link. */}
+        {n.link ? (
+          <Link href={n.link} onClick={handleLinkClick} className="min-w-0 flex-1">
+            <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+              {!n.is_read && <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-voc-red" />}
+              {n.title}
+            </p>
+            {n.body && <p className="text-sm text-muted">{n.body}</p>}
+            <p className="mt-0.5 text-xs text-muted">{formatActivityDateShort(n.created_at)}</p>
+          </Link>
+        ) : (
+          <div className="min-w-0 flex-1">
+            <p className="flex items-center gap-1.5 text-sm font-medium text-foreground">
+              {!n.is_read && <span aria-hidden className="h-1.5 w-1.5 shrink-0 rounded-full bg-voc-red" />}
+              {n.title}
+            </p>
+            {n.body && <p className="text-sm text-muted">{n.body}</p>}
+            <p className="mt-0.5 text-xs text-muted">{formatActivityDateShort(n.created_at)}</p>
+          </div>
+        )}
         <button
           type="button"
           title="Verwijderen"
