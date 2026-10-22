@@ -22,16 +22,19 @@ const COLORS = {
   // eerder af te schrikken, en het intern/extern-onderscheid in kleur werd
   // door het bestuur zelf niet belangrijk genoeg bevonden om het bijbehorende
   // keuzeveld in de editor voor te laten bestaan. Rood blijft wel de
-  // huisstijlkleur voor de rest van de app.
+  // huisstijlkleur voor de rest van de app. Zelfde groen voor ALLE
+  // e-mailknoppen (ook renderCta in message-render.ts voor de automatische
+  // mails) — live feedback: rood schrikt af.
   green: "#2e7d32",
 };
 
 const FONT = "-apple-system, 'Segoe UI', Arial, sans-serif";
 
-// Gematigd afgerond i.p.v. een volledige "pil" (voorheen 999px) — blijft
-// een herkenbare knop zonder radicaal af te wijken van de rechthoekige
-// knoppen in de bestaande VOC-mails.
-const BUTTON_RADIUS = "8px";
+// Volledig afgerond (pil), zelfde als de knoppen in de app zelf
+// (rounded-full) — live feedback: eerder bewust gematigd naar 8px, maar
+// dat oogde nog niet rond genoeg. 999px rondt bij elke knophoogte volledig
+// af, dus geen aparte waarde per knopgrootte nodig.
+const BUTTON_RADIUS = "999px";
 
 function nl2br(text: string): string {
   return escapeHtml(text).replace(/\n/g, "<br>");
@@ -130,7 +133,7 @@ function renderButton(url: string, label: string): string {
   const escapedLabel = escapeHtml(label);
   const width = Math.max(120, label.length * 8 + 48);
   return `<!--[if mso]>
-<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapedUrl}" style="height:40px;v-text-anchor:middle;width:${width}px;" arcsize="20%" stroke="f" fillcolor="${COLORS.green}">
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapedUrl}" style="height:40px;v-text-anchor:middle;width:${width}px;" arcsize="50%" stroke="f" fillcolor="${COLORS.green}">
 <center style="color:#ffffff;font-family:sans-serif;font-size:14px;font-weight:600;">${escapedLabel}</center>
 </v:roundrect>
 <![endif]-->

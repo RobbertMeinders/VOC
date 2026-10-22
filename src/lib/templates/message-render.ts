@@ -15,7 +15,13 @@ export type MessageTemplateRow = {
   signature_type: "alg" | "pers";
   push_title: string | null;
   push_body: string | null;
+  preheader: string | null;
 };
+
+// Zelfde groen als de nieuwsbrief-knop (newsletter/render.ts) i.p.v. rood
+// -- live feedback: rood schrikt af, alle e-mailknoppen moeten dezelfde
+// (groene) stijl hebben.
+const CTA_GREEN = "#2e7d32";
 
 // Outlook (de Word-rendering-engine) ondersteunt CSS border-radius op geen
 // enkel element — de eerdere <td>-fix loste alleen de ontbrekende padding
@@ -25,20 +31,22 @@ export type MessageTemplateRow = {
 // <!--[if mso]>-blok: elke andere mailclient leest dat als gewoon
 // HTML-commentaar en toont in plaats daarvan het blok na
 // <!--[if !mso]><!-->. Zelfde patroon als renderButton in
-// newsletter/render.ts. v:roundrect kent geen automatische breedte, dus
-// die wordt hier ruw geschat op basis van de labellengte.
+// newsletter/render.ts, inclusief de volledig afgeronde (pil) vorm
+// (border-radius:999px / arcsize 50%) -- 8px/18% bleek nog niet rond
+// genoeg. v:roundrect kent geen automatische breedte, dus die wordt hier
+// ruw geschat op basis van de labellengte.
 export function renderCta(url: string, label: string): string {
   const escapedUrl = escapeHtml(url);
   const escapedLabel = escapeHtml(label);
   const width = Math.max(140, label.length * 9 + 48);
   return `<div style="margin:4px 0 16px;">
 <!--[if mso]>
-<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapedUrl}" style="height:44px;v-text-anchor:middle;width:${width}px;" arcsize="18%" stroke="f" fillcolor="#e8000f">
+<v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="${escapedUrl}" style="height:44px;v-text-anchor:middle;width:${width}px;" arcsize="50%" stroke="f" fillcolor="${CTA_GREEN}">
 <center style="color:#ffffff;font-family:sans-serif;font-size:14px;font-weight:bold;">${escapedLabel}</center>
 </v:roundrect>
 <![endif]-->
 <!--[if !mso]><!-->
-<a href="${escapedUrl}" style="background-color:#e8000f;border-radius:8px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:14px;font-weight:700;line-height:44px;padding:0 20px;text-align:center;text-decoration:none;">${escapedLabel}</a>
+<a href="${escapedUrl}" style="background-color:${CTA_GREEN};border-radius:999px;color:#ffffff;display:inline-block;font-family:sans-serif;font-size:14px;font-weight:700;line-height:44px;padding:0 20px;text-align:center;text-decoration:none;">${escapedLabel}</a>
 <!--<![endif]-->
 </div>`;
 }
@@ -83,7 +91,17 @@ export async function renderMessageEmail(
   const cta = renderCta(link, template.cta_label);
   const signature = `<div style="margin-top:22px">${renderSignature(template.signature_type, settings)}</div>`;
 
-  const preheader = renderHiddenPreheader(htmlToPreheaderText(body));
+  // Eigen, door het bestuur ingestelde preheader (Beheer -> Instellingen ->
+  // Berichten) i.p.v. de automatische afleiding uit de body-tekst, als die
+  // is ingevuld -- die automatische afleiding viel bij sommige mailclients/
+  // doorstuurdiensten terug op een door linktracking herschreven kale URL
+  // i.p.v. nette tekst (live feedback). Een expliciete preheader staat
+  // sowieso als allereerste in de HTML, dus wint altijd van zo'n latere
+  // herschrijving verderop in het bericht.
+  const preheaderText = template.preheader?.trim()
+    ? renderTemplate(template.preheader, variables)
+    : htmlToPreheaderText(body);
+  const preheader = renderHiddenPreheader(preheaderText);
   const html = preheader + body + cta + after + signature + (options?.preferencesUrl ? preferencesFooter(options.preferencesUrl) : "");
 
   // Expliciete tekstversie i.p.v. de mail alleen als HTML versturen — zonder
