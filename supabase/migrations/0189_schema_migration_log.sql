@@ -30,6 +30,8 @@ create table public.schema_migration_log (
   applied_at timestamptz not null default now()
 );
 
+alter table public.schema_migration_log enable row level security;
+
 -- Eenmalige startstaat. 0001-0174 zijn deze hele sessie lang bevestigd live
 -- en functionerend (het portaal draait er al die tijd op) -- onvoorwaardelijk
 -- toegevoegd i.p.v. elk apart te detecteren.
