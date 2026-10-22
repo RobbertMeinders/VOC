@@ -36,7 +36,7 @@ export function CompanyDetailContent({ company }: { company: CompanyDetailData }
         <div className="flex items-start gap-4">
           <CompanyLogo logoUrl={company.logoUrl} name={company.name} size={64} />
           <div className="min-w-0">
-            <h1 className="text-xl font-semibold text-foreground">{company.name}</h1>
+            <h1 className="font-display text-[1.5rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[1.75rem]">{company.name}</h1>
             {company.tagline && <p className="mt-0.5 text-sm text-muted">{company.tagline}</p>}
             {/* Plaatsnaam alleen hier tonen als er geen adresregel is om 'm
                 anders in te laten staan (die toont 'm al, zie hieronder) —

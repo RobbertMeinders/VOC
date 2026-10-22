@@ -183,6 +183,12 @@ export function MessageTemplateEditor({
               </div>
             )}
 
+            {/* Identiteit fase 3: deze hex-kleuren zijn bewust NIET naar
+                design-tokens omgezet — dit is een voorbeeld van hoe het
+                e-mailbericht er in een echte mailclient uitziet, en moet
+                dus altijd wit/zwart/grijs blijven ogen, los van het eigen
+                licht-/donkerthema van het portaal of een kleurwijziging
+                daaraan. */}
             <div className="rounded-lg border border-border bg-white p-4 text-[#17171a] shadow-sm">
               <div className="mb-2 text-[13px] font-bold text-[#67625b]">
                 Onderwerp:{" "}

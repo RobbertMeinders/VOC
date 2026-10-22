@@ -52,7 +52,7 @@ export async function ActivityEditContent({ id: routeParam }: { id: string }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="text-xl font-semibold text-foreground">Activiteit bewerken</h1>
+      <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Activiteit bewerken</h1>
       <div className="rounded-2xl bg-surface p-6 shadow-sm">
         <ActivityForm activity={activity} action={updateWithId} submitLabel="Opslaan" imageUrl={imageUrl} showTypePicker />
       </div>

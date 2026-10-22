@@ -150,7 +150,7 @@ export default async function AgendaEmbedDetailPage({
         )}
 
         <div>
-          <h1 className="text-xl font-semibold text-foreground">{activity.title}</h1>
+          <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">{activity.title}</h1>
           <p className="mt-1 text-sm text-muted">{formatActivityDate(activity.starts_at)}</p>
           {activity.location && (
             <p className="mt-0.5 flex items-center gap-1 text-sm text-muted">

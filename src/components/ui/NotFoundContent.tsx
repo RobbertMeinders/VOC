@@ -10,7 +10,7 @@ import { Home, Search } from "lucide-react";
 export function NotFoundContent() {
   return (
     <div className="flex flex-col items-center px-4 py-16 text-center">
-      <h1 className="mb-2 text-xl font-semibold text-foreground">Deze pagina bestaat niet (meer)</h1>
+      <h1 className="mb-2 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Deze pagina bestaat niet (meer)</h1>
       <p className="mb-6 max-w-sm text-sm text-muted">
         Controleer de link, of ga terug naar een van de volgende pagina&apos;s.
       </p>

@@ -65,6 +65,12 @@
      beheerzijbalk) — --voc-red-text contrasteert daar onvoldoende, dit is
      bewust dezelfde waarde in licht en donker. */
   --voc-red-on-petrol: #ff3b45;
+  /* Identiteit fase 3: was een hardcoded hex in HamburgerMenu.tsx (menu-
+     kopjes als "Vereniging"/"Account") — zelfde reden als hierboven: dit
+     paneel staat altijd op een donker petrol-vlak, los van het licht-/
+     donkerthema, dus --petrol zelf (dat in donker juist lichter wordt)
+     past hier niet. */
+  --petrol-on-petrol: #9fd3d6;
 
   /* Tweede kleur (redesign-besluit 3): petrol vervangt inkt/zwart als groot
      vlak (welkomstblok Home, beheerzijbalk) en kleurt iconen, datumtegels,
@@ -142,6 +148,7 @@
   --color-voc-red-light: var(--voc-red-light);
   --color-voc-red-text: var(--voc-red-text);
   --color-voc-red-on-petrol: var(--voc-red-on-petrol);
+  --color-petrol-on-petrol: var(--petrol-on-petrol);
 
   --color-petrol-deep: var(--petrol-deep);
   --color-petrol: var(--petrol);

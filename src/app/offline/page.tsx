@@ -14,7 +14,7 @@ export default function OfflinePage() {
       <Logo />
       <WifiOff size={32} className="text-muted" />
       <div>
-        <h1 className="text-lg font-semibold text-foreground">Geen internetverbinding</h1>
+        <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Geen internetverbinding</h1>
         <p className="mt-1 text-sm text-muted">
           Het ledenportaal heeft een verbinding nodig. Probeer het opnieuw zodra je weer online bent.
         </p>

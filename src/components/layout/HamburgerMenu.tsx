@@ -85,7 +85,7 @@ function MenuGroup({
   return (
     <div className="flex flex-col gap-0.5 py-2">
       {heading && (
-        <p className="px-6 pb-1 text-[11px] font-bold uppercase tracking-wide" style={{ color: "#9FD3D6" }}>
+        <p className="px-6 pb-1 text-[11px] font-bold uppercase tracking-wide text-petrol-on-petrol">
           {heading}
         </p>
       )}

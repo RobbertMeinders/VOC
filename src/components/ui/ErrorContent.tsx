@@ -13,7 +13,7 @@ export function ErrorContent({ error, reset }: { error: Error & { digest?: strin
 
   return (
     <div className="flex flex-col items-center px-4 py-16 text-center">
-      <h1 className="mb-2 text-xl font-semibold text-foreground">Er ging iets mis</h1>
+      <h1 className="mb-2 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Er ging iets mis</h1>
       <p className="mb-6 max-w-sm text-sm text-muted">Het is niet gelukt om deze pagina te laden.</p>
       <button
         type="button"

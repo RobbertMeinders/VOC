@@ -15,7 +15,7 @@ export function NewActivityFlow({ board }: { board: boolean }) {
   if (source === null) {
     return (
       <div>
-        <h1 className="mb-1 text-xl font-semibold text-foreground">Nieuwe activiteit</h1>
+        <h1 className="mb-1 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Nieuwe activiteit</h1>
         <p className="mb-4 text-sm text-muted">Wat voor activiteit?</p>
         <div className="flex flex-col gap-3 sm:flex-row">
           <button
@@ -51,7 +51,7 @@ export function NewActivityFlow({ board }: { board: boolean }) {
 
   return (
     <div>
-      <h1 className="mb-1 text-xl font-semibold text-foreground">
+      <h1 className="mb-1 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">
         {board ? "Nieuwe activiteit" : "Agenda activiteit toevoegen"}
       </h1>
       {!board && (

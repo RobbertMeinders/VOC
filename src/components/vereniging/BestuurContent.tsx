@@ -124,7 +124,7 @@ export async function BestuurContent() {
               ) : (
                 <div
                   className="flex h-full w-full items-center justify-center"
-                  style={{ backgroundImage: "linear-gradient(160deg, #145f68 0%, #0b2e33 100%)" }}
+                  style={{ backgroundImage: "linear-gradient(160deg, var(--petrol) 0%, var(--petrol-deep) 100%)" }}
                 >
                   <span className="font-display text-6xl font-extrabold text-white/90 sm:text-7xl">
                     {initials(profile.first_name, profile.last_name)}

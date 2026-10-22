@@ -250,7 +250,7 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
                   {activity.rejection_reason}
                 </p>
               )}
-              <h1 className="text-xl font-semibold text-foreground">{activity.title}</h1>
+              <h1 className="font-display text-[1.5rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[1.75rem]">{activity.title}</h1>
               {submitterLabel && isBoard(profile.role) && <p className="mt-1 text-xs text-muted">Toegevoegd door {submitterLabel}</p>}
             </div>
             {isBoard(profile.role) && (

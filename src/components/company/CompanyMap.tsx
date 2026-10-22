@@ -154,8 +154,8 @@ export function CompanyMap({
                       niet (blijft altijd een witte balon), dus de
                       thema-afhankelijke tokens zouden hier in donker thema
                       bijna-wit-op-wit en onleesbaar worden. */}
-                  <span className="block truncate text-sm font-medium text-gray-900 group-hover:text-petrol">{company.name}</span>
-                  {company.city && <span className="block truncate text-xs text-gray-600">{company.city}</span>}
+                  <span className="block truncate text-sm font-medium text-foreground group-hover:text-petrol">{company.name}</span>
+                  {company.city && <span className="block truncate text-xs text-muted">{company.city}</span>}
                 </span>
               </Link>
             </Popup>
