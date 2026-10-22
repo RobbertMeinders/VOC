@@ -408,7 +408,7 @@ begin
   from public.profiles p
   where p.is_active
     and (
-      v_filter = 'alle_actieve_leden'
+      v_filter in ('alle_actieve_leden', 'iedereen')
       or exists (
         select 1 from public.communication_recipient_lists crl
         join public.contact_list_profiles clp on clp.list_id = crl.list_id
@@ -436,6 +436,7 @@ begin
         where crl.communication_id = p_communication_id and clc.contact_id = ct.id
       )
     )
+    or v_filter in ('iedereen', 'niet_leden')
     or exists (
       select 1 from public.communication_recipient_contacts crc
       where crc.communication_id = p_communication_id and crc.contact_id = ct.id
