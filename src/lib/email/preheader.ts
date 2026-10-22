@@ -11,7 +11,13 @@ import { escapeHtml } from "@/lib/text/escape-html";
 export function renderHiddenPreheader(text: string): string {
   const trimmed = text.trim();
   if (!trimmed) return "";
-  return `<div style="display:none;max-height:0;overflow:hidden;opacity:0;">${escapeHtml(trimmed)}${"&nbsp;&zwnj;".repeat(8)}</div>`;
+  // Volledige set verbergings-eigenschappen i.p.v. alleen display:none -- een
+  // enkele client die display:none om wat voor reden dan ook niet (volledig)
+  // respecteert, heeft dan nog steeds font-size/line-height:1px en
+  // max-width/max-height:0 als vangnet. mso-hide:all is specifiek voor
+  // Outlook desktop (de Word-rendering-engine), die andere eigenschappen
+  // negeert.
+  return `<div style="display:none;mso-hide:all;font-size:1px;line-height:1px;max-height:0;max-width:0;overflow:hidden;opacity:0;">${escapeHtml(trimmed)}${"&nbsp;&zwnj;".repeat(8)}</div>`;
 }
 
 // Platte, korte samenvatting uit HTML-inhoud (tags/witruimte eruit), afgekapt
