@@ -2,6 +2,7 @@
 
 import { useState, useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import { Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { signInAction, signInWithMagicLinkAction, type LoginState, type MagicLinkState } from "@/app/login/actions";
@@ -9,10 +10,15 @@ import { signInAction, signInWithMagicLinkAction, type LoginState, type MagicLin
 const initialState: LoginState = {};
 const initialMagicLinkState: MagicLinkState = {};
 
+// Live feedback: de gedimde knoptekst alleen ("Bezig met inloggen…") oogde
+// als een doodlopend eindje i.p.v. "er gebeurt iets". Zelfde draaiende
+// Loader2-icoon als OverlayLoading elders in de app, i.p.v. een nieuw
+// patroon erbij te verzinnen.
 function SubmitButton({ children, pendingLabel }: { children: string; pendingLabel: string }) {
   const { pending } = useFormStatus();
   return (
     <Button type="submit" className="w-full" disabled={pending}>
+      {pending && <Loader2 size={16} className="animate-spin" aria-hidden="true" />}
       {pending ? pendingLabel : children}
     </Button>
   );
