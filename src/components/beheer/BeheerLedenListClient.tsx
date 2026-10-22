@@ -55,7 +55,6 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
   // bewust het Status-filter op "Gedeactiveerd" zetten toont ze nog.
   const [active, setActive] = useState(() => getInitial("active") || "actief");
   const [signaal, setSignaal] = useState(() => getInitial("signaal"));
-  const [laatstActief, setLaatstActief] = useState(() => getInitial("laatstActief"));
   // "" = geen sortering (standaardvolgorde), "desc" = meest recent actief
   // eerst, "asc" = langst geleden (nooit ingelogd eerst) eerst.
   const [sort, setSort] = useState<"" | "desc" | "asc">(() => {
@@ -65,7 +64,6 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
   // Lazy initializer i.p.v. Date.now() rechtstreeks in de useMemo hieronder
   // aanroepen — die laatste telt als een onzuivere render-aanroep.
   const [ninetyDaysAgo] = useState(() => Date.now() - NINETY_DAYS_MS);
-  const [now] = useState(() => Date.now());
 
   function cycleSort() {
     const next = sort === "" ? "desc" : sort === "desc" ? "asc" : "";
@@ -84,10 +82,6 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
   function handleActiveChange(value: string) {
     setActive(value);
     setParam("active", value);
-  }
-  function handleLaatstActiefChange(value: string) {
-    setLaatstActief(value);
-    setParam("laatstActief", value);
   }
 
   // UX-review Z4: ook op bedrijfsnaam doorzoekbaar, niet alleen naam/e-mail.
@@ -108,16 +102,9 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
         (signaal === "inactief90" &&
           member.is_active &&
           (!member.last_active_at || new Date(member.last_active_at).getTime() < ninetyDaysAgo));
-      const daysAgo = member.last_active_at ? Math.floor((now - new Date(member.last_active_at).getTime()) / (24 * 60 * 60 * 1000)) : null;
-      const matchesLaatstActief =
-        !laatstActief ||
-        (laatstActief === "7d" && daysAgo !== null && daysAgo <= 7) ||
-        (laatstActief === "30d" && daysAgo !== null && daysAgo <= 30) ||
-        (laatstActief === "90d" && daysAgo !== null && daysAgo >= 90) ||
-        (laatstActief === "nooit" && daysAgo === null);
-      return matchesQuery && matchesRole && matchesActive && matchesSignaal && matchesLaatstActief;
+      return matchesQuery && matchesRole && matchesActive && matchesSignaal;
     });
-  }, [members, query, role, active, signaal, laatstActief, ninetyDaysAgo, now]);
+  }, [members, query, role, active, signaal, ninetyDaysAgo]);
 
   // Nooit-ingelogd (null) telt als "oneindig lang geleden": staat bij
   // aflopend (meest recent eerst) altijd onderaan, bij oplopend bovenaan.
@@ -153,18 +140,6 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
         { value: "gedeactiveerd", label: "Gedeactiveerd" },
       ],
       onChange: handleActiveChange,
-    },
-    {
-      key: "laatstActief",
-      label: "Laatst actief",
-      value: laatstActief,
-      options: [
-        { value: "7d", label: "Afgelopen 7 dagen" },
-        { value: "30d", label: "Afgelopen 30 dagen" },
-        { value: "90d", label: "90+ dagen geleden" },
-        { value: "nooit", label: "Nooit ingelogd" },
-      ],
-      onChange: handleLaatstActiefChange,
     },
   ];
 
