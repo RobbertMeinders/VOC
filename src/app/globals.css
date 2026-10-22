@@ -777,9 +777,14 @@ button:not(:disabled):active {
 .card-hover-lift {
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+/* Bug (agenda-hover): deze regel zette box-shadow volledig over, waardoor een
+   kaart met een eigen gekleurde accentschaduw (zie ActivityCard's inset
+   linkerrand) die kleur bij hover kwijtraakte. --card-accent-shadow laat zo'n
+   kaart zijn eigen basis-schaduw doorzetten; zonder die variabele valt dit
+   terug op het oude, kleurloze gedrag. */
 .card-hover-lift:hover {
   transform: translateY(-1px);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--card-accent-shadow, var(--shadow-sm)), 0 4px 16px rgba(0, 0, 0, 0.1);
 }
 @media (prefers-reduced-motion: reduce) {
   .card-hover-lift:hover {

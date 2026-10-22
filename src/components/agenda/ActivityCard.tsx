@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { clsx } from "clsx";
@@ -129,6 +130,13 @@ export function ActivityCard({
         "card-hover-lift flex items-start gap-3 overflow-hidden rounded-2xl bg-surface p-3",
         isOfficial ? "shadow-[inset_4px_0_0_0_var(--voc-red),var(--shadow-sm)]" : "shadow-[inset_4px_0_0_0_var(--petrol),var(--shadow-sm)]"
       )}
+      style={{
+        // Houdt de gekleurde linkerrand zichtbaar bij hover (zie .card-hover-lift
+        // in globals.css) i.p.v. dat hover 'm overschrijft met een kleurloze schaduw.
+        "--card-accent-shadow": isOfficial
+          ? "inset 4px 0 0 0 var(--voc-red), var(--shadow-sm)"
+          : "inset 4px 0 0 0 var(--petrol), var(--shadow-sm)",
+      } as CSSProperties}
     >
       {imageUrl ? (
         // Ontwerpfeedback (agenda-desktop/mobiel.png): vaste ±72x72 op
