@@ -1878,9 +1878,8 @@ CREATE OR REPLACE FUNCTION public.guard_company_privileges()
  SET search_path TO 'public'
 AS $function$
 begin
-  if not public.is_board() then
+  if not (public.is_board() or auth.role() = 'service_role' or auth.role() is null) then
     new.slug := old.slug;
-    new.created_by := old.created_by;
   end if;
   return new;
 end;
