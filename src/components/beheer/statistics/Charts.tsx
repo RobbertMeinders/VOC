@@ -183,10 +183,32 @@ export function LineChart({
               strokeDasharray={s.dashed ? "5 4" : undefined}
               strokeLinecap="round"
               strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
             />
           </g>
         );
       })}
+
+      {/* Foutenrapport (statistieken-polish): datapunten in een eigen laag,
+          vóór de interactieve groups hieronder — anders schildert een
+          latere (rechtser) kolom zijn bolletjes over de tooltip van een
+          eerder gehoverde kolom heen (SVG kent geen z-index, alleen
+          documentvolgorde). */}
+      <g className="pointer-events-none">
+        {labels.map((label, i) =>
+          series.map((s) => (
+            <circle
+              key={`${label}-${i}-${s.name}`}
+              cx={x(i)}
+              cy={y(s.values[i] ?? 0)}
+              r={3}
+              fill={s.color}
+              stroke="var(--surface)"
+              strokeWidth={1.5}
+            />
+          ))
+        )}
+      </g>
 
       {labels.map((label, i) => (
         <g key={label + i} className="group">
@@ -214,18 +236,6 @@ export function LineChart({
             opacity={0}
             className="pointer-events-none transition-opacity group-hover:opacity-40"
           />
-          {series.map((s) => (
-            <circle
-              key={s.name}
-              cx={x(i)}
-              cy={y(s.values[i] ?? 0)}
-              r={4}
-              fill={s.color}
-              stroke="var(--surface)"
-              strokeWidth={1.5}
-              className="pointer-events-none"
-            />
-          ))}
           <ChartTooltip
             x={x(i)}
             y={Math.min(...series.map((s) => y(s.values[i] ?? 0))) - 14 - series.length * 15}
@@ -303,10 +313,31 @@ export function BarChart({
           </AxisLabel>
         </g>
       ))}
+      {/* Foutenrapport (statistieken-polish): balken in een eigen laag, vóór
+          de interactieve groups hieronder — bij veel kolommen (smalle
+          banden) kan een balk anders over de tooltip van een naburige
+          kolom heen vallen (zelfde paint-order-reden als LineChart). */}
+      <g className="pointer-events-none">
+        {labels.map((label, i) => {
+          const center = PADDING.left + band * i + band / 2;
+          const groupWidth = barWidth * series.length + gap * (series.length - 1);
+          const startX = center - groupWidth / 2;
+          return (
+            <g key={label + i}>
+              {series.map((s, si) => {
+                const v = s.values[i] ?? 0;
+                const barX = startX + si * (barWidth + gap);
+                const barY = y(v);
+                const barH = Math.max(y(0) - barY, v > 0 ? 1 : 0);
+                return <rect key={s.name} x={barX} y={barY} width={barWidth} height={barH} rx={2.5} fill={s.color} />;
+              })}
+            </g>
+          );
+        })}
+      </g>
+
       {labels.map((label, i) => {
         const center = PADDING.left + band * i + band / 2;
-        const groupWidth = barWidth * series.length + gap * (series.length - 1);
-        const startX = center - groupWidth / 2;
         return (
           <g key={label + i} className="group">
             {/* Foutenrapport M3: zie LineChart hierboven. */}
@@ -320,13 +351,6 @@ export function BarChart({
               role="img"
               aria-label={`${label}: ${series.map((s) => `${s.name} ${s.values[i] ?? 0}`).join(", ")}`}
             />
-            {series.map((s, si) => {
-              const v = s.values[i] ?? 0;
-              const barX = startX + si * (barWidth + gap);
-              const barY = y(v);
-              const barH = Math.max(y(0) - barY, v > 0 ? 1 : 0);
-              return <rect key={s.name} x={barX} y={barY} width={barWidth} height={barH} rx={2.5} fill={s.color} />;
-            })}
             {/* Foutenrapport H3: altijd align="center" liet de tooltip van de
                 laatste kolom voorbij de rand van de SVG lopen en afgeknipt
                 raken (standaard overflow:hidden) — zelfde edge-aware align

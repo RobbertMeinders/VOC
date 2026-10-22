@@ -273,19 +273,25 @@ async function ActiviteitenTab({ period, compare }: { period: ReturnType<typeof 
         </ChartCard>
       </div>
 
-      <ChartCard title="Aanmeldingen per maand" subtitle="leden en gasten via de website">
-        <BarChart
-          labels={stats.aanmeldingenPerMaand.map((p) => p.label)}
-          series={[
-            { name: "Leden", color: CHART_COLORS.primary, values: stats.aanmeldingenPerMaand.map((p) => p.leden) },
-            { name: "Gasten via website", color: CHART_COLORS.secondary, values: stats.aanmeldingenPerMaand.map((p) => p.gasten) },
-          ]}
-        />
-        <Legend items={[{ label: "Leden", color: CHART_COLORS.primary }, { label: "Gasten via website", color: CHART_COLORS.secondary }]} />
-        <p className="text-xs text-muted">
-          Opkomst (wie er echt was) staat in de aanwezigheidslijst per activiteit, niet hierin - dit zijn aanmeldingen.
-        </p>
-      </ChartCard>
+      {/* Foutenrapport (statistieken-polish): deze kaart stond als enige niet
+          in een grid, waardoor hij volle breedte kreeg en de grafiek-
+          elementen (via de viewBox-schaling) merkbaar groter oogden dan in
+          de andere kaarten op deze pagina. */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <ChartCard title="Aanmeldingen per maand" subtitle="leden en gasten via de website">
+          <BarChart
+            labels={stats.aanmeldingenPerMaand.map((p) => p.label)}
+            series={[
+              { name: "Leden", color: CHART_COLORS.primary, values: stats.aanmeldingenPerMaand.map((p) => p.leden) },
+              { name: "Gasten via website", color: CHART_COLORS.secondary, values: stats.aanmeldingenPerMaand.map((p) => p.gasten) },
+            ]}
+          />
+          <Legend items={[{ label: "Leden", color: CHART_COLORS.primary }, { label: "Gasten via website", color: CHART_COLORS.secondary }]} />
+          <p className="text-xs text-muted">
+            Opkomst (wie er echt was) staat in de aanwezigheidslijst per activiteit, niet hierin - dit zijn aanmeldingen.
+          </p>
+        </ChartCard>
+      </div>
     </div>
   );
 }
