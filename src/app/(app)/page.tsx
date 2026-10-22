@@ -8,6 +8,7 @@ import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { formatActivityDateCompact, formatActivityTimeOnly, formatTodayLabel, getGreeting } from "@/lib/format/date";
 import { Avatar } from "@/components/ui/Avatar";
 import { ProfilePhotoPrompt } from "@/components/home/ProfilePhotoPrompt";
+import { ContactVisibilityPrompt } from "@/components/profile/ContactVisibilityPrompt";
 import { WelcomeDialog } from "@/components/home/WelcomeDialog";
 import { NewsHeroCarousel } from "@/components/home/NewsHeroCarousel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
@@ -158,6 +159,15 @@ export default async function HomePage() {
   const showProfilePrompt =
     !profile.onboarding_dismissed_at && (!profile.avatar_url || !profile.job_title || !ownMembership);
 
+  // Lidmaatschap-traject Deel 3: privacy ging standaard op "verborgen"
+  // (0180_privacy_defaults_hidden.sql) — deze rustige, uitstelbare prompt
+  // biedt de weg terug naar zichtbaar. Alleen tonen als nog niet
+  // weggeklikt EN de gegevens ook daadwerkelijk nog verborgen staan (een
+  // lid dat het zelf al op zichtbaar heeft gezet via Instellingen hoeft 'm
+  // niet meer te zien).
+  const showContactVisibilityPrompt =
+    !profile.contact_visibility_prompt_dismissed_at && !profile.show_email && !profile.show_phone;
+
   return (
     <div className="flex flex-col gap-6">
       {/* B (onboarding-opdracht): eenmalige eerste-login dialoog — render
@@ -283,6 +293,8 @@ export default async function HomePage() {
           companyRequestPending={Boolean(ownPendingRequest)}
         />
       )}
+
+      {showContactVisibilityPrompt && <ContactVisibilityPrompt />}
 
       {/* Mobiel: ongewijzigd t.o.v. voor de afwerkronde-herindeling —
           "Snel naar" als los blok, dan "Nieuw in het netwerk" als rij

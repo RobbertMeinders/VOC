@@ -1,16 +1,29 @@
 import type { Metadata } from "next";
+import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { cachedQuery } from "@/lib/cache/queryCache";
 import { BedrijvenListClient, type SearchableCompany } from "@/components/company/BedrijvenListClient";
 import { NetworkTabs } from "@/components/layout/NetworkTabs";
+import { AddressVisibilityPrompt } from "@/components/company/AddressVisibilityPrompt";
 
 export const metadata: Metadata = { title: "Bedrijven" };
 
 type MembershipRow = { company_id: string; profile: { first_name: string; last_name: string } | null };
+type OwnCompanyMapPromptRow = {
+  company: {
+    id: string;
+    slug: string;
+    show_address: boolean;
+    address_visibility_prompt_dismissed_at: string | null;
+    latitude: number | null;
+    longitude: number | null;
+  } | null;
+};
 
 export default async function BedrijvenPage() {
   const supabase = await createClient();
+  const profile = await requireProfile();
 
   // Zichtbaarheid is voor elk actief lid identiek (companies_members_select
   // kent geen per-gebruiker variatie), dus dit resultaat delen tussen
@@ -37,6 +50,22 @@ export default async function BedrijvenPage() {
   const branches = Array.from(
     new Set((companies ?? []).map((c) => c.industry).filter((v): v is string => Boolean(v)))
   ).sort((a, b) => a.localeCompare(b));
+
+  // Lidmaatschap-traject Deel 3, kaart-prompt: eigen, NIET-gecachte query
+  // (bewust los van de gedeelde cachedQuery hierboven — die is expliciet
+  // viewer-onafhankelijk, en of DEZE kijker zelf een bedrijf beheert is dat
+  // per definitie niet). Alleen relevant als het eigen bedrijf een locatie
+  // heeft maar door het verborgen adres niet op de kaart staat.
+  const { data: ownCompanyRows } = await supabase
+    .from("company_members")
+    .select(
+      "company:companies(id, slug, show_address, address_visibility_prompt_dismissed_at, latitude, longitude)"
+    )
+    .eq("profile_id", profile.id)
+    .returns<OwnCompanyMapPromptRow[]>();
+  const ownCompanyForMapPrompt = (ownCompanyRows ?? [])
+    .map((row) => row.company)
+    .find((c) => c && !c.show_address && !c.address_visibility_prompt_dismissed_at && c.latitude !== null && c.longitude !== null);
 
   const peopleByCompany = new Map<string, string[]>();
   for (const membership of memberships ?? []) {
@@ -76,6 +105,16 @@ export default async function BedrijvenPage() {
     <div>
       <h1 className="mb-3 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Netwerk</h1>
       <NetworkTabs ledenCount={ledenCount ?? 0} bedrijvenCount={companies?.length ?? 0} />
+
+      {ownCompanyForMapPrompt && (
+        <div className="mb-4">
+          <AddressVisibilityPrompt
+            companyId={ownCompanyForMapPrompt.id}
+            companySlug={ownCompanyForMapPrompt.slug}
+            message="Je bezoekersadres staat op verborgen. Mogen andere leden het op de kaart zien?"
+          />
+        </div>
+      )}
 
       <BedrijvenListClient items={items} branches={branches} />
     </div>

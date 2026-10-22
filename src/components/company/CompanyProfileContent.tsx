@@ -10,6 +10,7 @@ import { CompanyLocationMap } from "@/components/company/CompanyLocationMap";
 import { CompanyMemberList, type CompanyMember } from "@/components/company/CompanyMemberList";
 import { CompanyMembershipRequests, type PendingMembershipRequest } from "@/components/company/CompanyMembershipRequests";
 import { InviteColleagueForm } from "@/components/company/InviteColleagueForm";
+import { AddressVisibilityPrompt } from "@/components/company/AddressVisibilityPrompt";
 import type { Database } from "@/lib/types/database";
 
 type Company = Database["public"]["Tables"]["companies"]["Row"];
@@ -155,6 +156,13 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
           binnenkomt en de kaart+ledenlijst het scherm al vullen. */}
       {canManage && <CompanyMembershipRequests companyId={company.id} requests={pendingRequests} />}
       {canManage && <InviteColleagueForm companyId={company.id} memberCount={activeMemberRows.length} />}
+
+      {/* Lidmaatschap-traject Deel 3: privacy ging standaard op "verborgen"
+          (0180_privacy_defaults_hidden.sql) — alleen tonen zolang het adres
+          nog verborgen staat EN nog niet weggeklikt. */}
+      {canManage && !company.show_address && !company.address_visibility_prompt_dismissed_at && (
+        <AddressVisibilityPrompt companyId={company.id} companySlug={company.slug} />
+      )}
 
       {/* UX-review V6: deze kaart liet op bijna elk bedrijf alleen "Nog geen
           leden gekoppeld aan dit bedrijf." zien — een lege sectie verbergen
