@@ -12,6 +12,7 @@ import { logAuditAction } from "@/lib/audit/log";
 import { isEmailConfigured, sendRawHtmlEmail, invitationGreeting } from "@/lib/email/send";
 import { renderMessageEmail } from "@/lib/templates/message-render";
 import { companyHref } from "@/lib/company/slug";
+import { buildCancellationConfirmUrl } from "@/lib/company/cancellation-link";
 import type { Database } from "@/lib/types/database";
 
 // URL-ronde: revalidatePath() matcht het exacte pad, geen routepatroon — nu
@@ -456,5 +457,107 @@ export async function inviteColleagueAction(
   if (emailError) {
     return { error: `Uitnodiging aangemaakt, maar de e-mail versturen is niet gelukt (${emailError}).` };
   }
+  return { success: true };
+}
+
+// Lidmaatschap Deel 1: "lid sinds" is optioneel, door het bedrijf zelf in
+// te vullen (niet alleen bestuur) — zelfde ruimere-dan-updateCompanyAction-
+// permissie als updateCompanyShowAddressAction hierboven, via de smalle
+// set_company_member_since-RPC (0175).
+export async function updateCompanyMemberSinceAction(companyId: string, memberSince: string | null): Promise<{ error?: string }> {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("set_company_member_since", {
+    p_company_id: companyId,
+    p_date: memberSince,
+  });
+
+  if (error) {
+    return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
+  }
+  invalidateQuery("bedrijven-page-data");
+  revalidatePath(await getCompanySlugPath(supabase, companyId));
+  return {};
+}
+
+// Opzeggen via de bedrijfspagina — alleen het primaire contact (RLS-achtige
+// check staat in de RPC zelf, request_company_cancellation, 0176). Kiest
+// een harde einddatum; de status verandert nog niet (blijft 'lid') tot de
+// bevestigingsmail-link is aangeklikt (zie /opzegging-bevestigen). De RPC
+// zet alleen membership_end_date en meldt bestuur; het versturen van de
+// mail zelf gebeurt hier, in de TS-laag (zelfde scheiding als overal elders
+// in deze codebase — SQL raakt nooit SMTP aan).
+export async function requestCompanyCancellationAction(companyId: string, endDate: string): Promise<{ error?: string; success?: boolean }> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("request_company_cancellation", {
+    p_company_id: companyId,
+    p_end_date: endDate,
+  });
+  if (error) {
+    return { error: "Opzeggen is niet gelukt. Controleer of je het primaire contact van dit bedrijf bent." };
+  }
+
+  const { data: company } = await supabase.from("companies").select("name, slug").eq("id", companyId).maybeSingle();
+
+  if (isEmailConfigured() && company) {
+    const link = buildCancellationConfirmUrl(process.env.SITE_URL ?? "", companyId);
+    const rendered = await renderMessageEmail("opzeg-bevestiging", link, {
+      greeting: invitationGreeting(profile.first_name),
+      bedrijf: company.name,
+      einddatum: new Date(endDate).toLocaleDateString("nl-NL"),
+    });
+    if (rendered) {
+      await sendRawHtmlEmail(profile.email, rendered.subject, rendered.html);
+    }
+  }
+
+  invalidateQuery("bedrijven-page-data");
+  revalidatePath(company?.slug ? companyHref({ slug: company.slug }) : `/bedrijven/${companyId}`);
+  return { success: true };
+}
+
+// Bestuur zegt een lidmaatschap zelf op — direct bevestigd, geen e-mail
+// nodig (dit is al een geautoriseerde bestuursactie, geen zelfservice-
+// verzoek van het bedrijf zelf).
+export async function boardCancelCompanyMembershipAction(companyId: string, endDate: string): Promise<{ error?: string; success?: boolean }> {
+  await requireBoard();
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("board_cancel_company_membership", {
+    p_company_id: companyId,
+    p_end_date: endDate,
+  });
+  if (error) {
+    return { error: "Opzeggen is niet gelukt. Probeer het opnieuw." };
+  }
+
+  invalidateQuery("bedrijven-page-data");
+  invalidateQuery("beheer-bedrijven-page-data");
+  revalidatePath(await getCompanySlugPath(supabase, companyId));
+  revalidatePath("/beheer/bedrijven");
+  return { success: true };
+}
+
+// Bestuur wijzigt het primaire contact (via set_company_primary_contact,
+// 0175) — alleen relevant als een bedrijf meerdere gekoppelde personen
+// heeft; de term "primair contact" zelf is bewust nergens member-facing
+// zichtbaar.
+export async function setCompanyPrimaryContactAction(companyId: string, profileId: string): Promise<{ error?: string; success?: boolean }> {
+  await requireBoard();
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("set_company_primary_contact", {
+    p_company_id: companyId,
+    p_profile_id: profileId,
+  });
+  if (error) {
+    return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };
+  }
+
+  invalidateQuery("beheer-bedrijven-page-data");
+  revalidatePath(await getCompanySlugPath(supabase, companyId));
   return { success: true };
 }
