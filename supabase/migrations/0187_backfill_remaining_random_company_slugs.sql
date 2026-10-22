@@ -9,7 +9,11 @@
 -- "-2"/"-3"-botsingsuffixen uit 0161/0163 zelf) ongemoeid blijven.
 -- Hergebruikt generate_unique_company_slug() (0161) voor dezelfde
 -- botsingslogica, en zet de oude slug net als bij 0163 om naar een alias
--- zodat een al gedeelde/ingebedde link blijft werken.
+-- zodat een al gedeelde/ingebedde link blijft werken. "on conflict do
+-- nothing" op de alias-insert: voor minstens één bedrijf bestond de alias
+-- al (blijkbaar al eens eerder opgeschoond geweest en sindsdien weer
+-- teruggezet naar de oude slug) -- de alias zelf klopt dan al, alleen de
+-- kolom companies.slug moet nog worden rechtgetrokken.
 do $$
 declare
   r record;
@@ -22,7 +26,9 @@ begin
     order by created_at
   loop
     v_new_slug := public.generate_unique_company_slug(r.name);
-    insert into public.company_slug_aliases (slug, company_id) values (r.slug, r.id);
+    insert into public.company_slug_aliases (slug, company_id)
+      values (r.slug, r.id)
+      on conflict (slug) do nothing;
     update public.companies set slug = v_new_slug where id = r.id;
   end loop;
 end;
