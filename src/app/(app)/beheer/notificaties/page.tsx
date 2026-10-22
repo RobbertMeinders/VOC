@@ -44,6 +44,17 @@ export default async function BeheerNotificatiesPage() {
     if (channel === "push") openedPushIds.add(e.target_id);
   }
 
+  // Zelfde naam-opbouw als communicatie/[id]/page.tsx -- een los profiel kan
+  // ontbreken (lid geanonimiseerd/verwijderd sinds de melding verstuurd is),
+  // vandaar de "Onbekend lid"-terugval i.p.v. de query te laten falen.
+  const profileIds = [...new Set((notifications ?? []).map((n) => n.profile_id))];
+  const { data: recipientProfiles } = await supabase
+    .from("profiles")
+    .select("id, first_name, last_name")
+    .in("id", profileIds.length > 0 ? profileIds : [""]);
+  const recipientNames: Record<string, string> = {};
+  for (const p of recipientProfiles ?? []) recipientNames[p.id] = `${p.first_name} ${p.last_name}`.trim();
+
   return (
     <div className="flex flex-col gap-4">
       <PageHeader
@@ -56,6 +67,7 @@ export default async function BeheerNotificatiesPage() {
           <thead>
             <tr className="border-b border-border text-xs text-muted">
               <th className="px-4 py-2 font-medium">Titel</th>
+              <th className="px-4 py-2 font-medium">Ontvanger</th>
               <th className="px-4 py-2 font-medium">Type</th>
               <th className="px-4 py-2 font-medium">Aangemaakt</th>
               <th className="px-4 py-2 text-center font-medium">Push verstuurd</th>
@@ -67,6 +79,7 @@ export default async function BeheerNotificatiesPage() {
             {(notifications ?? []).map((n) => (
               <tr key={n.id} className="border-b border-border last:border-0">
                 <td className="max-w-xs truncate px-4 py-2 text-foreground">{n.title}</td>
+                <td className="px-4 py-2 text-muted">{recipientNames[n.profile_id] || "Onbekend lid"}</td>
                 <td className="px-4 py-2 text-muted">{n.type}</td>
                 <td className="px-4 py-2 text-muted">{formatDateTime(n.created_at)}</td>
                 <td className="px-4 py-2 text-center">
@@ -82,7 +95,7 @@ export default async function BeheerNotificatiesPage() {
             ))}
             {(notifications ?? []).length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-sm text-muted">
+                <td colSpan={7} className="px-4 py-6 text-center text-sm text-muted">
                   Nog geen meldingen.
                 </td>
               </tr>
