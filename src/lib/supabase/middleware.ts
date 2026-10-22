@@ -31,6 +31,8 @@ const PUBLIC_PATHS = [
   "/embed",
   "/api/embed",
   "/afmelden",
+  "/voorkeuren",
+  "/opzegging-bevestigen",
   "/offline",
 ];
 
