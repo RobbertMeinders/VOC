@@ -1900,8 +1900,10 @@ begin
   if new.facebook_url is not null and new.facebook_url !~* '^https?://\S+\.\S+' then
     new.facebook_url := null;
   end if;
-  if TG_TABLE_NAME = 'companies' and new.website is not null and new.website !~* '^https?://\S+\.\S+' then
-    new.website := null;
+  if TG_TABLE_NAME = 'companies' then
+    if new.website is not null and new.website !~* '^https?://\S+\.\S+' then
+      new.website := null;
+    end if;
   end if;
   return new;
 end;
