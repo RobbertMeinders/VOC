@@ -500,11 +500,11 @@ export function ActivityForm({
         <div className="flex flex-col gap-2">
           <span className="text-sm font-medium text-foreground">Melding bij publiceren</span>
           <p className="text-xs text-muted">
-            Respecteert altijd de persoonlijke meldingsvoorkeuren van elk lid - dit bepaalt alleen of het kanaal
-            zelf openstaat.
+            Dit zet alleen het kanaal zelf open voor deze activiteit. Of een lid het ook echt krijgt, bepaalt
+            daarna nog de eigen meldingsvoorkeur van dat lid (Instellingen).
           </p>
           <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3 py-2.5">
-            <p className="text-sm text-foreground">Pushmelding versturen</p>
+            <p className="text-sm text-foreground">Pushkanaal openzetten</p>
             <input type="hidden" name="notify_push" value={notifyPush ? "on" : ""} />
             <Switch
               checked={notifyPush}
@@ -512,11 +512,11 @@ export function ActivityForm({
                 setNotifyPush((v) => !v);
                 setDirty(true);
               }}
-              label="Pushmelding versturen"
+              label="Pushkanaal openzetten"
             />
           </div>
           <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-background px-3 py-2.5">
-            <p className="text-sm text-foreground">E-mail versturen</p>
+            <p className="text-sm text-foreground">E-mailkanaal openzetten</p>
             <input type="hidden" name="notify_email" value={notifyEmail ? "on" : ""} />
             <Switch
               checked={notifyEmail}
@@ -524,7 +524,7 @@ export function ActivityForm({
                 setNotifyEmail((v) => !v);
                 setDirty(true);
               }}
-              label="E-mail versturen"
+              label="E-mailkanaal openzetten"
             />
           </div>
         </div>

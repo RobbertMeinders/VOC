@@ -103,12 +103,12 @@ export default async function InstellingenPage() {
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <span className="text-sm text-foreground">Herinnering vooraf</span>
+          <span className="text-sm text-foreground">Herinnering voor een activiteit</span>
           <NotificationChannelChoice type="activity_reminder" initialPush={profile.push_activity_reminder} initialEmail={profile.email_activity_reminder} />
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <span className="text-sm text-foreground">Reacties</span>
+          <span className="text-sm text-foreground">Reacties op je berichten</span>
           <NotificationChannelChoice
             type="feed_comment"
             initialPush={profile.push_feed_comment}
@@ -118,7 +118,7 @@ export default async function InstellingenPage() {
         </div>
 
         <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-          <span className="text-sm text-foreground">Vermeldingen (@)</span>
+          <span className="text-sm text-foreground">Als iemand je @vermeldt</span>
           <NotificationChannelChoice
             type="feed_mention"
             initialPush={profile.push_feed_mention}
