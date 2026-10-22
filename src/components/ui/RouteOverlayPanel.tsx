@@ -127,6 +127,14 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
 
   if (dismissed) return null;
 
+  // Breedte-sprong-fix: deze routes staan in AppShell.tsx op "breed"
+  // (max-w-6xl) sinds het profielhero-herontwerp (tweekoloms-grid, te smal
+  // op de vorige max-w-3xl) — dit paneel had nog altijd dezelfde vaste
+  // max-w-3xl, dus sprong de breedte zichtbaar tussen een soft-navigatie
+  // (dit paneel) en een harde reload (AppShell). Agenda-detail/-formulier
+  // blijven op de smalle breedte, zoals in AppShell's "lezen"/"lijst".
+  const isWideOverlay = /^\/(leden|bedrijven)\/[^/]+/.test(pathname);
+
   return (
     // key={pathname}: zonder dit blijft dezelfde DOM-node staan zodra je
     // binnen dit @modal-segment van de ene overlay-route naar de andere
@@ -161,7 +169,13 @@ export function RouteOverlayPanel({ children }: { children: ReactNode }) {
       >
         <div className="mx-auto h-1.5 w-10 rounded-full bg-black/[.12] dark:bg-white/[.16]" />
       </div>
-      <div className="mx-auto w-full max-w-3xl px-4 py-6 md:max-w-3xl md:px-8 md:py-10">
+      <div
+        className={
+          isWideOverlay
+            ? "mx-auto w-full max-w-3xl px-4 py-6 md:max-w-6xl md:px-8 md:py-10"
+            : "mx-auto w-full max-w-3xl px-4 py-6 md:max-w-3xl md:px-8 md:py-10"
+        }
+      >
         {/* touch-none hier ook: breidt het veeggebied uit tot en met deze
             kruisje-rij (desktop vuurt hier toch geen touch-events af, dus
             geen md:hidden nodig op de handlers zelf). */}
