@@ -42,26 +42,24 @@ export function BottomNav({
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className="relative flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-transform duration-150 active:scale-90"
+                className={clsx(
+                  "relative flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-transform duration-150 active:scale-90",
+                  active ? "text-voc-red-text" : "text-muted"
+                )}
               >
-                {/* Identiteit Fase 2: actief weer een gevulde rode pill
-                    i.p.v. alleen rode tekst/icoon. */}
-                <span
-                  className={clsx(
-                    "flex flex-col items-center gap-0.5 rounded-2xl px-3 py-1 transition-colors",
-                    active ? "bg-voc-red text-white" : "text-muted"
+                {/* Identiteit-verfijning: de volle rode pill uit Fase 2 was
+                    op het kleine mobiele formaat te overheersend — hier
+                    weer terug naar alleen rode tekst/icoon (desktop-nav
+                    houdt de volle pill, zie Sidebar/BeheerSidebar). */}
+                <span className="relative flex h-7 w-7 items-center justify-center">
+                  <Icon size={22} strokeWidth={active ? 2.5 : 2} className="relative" />
+                  {count > 0 && (
+                    <span className="animate-pop absolute -right-1.5 -top-1.5 z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-voc-red px-1 text-[10px] font-medium text-white">
+                      {count > 9 ? "9+" : count}
+                    </span>
                   )}
-                >
-                  <span className="relative flex h-7 w-7 items-center justify-center">
-                    <Icon size={22} strokeWidth={active ? 2.5 : 2} className="relative" />
-                    {count > 0 && (
-                      <span className="animate-pop absolute -right-1.5 -top-1.5 z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-voc-red px-1 text-[10px] font-medium text-white">
-                        {count > 9 ? "9+" : count}
-                      </span>
-                    )}
-                  </span>
-                  {label}
                 </span>
+                {label}
               </Link>
             </li>
           );
