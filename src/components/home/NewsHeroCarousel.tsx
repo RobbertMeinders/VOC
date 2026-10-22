@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type PointerEvent as ReactPointerEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Megaphone, Pause, Play } from "lucide-react";
@@ -19,6 +19,25 @@ export type NewsHeroSlide = {
 const SLIDE_DURATION_MS = 6000;
 const SWIPE_THRESHOLD_PX = 50;
 
+// Polish-ronde: prefers-reduced-motion hoort als React-fout #419 (hydratie-
+// mismatch) op Home - de oude lazy state-initializer las `window` uit vóór
+// hydratie, wat op de client (met reduced-motion aan) een andere eerste
+// render gaf dan de server. useSyncExternalStore is hiervoor de juiste
+// tool: `getServerSnapshot` geeft zowel server als de allereerste
+// client-render dezelfde waarde (false), en pas na hydratie synct hij veilig
+// met de echte media-query - geen setState-in-effect, geen mismatch.
+function subscribeToReducedMotion(callback: () => void) {
+  const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
+  mediaQuery.addEventListener("change", callback);
+  return () => mediaQuery.removeEventListener("change", callback);
+}
+function getReducedMotionSnapshot() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+function getReducedMotionServerSnapshot() {
+  return false;
+}
+
 // Nieuwe hero-slideshow (op gebruikersverzoek): bij meerdere nieuwsitems
 // blijft elk even in beeld en schuift daarna naar links weg voor het
 // volgende, i.p.v. alleen het allerlaatste bericht te tonen. Bij één item
@@ -30,13 +49,18 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
   const [dragOffset, setDragOffset] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   // Begint gepauzeerd voor wie prefers-reduced-motion aanheeft — zo'n
-  // gebruiker krijgt de automatische doorschuif-animatie nooit te zien,
-  // ongeacht of ze zelf op pauze klikken. Een gewone bezoeker kan de
-  // doorloop ook altijd zelf pauzeren via de zichtbare knop hieronder.
-  const [paused, setPaused] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  });
+  // gebruiker krijgt de automatische doorschuif-animatie nooit te zien
+  // zolang ze 'm niet zelf aanzetten. Een gewone bezoeker kan de doorloop
+  // ook altijd zelf pauzeren via de zichtbare knop hieronder. `override`
+  // is de eigen knop-keuze (null = nog geen keuze gemaakt, dan geldt de
+  // media-query als standaard); eenmaal geklikt wint die altijd.
+  const prefersReducedMotion = useSyncExternalStore(
+    subscribeToReducedMotion,
+    getReducedMotionSnapshot,
+    getReducedMotionServerSnapshot
+  );
+  const [pausedOverride, setPausedOverride] = useState<boolean | null>(null);
+  const paused = pausedOverride ?? prefersReducedMotion;
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pointerState = useRef<{ id: number; startX: number } | null>(null);
   const didDragRef = useRef(false);
@@ -182,7 +206,7 @@ export function NewsHeroCarousel({ slides }: { slides: NewsHeroSlide[] }) {
           type="button"
           aria-label={paused ? "Doorschuiven hervatten" : "Doorschuiven pauzeren"}
           aria-pressed={paused}
-          onClick={() => setPaused((p) => !p)}
+          onClick={() => setPausedOverride(!paused)}
           className="absolute right-2.5 top-2.5 z-10 flex h-9 w-9 items-center justify-center rounded-full bg-black/30 text-white hover:bg-black/50"
         >
           {paused ? <Play size={16} /> : <Pause size={16} />}
