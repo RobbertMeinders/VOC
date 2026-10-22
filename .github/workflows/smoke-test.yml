@@ -1,0 +1,46 @@
+name: Post-deploy rooktest
+
+# Vangnet tegen "code staat klaar, werkt live niet": handmatig te starten
+# (Actions-tab -> deze workflow -> "Run workflow"), na een migratieronde of
+# een deploy waar je zeker van wilt zijn. Draait tegen de ECHTE gedeployde
+# URL met een los, niet-gevoelig testaccount -- vereist de repository-
+# secrets SMOKE_EMAIL en SMOKE_PASSWORD (nooit in deze workflow of elders
+# in de repo zelf).
+on:
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: "URL om te testen"
+        required: false
+        default: "https://app.vocveendam.nl"
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - name: Playwright/Chromium installeren
+        run: npx playwright install --with-deps chromium
+
+      - name: Rooktest draaien
+        env:
+          SMOKE_BASE_URL: ${{ inputs.base_url }}
+          SMOKE_EMAIL: ${{ secrets.SMOKE_EMAIL }}
+          SMOKE_PASSWORD: ${{ secrets.SMOKE_PASSWORD }}
+        run: npx playwright test
+
+      - name: Playwright-rapport bewaren bij een mislukte run
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
