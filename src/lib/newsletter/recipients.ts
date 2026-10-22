@@ -36,7 +36,10 @@ export async function previewNewsletterRecipients(
   }
 
   const [{ data: profiles }, { data: contacts }, { data: existingDeliveries }] = await Promise.all([
-    supabase.from("profiles").select("id, is_active, email, email_campaigns"),
+    // profiles.email zit niet in de publieke kolom-grant (0091) -- directe
+    // select faalt stil (zie migratie 0194); deze RPC omzeilt dat net als
+    // claim_newsletter_deliveries dat al deed.
+    supabase.rpc("get_profiles_for_newsletter_preview"),
     supabase.from("contacts").select("id, email, opted_out"),
     supabase.from("communication_deliveries").select("email, status").eq("communication_id", communication.id),
   ]);

@@ -1372,6 +1372,10 @@ export interface Database {
         Args: { p_communication_id: string };
         Returns: { total: number; sent: number; failed: number; skipped: number }[];
       };
+      get_profiles_for_newsletter_preview: {
+        Args: Record<string, never>;
+        Returns: { id: string; is_active: boolean; email: string; email_campaigns: boolean }[];
+      };
     };
     Enums: {
       user_role: UserRole;
