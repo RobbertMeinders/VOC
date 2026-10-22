@@ -1188,7 +1188,8 @@ begin
   v_base := nullif(trim(both '-' from regexp_replace(lower(p_name), '[^a-z0-9]+', '-', 'g')), '');
   v_base := coalesce(v_base, 'bedrijf');
   v_candidate := v_base;
-  while exists (select 1 from public.companies where slug = v_candidate) loop
+  while exists (select 1 from public.companies where slug = v_candidate)
+     or exists (select 1 from public.company_slug_aliases where slug = v_candidate) loop
     v_suffix := v_suffix + 1;
     v_candidate := v_base || '-' || v_suffix;
   end loop;
@@ -1874,6 +1875,26 @@ end;
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.guard_company_insert()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not public.is_board() then
+    new.membership_status := 'prospect';
+    new.is_publicly_visible := false;
+    new.created_by := auth.uid();
+    new.member_since := null;
+    new.membership_end_date := null;
+    new.slug := public.generate_unique_company_slug(new.name);
+  end if;
+  return new;
+end;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.guard_company_membership_request_insert()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -1884,6 +1905,21 @@ begin
   new.status := 'pending';
   new.decided_by := null;
   new.decided_at := null;
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.guard_company_membership_request_update()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  new.profile_id := old.profile_id;
+  new.company_id := old.company_id;
+  new.decided_by := auth.uid();
   return new;
 end;
 $function$
@@ -1918,10 +1954,12 @@ begin
   if new.facebook_url is not null and new.facebook_url !~* '^https?://\S+\.\S+' then
     new.facebook_url := null;
   end if;
-  if TG_TABLE_NAME = 'companies' then
-    if new.website is not null and new.website !~* '^https?://\S+\.\S+' then
-      new.website := null;
-    end if;
+  if TG_TABLE_NAME = 'companies' and new.website is not null and new.website !~* '^https?://\S+\.\S+' then
+    new.website := null;
+  end if;
+  if TG_TABLE_NAME = 'activities' and new.external_registration_url is not null
+     and new.external_registration_url !~* '^https?://\S+\.\S+' then
+    new.external_registration_url := null;
   end if;
   return new;
 end;
@@ -2460,6 +2498,7 @@ begin
   else
     new.source = 'lid';
     new.status = 'pending';
+    new.created_by = auth.uid();
   end if;
   return new;
 end;
@@ -2503,7 +2542,7 @@ begin
     '/beheer/aanvragen',
     v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
   from public.profiles
-  where is_active and role = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder']));
+  where is_active and role::text = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder']));
   return new;
 end;
 $function$
@@ -2636,7 +2675,7 @@ begin
       '/agenda/' || new.slug,
       v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
     from public.profiles
-    where is_active and role = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder']));
+    where is_active and role::text = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder']));
   end if;
   return new;
 end;
@@ -2669,11 +2708,9 @@ begin
     '/bedrijven/' || v_company_slug,
     v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
   from (
-    -- collega's van het bedrijf blijven onvoorwaardelijk ontvanger — de
-    -- rolinstelling geldt alleen voor de bestuur/beheer-tak hieronder.
     select profile_id as recipient_id from public.company_members where company_id = new.company_id
     union
-    select id as recipient_id from public.profiles where is_active and role = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder']))
+    select id as recipient_id from public.profiles where is_active and role::text = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder']))
   ) recipients
   where recipient_id <> new.profile_id;
 
@@ -2760,7 +2797,7 @@ begin
       '/leden/' || new.slug,
       v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
     from public.profiles
-    where is_active and role = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder'])) and id <> new.id;
+    where is_active and role::text = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder'])) and id <> new.id;
   end if;
   return new;
 end;
@@ -3375,3 +3412,7 @@ CREATE OR REPLACE FUNCTION public.word_similarity_op(text, text)
  LANGUAGE c
  STABLE PARALLEL SAFE STRICT
 AS '$libdir/pg_trgm', $function$word_similarity_op$function$
+
+
+== PUBLIC EXECUTE GRANTS (non-extensie) ==
+(geen)
