@@ -116,21 +116,20 @@ export function ActivityCard({
   // ernaast, in de aanroeper (agenda/page.tsx) — hierbinnen daarom alleen
   // tijd + plaats op één regel, anders staat de datum er dubbel.
   //
-  // Live QA: een border-left met een conditionele kleur (actief/niet, VOC/
-  // extern) bleek in de praktijk onzichtbaar op een element dat ook
-  // overflow-hidden + rounded-2xl + een composited hover-transform heeft
-  // (zelfde patroon brak ook in HamburgerMenu's actieve-item-streepje) —
-  // een los, absoluut gepositioneerd staafje binnen de overflow-hidden-grens
-  // i.p.v. een border-left omzeilt dat.
+  // Identiteit-verfijning: de linkerrand hoort nu bij de kaart zelf i.p.v.
+  // een los staafje ernaast. Eerdere Live QA leerde dat een echte border-left
+  // op dit element (overflow-hidden + rounded-2xl + composited hover-
+  // transform) onzichtbaar bleef — vandaar nu een inset box-shadow i.p.v.
+  // border-left: die rondt vanzelf mee met de border-radius en loopt niet
+  // tegen diezelfde compositing-bug aan.
   return (
     <Link
       href={activityHref(activity)}
-      className="card-hover-lift animate-rise-in relative flex items-start gap-3 overflow-hidden rounded-2xl bg-surface p-3 shadow-sm"
+      className={clsx(
+        "card-hover-lift animate-rise-in flex items-start gap-3 overflow-hidden rounded-2xl bg-surface p-3",
+        isOfficial ? "shadow-[inset_4px_0_0_0_var(--voc-red),var(--shadow-sm)]" : "shadow-[inset_4px_0_0_0_var(--petrol),var(--shadow-sm)]"
+      )}
     >
-      <span
-        aria-hidden
-        className={clsx("absolute inset-y-0 left-0 z-10 w-1", isOfficial ? "bg-voc-red" : "bg-petrol")}
-      />
       {imageUrl ? (
         // Ontwerpfeedback (agenda-desktop/mobiel.png): vaste ±72x72 op
         // mobiel, ±120x84 (liggend) vanaf desktop — geen tussenliggende

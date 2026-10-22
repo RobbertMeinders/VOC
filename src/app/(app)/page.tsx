@@ -169,7 +169,16 @@ export default async function HomePage() {
       {/* Welkomstblok: donkerpetrol, geen decoratie/glaseffect (redesign-
           besluit). Op desktop een brede banner (begroeting links, de
           activiteitkaart rechts); op mobiel gestapeld. */}
-      <div className="animate-rise-in rounded-3xl p-5 shadow-sm sm:p-8" style={{ backgroundImage: "var(--hero-gradient)" }}>
+      {/* Identiteit-verfijning: het petrol->rood lijntje zat hiervoor als
+          losse sibling onder dit blok (zweefde los in de gap-6 ertussen) —
+          nu de onderrand van het blok zelf: onderhoeken vierkant
+          (rounded-t-3xl i.p.v. rounded-3xl) zodat de volle-breedte lijn er
+          vlak onderaan tegenaan sluit, de proefversie-melding komt er met
+          de normale gap-6 rustig onder te staan. */}
+      <div
+        className="animate-rise-in relative rounded-t-3xl p-5 shadow-sm sm:p-8"
+        style={{ backgroundImage: "var(--hero-gradient)" }}
+      >
         <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between sm:gap-8">
           <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-wide text-white/60">{formatTodayLabel()}</p>
@@ -237,6 +246,7 @@ export default async function HomePage() {
             </Link>
           )}
         </div>
+        <div aria-hidden className="gradient-rule absolute inset-x-0 bottom-0" />
       </div>
       {/* Identiteit-verfijning: het petrol->rood lijntje hing hier los
           tussen het welkomstblok en de proefversie-melding (de gap-6 van de
