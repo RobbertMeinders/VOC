@@ -378,6 +378,7 @@ CREATE OR REPLACE FUNCTION public.claim_newsletter_deliveries(p_communication_id
  SECURITY DEFINER
  SET search_path TO 'public'
 AS $function$
+#variable_conflict use_column
 declare
   v_filter text;
   v_attempt_id uuid;
