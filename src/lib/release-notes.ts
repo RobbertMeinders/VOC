@@ -6,6 +6,16 @@ export type ReleaseNote = { version: string; items: string[] };
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "0.12.0",
+    items: [
+      "E-mailknoppen zijn nu overal groen en helemaal rond, in plaats van rood met rechte hoeken.",
+      "Je wordt in e-mails voortaan echt bij je naam aangesproken, in plaats van een algemene aanhef.",
+      "De uitleg over pushmeldingen op je telefoon staat standaard ingeklapt en is duidelijker als klikbaar.",
+      "Op Home zie je nu 6 in plaats van 5 nieuwe leden bij \"Nieuw in het netwerk\".",
+      "Een storing waardoor aanmelden/aanvragen indienen soms mislukte, is verholpen.",
+    ],
+  },
+  {
     version: "0.11.0",
     items: [
       "Nieuwsbrieven versturen en ontvangen werkt nu volledig vanuit het portaal.",
