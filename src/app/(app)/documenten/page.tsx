@@ -6,6 +6,7 @@ import { cachedQuery } from "@/lib/cache/queryCache";
 import { isBoard } from "@/lib/auth/roles";
 import { DocumentUploadForm } from "@/components/documents/DocumentUploadForm";
 import { DocumentListClient } from "@/components/documents/DocumentListClient";
+import { PageHeader } from "@/components/ui/PageHeader";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Documenten" };
@@ -40,10 +41,7 @@ export default async function DocumentenPage() {
 
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Documenten</h1>
-        {isBoard(profile.role) && <DocumentUploadForm categories={categories} />}
-      </div>
+      <PageHeader title="Documenten" action={isBoard(profile.role) && <DocumentUploadForm categories={categories} />} />
 
       <DocumentListClient documents={allDocuments ?? []} urls={urlsRecord} canManage={isBoard(profile.role)} />
     </div>

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { cachedQuery } from "@/lib/cache/queryCache";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { newsItemHref } from "@/lib/news/slug";
 import { formatDateLong as formatDate } from "@/lib/format/date";
 import type { Database } from "@/lib/types/database";
@@ -34,7 +35,7 @@ export default async function NieuwsPage() {
 
   return (
     <div>
-      <h1 className="mb-6 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Nieuws</h1>
+      <PageHeader title="Nieuws" />
 
       {newsItems && newsItems.length > 0 ? (
         // Afwerkronde blok 4: overzicht met foto, titel, datum en twee

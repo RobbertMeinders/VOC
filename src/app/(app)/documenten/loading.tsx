@@ -16,7 +16,8 @@ function DocumentRowSkeleton() {
 export default function DocumentenLoading() {
   return (
     <div className="flex flex-col gap-4">
-      <Skeleton className="h-6 w-36" />
+      {/* h-9: zelfde hoogte als PageHeader's <h1>. */}
+      <Skeleton className="h-9 w-36" />
       <Skeleton className="h-10 w-full rounded-xl" />
       <div className="flex flex-col gap-2">
         {Array.from({ length: 6 }).map((_, i) => (

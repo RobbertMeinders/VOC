@@ -12,6 +12,7 @@ import { CompanyCard, type CompanyListItem } from "@/components/company/CompanyC
 import { DocumentRow } from "@/components/documents/DocumentRow";
 import { ActivityCard } from "@/components/agenda/ActivityCard";
 import { ComingSoon } from "@/components/ui/ComingSoon";
+import { PageHeader } from "@/components/ui/PageHeader";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Zoeken" };
@@ -52,7 +53,7 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
   if (!query) {
     return (
       <div>
-        <h1 className="mb-4 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Zoeken</h1>
+        <PageHeader title="Zoeken" />
         <SearchForm />
       </div>
     );
@@ -151,7 +152,7 @@ export default async function ZoekenPage({ searchParams }: { searchParams: Promi
   return (
     <div className="flex flex-col gap-6">
       <div>
-        <h1 className="mb-4 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Zoeken</h1>
+        <PageHeader title="Zoeken" />
         <SearchForm />
       </div>
 

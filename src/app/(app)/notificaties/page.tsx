@@ -4,6 +4,7 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { NotificationList } from "@/components/notifications/NotificationList";
+import { PageHeader } from "@/components/ui/PageHeader";
 import type { Database } from "@/lib/types/database";
 
 export const metadata: Metadata = { title: "Meldingen" };
@@ -29,7 +30,7 @@ export default async function NotificatiesPage() {
 
   return (
     <div>
-      <h1 className="mb-4 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Meldingen</h1>
+      <PageHeader title="Meldingen" />
 
       {/* F1 (UX-audit): emptyState i.p.v. hier zelf op de server-opgehaalde
           lengte te beslissen — anders blijft deze lege-staat na het

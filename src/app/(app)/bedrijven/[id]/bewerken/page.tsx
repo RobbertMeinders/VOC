@@ -8,7 +8,7 @@ import { companyHref, companyIdFilter, resolveCompanySlugAlias } from "@/lib/com
 import { CompanyForm } from "@/components/company/CompanyForm";
 import { CompanyBillingForm } from "@/components/company/CompanyBillingForm";
 import { CompanyEditFormsGuard } from "@/components/company/CompanyEditFormsGuard";
-import { BackLink } from "@/components/ui/BackLink";
+import { PageHeader } from "@/components/ui/PageHeader";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { deleteCompanyAction } from "@/app/(app)/bedrijven/[id]/actions";
 import type { Database } from "@/lib/types/database";
@@ -79,10 +79,7 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
 
   return (
     <div className="flex flex-col gap-4">
-      <BackLink href={companyHref(company)} label={`Terug naar ${company.name}`} />
-      <div>
-        <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Bedrijfsgegevens bewerken</h1>
-      </div>
+      <PageHeader title="Bedrijfsgegevens bewerken" back={{ href: companyHref(company), label: `Terug naar ${company.name}` }} />
       <CompanyEditFormsGuard>
         <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <CompanyForm company={company} logoUrl={logoUrl} />

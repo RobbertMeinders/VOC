@@ -15,6 +15,7 @@ import { PubliclyVisibleToggle } from "@/components/profile/PubliclyVisibleToggl
 import { DeleteAccountButton } from "@/components/profile/DeleteAccountButton";
 import { SettingRow } from "@/components/ui/SettingRow";
 import { SettingGroup, SettingSubRow } from "@/components/ui/SettingGroup";
+import { PageHeader } from "@/components/ui/PageHeader";
 
 export const metadata: Metadata = { title: "Instellingen" };
 
@@ -46,7 +47,7 @@ export default async function InstellingenPage() {
 
   return (
     <div className="flex flex-col gap-4">
-      <h1 className="font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Instellingen</h1>
+      <PageHeader title="Instellingen" />
 
       <SettingRow label="Thema" description="Licht, donker of volgens de instelling van je apparaat.">
         <ThemeToggle />
