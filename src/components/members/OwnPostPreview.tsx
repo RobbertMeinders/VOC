@@ -15,11 +15,6 @@ import type { FeedPost } from "@/lib/feed/types";
 // waar vind-ik-leuk/reageren/bewerken/verwijderen gewoon werken.
 export function OwnPostPreview({ post }: { post: FeedPost }) {
   const firstImage = post.attachments.find((a) => a.type === "image" && a.url);
-  const summaryParts: string[] = [];
-  if (post.likesCount > 0) summaryParts.push(`${post.likesCount} vind-ik-leuk`);
-  if (post.comments.length > 0) {
-    summaryParts.push(`${post.comments.length} ${post.comments.length === 1 ? "reactie" : "reacties"}`);
-  }
 
   return (
     <Link href={`/community?highlight=${post.id}`} className="block">
@@ -57,8 +52,6 @@ export function OwnPostPreview({ post }: { post: FeedPost }) {
             {post.attachments.length === 1 ? "1 bijlage" : `${post.attachments.length} bijlagen`}
           </p>
         )}
-
-        {summaryParts.length > 0 && <p className="mt-2 text-xs text-muted">{summaryParts.join(" · ")}</p>}
       </article>
     </Link>
   );
