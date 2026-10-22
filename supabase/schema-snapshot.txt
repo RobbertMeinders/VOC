@@ -117,9 +117,6 @@ public.feed_likes | feed_likes_self_delete | cmd=DELETE | roles={public} | using
    FROM feed_posts
   WHERE ((feed_posts.id = feed_likes.post_id) AND (feed_posts.author_id = ( SELECT auth.uid() AS uid)))))) | check=
 public.feed_likes | feed_likes_self_insert | cmd=INSERT | roles={public} | using= | check=((profile_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member))
-public.feed_post_reports | feed_post_reports_author_or_board_delete | cmd=DELETE | roles={public} | using=(( SELECT is_board() AS is_board) OR (EXISTS ( SELECT 1
-   FROM feed_posts
-  WHERE ((feed_posts.id = feed_post_reports.post_id) AND (feed_posts.author_id = ( SELECT auth.uid() AS uid)))))) | check=
 public.feed_post_reports | feed_post_reports_board_delete | cmd=DELETE | roles={public} | using=( SELECT is_board() AS is_board) | check=
 public.feed_post_reports | feed_post_reports_board_select | cmd=SELECT | roles={public} | using=( SELECT is_board() AS is_board) | check=
 public.feed_post_reports | feed_post_reports_board_update | cmd=UPDATE | roles={public} | using=( SELECT is_board() AS is_board) | check=( SELECT is_board() AS is_board)
@@ -129,8 +126,10 @@ public.feed_posts | feed_posts_members_select | cmd=SELECT | roles={public} | us
 public.feed_posts | feed_posts_self_insert | cmd=INSERT | roles={public} | using= | check=((author_id = ( SELECT auth.uid() AS uid)) AND ( SELECT is_active_member() AS is_active_member))
 public.feed_posts | feed_posts_self_or_board_delete | cmd=DELETE | roles={public} | using=((author_id = ( SELECT auth.uid() AS uid)) OR ( SELECT is_board() AS is_board)) | check=
 public.feed_posts | feed_posts_self_update | cmd=UPDATE | roles={public} | using=(author_id = ( SELECT auth.uid() AS uid)) | check=(author_id = ( SELECT auth.uid() AS uid))
-public.invitations | invitations_board_select | cmd=SELECT | roles={public} | using=(( SELECT is_admin() AS is_admin) OR ((role = 'lid'::user_role) AND ( SELECT is_board() AS is_board))) | check=
-public.invitations | invitations_insert | cmd=INSERT | roles={public} | using= | check=((invited_by = ( SELECT auth.uid() AS uid)) AND (( SELECT is_admin() AS is_admin) OR ((role = 'lid'::user_role) AND ( SELECT is_board() AS is_board))))
+public.invitations | invitations_board_select | cmd=SELECT | roles={public} | using=(( SELECT is_admin() AS is_admin) OR ((role = 'lid'::user_role) AND ( SELECT is_board() AS is_board)) OR (invited_by = ( SELECT auth.uid() AS uid))) | check=
+public.invitations | invitations_insert | cmd=INSERT | roles={public} | using= | check=((invited_by = ( SELECT auth.uid() AS uid)) AND (( SELECT is_admin() AS is_admin) OR ((role = 'lid'::user_role) AND ( SELECT is_board() AS is_board)) OR ((role = 'lid'::user_role) AND (company_id IS NOT NULL) AND ( SELECT is_active_member() AS is_active_member) AND (EXISTS ( SELECT 1
+   FROM company_members
+  WHERE ((company_members.company_id = invitations.company_id) AND (company_members.profile_id = ( SELECT auth.uid() AS uid))))))))
 public.invitations | invitations_update | cmd=UPDATE | roles={public} | using=(( SELECT is_admin() AS is_admin) OR ((role = 'lid'::user_role) AND ( SELECT is_board() AS is_board))) | check=
 public.message_templates | message_templates_admin_select | cmd=SELECT | roles={public} | using=( SELECT is_admin() AS is_admin) | check=
 public.message_templates | message_templates_admin_update | cmd=UPDATE | roles={public} | using=( SELECT is_admin() AS is_admin) | check=
@@ -1229,7 +1228,11 @@ CREATE OR REPLACE FUNCTION public.get_activity_interest_count(p_activity_id uuid
 AS $function$
   select
     (select count(*) from public.activity_registrations where activity_id = p_activity_id)
-    + (select count(*) from public.public_activity_registrations where activity_id = p_activity_id);
+    + (select count(*) from public.public_activity_registrations where activity_id = p_activity_id)
+  where exists (
+    select 1 from public.activities
+    where id = p_activity_id and source = 'voc' and status in ('approved', 'cancelled')
+  );
 $function$
 
 ---
@@ -1935,6 +1938,19 @@ begin
   if not (public.is_board() or auth.role() = 'service_role' or auth.role() is null) then
     new.slug := old.slug;
   end if;
+  return new;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.guard_feed_post_insert()
+ RETURNS trigger
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  new.created_at := now();
   return new;
 end;
 $function$
@@ -3053,7 +3069,9 @@ CREATE OR REPLACE FUNCTION public.search_companies_for_signup(p_query text)
 AS $function$
   select id, name, city
   from public.companies
-  where p_query is not null and length(trim(p_query)) >= 2 and name ilike '%' || trim(p_query) || '%'
+  where p_query is not null and length(trim(p_query)) >= 2
+    and name ilike '%' || trim(p_query) || '%'
+    and membership_status = 'lid'
   order by name
   limit 10;
 $function$
@@ -3321,7 +3339,7 @@ declare
   v_max integer;
   v_status text;
   v_allow boolean;
-  v_exists boolean;
+  v_existing record;
   v_confirmed_count integer;
   v_normalized_email text := lower(trim(p_email));
   v_recent_attempts integer;
@@ -3349,32 +3367,44 @@ begin
     raise exception 'Deze activiteit staat niet open voor aanmelden.';
   end if;
 
-  select exists (
-    select 1 from public.public_activity_registrations
-    where activity_id = p_activity_id and email = p_email
-  ) into v_exists;
+  select name, company_name into v_existing
+    from public.public_activity_registrations
+    where activity_id = p_activity_id and email = p_email;
 
-  if not v_exists then
-    if v_deadline is not null and now() > v_deadline then
-      raise exception 'De aanmelddeadline voor deze activiteit is verstreken.';
+  if found then
+    if v_existing.name is distinct from p_name or v_existing.company_name is distinct from p_company_name then
+      raise exception 'Er staat al een aanmelding met dit e-mailadres voor deze activiteit. Neem contact op met het bestuur als dit niet klopt.';
     end if;
+    -- Identieke herhaling (bv. een dubbelklik) -- stil niets doen.
+    return;
+  end if;
 
-    if v_max is not null then
-      select
-        (select count(*) from public.activity_registrations where activity_id = p_activity_id and not is_waitlisted)
-        + (select count(*) from public.public_activity_registrations where activity_id = p_activity_id)
-        into v_confirmed_count;
+  if v_deadline is not null and now() > v_deadline then
+    raise exception 'De aanmelddeadline voor deze activiteit is verstreken.';
+  end if;
 
-      if v_confirmed_count >= v_max then
-        raise exception 'Deze activiteit heeft het maximum aantal deelnemers bereikt.';
-      end if;
+  if v_max is not null then
+    select
+      (select count(*) from public.activity_registrations where activity_id = p_activity_id and not is_waitlisted)
+      + (select count(*) from public.public_activity_registrations where activity_id = p_activity_id)
+      into v_confirmed_count;
+
+    if v_confirmed_count >= v_max then
+      raise exception 'Deze activiteit heeft het maximum aantal deelnemers bereikt.';
     end if;
   end if;
 
-  insert into public.public_activity_registrations (activity_id, name, email, company_name)
-  values (p_activity_id, p_name, p_email, p_company_name)
-  on conflict (activity_id, email)
-  do update set name = excluded.name, company_name = excluded.company_name;
+  begin
+    insert into public.public_activity_registrations (activity_id, name, email, company_name)
+    values (p_activity_id, p_name, p_email, p_company_name);
+  exception
+    when unique_violation then
+      -- Race condition: twee gelijktijdige aanmeldingen met hetzelfde
+      -- e-mailadres kwamen allebei langs de check hierboven voordat de
+      -- eerste z'n rij had ingevoegd. Zelfde nette foutmelding i.p.v. een
+      -- rauwe databasefout.
+      raise exception 'Er staat al een aanmelding met dit e-mailadres voor deze activiteit. Neem contact op met het bestuur als dit niet klopt.';
+  end;
 end;
 $function$
 
