@@ -10,17 +10,17 @@ import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 import { useToast } from "@/lib/ui/ToastContext";
 import { Input } from "@/components/ui/Input";
 
-// Lidmaatschap Deel 1: "lid sinds" (elk lid van het bedrijf mag dit zelf
-// invullen) + de opzegknop. Bewust een eigen kaart, los van CompanyHeader —
-// membership_status is een beheer-begrip en dit raakt alleen wie het
-// bedrijf zelf kan beheren (canManage) of het primaire contact/bestuur is;
-// de term "primair contact" zelf blijft nergens zichtbaar in de tekst.
+// Lidmaatschap Deel 1 + feedback-ronde 2 (punt 13 + aanvulling): staat nu op
+// het BEWERKFORMULIER van het bedrijf (bewerken/page.tsx), op de plek waar
+// eerder "Bedrijf verwijderen" stond — geen eigen opvallende kaart met
+// titel meer (dat oogde te prominent), gewoon een rustige sectie onderaan.
+// "Lid sinds" is alleen een jaartal (geen volledige datum); de kolom zelf
+// (member_since) blijft een `date` — 1 januari van het ingevulde jaar.
 export function CompanyMembershipSection({
   companyId,
   membershipStatus,
   memberSince,
   membershipEndDate,
-  canManage,
   isPrimaryContact,
   isBoard,
 }: {
@@ -28,24 +28,26 @@ export function CompanyMembershipSection({
   membershipStatus: string;
   memberSince: string | null;
   membershipEndDate: string | null;
-  canManage: boolean;
   isPrimaryContact: boolean;
   isBoard: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
-  const [memberSinceValue, setMemberSinceValue] = useState(memberSince ?? "");
+  const [yearValue, setYearValue] = useState(memberSince ? memberSince.slice(0, 4) : "");
   const [showCancelForm, setShowCancelForm] = useState(false);
   const [endDate, setEndDate] = useState("");
   const [minEndDate] = useState(() => new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10));
   const confirm = useConfirm();
   const toast = useToast();
+  const currentYear = new Date().getFullYear();
 
-  if (!canManage) return null;
+  function saveYear(value: string) {
+    setYearValue(value);
+    const year = Number(value);
+    const isValidYear = value === "" || (Number.isInteger(year) && year >= 1900 && year <= currentYear);
+    if (!isValidYear) return;
 
-  function saveMemberSince(value: string) {
-    setMemberSinceValue(value);
     startTransition(async () => {
-      const result = await updateCompanyMemberSinceAction(companyId, value || null);
+      const result = await updateCompanyMemberSinceAction(companyId, value ? `${value}-01-01` : null);
       if (result.error) {
         toast(result.error);
       } else {
@@ -80,49 +82,45 @@ export function CompanyMembershipSection({
   }
 
   return (
-    <div className="rounded-2xl bg-surface p-6 shadow-sm">
-      <h2 className="mb-3 text-sm font-semibold text-foreground">Lidmaatschap</h2>
-
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div className="flex flex-col gap-1.5">
-          <label htmlFor={`member-since-${companyId}`} className="text-xs font-medium text-muted">
-            Lid sinds (optioneel)
-          </label>
-          <Input
-            id={`member-since-${companyId}`}
-            type="date"
-            value={memberSinceValue}
-            onChange={(e) => saveMemberSince(e.target.value)}
-            disabled={isPending}
-            className="h-9 w-full sm:w-44"
-          />
-        </div>
-
-        {membershipStatus === "lid" && (isPrimaryContact || isBoard) && !showCancelForm && (
-          <button
-            type="button"
-            onClick={() => setShowCancelForm(true)}
-            className="text-sm font-medium text-danger-text hover:underline"
-          >
-            Lidmaatschap opzeggen
-          </button>
-        )}
+    <div className="flex flex-col gap-3 border-t border-border pt-4">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor={`member-since-${companyId}`} className="text-xs font-medium text-muted">
+          Lid sinds (jaartal, optioneel)
+        </label>
+        <Input
+          id={`member-since-${companyId}`}
+          type="number"
+          inputMode="numeric"
+          min={1900}
+          max={currentYear}
+          placeholder="bv. 2018"
+          value={yearValue}
+          onChange={(e) => saveYear(e.target.value)}
+          disabled={isPending}
+          className="h-9 w-28"
+        />
       </div>
 
       {membershipStatus === "opgezegd" && membershipEndDate && (
-        <p className="mt-4 rounded-lg bg-status-warning-soft px-3 py-2 text-sm text-status-warning">
+        <p className="rounded-lg bg-status-warning-soft px-3 py-2 text-xs text-status-warning">
           Lidmaatschap opgezegd — loopt tot {new Date(membershipEndDate).toLocaleDateString("nl-NL")}.
         </p>
       )}
 
       {membershipStatus === "lid" && membershipEndDate && (
-        <p className="mt-4 rounded-lg bg-status-warning-soft px-3 py-2 text-sm text-status-warning">
+        <p className="rounded-lg bg-status-warning-soft px-3 py-2 text-xs text-status-warning">
           Opzegging gestart, einddatum {new Date(membershipEndDate).toLocaleDateString("nl-NL")} — wacht nog op bevestiging via e-mail.
         </p>
       )}
 
+      {membershipStatus === "lid" && (isPrimaryContact || isBoard) && !showCancelForm && (
+        <button type="button" onClick={() => setShowCancelForm(true)} className="self-start text-xs font-medium text-muted hover:text-danger-text hover:underline">
+          Lidmaatschap opzeggen
+        </button>
+      )}
+
       {showCancelForm && (
-        <div className="mt-4 flex flex-col gap-3 border-t border-border pt-4 sm:flex-row sm:items-end">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
           <div className="flex flex-col gap-1.5">
             <label htmlFor={`cancel-date-${companyId}`} className="text-xs font-medium text-foreground">
               Einddatum lidmaatschap
@@ -141,7 +139,7 @@ export function CompanyMembershipSection({
               type="button"
               onClick={handleCancelSubmit}
               disabled={!endDate || isPending}
-              className="rounded-full bg-voc-red px-3.5 py-1.5 text-xs font-medium text-white hover:bg-voc-red-dark disabled:opacity-60"
+              className="rounded-full border border-danger-text px-3.5 py-1.5 text-xs font-medium text-danger-text hover:bg-danger-soft disabled:opacity-60"
             >
               {isPending ? "Bezig…" : "Bevestigen"}
             </button>

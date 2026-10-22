@@ -24,7 +24,13 @@ function SubmitButton() {
 // bedrijf bestond nog niet. Zelfde zichtbaarheidsgate als CompanyMembership-
 // Requests ernaast (canManage: bestuur/beheer of een actief lid van dit
 // bedrijf).
-export function InviteColleagueForm({ companyId }: { companyId: string }) {
+//
+// UX-review feedback-ronde 2 punt 14: een teller met een richtlijn van 2
+// accounts per bedrijf — bewust GEEN harde limiet (sommige bedrijven hebben
+// er al 6), alleen een zachte hint die oplicht als het er al meer dan 2 zijn.
+const SOFT_ACCOUNT_GUIDELINE = 2;
+
+export function InviteColleagueForm({ companyId, memberCount }: { companyId: string; memberCount: number }) {
   const [open, setOpen] = useState(false);
   const toast = useToast();
   const [state, formAction] = useActionState(inviteColleagueAction.bind(null, companyId), initialState);
@@ -38,16 +44,24 @@ export function InviteColleagueForm({ companyId }: { companyId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
+  const overGuideline = memberCount > SOFT_ACCOUNT_GUIDELINE;
+  const accountCountLabel = `${memberCount} ${memberCount === 1 ? "account" : "accounts"} gekoppeld`;
+
   if (!open) {
     return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="flex items-center gap-1.5 text-sm font-medium text-petrol hover:underline"
-      >
-        <UserPlus size={15} />
-        Collega uitnodigen
-      </button>
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          className="flex items-center gap-1.5 text-sm font-medium text-petrol hover:underline"
+        >
+          <UserPlus size={15} />
+          Collega uitnodigen
+        </button>
+        <span className={overGuideline ? "text-xs font-medium text-status-warning" : "text-xs text-muted"}>
+          {accountCountLabel}
+        </span>
+      </div>
     );
   }
 
@@ -68,7 +82,12 @@ export function InviteColleagueForm({ companyId }: { companyId: string }) {
 
   return (
     <form action={formAction} className="rounded-2xl bg-surface p-4 shadow-sm">
-      <h2 className="mb-3 text-sm font-semibold text-foreground">Collega uitnodigen voor het ledenportaal</h2>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="text-sm font-semibold text-foreground">Collega uitnodigen voor het ledenportaal</h2>
+        <span className={overGuideline ? "text-xs font-medium text-status-warning" : "text-xs text-muted"}>
+          {accountCountLabel}
+        </span>
+      </div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
         <div className="flex-1">
           <label htmlFor="colleague-email" className="mb-1.5 block text-sm font-medium text-foreground">

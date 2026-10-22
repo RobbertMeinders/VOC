@@ -10,7 +10,6 @@ import { CompanyLocationMap } from "@/components/company/CompanyLocationMap";
 import { CompanyMemberList, type CompanyMember } from "@/components/company/CompanyMemberList";
 import { CompanyMembershipRequests, type PendingMembershipRequest } from "@/components/company/CompanyMembershipRequests";
 import { InviteColleagueForm } from "@/components/company/InviteColleagueForm";
-import { CompanyMembershipSection } from "@/components/company/CompanyMembershipSection";
 import type { Database } from "@/lib/types/database";
 
 type Company = Database["public"]["Tables"]["companies"]["Row"];
@@ -116,7 +115,6 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
   // een lid van dit bedrijf mag zowel aanvragen afhandelen als de
   // bedrijfs-/factuurgegevens bewerken (companies_member_update, RLS).
   const canManage = isBoard(profile.role) || activeMemberRows.some((row) => row.profile.id === profile.id);
-  const isPrimaryContact = (memberRows ?? []).some((row) => row.profile_id === profile.id && row.is_primary);
 
   const [logoUrl, avatarUrls] = await Promise.all([
     getSignedStorageUrl("company-logos", company.logo_url),
@@ -156,18 +154,7 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
           deze actie makkelijk te missen als je hier via de notificatie
           binnenkomt en de kaart+ledenlijst het scherm al vullen. */}
       {canManage && <CompanyMembershipRequests companyId={company.id} requests={pendingRequests} />}
-      {canManage && <InviteColleagueForm companyId={company.id} />}
-      {canManage && (
-        <CompanyMembershipSection
-          companyId={company.id}
-          membershipStatus={company.membership_status}
-          memberSince={company.member_since}
-          membershipEndDate={company.membership_end_date}
-          canManage={canManage}
-          isPrimaryContact={isPrimaryContact}
-          isBoard={isBoard(profile.role)}
-        />
-      )}
+      {canManage && <InviteColleagueForm companyId={company.id} memberCount={activeMemberRows.length} />}
 
       {/* UX-review V6: deze kaart liet op bijna elk bedrijf alleen "Nog geen
           leden gekoppeld aan dit bedrijf." zien — een lege sectie verbergen

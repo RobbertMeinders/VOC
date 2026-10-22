@@ -1,16 +1,15 @@
 import type { Metadata } from "next";
 import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { requireProfile } from "@/lib/auth/session";
-import { isAdmin, isBoard } from "@/lib/auth/roles";
+import { isBoard } from "@/lib/auth/roles";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
 import { companyHref, companyIdFilter, resolveCompanySlugAlias } from "@/lib/company/slug";
 import { CompanyForm } from "@/components/company/CompanyForm";
 import { CompanyBillingForm } from "@/components/company/CompanyBillingForm";
+import { CompanyMembershipSection } from "@/components/company/CompanyMembershipSection";
 import { CompanyEditFormsGuard } from "@/components/company/CompanyEditFormsGuard";
 import { PageHeader } from "@/components/ui/PageHeader";
-import { DeleteButton } from "@/components/feed/DeleteButton";
-import { deleteCompanyAction } from "@/app/(app)/bedrijven/[id]/actions";
 import type { Database } from "@/lib/types/database";
 
 type Company = Database["public"]["Tables"]["companies"]["Row"];
@@ -61,15 +60,18 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
   // poortwachter voor het opslaan zelf; dit is alleen om de pagina niet te
   // tonen aan wie hier toch niets mee kan. Geen notFound(): het bedrijf
   // bestaat gewoon, je mag 'm alleen niet bewerken.
+  let isPrimaryContact = false;
   if (!isBoard(profile.role)) {
-    const { count } = await supabase
+    const { data: memberRow } = await supabase
       .from("company_members")
-      .select("id", { count: "exact", head: true })
+      .select("is_primary")
       .eq("company_id", company.id)
-      .eq("profile_id", profile.id);
-    if (!count) {
+      .eq("profile_id", profile.id)
+      .maybeSingle();
+    if (!memberRow) {
       redirect(companyHref(company));
     }
+    isPrimaryContact = memberRow.is_primary;
   }
 
   const [logoUrl, { data: billing }] = await Promise.all([
@@ -89,21 +91,17 @@ export default async function EditCompanyPage({ params }: { params: Promise<{ id
           <p className="mb-4 text-xs text-muted">Alleen zichtbaar voor jouw bedrijf en het bestuur.</p>
           <CompanyBillingForm company={company} billing={billing ?? null} />
         </div>
-      </CompanyEditFormsGuard>
-      {isAdmin(profile.role) && (
         <div className="rounded-2xl bg-surface p-6 shadow-sm">
-          <h2 className="mb-1 text-sm font-semibold text-foreground">Bedrijf verwijderen</h2>
-          <p className="mb-3 text-xs text-muted">
-            Verwijdert dit bedrijf definitief, inclusief alle koppelingen met leden. Kan niet ongedaan gemaakt worden.
-          </p>
-          <DeleteButton
-            onDelete={deleteCompanyAction.bind(null, company.id)}
-            confirmMessage={`Weet je zeker dat je ${company.name} definitief wilt verwijderen?`}
-            className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-sm font-medium text-voc-red-text hover:border-muted"
-            size={14}
+          <CompanyMembershipSection
+            companyId={company.id}
+            membershipStatus={company.membership_status}
+            memberSince={company.member_since}
+            membershipEndDate={company.membership_end_date}
+            isPrimaryContact={isPrimaryContact}
+            isBoard={isBoard(profile.role)}
           />
         </div>
-      )}
+      </CompanyEditFormsGuard>
     </div>
   );
 }
