@@ -586,7 +586,7 @@ $function$
 
 ---
 CREATE OR REPLACE FUNCTION public.companies_for_members()
- RETURNS TABLE(id uuid, name text, slug text, logo_url text, logo_thumb_url text, description text, tagline text, industry text, website text, city text, address text, postal_code text, show_address boolean, phone text, email text, latitude double precision, longitude double precision, linkedin_url text, instagram_url text, facebook_url text, is_publicly_visible boolean, created_by uuid, created_at timestamp with time zone, updated_at timestamp with time zone, membership_status text, member_since date, membership_end_date date)
+ RETURNS TABLE(id uuid, name text, slug text, logo_url text, logo_thumb_url text, description text, tagline text, industry text, website text, city text, address text, postal_code text, show_address boolean, phone text, email text, latitude double precision, longitude double precision, linkedin_url text, instagram_url text, facebook_url text, is_publicly_visible boolean, created_by uuid, created_at timestamp with time zone, updated_at timestamp with time zone, membership_status text, member_since date, membership_end_date date, address_visibility_prompt_dismissed_at timestamp with time zone)
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO 'public'
@@ -629,7 +629,8 @@ AS $function$
     end as longitude,
     c.linkedin_url, c.instagram_url, c.facebook_url, c.is_publicly_visible,
     c.created_by, c.created_at, c.updated_at,
-    c.membership_status, c.member_since, c.membership_end_date
+    c.membership_status, c.member_since, c.membership_end_date,
+    c.address_visibility_prompt_dismissed_at
   from public.companies c
   where public.is_active_member();
 $function$
@@ -746,6 +747,28 @@ begin
   end if;
 
   delete from public.feed_posts where id = p_id;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.dismiss_company_address_prompt(p_company_id uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not (
+    public.is_board()
+    or exists (
+      select 1 from public.company_members
+      where company_id = p_company_id and profile_id = auth.uid()
+    )
+  ) then
+    raise exception 'not authorized';
+  end if;
+
+  update public.companies set address_visibility_prompt_dismissed_at = now() where id = p_company_id;
 end;
 $function$
 
@@ -1353,7 +1376,7 @@ $function$
 
 ---
 CREATE OR REPLACE FUNCTION public.get_member_profile(p_id text)
- RETURNS TABLE(id uuid, first_name text, last_name text, slug text, email text, phone text, job_title text, avatar_url text, avatar_thumb_url text, role user_role, is_active boolean, show_email boolean, show_phone boolean, show_attended_activities boolean, push_new_activity boolean, push_activity_reminder boolean, push_feed_comment boolean, push_feed_mention boolean, push_new_members boolean, email_new_activity boolean, email_activity_reminder boolean, email_feed_comment boolean, email_feed_mention boolean, email_new_members boolean, deactivated_at timestamp with time zone, anonymized_at timestamp with time zone, last_active_at timestamp with time zone, linkedin_url text, instagram_url text, facebook_url text, bio text, is_organization_account boolean, publicly_visible boolean, onboarding_dismissed_at timestamp with time zone, introduction_prompt_dismissed_at timestamp with time zone, created_at timestamp with time zone, updated_at timestamp with time zone)
+ RETURNS TABLE(id uuid, first_name text, last_name text, slug text, email text, phone text, job_title text, avatar_url text, avatar_thumb_url text, role user_role, is_active boolean, show_email boolean, show_phone boolean, show_attended_activities boolean, push_new_activity boolean, push_activity_reminder boolean, push_feed_comment boolean, push_feed_mention boolean, push_new_members boolean, email_new_activity boolean, email_activity_reminder boolean, email_feed_comment boolean, email_feed_mention boolean, email_new_members boolean, deactivated_at timestamp with time zone, anonymized_at timestamp with time zone, last_active_at timestamp with time zone, linkedin_url text, instagram_url text, facebook_url text, bio text, is_organization_account boolean, publicly_visible boolean, onboarding_dismissed_at timestamp with time zone, introduction_prompt_dismissed_at timestamp with time zone, contact_visibility_prompt_dismissed_at timestamp with time zone, created_at timestamp with time zone, updated_at timestamp with time zone)
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO 'public'
@@ -1370,6 +1393,7 @@ AS $function$
     p.linkedin_url, p.instagram_url, p.facebook_url, p.bio,
     p.is_organization_account, p.publicly_visible,
     p.onboarding_dismissed_at, p.introduction_prompt_dismissed_at,
+    p.contact_visibility_prompt_dismissed_at,
     p.created_at, p.updated_at
   from public.profiles p
   where (
