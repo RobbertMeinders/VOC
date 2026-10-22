@@ -218,6 +218,7 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
                     {member.phone}
                   </a>
                 )}
+                {member.linkedin_url && <div className="my-1 border-t border-border" />}
                 <EntitySocialLinks linkedinUrl={member.linkedin_url} />
               </div>
               {/* VOC Hub — Veilige e-mailcontactfunctie: alleen op andermans

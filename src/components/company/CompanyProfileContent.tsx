@@ -259,6 +259,10 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
                       {company.website.replace(/^https?:\/\//, "")}
                     </a>
                   )}
+                  {(company.linkedin_url || company.instagram_url || company.facebook_url) &&
+                    (company.phone || company.email || company.website) && (
+                      <div className="my-1 border-t border-border" />
+                    )}
                   <EntitySocialLinks
                     variant="compact"
                     linkedinUrl={company.linkedin_url}
