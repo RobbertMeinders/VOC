@@ -84,6 +84,17 @@
         var rect = iframe.getBoundingClientRect();
         window.scrollTo({ top: window.scrollY + rect.top - stickyHeaderHeight - 20, behavior: "smooth" });
       }
+      // Bedrijvengids-detailoverlay (CompanyDetailOverlay): die opent nu
+      // gecentreerd in het daadwerkelijk ZICHTBARE deel van deze pagina,
+      // i.p.v. op klikhoogte of midden van de hele iframe. Dat vereist de
+      // medewerking van deze buitenpagina, want alleen die weet wat ervan de
+      // (vaak hoge, geen eigen scrollbalk) iframe nu in beeld staat.
+      if (event.data.type === "voc-embed-request-viewport") {
+        var iframeRect = iframe.getBoundingClientRect();
+        var visibleTop = Math.max(0, -iframeRect.top);
+        var visibleBottom = Math.min(iframeRect.height, window.innerHeight - iframeRect.top);
+        iframe.contentWindow.postMessage({ type: "voc-embed-viewport", centerY: (visibleTop + visibleBottom) / 2 }, "*");
+      }
     });
 
     // Dit scriptje (of de iframe-inhoud) kan vertraagd laden — vraag daarom

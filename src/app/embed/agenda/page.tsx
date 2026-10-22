@@ -28,25 +28,24 @@ const PAST_ACTIVITIES_LIMIT = 6;
 // tekst (geen omschrijving meer op het overzicht, die staat al op de
 // detailpagina). isPast dooft 'm iets (grijzer, geen hover-zoom) zonder
 // 'm te verstoppen — juist bewust getoond, laat zien dat de club actief is.
+// Image-first, zo min mogelijk tekst (geen omschrijving meer op het
+// overzicht, die staat al op de detailpagina), alleen voor AANKOMENDE
+// activiteiten; eerdere activiteiten gebruiken PastActivityRow hieronder.
 function ActivityCard({
   activity,
   imageUrl,
   count,
-  isPast = false,
   thema,
 }: {
   activity: Activity;
   imageUrl: string | null;
   count: number;
-  isPast?: boolean;
   thema?: string;
 }) {
   return (
     <Link
       href={withEmbedTheme(`/embed/agenda/${activity.id}`, thema)}
-      className={`card-surface overflow-hidden ${
-        isPast ? "opacity-80 grayscale-[50%]" : "transition-all duration-500 ease-out hover:scale-[1.008] hover:shadow-md"
-      }`}
+      className="card-surface overflow-hidden transition-all duration-500 ease-out hover:scale-[1.008] hover:shadow-md"
     >
       {imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- a public, external-embed page: keep it framework-agnostic and dependency-free
@@ -70,6 +69,51 @@ function ActivityCard({
           {count} aanmelding{count === 1 ? "" : "en"}
         </p>
       </div>
+    </Link>
+  );
+}
+
+// Eerdere activiteiten blijven zichtbaar (sociale bewijskracht; een
+// publieke embed verbergt ze bewust niet achter een knop) maar horen geen
+// aandacht te trekken: een compacte, sterk gedempte rij i.p.v. de grote
+// fotokaart van hierboven (volledig grayscale + lagere opacity dan de
+// eerdere opacity-80/grayscale-50%, en een kleine thumbnail i.p.v. een volle
+// foto).
+function PastActivityRow({
+  activity,
+  imageUrl,
+  count,
+  thema,
+}: {
+  activity: Activity;
+  imageUrl: string | null;
+  count: number;
+  thema?: string;
+}) {
+  return (
+    <Link
+      href={withEmbedTheme(`/embed/agenda/${activity.id}`, thema)}
+      className="flex items-center gap-3 rounded-lg px-2 py-2 opacity-60 grayscale transition-opacity hover:opacity-80"
+    >
+      {imageUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element -- a public, external-embed page: keep it framework-agnostic and dependency-free
+        <img src={imageUrl} alt="" className="h-10 w-10 shrink-0 rounded-md object-cover" />
+      ) : (
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-voc-red-light text-voc-red-text">
+          <CalendarDays size={16} />
+        </div>
+      )}
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-sm font-medium text-foreground">{activity.title}</p>
+        <p className="truncate text-xs text-muted">
+          {formatActivityDate(activity.starts_at)}
+          {activity.location ? ` · ${activity.location}` : ""}
+        </p>
+      </div>
+      <p className="flex shrink-0 items-center gap-1 text-xs text-muted">
+        <Users size={12} />
+        {count}
+      </p>
     </Link>
   );
 }
@@ -183,14 +227,13 @@ export default async function AgendaEmbedPage({
         {(past ?? []).length > 0 && (
           <div className="mt-6">
             <h3 className="text-lg font-semibold text-foreground">Eerdere activiteiten</h3>
-            <div className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-2 flex flex-col divide-y divide-border">
               {(past ?? []).map((activity) => (
-                <ActivityCard
+                <PastActivityRow
                   key={activity.id}
                   activity={activity}
                   imageUrl={activity.image_url ? (imageUrls.get(activity.image_url) ?? null) : null}
                   count={counts.get(activity.id) ?? 0}
-                  isPast
                   thema={thema}
                 />
               ))}

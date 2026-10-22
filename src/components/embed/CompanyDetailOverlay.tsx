@@ -6,31 +6,47 @@ import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { CompanyDetailContent, type CompanyDetailData } from "./CompanyDetailContent";
 
 // Een zwevende overlay (de bedrijvenlijst blijft gemount en verduisterd
-// erachter zichtbaar) — gepositioneerd op `anchorY`, de positie van de
-// aangeklikte kaart zelf (zie BedrijvenEmbedList voor waarom: die staat per
-// definitie al in beeld, dus dat is een betrouwbaar ankerpunt zonder enige
-// medewerking van de omliggende WordPress-pagina nodig te hebben).
+// erachter zichtbaar), gecentreerd op het daadwerkelijk ZICHTBARE deel van
+// de omliggende (WordPress-)pagina, niet op klikhoogte en niet midden van de
+// hele iframe (die vaak veel hoger is dan het scherm en geen eigen
+// scrollbalk heeft, zie EmbedAutoHeight). Dat vereist medewerking van de
+// buitenpagina: een postMessage-rondvraag naar embed.js, dat met
+// getBoundingClientRect() van de iframe zelf + de eigen vensterhoogte
+// berekent welk iframe-stukje nu in beeld is. Zonder (tijdig) antwoord --
+// oudere embed-code, of deze pagina los in een tabblad zonder iframe --
+// valt dit terug op het midden van het eigen venster.
 //
-// `position: fixed` i.p.v. `absolute` t.o.v. een wrapper: deze iframe heeft
-// zelf geen scrollbalk (hoogte volgt exact de inhoud, zie EmbedAutoHeight),
-// dus "fixed" dekt hier betrouwbaar de volledige, werkelijke inhoud af —
-// zonder het risico van een eerdere versie, waar een `absolute inset-0`
-// t.o.v. een `relative`-wrapper (die zelf binnen de smallere max-w-5xl-kolom
-// zat) niet de volle breedte van bredere viewports raakte, en dus buiten die
-// kolom niet op klikken-om-te-sluiten reageerde.
-export function CompanyDetailOverlay({
-  slug,
-  anchorY,
-  onClose,
-}: {
-  slug: string;
-  anchorY: number;
-  onClose: () => void;
-}) {
+// `position: fixed` t.o.v. de iframe-viewport (niet t.o.v. een wrapper), om
+// dezelfde reden als voorheen bij de klikhoogte-aanpak: deze iframe heeft
+// zelf geen scrollbalk, dus "fixed" dekt betrouwbaar de volledige inhoud af.
+const VIEWPORT_RESPONSE_TIMEOUT_MS = 250;
+
+export function CompanyDetailOverlay({ slug, onClose }: { slug: string; onClose: () => void }) {
   const [company, setCompany] = useState<CompanyDetailData | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [centerY, setCenterY] = useState(() => (typeof window !== "undefined" ? window.innerHeight / 2 : 300));
 
   useEscapeKey(true, onClose);
+
+  useEffect(() => {
+    let resolved = false;
+
+    function onMessage(event: MessageEvent) {
+      if (event.source !== window.parent || event.data?.type !== "voc-embed-viewport") return;
+      resolved = true;
+      setCenterY(event.data.centerY);
+    }
+    window.addEventListener("message", onMessage);
+    window.parent.postMessage({ type: "voc-embed-request-viewport" }, "*");
+    const fallbackTimer = window.setTimeout(() => {
+      if (!resolved) setCenterY(window.innerHeight / 2);
+    }, VIEWPORT_RESPONSE_TIMEOUT_MS);
+
+    return () => {
+      window.removeEventListener("message", onMessage);
+      window.clearTimeout(fallbackTimer);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,8 +71,8 @@ export function CompanyDetailOverlay({
   return (
     <div className="animate-fade-in fixed inset-0 z-20 bg-black/40" onClick={onClose}>
       <div
-        className="absolute left-1/2 w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2"
-        style={{ top: anchorY }}
+        className="fixed left-1/2 max-h-[calc(100vh-2rem)] w-[calc(100%-2rem)] max-w-2xl -translate-x-1/2 -translate-y-1/2 overflow-y-auto"
+        style={{ top: centerY }}
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-3 flex justify-end">

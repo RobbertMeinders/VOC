@@ -16,23 +16,14 @@ type EmbedCompanyListItem = MapCapableCompany & { slug: string };
 // (rechtsklik/nieuw tabblad/geen JS wijst nog gewoon naar de echte
 // /embed/bedrijven/[slug]-pagina).
 export function BedrijvenEmbedList({ items, branches }: { items: EmbedCompanyListItem[]; branches: string[] }) {
-  const [selected, setSelected] = useState<{ slug: string; anchorY: number } | null>(null);
+  const [selected, setSelected] = useState<{ slug: string } | null>(null);
 
-  // De overlay moet meteen zichtbaar zijn, ook als de gebruiker ver naar
-  // beneden gescrold is in een lange lijst — deze iframe heeft zelf geen
-  // scrollbalk (de omliggende WordPress-pagina scrolt 'm als geheel mee),
-  // dus window.scrollY is hier altijd 0 en we kunnen niet zomaar navragen
-  // "welk stukje van de iframe is nu in beeld" (dat vereist medewerking van
-  // de omliggende WordPress-pagina, wat bij een oudere embed-code niet
-  // werkt). De aangeklikte kaart zelf staat per definitie al in beeld — dus
-  // die positie gebruiken we direct als ankerpunt voor de overlay.
-  // getBoundingClientRect().top is al viewport-relatief, en CompanyDetailOverlay
-  // positioneert zichzelf nu ook met `position: fixed` (viewport-relatief,
-  // zie daar voor waarom) — dus geen omrekening t.o.v. een wrapper meer nodig.
+  // CompanyDetailOverlay centreert zichzelf nu in het zichtbare deel van de
+  // omliggende pagina (postMessage-rondvraag naar embed.js) i.p.v. op de
+  // klikpositie, dus hier geen ankerpunt meer te berekenen/door te geven.
   function handleSelect(slug: string, e: MouseEvent) {
     e.preventDefault();
-    const anchorY = Math.max(0, e.currentTarget.getBoundingClientRect().top);
-    setSelected({ slug, anchorY });
+    setSelected({ slug });
   }
 
   const itemsWithClick = items.map((company) => ({
@@ -48,9 +39,7 @@ export function BedrijvenEmbedList({ items, branches }: { items: EmbedCompanyLis
       ) : (
         <ComingSoon icon={Building2} title="Geen bedrijven gevonden" description="Pas je zoekopdracht of filter aan." />
       )}
-      {selected && (
-        <CompanyDetailOverlay slug={selected.slug} anchorY={selected.anchorY} onClose={() => setSelected(null)} />
-      )}
+      {selected && <CompanyDetailOverlay slug={selected.slug} onClose={() => setSelected(null)} />}
     </div>
   );
 }
