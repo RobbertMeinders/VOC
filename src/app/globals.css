@@ -209,8 +209,10 @@
     /* --petrol-deep blijft gelijk in licht/donker (zie palet); --petrol en
        --petrol-soft worden in donker juist lichter, anders zijn iconen/
        cijfers/links in petrol nauwelijks te onderscheiden van de donkere
-       achtergrond. */
-    --petrol: #7cc4c8;
+       achtergrond. Identiteit-verfijning: de eerdere #7cc4c8 oogde als
+       lichtblauw i.p.v. petrol/teal — dieper gezet, zelfde teal als
+       --chart-primary (al gevalideerd op deze donkere achtergrond). */
+    --petrol: #2a9fab;
     --petrol-soft: #13292c;
 
     --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35);
@@ -262,7 +264,7 @@
   --voc-red-light: #3a1619;
   --voc-red-text: #ff6b72;
 
-  --petrol: #7cc4c8;
+  --petrol: #2a9fab;
   --petrol-soft: #13292c;
 
   --shadow-card: 0 1px 2px rgb(0 0 0 / 0.35);
