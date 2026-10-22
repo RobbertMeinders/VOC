@@ -133,8 +133,6 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
   if (membership?.company?.city) pills.push({ label: membership.company.city });
   if (!member.is_active) pills.push({ label: "Gedeactiveerd", tone: "danger" });
 
-  const hasVisibleContact = member.show_email || canSeePrivate || (member.phone && (member.show_phone || canSeePrivate));
-
   return (
     <div className="flex flex-col gap-4">
       <ProfileHero
@@ -192,32 +190,28 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
             <div className="rounded-2xl bg-surface p-6 shadow-sm">
               <h2 className="mb-3 text-sm font-semibold text-foreground">Contact</h2>
               <div className="flex flex-col gap-1 -mx-3">
-                {hasVisibleContact ? (
-                  <>
-                    {(member.show_email || canSeePrivate) && (
-                      <a
-                        href={`mailto:${member.email}`}
-                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-                      >
-                        <Mail size={16} className="text-muted" />
-                        {member.email}
-                      </a>
-                    )}
-                    {member.phone && (member.show_phone || canSeePrivate) && (
-                      <a
-                        href={`tel:${member.phone}`}
-                        className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-                      >
-                        <Phone size={16} className="text-muted" />
-                        {member.phone}
-                      </a>
-                    )}
-                  </>
+                {member.show_email || canSeePrivate ? (
+                  <a
+                    href={`mailto:${member.email}`}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                  >
+                    <Mail size={16} className="text-muted" />
+                    {member.email}
+                  </a>
                 ) : (
                   <p className="flex items-center gap-3 px-3 py-2 text-sm text-muted">
                     <Mail size={16} />
-                    Contactgegevens zijn verborgen
+                    E-mailadres is verborgen
                   </p>
+                )}
+                {member.phone && (member.show_phone || canSeePrivate) && (
+                  <a
+                    href={`tel:${member.phone}`}
+                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                  >
+                    <Phone size={16} className="text-muted" />
+                    {member.phone}
+                  </a>
                 )}
                 <EntitySocialLinks linkedinUrl={member.linkedin_url} />
               </div>
