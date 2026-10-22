@@ -1056,6 +1056,10 @@ export interface Database {
         };
         Returns: void;
       };
+      get_applied_migration_versions: {
+        Args: Record<string, never>;
+        Returns: string[];
+      };
       get_members_export: {
         Args: Record<string, never>;
         Returns: {

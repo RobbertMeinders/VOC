@@ -13,6 +13,8 @@ import { ForceLogoutAllButton } from "@/components/beheer/ForceLogoutAllButton";
 import { NotificationRuleRow } from "@/components/beheer/NotificationRuleRow";
 import { AllNotificationChannelsSwitch } from "@/components/beheer/AllNotificationChannelsSwitch";
 import { MessageTemplatesContent } from "@/components/beheer/MessageTemplatesContent";
+import { MigrationStatusCard } from "@/components/beheer/MigrationStatusCard";
+import { MIGRATION_VERSIONS } from "@/lib/generated/migration-versions";
 import {
   CONFIGURABLE_NOTIFICATION_TYPES,
   MEMBER_FACING_NOTIFICATION_TYPES,
@@ -27,6 +29,7 @@ const TABS = [
   { key: "algemeen", label: "Algemeen" },
   { key: "notificatieregels", label: "Notificatieregels" },
   { key: "berichten", label: "Automatische berichten" },
+  { key: "systeem", label: "Systeem" },
 ] as const;
 type TabKey = (typeof TABS)[number]["key"];
 
@@ -55,6 +58,15 @@ export default async function AppSettingsPage({ searchParams }: { searchParams: 
   ]);
   const byType = new Map((notificationRows ?? []).map((row) => [row.type, row]));
   const anyRuleEnabled = (notificationRows ?? []).some((row) => row.enabled);
+
+  // Vangnet (0189): alleen opgehaald op het Systeem-tabblad zelf, en alleen
+  // voor beheerders (get_applied_migration_versions() weigert anders toch).
+  let pendingMigrations: string[] = [];
+  if (isAdmin && activeTab === "systeem") {
+    const { data: appliedVersions } = await supabase.rpc("get_applied_migration_versions");
+    const applied = new Set(appliedVersions ?? []);
+    pendingMigrations = MIGRATION_VERSIONS.filter((version) => !applied.has(version));
+  }
 
   return (
     <TabNavProvider>
@@ -156,6 +168,9 @@ export default async function AppSettingsPage({ searchParams }: { searchParams: 
       )}
 
       {activeTab === "berichten" && (isAdmin ? <MessageTemplatesContent /> : <p className="text-sm text-muted">Alleen voor beheerders.</p>)}
+
+      {activeTab === "systeem" &&
+        (isAdmin ? <MigrationStatusCard pending={pendingMigrations} /> : <p className="text-sm text-muted">Alleen voor beheerders.</p>)}
       </TabContentArea>
       </div>
     </TabNavProvider>

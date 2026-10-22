@@ -9,6 +9,7 @@
     "lint": "eslint",
     "db:snapshot": "node scripts/db-schema-snapshot.mjs",
     "db:snapshot:check": "node scripts/db-schema-snapshot.mjs --check",
+    "migration:manifest": "node scripts/generate-migration-manifest.mjs",
     "test": "vitest run"
   },
   "dependencies": {
