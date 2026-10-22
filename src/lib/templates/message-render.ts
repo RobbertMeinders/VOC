@@ -1,6 +1,6 @@
 import "server-only";
 
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { renderTemplate } from "@/lib/template/render";
 import { escapeHtml } from "@/lib/text/escape-html";
 import { getAppSettings } from "@/lib/settings/app-settings";
@@ -60,8 +60,17 @@ function preferencesFooter(preferencesUrl: string): string {
   return `<p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je ontvangt dit als lid van de Veendammer Ondernemers Compagnie. <a href="${escapeHtml(preferencesUrl)}" style="color:#6b6b72;">Meldingen aanpassen</a></p>`;
 }
 
+// Service-role-client i.p.v. de sessie-gebonden client: deze functie wordt
+// o.a. aangeroepen VOOR er een sessie bestaat (magic link, wachtwoord-
+// reset), dus rpc liep dan als anon -- wat een losse anon/authenticated-
+// grant op get_message_template vereiste. Met sleutels als 'uit-nieuw'/
+// 'magic' voorspelbaar kon iedereen zo de volledige inhoud van elk
+// systeembericht opvragen, rechtstreeks via de REST-API. Deze functie
+// draait sowieso alleen server-side (zie "server-only" bovenaan), dus de
+// admin-client is hier altijd beschikbaar en de anon/authenticated-grant
+// kan vervallen (zie migratie 0203).
 export async function getMessageTemplate(key: string): Promise<MessageTemplateRow | null> {
-  const supabase = await createClient();
+  const supabase = createAdminClient();
   const { data } = await supabase.rpc("get_message_template", { p_key: key });
   const row = data?.[0];
   if (!row) return null;

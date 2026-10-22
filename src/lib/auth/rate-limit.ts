@@ -60,6 +60,52 @@ export async function isEmailRateLimited(kind: string, email: string): Promise<b
   }
 }
 
+/**
+ * IP-variant van isEmailRateLimited hierboven, voor anonieme formulieren
+ * waar het e-mailadres zelf niet geverifieerd is (bv. de publieke
+ * activiteit-aanmelding) — alleen op e-mailadres limiteren laat een
+ * aanvaller dan nog steeds onbeperkt doorgaan door telkens een ander
+ * (verzonnen) adres te gebruiken. Zelfde events-tabel/patroon, nu op
+ * metadata->>'ip' i.p.v. 'email'. Bewust een EIGEN kind-event-type i.p.v.
+ * hetzelfde event als de e-mail-check hergebruiken, zodat de twee limieten
+ * onafhankelijk van elkaar tellen (anders zou één poging meteen tegen
+ * allebei de tellers meetellen, wat de effectieve limiet onbedoeld zou
+ * halveren).
+ */
+async function countRecentIpAttempts(kind: string, ip: string): Promise<number> {
+  const admin = createAdminClient();
+  const { count } = await admin
+    .from("events")
+    .select("id", { count: "exact", head: true })
+    .eq("event_type", kind)
+    .gte("created_at", sinceTimestamp())
+    .contains("metadata", { ip });
+  return count ?? 0;
+}
+
+async function recordIpAttempt(kind: string, ip: string): Promise<void> {
+  const admin = createAdminClient();
+  await admin.from("events").insert({ event_type: kind, metadata: { ip } });
+}
+
+export async function isIpRateLimited(kind: string, ip: string | null): Promise<boolean> {
+  // Geen bruikbaar adres (bv. lokale ontwikkelomgeving zonder proxy-header)
+  // -- dan valt alleen de e-mail-variant terug, niet blokkeren op een lege
+  // sleutel die toch alle aanvragen zou matchen.
+  if (!ip) return false;
+  try {
+    const kindIp = `${kind}_ip`;
+    if ((await countRecentIpAttempts(kindIp, ip)) >= MAX_ATTEMPTS) {
+      return true;
+    }
+    await recordIpAttempt(kindIp, ip);
+    return false;
+  } catch (cause) {
+    console.error(`[rate-limit] isIpRateLimited('${kind}') failed, failing open:`, cause);
+    return false;
+  }
+}
+
 const PASSWORD_LOGIN_KIND = "password_login_attempted";
 
 /**
