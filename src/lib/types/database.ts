@@ -1241,6 +1241,7 @@ export interface Database {
           body: string | null;
           link: string | null;
           email: string;
+          profile_id: string;
         }[];
       };
       mark_notifications_emailed: {

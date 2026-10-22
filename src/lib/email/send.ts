@@ -5,6 +5,7 @@ import type { Transporter } from "nodemailer";
 import { renderMessageEmail } from "@/lib/templates/message-render";
 import { escapeHtml } from "@/lib/text/escape-html";
 import { renderHiddenPreheader } from "@/lib/email/preheader";
+import { buildPreferencesUrl } from "@/lib/newsletter/unsubscribe";
 
 export { escapeHtml };
 
@@ -146,17 +147,22 @@ const NOTIFICATION_MESSAGE_TEMPLATE_KEYS: Record<string, string> = {
 // transactionele mails (inloglink, uitnodiging, wachtwoord-reset) roepen
 // sendTemplatedEmail aan zonder deze optie — daar valt niets "aan te
 // passen", dat zou alleen verwarren.
-function notificationPreferencesFooter(): string {
-  const siteUrl = (process.env.SITE_URL ?? "").replace(/\/$/, "");
-  return `<p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je ontvangt dit als lid van de Veendammer Ondernemers Compagnie. <a href="${escapeHtml(`${siteUrl}/instellingen`)}" style="color:#6b6b72;">Voorkeuren aanpassen</a></p>`;
+function notificationPreferencesFooter(preferencesUrl: string): string {
+  return `<p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je ontvangt dit als lid van de Veendammer Ondernemers Compagnie. <a href="${escapeHtml(preferencesUrl)}" style="color:#6b6b72;">Voorkeuren aanpassen</a></p>`;
 }
 
 // Kale e-mail zonder board-beheerde content — fallback voor
 // notificatietypes zonder template (of wanneer het template nog niet
 // geladen kon worden).
-async function sendRawNotificationEmail(to: string, title: string, body: string | null, linkUrl: string): Promise<SendResult> {
+async function sendRawNotificationEmail(
+  to: string,
+  title: string,
+  body: string | null,
+  linkUrl: string,
+  preferencesUrl: string
+): Promise<SendResult> {
   const linkHtml = linkUrl ? `<p><a href="${escapeHtml(linkUrl)}">Bekijk in het ledenportaal</a></p>` : "";
-  const html = `${renderHiddenPreheader(body ?? title)}<p>${escapeHtml(body ?? "")}</p>${linkHtml}${notificationPreferencesFooter()}`;
+  const html = `${renderHiddenPreheader(body ?? title)}<p>${escapeHtml(body ?? "")}</p>${linkHtml}${notificationPreferencesFooter(preferencesUrl)}`;
   return sendMail(to, title, html);
 }
 
@@ -228,10 +234,12 @@ export async function sendMemberContactEmail(params: {
  */
 export async function sendNotificationEmail(
   to: string,
+  profileId: string,
   notification: { type: string; title: string; body: string | null; link: string | null }
 ): Promise<SendResult> {
   const siteUrl = process.env.SITE_URL ?? "";
   const linkUrl = notification.link ? `${siteUrl}${notification.link}` : "";
+  const preferencesUrl = buildPreferencesUrl(siteUrl, "profile", profileId);
 
   const templateKey = NOTIFICATION_MESSAGE_TEMPLATE_KEYS[notification.type];
   if (templateKey) {
@@ -239,7 +247,7 @@ export async function sendNotificationEmail(
       templateKey,
       linkUrl,
       { title: notification.title, body: notification.body ?? "" },
-      { includePreferencesFooter: true }
+      { preferencesUrl }
     );
     if (rendered) {
       const result = await sendMail(to, rendered.subject, rendered.html);
@@ -247,5 +255,5 @@ export async function sendNotificationEmail(
     }
   }
 
-  return sendRawNotificationEmail(to, notification.title, notification.body, linkUrl);
+  return sendRawNotificationEmail(to, notification.title, notification.body, linkUrl, preferencesUrl);
 }

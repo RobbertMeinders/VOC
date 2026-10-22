@@ -23,10 +23,12 @@ const CTA_STYLE =
   "display:inline-block;background:#e8000f;color:#fff;font-weight:700;padding:11px 20px;border-radius:8px;text-decoration:none;margin:4px 0 16px";
 
 // Zelfde bewoording/stijl als de bestaande notificatiemail-voettekst
-// (lib/email/send.ts) — bewust hergebruikt i.p.v. een tweede variant.
-function preferencesFooter(): string {
-  const siteUrl = (process.env.SITE_URL ?? "").replace(/\/$/, "");
-  return `<p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je ontvangt dit als lid van de Veendammer Ondernemers Compagnie. <a href="${escapeHtml(`${siteUrl}/instellingen`)}" style="color:#6b6b72;">Meldingen aanpassen</a></p>`;
+// (lib/email/send.ts), bewust hergebruikt i.p.v. een tweede variant. Wijst
+// naar /voorkeuren?token=... (geen login nodig, zie src/app/voorkeuren/
+// route.ts) i.p.v. /instellingen, met hetzelfde ondertekende token als de
+// afmeldlink.
+function preferencesFooter(preferencesUrl: string): string {
+  return `<p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je ontvangt dit als lid van de Veendammer Ondernemers Compagnie. <a href="${escapeHtml(preferencesUrl)}" style="color:#6b6b72;">Meldingen aanpassen</a></p>`;
 }
 
 export async function getMessageTemplate(key: string): Promise<MessageTemplateRow | null> {
@@ -46,7 +48,7 @@ export async function renderMessageEmail(
   key: string,
   link: string,
   variables: Record<string, string>,
-  options?: { includePreferencesFooter?: boolean }
+  options?: { preferencesUrl?: string }
 ): Promise<{ subject: string; html: string } | null> {
   const template = await getMessageTemplate(key);
   if (!template) return null;
@@ -61,7 +63,7 @@ export async function renderMessageEmail(
   const signature = `<div style="margin-top:22px">${renderSignature(template.signature_type, settings)}</div>`;
 
   const preheader = renderHiddenPreheader(htmlToPreheaderText(body));
-  const html = preheader + body + cta + after + signature + (options?.includePreferencesFooter ? preferencesFooter() : "");
+  const html = preheader + body + cta + after + signature + (options?.preferencesUrl ? preferencesFooter(options.preferencesUrl) : "");
   return { subject, html };
 }
 

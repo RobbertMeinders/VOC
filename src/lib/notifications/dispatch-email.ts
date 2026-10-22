@@ -18,7 +18,7 @@ export async function dispatchPendingEmailNotifications(limit = 50): Promise<{ s
 
   const emailedIds: string[] = [];
   for (const item of pending) {
-    const result = await sendNotificationEmail(item.email, {
+    const result = await sendNotificationEmail(item.email, item.profile_id, {
       type: item.type,
       title: item.title,
       body: item.body,
