@@ -1040,6 +1040,22 @@ export interface Database {
         Args: { p_company_id: string; p_status: string };
         Returns: void;
       };
+      update_my_profile: {
+        Args: {
+          p_first_name: string;
+          p_last_name: string;
+          p_job_title: string | null;
+          p_bio: string | null;
+          p_phone: string | null;
+          p_linkedin_url: string | null;
+          p_set_avatar?: boolean;
+          p_avatar_url?: string | null;
+          p_avatar_thumb_url?: string | null;
+          p_set_cover?: boolean;
+          p_cover_url?: string | null;
+        };
+        Returns: void;
+      };
       get_members_export: {
         Args: Record<string, never>;
         Returns: {

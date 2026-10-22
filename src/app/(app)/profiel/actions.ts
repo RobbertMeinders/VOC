@@ -86,19 +86,23 @@ export async function updateProfileAction(
   // bij elke "Opslaan" van het profiel de waarde terugzetten naar wat de
   // pagina had bij het laden, en zo een toggle via /instellingen ongedaan
   // kunnen maken.
-  const { error } = await supabase
-    .from("profiles")
-    .update({
-      first_name: firstName,
-      last_name: lastName,
-      job_title: jobTitle || null,
-      bio: bio || null,
-      phone: phone || null,
-      linkedin_url: linkedinUrl || null,
-      ...(avatarPath ? { avatar_url: avatarPath, avatar_thumb_url: avatarThumbPath } : {}),
-      ...(coverPath !== undefined ? { cover_url: coverPath } : {}),
-    })
-    .eq("id", profile.id);
+  //
+  // update_my_profile (0188): een rechtstreekse tabel-update liep vast op
+  // een kolomrechten-subtiliteit (zie die migratie) — deze RPC draait als
+  // functie-eigenaar en omzeilt dat.
+  const { error } = await supabase.rpc("update_my_profile", {
+    p_first_name: firstName,
+    p_last_name: lastName,
+    p_job_title: jobTitle || null,
+    p_bio: bio || null,
+    p_phone: phone || null,
+    p_linkedin_url: linkedinUrl || null,
+    p_set_avatar: avatarPath !== undefined,
+    p_avatar_url: avatarPath ?? null,
+    p_avatar_thumb_url: avatarThumbPath ?? null,
+    p_set_cover: coverPath !== undefined,
+    p_cover_url: coverPath ?? null,
+  });
 
   if (error) {
     return { error: "Opslaan is niet gelukt. Probeer het opnieuw." };
