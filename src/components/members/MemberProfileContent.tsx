@@ -186,13 +186,6 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
         }
         sidebar={
           <>
-            {attendedActivities.length > 0 && (
-              <div className="rounded-2xl bg-surface p-6 shadow-sm">
-                <h2 className="mb-3 text-sm font-semibold text-foreground">Bijgewoonde activiteiten</h2>
-                <AttendedActivitiesSection memberId={id} activities={attendedActivities} />
-              </div>
-            )}
-
             <div className="rounded-2xl bg-surface p-6 shadow-sm">
               <h2 className="mb-3 text-sm font-semibold text-foreground">Contact</h2>
               <div className="flex flex-col gap-1 -mx-3">
@@ -249,6 +242,13 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
                     </p>
                   </div>
                 </Link>
+              </div>
+            )}
+
+            {attendedActivities.length > 0 && (
+              <div className="rounded-2xl bg-surface p-6 shadow-sm">
+                <h2 className="mb-3 text-sm font-semibold text-foreground">Bijgewoonde activiteiten</h2>
+                <AttendedActivitiesSection memberId={id} activities={attendedActivities} />
               </div>
             )}
           </>
