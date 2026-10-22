@@ -1,7 +1,7 @@
 -- Live feedback: de inbox-voorbeeldtekst viel terug op automatisch
 -- afgeleide tekst uit de mail (htmlToPreheaderText(body)), en bij sommige
 -- mailclients/doorstuurdiensten kwam daar i.p.v. daarvan een door
--- linktracking herschreven kale URL te staan. 0 (dit bestand) voegt een
+-- linktracking herschreven kale URL te staan. Deze migratie voegt een
 -- eigen, door het bestuur in te stellen preheader per berichttype toe
 -- (Beheer -> Instellingen -> Berichten) -- renderMessageEmail gebruikt die
 -- voortaan als die is ingevuld, en valt alleen terug op de automatische
