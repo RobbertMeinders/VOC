@@ -11,13 +11,15 @@ import { clsx } from "clsx";
 export function AnimatedDisclosure({
   label,
   contentClassName,
+  defaultOpen = false,
   children,
 }: {
   label: ReactNode;
   contentClassName?: string;
+  defaultOpen?: boolean;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(defaultOpen);
 
   return (
     <div>
