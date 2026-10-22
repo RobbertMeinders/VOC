@@ -11,7 +11,11 @@ type Notification = Database["public"]["Tables"]["notifications"]["Row"];
 
 export const metadata: Metadata = { title: "Verzonden meldingen" };
 
-const LOG_LIMIT = 100;
+// 118 bedrijfsleden (en dus al snel meer losse profielen) betekent dat één
+// enkele uitzending (nieuw lid, handmatig pushbericht, ...) al honderd+
+// rijen kan opleveren -- 100 liet dan vaak al na één uitzending niets van
+// eerdere meldingen meer zien.
+const LOG_LIMIT = 500;
 
 function ChannelStatus({ sent }: { sent: boolean }) {
   return sent ? <Check size={14} className="text-status-success" /> : <Minus size={14} className="text-muted" />;
