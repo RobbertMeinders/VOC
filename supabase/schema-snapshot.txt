@@ -1540,7 +1540,7 @@ $function$
 
 ---
 CREATE OR REPLACE FUNCTION public.get_pending_email_notifications(p_limit integer DEFAULT 50)
- RETURNS TABLE(notification_id uuid, type text, title text, body text, link text, email text)
+ RETURNS TABLE(notification_id uuid, type text, title text, body text, link text, email text, profile_id uuid)
  LANGUAGE plpgsql
  SECURITY DEFINER
  SET search_path TO 'public'
@@ -1585,7 +1585,7 @@ begin
     where n.id = c.id
     returning n.id, n.type, n.title, n.body, n.link, n.profile_id
   )
-  select l.id, l.type, l.title, l.body, l.link, p.email
+  select l.id, l.type, l.title, l.body, l.link, p.email, l.profile_id
   from leased l
   join public.profiles p on p.id = l.profile_id;
 end;
@@ -2935,18 +2935,14 @@ CREATE OR REPLACE FUNCTION public.record_manual_push_broadcast(p_reached_profile
  SET search_path TO 'public'
 AS $function$
 begin
-  if not public.is_admin() then
+  if not public.is_board() then
     raise exception 'not authorized';
   end if;
 
   insert into public.notifications (profile_id, type, title, body, pushed_at)
-  select unnest(p_reached_profile_ids), 'manual_broadcast', p_title, p_body, now();
+  select distinct unnest(p_reached_profile_ids), 'manual_broadcast', p_title, p_body, now();
 
   if array_length(p_dead_endpoints, 1) > 0 then
-    insert into public.events (event_type, target_type, metadata)
-    select 'push_unsubscribed', 'push_subscription', jsonb_build_object('endpoint', endpoint)
-    from unnest(p_dead_endpoints) as endpoint;
-
     delete from public.push_subscriptions where endpoint = any(p_dead_endpoints);
   end if;
 end;
