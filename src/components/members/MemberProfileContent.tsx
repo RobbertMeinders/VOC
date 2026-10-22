@@ -9,7 +9,7 @@ import { formatLastActive } from "@/lib/format/date";
 import { Avatar } from "@/components/ui/Avatar";
 import { ExpandableText } from "@/components/ui/ExpandableText";
 import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
-import { ProfileColumns, ProfileHero, type HeroPill } from "@/components/ui/ProfileLayout";
+import { ProfileHero, type HeroPill } from "@/components/ui/ProfileLayout";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { MemberPostList } from "@/components/members/MemberPostList";
 import { AttendedActivitiesSection } from "@/components/members/AttendedActivitiesSection";
@@ -159,101 +159,130 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
         }
       />
 
-      <ProfileColumns
-        hasMain={hasMain}
-        main={
-          <>
-            {member.bio && (
-              <div className="rounded-2xl bg-surface p-6 shadow-sm">
-                <h2 className="mb-3 text-sm font-semibold text-foreground">Over {member.first_name}</h2>
-                <ExpandableText text={member.bio} lines={5} expandLabel="Meer weergeven" collapseLabel="Minder weergeven" />
-              </div>
-            )}
+      {(() => {
+        // Live feedback: op mobiel (gestapeld) stonden Contact/Werkzaam bij
+        // onder Berichten, terwijl die twee belangrijker zijn — op desktop
+        // (twee kolommen naast elkaar) was de volgorde al prima en blijft
+        // ongewijzigd. `order-*`/`lg:order-none` i.p.v. de secties fysiek
+        // verplaatsen: zo blijft de brondocumentvolgorde (en dus de
+        // screenreader-leesvolgorde) overal hetzelfde, enkel de visuele
+        // volgorde op mobiel wijkt af. `contents` haalt de kolom-wrapper op
+        // mobiel uit de boomstructuur zodat zijn kinderen rechtstreeks
+        // grid-items worden van de buitenste (dan 1-koloms) grid en dus
+        // tussen de andere kolom se secties door kunnen schuiven; vanaf lg
+        // wordt de wrapper weer een eigen flex-kolom, zoals hiervoor.
+        const aboutSection = member.bio && (
+          <div className="order-1 rounded-2xl bg-surface p-6 shadow-sm lg:order-none">
+            <h2 className="mb-3 text-sm font-semibold text-foreground">Over {member.first_name}</h2>
+            <ExpandableText text={member.bio} lines={5} expandLabel="Meer weergeven" collapseLabel="Minder weergeven" />
+          </div>
+        );
 
-            {isOwnProfile && posts.length > 0 && (
-              <div className="rounded-2xl bg-surface p-6 shadow-sm">
-                <h2 className="mb-3 text-sm font-semibold text-foreground">Berichten</h2>
-                <MemberPostList
-                  memberId={id}
-                  initialPosts={posts}
-                  currentUserId={viewer.id}
-                  canModerate={isBoard(viewer.role)}
-                  canEditOthers={isAdmin(viewer.role)}
-                />
-              </div>
-            )}
-          </>
-        }
-        sidebar={
-          <>
-            <div className="rounded-2xl bg-surface p-6 shadow-sm">
-              <h2 className="mb-3 text-sm font-semibold text-foreground">Contact</h2>
-              <div className="flex flex-col gap-1 -mx-3">
-                {member.show_email || canSeePrivate ? (
-                  <a
-                    href={`mailto:${member.email}`}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-                  >
-                    <Mail size={16} className="text-muted" />
-                    {member.email}
-                  </a>
-                ) : (
-                  <p className="flex items-center gap-3 px-3 py-2 text-sm text-muted">
-                    <Mail size={16} />
-                    E-mailadres is verborgen
-                  </p>
-                )}
-                {member.phone && (member.show_phone || canSeePrivate) && (
-                  <a
-                    href={`tel:${member.phone}`}
-                    className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
-                  >
-                    <Phone size={16} className="text-muted" />
-                    {member.phone}
-                  </a>
-                )}
-                {member.linkedin_url && <div className="my-1 border-t border-border" />}
-                <EntitySocialLinks linkedinUrl={member.linkedin_url} />
-              </div>
-              {/* VOC Hub — Veilige e-mailcontactfunctie: alleen op andermans
-                  profiel, en alleen als dat lid nog bereikbaar is. Dit is nu
-                  ook het alternatief voor de hero-knop (die hier vervalt). */}
-              {!isOwnProfile && member.is_active && (
-                <div className="mt-2">
-                  <ContactMemberButton recipientId={member.id} recipientName={`${member.first_name} ${member.last_name}`} />
-                </div>
-              )}
-            </div>
+        const postsSection = isOwnProfile && posts.length > 0 && (
+          <div className="order-4 rounded-2xl bg-surface p-6 shadow-sm lg:order-none">
+            <h2 className="mb-3 text-sm font-semibold text-foreground">Berichten</h2>
+            <MemberPostList
+              memberId={id}
+              initialPosts={posts}
+              currentUserId={viewer.id}
+              canModerate={isBoard(viewer.role)}
+              canEditOthers={isAdmin(viewer.role)}
+            />
+          </div>
+        );
 
-            {membership?.company && (
-              <div className="rounded-2xl bg-surface p-6 shadow-sm">
-                <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij</h2>
-                <Link
-                  href={companyHref(membership.company)}
-                  className="flex items-center gap-3 rounded-xl border border-border p-3 hover:border-muted"
+        const contactSection = (
+          <div className="order-2 rounded-2xl bg-surface p-6 shadow-sm lg:order-none">
+            <h2 className="mb-3 text-sm font-semibold text-foreground">Contact</h2>
+            <div className="flex flex-col gap-1 -mx-3">
+              {member.show_email || canSeePrivate ? (
+                <a
+                  href={`mailto:${member.email}`}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
                 >
-                  <CompanyLogo logoUrl={logoUrl} name={membership.company.name} size={44} />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-foreground">{membership.company.name}</p>
-                    <p className="truncate text-xs text-muted">
-                      {membership.company.industry && <span>{membership.company.industry}</span>}
-                      {membership.company.industry && membership.company.city && <span> · </span>}
-                      {membership.company.city && <span>{membership.company.city}</span>}
-                    </p>
-                  </div>
-                </Link>
+                  <Mail size={16} className="text-muted" />
+                  {member.email}
+                </a>
+              ) : (
+                <p className="flex items-center gap-3 px-3 py-2 text-sm text-muted">
+                  <Mail size={16} />
+                  E-mailadres is verborgen
+                </p>
+              )}
+              {member.phone && (member.show_phone || canSeePrivate) && (
+                <a
+                  href={`tel:${member.phone}`}
+                  className="flex items-center gap-3 rounded-lg px-3 py-2 text-sm text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
+                >
+                  <Phone size={16} className="text-muted" />
+                  {member.phone}
+                </a>
+              )}
+              {member.linkedin_url && <div className="my-1 border-t border-border" />}
+              <EntitySocialLinks linkedinUrl={member.linkedin_url} />
+            </div>
+            {/* VOC Hub — Veilige e-mailcontactfunctie: alleen op andermans
+                profiel, en alleen als dat lid nog bereikbaar is. Dit is nu
+                ook het alternatief voor de hero-knop (die hier vervalt). */}
+            {!isOwnProfile && member.is_active && (
+              <div className="mt-2">
+                <ContactMemberButton recipientId={member.id} recipientName={`${member.first_name} ${member.last_name}`} />
               </div>
             )}
+          </div>
+        );
 
-            {attendedActivities.length > 0 && (
-              <div className="rounded-2xl bg-surface p-6 shadow-sm">
-                <h2 className="mb-3 text-sm font-semibold text-foreground">Bijgewoonde activiteiten</h2>
-                <AttendedActivitiesSection memberId={id} activities={attendedActivities} />
+        const companySection = membership?.company && (
+          <div className="order-3 rounded-2xl bg-surface p-6 shadow-sm lg:order-none">
+            <h2 className="mb-3 text-sm font-semibold text-foreground">Werkzaam bij</h2>
+            <Link
+              href={companyHref(membership.company)}
+              className="flex items-center gap-3 rounded-xl border border-border p-3 hover:border-muted"
+            >
+              <CompanyLogo logoUrl={logoUrl} name={membership.company.name} size={44} />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-medium text-foreground">{membership.company.name}</p>
+                <p className="truncate text-xs text-muted">
+                  {membership.company.industry && <span>{membership.company.industry}</span>}
+                  {membership.company.industry && membership.company.city && <span> · </span>}
+                  {membership.company.city && <span>{membership.company.city}</span>}
+                </p>
               </div>
-            )}
-          </>
+            </Link>
+          </div>
+        );
+
+        const attendedSection = attendedActivities.length > 0 && (
+          <div className="order-5 rounded-2xl bg-surface p-6 shadow-sm lg:order-none">
+            <h2 className="mb-3 text-sm font-semibold text-foreground">Bijgewoonde activiteiten</h2>
+            <AttendedActivitiesSection memberId={id} activities={attendedActivities} />
+          </div>
+        );
+
+        if (!hasMain) {
+          return (
+            <div className="flex flex-col gap-4">
+              {contactSection}
+              {companySection}
+              {attendedSection}
+            </div>
+          );
         }
-      />
+
+        return (
+          <div className="grid grid-cols-1 gap-4 lg:grid-cols-[1.55fr_1fr]">
+            <div className="contents lg:flex lg:flex-col lg:gap-4">
+              {aboutSection}
+              {postsSection}
+            </div>
+            <div className="contents lg:flex lg:flex-col lg:gap-4">
+              {contactSection}
+              {companySection}
+              {attendedSection}
+            </div>
+          </div>
+        );
+      })()}
 
       {isBoard(viewer.role) && (
         <div className="rounded-2xl bg-surface p-6 shadow-sm">
