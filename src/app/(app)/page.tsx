@@ -168,6 +168,15 @@ export default async function HomePage() {
   const showContactVisibilityPrompt =
     !profile.contact_visibility_prompt_dismissed_at && (!profile.show_email || !profile.show_phone);
 
+  // Polish-ronde: de proefversie-banner, de profielfoto-prompt en de
+  // privacy-prompt stapelden alle drie tegelijk boven de inhoud, wat de
+  // eerste indruk rommelig maakte. Nu maximaal één tegelijk, op prioriteit:
+  // de privacy-prompt (gaat over verborgen persoonsgegevens) vóór de
+  // profiel-compleet-prompt vóór de informatieve testfase-banner — die
+  // laatste blijft via het menu en de versielijn altijd bereikbaar, dus
+  // niets gaat verloren door 'm hier even niet te tonen.
+  const showTestfaseBanner = appSettings.show_testfase && !showContactVisibilityPrompt && !showProfilePrompt;
+
   return (
     <div className="flex flex-col gap-6">
       {/* B (onboarding-opdracht): eenmalige eerste-login dialoog — render
@@ -268,7 +277,22 @@ export default async function HomePage() {
           waarschuwingskleur is hier passend — dit ís een waarschuwing dat
           niet alles al definitief werkt — vandaar de bestaande
           status-warning-tokens i.p.v. het eerdere neutrale vlak. */}
-      {appSettings.show_testfase && (
+      {showContactVisibilityPrompt && <ContactVisibilityPrompt email={profile.email} phone={profile.phone} />}
+
+      {/* C (UX-audit): aanspoor om het profiel af te maken — zelfde
+          "profiel compleet"-definitie (foto + bedrijf) als de statistieken-
+          signalen, hier aangevuld met functie. Verdwijnt zodra alles is
+          aangevuld, of door 'm zelf weg te klikken (onboarding_dismissed_at). */}
+      {showProfilePrompt && !showContactVisibilityPrompt && (
+        <ProfilePhotoPrompt
+          missingPhoto={!profile.avatar_url}
+          missingJobTitle={!profile.job_title}
+          missingCompany={!ownMembership}
+          companyRequestPending={Boolean(ownPendingRequest)}
+        />
+      )}
+
+      {showTestfaseBanner && (
         <Link
           href="/testfase"
           className="flex flex-col gap-2 rounded-xl border border-status-warning/30 bg-status-warning-soft px-4 py-3 text-sm text-status-warning hover:brightness-95 sm:flex-row sm:items-center sm:justify-between sm:gap-3"
@@ -280,21 +304,6 @@ export default async function HomePage() {
           </span>
         </Link>
       )}
-
-      {/* C (UX-audit): aanspoor om het profiel af te maken — zelfde
-          "profiel compleet"-definitie (foto + bedrijf) als de statistieken-
-          signalen, hier aangevuld met functie. Verdwijnt zodra alles is
-          aangevuld, of door 'm zelf weg te klikken (onboarding_dismissed_at). */}
-      {showProfilePrompt && (
-        <ProfilePhotoPrompt
-          missingPhoto={!profile.avatar_url}
-          missingJobTitle={!profile.job_title}
-          missingCompany={!ownMembership}
-          companyRequestPending={Boolean(ownPendingRequest)}
-        />
-      )}
-
-      {showContactVisibilityPrompt && <ContactVisibilityPrompt email={profile.email} phone={profile.phone} />}
 
       {/* Mobiel: ongewijzigd t.o.v. voor de afwerkronde-herindeling —
           "Snel naar" als los blok, dan "Nieuw in het netwerk" als rij
