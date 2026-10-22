@@ -1652,6 +1652,22 @@ AS $function$
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.get_profiles_for_newsletter_preview()
+ RETURNS TABLE(id uuid, is_active boolean, email text, email_campaigns boolean)
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not public.is_board() then
+    raise exception 'not authorized';
+  end if;
+
+  return query select p.id, p.is_active, p.email, p.email_campaigns from public.profiles p;
+end;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.get_profiles_pending_auth_scrub()
  RETURNS TABLE(profile_id uuid, pending_avatar_cleanup text)
  LANGUAGE sql
