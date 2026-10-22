@@ -13,19 +13,21 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // website-embed aanmelden. Schrijft naar public_activity_registrations
 // (0047_public_agenda_registration.sql), volledig los van de "echte"
 // ledenaanmeldingen (activity_registrations): geen wachtlijst, geen
-// koppeling aan een profiel. Nogmaals invullen met hetzelfde e-mailadres
-// werkt als bijwerken, niet als foutmelding.
+// koppeling aan een profiel. Nogmaals invullen met HETZELFDE e-mailadres
+// EN dezelfde naam/bedrijfsnaam is een stille no-op (bv. een dubbelklik);
+// met een ANDERE naam/bedrijfsnaam geeft het sinds VOC-07 een foutmelding
+// i.p.v. de bestaande aanmelding stil te overschrijven — wie het
+// e-mailadres van een ander weet/raadt kon anders diens naam/bedrijfsnaam
+// wijzigen. Zelf een typefout herstellen kan dus niet meer zonder contact
+// met het bestuur (bewuste afweging, zie het gesprek hierover).
 //
 // Gaat via de upsert_public_activity_registration-RPC (security definer,
-// 0060_restrict_cron_only_rpcs_and_registration_update.sql) i.p.v. losse
-// insert/update-policies: de insert-of-update matcht daar atomisch binnen
-// de database zelf op (activity_id, email), dus een aanroeper kan — ook
-// rechtstreeks tegen de REST-API, buiten dit formulier om — onmogelijk een
-// andere rij dan zijn eigen (activity_id, email)-combinatie raken. De
-// eerdere opzet (losse insert-policy + update-policy met `using(true)`, want
-// een bezoeker mag nooit zien wie zich al heeft aangemeld dus een SELECT-
-// policy voor een echte upsert kon er niet zijn) liet zo'n aanroep in
-// theorie wél de naam/bedrijfsnaam van een ANDERE aanmelding overschrijven.
+// 0060_restrict_cron_only_rpcs_and_registration_update.sql, VOC-07-fix in
+// 0204) i.p.v. losse insert/update-policies: de hele operatie gebeurt
+// atomisch binnen de database zelf, dus een aanroeper kan — ook
+// rechtstreeks tegen de REST-API, buiten dit formulier om — nooit een
+// andere rij raken dan zijn eigen (activity_id, email)-combinatie, en nooit
+// een bestaande rij met een afwijkende naam overschrijven.
 export async function registerPublicForActivityAction(
   activityId: string,
   _prevState: PublicRegisterState,
@@ -75,6 +77,7 @@ export async function registerPublicForActivityAction(
       "De aanmelddeadline voor deze activiteit is verstreken.",
       "Deze activiteit heeft het maximum aantal deelnemers bereikt.",
       "Te veel pogingen met dit e-mailadres. Probeer het over een kwartier opnieuw.",
+      "Er staat al een aanmelding met dit e-mailadres voor deze activiteit. Neem contact op met het bestuur als dit niet klopt.",
     ];
     return {
       error: KNOWN_MESSAGES.includes(error.message)
