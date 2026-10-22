@@ -133,10 +133,11 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
   if (membership?.company?.city) pills.push({ label: membership.company.city });
   if (!member.is_active) pills.push({ label: "Gedeactiveerd", tone: "danger" });
 
-  // Hero-fix (lege-kolom-bug): op andermans profiel zonder bio en zonder
-  // bijgewoonde activiteiten (berichten tonen we daar sowieso nooit) is de
-  // hoofdkolom anders leeg, met een eenzame Contact-kaart ver rechts.
-  const hasMain = Boolean(member.bio) || attendedActivities.length > 0 || (isOwnProfile && posts.length > 0);
+  // Hero-fix (lege-kolom-bug): op andermans profiel zonder bio (berichten
+  // tonen we daar sowieso nooit) is de hoofdkolom anders leeg, met een
+  // eenzame Contact-kaart ver rechts. "Bijgewoonde activiteiten" staat nu in
+  // de zijbalk (zie sidebar) en telt dus niet meer mee voor de hoofdkolom.
+  const hasMain = Boolean(member.bio) || (isOwnProfile && posts.length > 0);
 
   return (
     <div className="flex flex-col gap-4">
@@ -152,7 +153,7 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
             firstName={member.first_name}
             lastName={member.last_name}
             avatarUrl={avatarUrl}
-            size={76}
+            size={84}
             className="ring-4 ring-surface"
           />
         }
@@ -166,13 +167,6 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
               <div className="rounded-2xl bg-surface p-6 shadow-sm">
                 <h2 className="mb-3 text-sm font-semibold text-foreground">Over {member.first_name}</h2>
                 <ExpandableText text={member.bio} lines={5} expandLabel="Meer weergeven" collapseLabel="Minder weergeven" />
-              </div>
-            )}
-
-            {attendedActivities.length > 0 && (
-              <div className="rounded-2xl bg-surface p-6 shadow-sm">
-                <h2 className="mb-3 text-sm font-semibold text-foreground">Bijgewoonde activiteiten</h2>
-                <AttendedActivitiesSection memberId={id} activities={attendedActivities} />
               </div>
             )}
 
@@ -192,6 +186,13 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
         }
         sidebar={
           <>
+            {attendedActivities.length > 0 && (
+              <div className="rounded-2xl bg-surface p-6 shadow-sm">
+                <h2 className="mb-3 text-sm font-semibold text-foreground">Bijgewoonde activiteiten</h2>
+                <AttendedActivitiesSection memberId={id} activities={attendedActivities} />
+              </div>
+            )}
+
             <div className="rounded-2xl bg-surface p-6 shadow-sm">
               <h2 className="mb-3 text-sm font-semibold text-foreground">Contact</h2>
               <div className="flex flex-col gap-1 -mx-3">
