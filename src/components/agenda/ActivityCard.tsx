@@ -83,7 +83,7 @@ export function ActivityCard({
     return (
       <Link
         href={activityHref(activity)}
-        className="card-hover-lift animate-rise-in overflow-hidden rounded-2xl bg-surface shadow-sm hover:border-foreground/20"
+        className="card-surface card-hover-lift animate-rise-in overflow-hidden hover:border-foreground/20"
       >
         {imageUrl ? (
           <div className="relative h-44 w-full sm:h-52">

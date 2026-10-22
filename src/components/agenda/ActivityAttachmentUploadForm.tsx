@@ -38,7 +38,7 @@ export function ActivityAttachmentUploadForm({ activityId }: { activityId: strin
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 shadow-sm">
+    <form action={formAction} className="flex flex-col gap-3 rounded-2xl bg-surface p-4 shadow-sm">
       <FileSelectButton
         name="file"
         accept="application/pdf,image/png,image/jpeg,.doc,.docx,.ppt,.pptx"

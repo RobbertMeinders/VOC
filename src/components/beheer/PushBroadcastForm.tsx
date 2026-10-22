@@ -4,6 +4,7 @@ import { useActionState, useRef } from "react";
 import { useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
 import { sendPushBroadcastAction, type PushBroadcastState } from "@/app/(app)/beheer/pushbericht/actions";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 
@@ -59,12 +60,12 @@ export function PushBroadcastForm() {
         <label htmlFor="push-message" className="text-sm font-medium text-foreground">
           Bericht
         </label>
-        <textarea
+        <Textarea
           id="push-message"
           name="message"
           rows={4}
           required
-          className="rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
+          surface="background"
         />
       </div>
 

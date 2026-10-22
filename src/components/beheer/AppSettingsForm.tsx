@@ -16,6 +16,7 @@ import {
 } from "@/app/(app)/beheer/instellingen/actions";
 import { useToast } from "@/lib/ui/ToastContext";
 import type { AppSettings } from "@/lib/settings/app-settings";
+import { Textarea } from "@/components/ui/Textarea";
 
 const initialState: UpdateAppSettingsState = {};
 const uploadInitialState: UploadAppLogoState = {};
@@ -151,13 +152,13 @@ export function AppSettingsForm({ settings }: { settings: AppSettings }) {
             is) wordt een tussenkop, een losse regel met <code>---</code> een scheidingslijn, <code>[tekst](/pad)</code> wordt een link en{" "}
             <code>**tekst**</code> wordt vet.
           </p>
-          <textarea
+          <Textarea
             id="privacy_content"
             name="privacy_content"
             rows={16}
             defaultValue={settings.privacy_content}
             required
-            className="rounded-lg border border-input-border bg-surface px-3 py-2 font-mono text-xs text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
+            className="font-mono text-xs"
           />
         </div>
 

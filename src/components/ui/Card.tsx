@@ -9,14 +9,17 @@ import { clsx } from "clsx";
 // scheiding van de achtergrond gaat voortaan alleen via de schaduw, niet
 // via rand + schaduw tegelijk. `padded` zet de gebruikelijke binnenmarge;
 // zonder wordt dat aan de aanroeper overgelaten (bv. een kaart met een
-// eigen kop + inhoud met andere marges per sectie).
+// eigen kop + inhoud met andere marges per sectie). `as` laat een paar
+// call sites (een nieuwsbericht, een feed-post) het semantische
+// `<article>` behouden i.p.v. altijd een kale `<div>`.
 export function Card({
+  as: Tag = "div",
   className,
   padded = true,
   ...props
-}: HTMLAttributes<HTMLDivElement> & { padded?: boolean }) {
+}: HTMLAttributes<HTMLElement> & { as?: "div" | "article"; padded?: boolean }) {
   return (
-    <div
+    <Tag
       className={clsx("rounded-2xl bg-surface shadow-sm", padded && "p-6", className)}
       {...props}
     />

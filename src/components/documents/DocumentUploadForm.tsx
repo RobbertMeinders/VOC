@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/Input";
 import { FileSelectButton } from "@/components/ui/FileSelectButton";
 import { uploadDocumentAction, type DocumentFormState } from "@/app/(app)/documenten/actions";
 import { useToast } from "@/lib/ui/ToastContext";
+import { Textarea } from "@/components/ui/Textarea";
 
 const initialState: DocumentFormState = {};
 
@@ -44,13 +45,12 @@ export function DocumentUploadForm({ categories }: { categories: string[] }) {
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 shadow-sm">
+    <form action={formAction} className="flex flex-col gap-3 rounded-2xl bg-surface p-4 shadow-sm">
       <Input name="title" placeholder="Titel" required />
-      <textarea
+      <Textarea
         name="description"
         rows={2}
         placeholder="Korte omschrijving (optioneel)"
-        className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
       />
       <div>
         <Input name="category" placeholder="Categorie (optioneel)" list="document-categories" />

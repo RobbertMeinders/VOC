@@ -43,7 +43,7 @@ export function DocumentRow({
 
   return (
     <>
-      <div className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-sm">
+      <div className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-sm">
         <button
           type="button"
           onClick={() => {

@@ -5,6 +5,7 @@ import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { BackLink } from "@/components/ui/BackLink";
+import { Card } from "@/components/ui/Card";
 import { newsItemHref, newsItemIdFilter } from "@/lib/news/slug";
 import { formatDateLong as formatDate } from "@/lib/format/date";
 import type { Database } from "@/lib/types/database";
@@ -47,7 +48,7 @@ export default async function NieuwsDetailPage({ params }: { params: Promise<{ i
     <div>
       <BackLink href="/nieuws" label="Terug naar Nieuws" />
 
-      <article className="overflow-hidden rounded-2xl bg-surface shadow-sm">
+      <Card as="article" padded={false} className="overflow-hidden">
         {imageUrl && (
           <Image src={imageUrl} alt="" width={720} height={400} className="h-56 w-full object-cover sm:h-80" />
         )}
@@ -59,7 +60,7 @@ export default async function NieuwsDetailPage({ params }: { params: Promise<{ i
           {item.subtitle && <p className="mt-1 text-sm font-medium text-muted">{item.subtitle}</p>}
           <p className="mt-4 whitespace-pre-wrap text-sm leading-relaxed text-foreground">{item.body}</p>
         </div>
-      </article>
+      </Card>
     </div>
   );
 }

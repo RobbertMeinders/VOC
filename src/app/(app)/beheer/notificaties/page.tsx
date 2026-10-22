@@ -3,6 +3,7 @@ import { Check, Minus } from "lucide-react";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Card } from "@/components/ui/Card";
 import { formatDateTime } from "@/lib/format/date";
 import type { Database } from "@/lib/types/database";
 
@@ -50,7 +51,7 @@ export default async function BeheerNotificatiesPage() {
         description={`De laatste ${LOG_LIMIT} meldingen.`}
       />
 
-      <div className="overflow-x-auto rounded-2xl bg-surface shadow-sm">
+      <Card padded={false} className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-muted">
@@ -88,7 +89,7 @@ export default async function BeheerNotificatiesPage() {
             )}
           </tbody>
         </table>
-      </div>
+      </Card>
     </div>
   );
 }

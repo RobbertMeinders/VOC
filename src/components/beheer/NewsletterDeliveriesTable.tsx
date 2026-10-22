@@ -1,5 +1,6 @@
 import { CheckCircle2, XCircle, MinusCircle, Clock } from "lucide-react";
 import { StatusPill } from "@/components/ui/StatusPill";
+import { Card } from "@/components/ui/Card";
 import { formatDateTime } from "@/lib/format/date";
 import type { Database } from "@/lib/types/database";
 
@@ -80,7 +81,7 @@ export function NewsletterDeliveriesTable({
         </div>
       )}
 
-      <div className="overflow-x-auto rounded-2xl bg-surface shadow-sm">
+      <Card padded={false} className="overflow-x-auto">
         <table className="w-full text-left text-sm">
           <thead>
             <tr className="border-b border-border text-xs text-muted">
@@ -117,7 +118,7 @@ export function NewsletterDeliveriesTable({
             )}
           </tbody>
         </table>
-      </div>
+      </Card>
     </div>
   );
 }

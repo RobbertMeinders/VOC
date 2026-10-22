@@ -4,6 +4,7 @@ import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { PageHeader } from "@/components/ui/PageHeader";
+import { Card } from "@/components/ui/Card";
 import { QueryTabs } from "@/components/ui/QueryTabs";
 import { TabNavProvider } from "@/lib/ui/TabNavContext";
 import { TabContentArea } from "@/components/ui/TabContentArea";
@@ -99,7 +100,7 @@ export default async function AppSettingsPage({ searchParams }: { searchParams: 
           </p>
           <div className="flex flex-col gap-4">
             <AllNotificationChannelsSwitch initialEnabled={anyRuleEnabled} />
-            <div className="overflow-x-auto rounded-2xl bg-surface shadow-sm">
+            <Card padded={false} className="overflow-x-auto">
               <table className="w-full text-left text-sm">
                 <thead>
                   <tr className="border-b border-border text-xs text-muted">
@@ -149,7 +150,7 @@ export default async function AppSettingsPage({ searchParams }: { searchParams: 
                   ))}
                 </tbody>
               </table>
-            </div>
+            </Card>
           </div>
         </div>
       )}

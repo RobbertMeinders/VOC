@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Ban, X } from "lucide-react";
 import { cancelActivityAction } from "@/app/(app)/agenda/actions";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
+import { Textarea } from "@/components/ui/Textarea";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 
@@ -81,11 +82,12 @@ export function CancelActivityButton({
                 Alle deelnemers (leden en niet-leden) krijgen hieronder meteen een melding. De activiteit blijft
                 zichtbaar als &ldquo;Afgelast&rdquo; en kan niet meer geboekt worden.
               </p>
-              <textarea
+              <Textarea
                 value={message}
                 onChange={(e) => setMessage(e.target.value)}
                 rows={3}
-                className="mb-2 w-full rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
+                surface="background"
+                className="mb-2"
               />
               {error && <p className="mb-2 text-xs text-danger-text">{error}</p>}
               <div className="flex items-center gap-2">

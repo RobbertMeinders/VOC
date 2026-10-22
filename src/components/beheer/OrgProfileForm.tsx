@@ -15,12 +15,10 @@ import {
 } from "@/app/(app)/beheer/vereniging/over-ons/actions";
 import { useToast } from "@/lib/ui/ToastContext";
 import type { OrgProfile } from "@/lib/settings/org-profile";
+import { Textarea } from "@/components/ui/Textarea";
 
 const initialState: UpdateOrgProfileState = {};
 const uploadInitialState: UploadOrgHeaderImageState = {};
-
-const TEXTAREA_CLASS =
-  "rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -101,30 +99,27 @@ export function OrgProfileForm({ orgProfile, headerImageUrl }: { orgProfile: Org
       <form action={formAction} className="rounded-2xl bg-surface p-6 shadow-sm">
         <FormSections>
           <FormSection label="Introductie" description="Een korte, uitnodigende opening bovenaan de pagina Over de vereniging.">
-            <textarea
+            <Textarea
               name="intro_text"
               rows={4}
               defaultValue={orgProfile.intro_text ?? ""}
               placeholder="Nog niet ingevuld. Leden zien dit pas als hier tekst staat."
-              className={TEXTAREA_CLASS}
             />
           </FormSection>
           <FormSection label="Missie" description="Waar staat VOC voor, wat is het doel van de vereniging?">
-            <textarea
+            <Textarea
               name="mission_text"
               rows={4}
               defaultValue={orgProfile.mission_text ?? ""}
               placeholder="Nog niet ingevuld. Leden zien dit pas als hier tekst staat."
-              className={TEXTAREA_CLASS}
             />
           </FormSection>
           <FormSection label="Visie" description="Welke toekomst streeft VOC voor haar leden en de regio na?">
-            <textarea
+            <Textarea
               name="vision_text"
               rows={4}
               defaultValue={orgProfile.vision_text ?? ""}
               placeholder="Nog niet ingevuld. Leden zien dit pas als hier tekst staat."
-              className={TEXTAREA_CLASS}
             />
           </FormSection>
         </FormSections>

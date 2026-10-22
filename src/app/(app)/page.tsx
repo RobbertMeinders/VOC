@@ -11,6 +11,7 @@ import { ProfilePhotoPrompt } from "@/components/home/ProfilePhotoPrompt";
 import { WelcomeDialog } from "@/components/home/WelcomeDialog";
 import { NewsHeroCarousel } from "@/components/home/NewsHeroCarousel";
 import { SectionHeader } from "@/components/ui/SectionHeader";
+import { Card } from "@/components/ui/Card";
 import { RecentPostPreview } from "@/components/feed/RecentPostPreview";
 import { fetchFeedPosts } from "@/lib/feed/queries";
 import { activityHref } from "@/lib/agenda/slug";
@@ -358,7 +359,7 @@ export default async function HomePage() {
           {laterActivities.length > 0 && (
             <section>
               <SectionHeader title="Agenda" href="/agenda" linkLabel="Agenda" />
-              <div className="flex flex-col divide-y divide-border rounded-2xl bg-surface shadow-sm">
+              <Card padded={false} className="flex flex-col divide-y divide-border">
                 {laterActivities.map((activity) => (
                   <Link key={activity.id} href={activityHref(activity)} className="flex items-center gap-3 p-3 hover:bg-black/[.03] dark:hover:bg-white/[.05]">
                     <div className="flex h-10 w-10 shrink-0 flex-col items-center justify-center rounded-xl bg-petrol-soft leading-none text-petrol">
@@ -378,14 +379,14 @@ export default async function HomePage() {
                     </div>
                   </Link>
                 ))}
-              </div>
+              </Card>
             </section>
           )}
 
           {newMembersWithCompany.length > 0 && (
             <section>
               <SectionHeader title="Nieuw in het netwerk" href="/leden" linkLabel="Alle leden" />
-              <div className="flex flex-col divide-y divide-border rounded-2xl bg-surface shadow-sm">
+              <Card padded={false} className="flex flex-col divide-y divide-border">
                 {newMembersWithCompany.map((member) => {
                   const path = member.avatar_thumb_url ?? member.avatar_url;
                   const avatarUrl = path ? (newMemberAvatarUrls.get(path) ?? null) : null;
@@ -405,7 +406,7 @@ export default async function HomePage() {
                     </Link>
                   );
                 })}
-              </div>
+              </Card>
             </section>
           )}
         </div>

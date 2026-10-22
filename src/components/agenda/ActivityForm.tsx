@@ -7,6 +7,7 @@ import { ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { Chip } from "@/components/ui/Chip";
 import { Input } from "@/components/ui/Input";
+import { Textarea } from "@/components/ui/Textarea";
 import { Switch } from "@/components/ui/Switch";
 import { FieldError } from "@/components/ui/FieldError";
 import { FormErrorSummary } from "@/components/ui/FormErrorSummary";
@@ -124,11 +125,10 @@ function NotifyChangePanel({ activityId, suggestedMessage }: { activityId: strin
   return (
     <div className="flex flex-col gap-2 rounded-lg border border-border bg-background p-3">
       <p className="text-sm font-medium text-foreground">Deelnemers informeren over deze wijziging?</p>
-      <textarea
+      <Textarea
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         rows={2}
-        className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
       />
       <div className="flex items-center gap-2">
         <Button
@@ -304,12 +304,11 @@ export function ActivityForm({
         <label htmlFor="description" className="text-sm font-medium text-foreground">
           Beschrijving
         </label>
-        <textarea
+        <Textarea
           id="description"
           name="description"
           rows={4}
           defaultValue={activity?.description ?? ""}
-          className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
         />
       </div>
 

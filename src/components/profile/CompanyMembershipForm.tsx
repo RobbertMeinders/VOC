@@ -52,7 +52,7 @@ export function CompanyMembershipForm({
   }
 
   return (
-    <form action={formAction} className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 shadow-sm">
+    <form action={formAction} className="flex flex-col gap-3 rounded-2xl bg-surface p-4 shadow-sm">
       <p className="text-sm font-medium text-foreground">Bij welk bedrijf werk je?</p>
       <CompanySelector />
       {state.error && (

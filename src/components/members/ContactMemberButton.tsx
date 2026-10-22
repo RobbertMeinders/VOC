@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Send } from "lucide-react";
 import { sendMemberContactMessageAction } from "@/app/(app)/leden/[id]/contact-actions";
+import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/lib/ui/ToastContext";
 
 // VOC Hub — Veilige e-mailcontactfunctie: nadrukkelijk geen chat, alleen een
@@ -68,13 +69,12 @@ export function ContactMemberButton({ recipientId, recipientName }: { recipientI
             maxLength={150}
             className="w-full rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
           />
-          <textarea
+          <Textarea
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Bericht"
             rows={4}
             maxLength={4000}
-            className="w-full rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
           />
           {error && (
             <p role="alert" className="text-xs text-danger-text">

@@ -6,6 +6,7 @@ import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { Select } from "@/components/ui/Select";
+import { Textarea } from "@/components/ui/Textarea";
 import { reportPostAction } from "@/app/(app)/actions";
 
 const REASONS: { value: string; label: string }[] = [
@@ -82,12 +83,13 @@ export function ReportPostOverlay({ postId, onClose }: { postId: string; onClose
               <label className="mt-3 block text-xs font-medium text-muted">
                 Toelichting {reason === "anders" && "(verplicht)"}
               </label>
-              <textarea
+              <Textarea
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
                 rows={3}
                 placeholder="Optionele toelichting…"
-                className="mt-1 w-full resize-none rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
+                surface="background"
+                className="mt-1 resize-none"
               />
               {state.error && <p className="mt-2 text-xs text-danger-text">{state.error}</p>}
               <div className="mt-3 flex items-center gap-2">

@@ -18,6 +18,7 @@ import { useToast } from "@/lib/ui/ToastContext";
 import { useCompanyEditFormsGuard } from "./CompanyEditFormsGuard";
 import { useFieldValidation } from "@/lib/validation/useFieldValidation";
 import { validateUrl, validateEmail } from "@/lib/validation/fields";
+import { Textarea } from "@/components/ui/Textarea";
 import type { Database } from "@/lib/types/database";
 
 type Company = Database["public"]["Tables"]["companies"]["Row"];
@@ -160,13 +161,12 @@ export function CompanyForm({ company, logoUrl }: { company: Company; logoUrl: s
             <label htmlFor="description" className="text-sm font-medium text-foreground">
               Over het bedrijf
             </label>
-            <textarea
+            <Textarea
               id="description"
               name="description"
               rows={5}
               defaultValue={company.description ?? ""}
               placeholder="Meer over het bedrijf: geschiedenis, aanbod, waar jullie voor staan..."
-              className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
             />
           </div>
 

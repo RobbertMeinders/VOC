@@ -2,7 +2,7 @@ import { Skeleton } from "@/components/ui/Skeleton";
 
 function DocumentRowSkeleton() {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-surface p-3 shadow-sm">
+    <div className="flex items-center gap-3 rounded-2xl bg-surface p-3 shadow-sm">
       <Skeleton className="h-10 w-10 shrink-0 rounded-lg" />
       <div className="min-w-0 flex-1">
         <Skeleton className="h-4 w-1/2" />

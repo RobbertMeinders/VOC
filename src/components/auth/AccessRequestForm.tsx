@@ -11,6 +11,7 @@ import { submitAccessRequestAction, type AccessRequestState } from "@/app/toegan
 import { useFieldValidation } from "@/lib/validation/useFieldValidation";
 import { validateEmail, validateUrl, normalizeUrl } from "@/lib/validation/fields";
 import { compressInputFile, createThumbnailFile } from "@/lib/image/compress";
+import { Textarea } from "@/components/ui/Textarea";
 
 const initialState: AccessRequestState = {};
 
@@ -198,11 +199,10 @@ export function AccessRequestForm() {
         <label htmlFor="message" className="text-sm font-medium text-foreground">
           Toelichting (optioneel)
         </label>
-        <textarea
+        <Textarea
           id="message"
           name="message"
           rows={3}
-          className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
           placeholder="Bijvoorbeeld: waarom je graag lid wilt worden"
         />
       </div>

@@ -22,7 +22,7 @@ export function IntroductionPrompt({ dismissible = true }: { dismissible?: boole
   }
 
   return (
-    <div className="animate-rise-in flex items-center justify-between gap-3 rounded-xl border border-border bg-surface px-3.5 py-2.5 text-sm shadow-sm">
+    <div className="animate-rise-in flex items-center justify-between gap-3 rounded-2xl bg-surface px-3.5 py-2.5 text-sm shadow-sm">
       <Link href="/community?intro=1" className="flex min-w-0 items-center gap-2 text-foreground hover:text-petrol">
         <Hand size={15} className="shrink-0 text-petrol" />
         <span className="truncate">Stel je voor</span>

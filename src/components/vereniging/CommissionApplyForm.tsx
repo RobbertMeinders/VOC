@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { applyToCommissionAction } from "@/app/(app)/vereniging/commissies/actions";
 import { Button } from "@/components/ui/Button";
 import { Select } from "@/components/ui/Select";
+import { Textarea } from "@/components/ui/Textarea";
 import { useToast } from "@/lib/ui/ToastContext";
 
 // UX-feedback: één gedeelde aanmeld-CTA i.p.v. een losse aanmeldknop per
@@ -81,13 +82,13 @@ export function CommissionApplyForm({ options }: { options: { id: string; name: 
           <label htmlFor="commission-apply-message" className="text-xs font-medium text-foreground">
             Toelichting (optioneel)
           </label>
-          <textarea
+          <Textarea
             id="commission-apply-message"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             rows={3}
             placeholder="Vertel kort waarom je je aanmeldt…"
-            className="rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
+            surface="background"
           />
         </div>
 

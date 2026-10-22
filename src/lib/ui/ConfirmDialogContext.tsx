@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { useEscapeKey } from "@/lib/dom/useEscapeKey";
 import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { useFocusTrap } from "@/lib/dom/useFocusTrap";
+import { Textarea } from "@/components/ui/Textarea";
 
 // Koppelverzoeken onder Aanvragen (Beheer -> Aanvragen -> Bedrijfskoppelingen):
 // afwijzen vraagt om bevestiging mét een optionele toelichting. confirm()
@@ -148,12 +149,13 @@ export function ConfirmDialogProvider({ children }: { children: ReactNode }) {
                 {pendingReason.description && <p className="mt-1.5 text-sm text-muted">{pendingReason.description}</p>}
                 <label className="mt-3 block text-xs font-medium text-muted">
                   {pendingReason.reasonLabel ?? "Reden (optioneel)"}
-                  <textarea
+                  <Textarea
                     value={reasonValue}
                     onChange={(e) => setReasonValue(e.target.value)}
                     rows={3}
                     placeholder={pendingReason.reasonPlaceholder}
-                    className="mt-1 w-full resize-none rounded-lg border border-input-border bg-background px-3 py-2 text-sm font-normal text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
+                    surface="background"
+                    className="mt-1 resize-none font-normal"
                   />
                 </label>
                 <div className="mt-4 flex justify-end gap-2">

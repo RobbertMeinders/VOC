@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Select } from "@/components/ui/Select";
+import { Textarea } from "@/components/ui/Textarea";
 
 const REASON_TEMPLATES = [
   "Past niet binnen het doel van de VOC-agenda",
@@ -54,13 +55,14 @@ export function RejectActivityForm({
           </option>
         ))}
       </Select>
-      <textarea
+      <Textarea
         value={reason}
         onChange={(e) => setReason(e.target.value)}
         rows={3}
         required
         placeholder="Toelichting voor de indiener…"
-        className="mt-2 w-full resize-none rounded-lg border border-input-border bg-background px-3 py-2 text-sm text-foreground focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
+        surface="background"
+        className="mt-2 resize-none"
       />
       <div className="mt-2 flex items-center gap-2">
         <button

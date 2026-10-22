@@ -57,7 +57,7 @@ export default async function ProfielPage() {
       {!hasIntroduced && <IntroductionPrompt dismissible={false} />}
 
       {membership?.company ? (
-        <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">
+        <div className="flex flex-col gap-2 rounded-2xl bg-surface px-4 py-3 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <Link
               href={companyHref(membership.company)}
@@ -95,7 +95,7 @@ export default async function ProfielPage() {
           )}
         </div>
       ) : pendingRequest?.company ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-3 shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl bg-surface px-4 py-3 shadow-sm">
           <p className="flex items-center gap-2 text-sm text-muted">
             <Clock size={16} />
             Aanvraag voor <span className="font-medium text-foreground">{pendingRequest.company.name}</span> in

@@ -13,6 +13,7 @@ import { formatActivityDate, formatActivityTimeOnly, formatLastActive } from "@/
 import { RegisterButton } from "@/components/agenda/RegisterButton";
 import { AttendeeList } from "@/components/agenda/AttendeeList";
 import { DeleteButton } from "@/components/feed/DeleteButton";
+import { Card } from "@/components/ui/Card";
 import { ActivityDetailActionsMenu } from "@/components/agenda/ActivityDetailActionsMenu";
 import { ActivityAttachmentRow } from "@/components/agenda/ActivityAttachmentRow";
 import { RejectActivityForm } from "@/components/agenda/RejectActivityForm";
@@ -202,7 +203,7 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="overflow-hidden rounded-2xl bg-surface shadow-sm">
+      <Card padded={false} className="overflow-hidden">
         {imageUrl && (
           // Afwerkronde blok 6: vaste 16:9-verhouding met object-position
           // top i.p.v. een losse max-h — bij een hoge/staande foto werd het
@@ -366,7 +367,7 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
             )}
           </div>
         </div>
-      </div>
+      </Card>
 
       <AttendeeList
         attendees={attendees}

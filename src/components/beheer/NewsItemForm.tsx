@@ -10,6 +10,7 @@ import { compressInputFile } from "@/lib/image/compress";
 import { createNewsItemAction, updateNewsItemAction, type NewsFormState } from "@/app/(app)/beheer/nieuws/actions";
 import { useToast } from "@/lib/ui/ToastContext";
 import type { Database } from "@/lib/types/database";
+import { Textarea } from "@/components/ui/Textarea";
 
 type NewsItem = Database["public"]["Tables"]["news_items"]["Row"];
 
@@ -50,7 +51,7 @@ export function NewsItemForm({
         await formAction(formData);
         onDone?.();
       }}
-      className="flex flex-col gap-3 rounded-xl border border-border bg-surface p-4 shadow-sm"
+      className="flex flex-col gap-3 rounded-2xl bg-surface p-4 shadow-sm"
     >
       <Input name="title" placeholder="Titel" aria-label="Titel" defaultValue={item?.title} required />
       <Input
@@ -59,14 +60,13 @@ export function NewsItemForm({
         aria-label="Pre-header"
         defaultValue={item?.subtitle ?? ""}
       />
-      <textarea
+      <Textarea
         name="body"
         rows={5}
         placeholder="Tekst"
         aria-label="Tekst"
         defaultValue={item?.body}
         required
-        className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
       />
 
       <div className="flex flex-col gap-1.5">

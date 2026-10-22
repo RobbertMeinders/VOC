@@ -164,7 +164,7 @@ export function CommunicationRow({
   }
 
   return (
-    <div className="flex items-start gap-3 rounded-xl border border-border bg-surface p-3 shadow-sm">
+    <div className="flex items-start gap-3 rounded-2xl bg-surface p-3 shadow-sm">
       <Link href={`/beheer/communicatie/${communication.id}`} className="shrink-0">
         <CampaignThumbnail communication={communication} orgName={orgName} logoUrl={logoUrl} />
       </Link>

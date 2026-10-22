@@ -15,6 +15,7 @@ import { compressInputFile, createThumbnailFile } from "@/lib/image/compress";
 import { useToast } from "@/lib/ui/ToastContext";
 import { useFieldValidation } from "@/lib/validation/useFieldValidation";
 import { validateUrl } from "@/lib/validation/fields";
+import { Textarea } from "@/components/ui/Textarea";
 import type { Profile } from "@/lib/auth/session";
 
 const initialState: UpdateProfileState = {};
@@ -134,13 +135,12 @@ export function ProfileForm({
             <label htmlFor="bio" className="text-sm font-medium text-foreground">
               Over mij
             </label>
-            <textarea
+            <Textarea
               id="bio"
               name="bio"
               rows={4}
               defaultValue={profile.bio ?? ""}
               placeholder="Vertel iets over jezelf..."
-              className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
             />
           </div>
         </FormSection>

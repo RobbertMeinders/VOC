@@ -8,6 +8,7 @@ import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
 import { ExpandableText } from "@/components/ui/ExpandableText";
 import { ActionMenu } from "@/components/ui/ActionMenu";
+import { Card } from "@/components/ui/Card";
 import { AttachmentCarousel } from "./AttachmentCarousel";
 import { LikeButton } from "./LikeButton";
 import { CommentForm } from "./CommentForm";
@@ -366,12 +367,11 @@ export function PostCard({
   const summary = likeAndCommentSummary(post.likesCount, post.comments.length);
 
   return (
-    <article
+    <Card
+      as="article"
       id={`post-${post.id}`}
-      className={clsx(
-        "animate-rise-in scroll-mt-20 rounded-2xl bg-surface shadow-sm",
-        compact ? "p-3" : "p-4"
-      )}
+      padded={false}
+      className={clsx("animate-rise-in scroll-mt-20", compact ? "p-3" : "p-4")}
     >
       <div className="flex items-start justify-between gap-2">
         <Link href={memberHref(post.author)} className="flex items-center gap-3">
@@ -513,6 +513,6 @@ export function PostCard({
       {showLikers && (
         <LikersOverlay title="Vind ik leuk" fetchLikers={() => getPostLikersAction(post.id)} onClose={() => setShowLikers(false)} />
       )}
-    </article>
+    </Card>
   );
 }

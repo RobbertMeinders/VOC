@@ -6,6 +6,7 @@ import { AlertTriangle, Lightbulb, Paperclip } from "lucide-react";
 import { clsx } from "clsx";
 import { Button } from "@/components/ui/Button";
 import { FileSelectButton } from "@/components/ui/FileSelectButton";
+import { Textarea } from "@/components/ui/Textarea";
 import { submitTestfaseFeedbackAction, type SubmitTestfaseFeedbackState } from "@/app/(app)/testfase/actions";
 
 const initialState: SubmitTestfaseFeedbackState = {};
@@ -82,13 +83,12 @@ export function TestfaseFeedbackForm({ van }: { van?: string }) {
         <label htmlFor="message" className="text-sm font-medium text-foreground">
           Vertel het kort
         </label>
-        <textarea
+        <Textarea
           id="message"
           name="message"
           required
           rows={4}
           placeholder="Bijvoorbeeld: mijn aanmelding staat niet in Mijn agenda."
-          className="rounded-lg border border-input-border bg-surface px-3 py-2 text-sm text-foreground placeholder:text-muted focus:border-petrol focus:outline-none focus:ring-2 focus:ring-petrol/20"
         />
       </div>
 

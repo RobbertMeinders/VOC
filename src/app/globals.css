@@ -751,6 +751,16 @@ button:not(:disabled):active {
   }
 }
 
+/* Identiteit fase 3: de kaartopbouw (zie Card.tsx) herbruikbaar voor de
+   handvol plekken die zelf geen <div>/<article> zijn (een klikbare <Link>),
+   dus niet via het Card-component kunnen lopen zonder die interactiviteit
+   te breken. */
+.card-surface {
+  border-radius: var(--radius-2xl, 1rem);
+  background-color: var(--color-surface);
+  box-shadow: var(--shadow-sm);
+}
+
 /* Gedeelde hover-lift voor klikbare kaarten (activiteiten, leden, bedrijven,
    bestuur, berichten-preview, ...) — vervangt een aantal losse, net iets
    verschillende varianten (-translate-y-1, scale-[1.008], ...) door één
