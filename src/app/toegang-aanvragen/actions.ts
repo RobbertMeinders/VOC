@@ -3,7 +3,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { uploadImage } from "@/lib/supabase/upload";
-import { isEmailRateLimited } from "@/lib/auth/rate-limit";
+import { isEmailRateLimited, isIpRateLimited } from "@/lib/auth/rate-limit";
+import { getClientIp } from "@/lib/http/client-ip";
 
 export type AccessRequestState = { error?: string; success?: boolean };
 
@@ -52,8 +53,14 @@ export async function submitAccessRequestAction(
   // Volledig anoniem bereikbaar, dus zonder rate limiting kon een script
   // deze tabel (en de notificatie naar bestuur per aanvraag) ongelimiteerd
   // laten vollopen. Faalt zelf "open" bij een onverwachte fout (rate-limit.ts).
+  // Los daarvan ook op IP gelimiteerd — alleen op e-mailadres limiteren laat
+  // een script nog steeds ongelimiteerd doorgaan door telkens een ander
+  // (verzonnen) e-mailadres te gebruiken.
   if (await isEmailRateLimited("access_request_submitted", email)) {
     return { error: "Te veel aanvragen met dit e-mailadres. Probeer het over een kwartier opnieuw." };
+  }
+  if (await isIpRateLimited("access_request_submitted", await getClientIp())) {
+    return { error: "Te veel aanvragen vanaf dit apparaat. Probeer het over een kwartier opnieuw." };
   }
 
   const supabase = await createClient();
