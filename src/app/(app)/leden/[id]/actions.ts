@@ -145,7 +145,14 @@ export async function deleteMemberAction(memberId: string): Promise<DeleteMember
 
   const supabase = await createClient();
 
-  const { data: target } = await supabase.from("profiles").select("role, slug").eq("id", memberId).single();
+  const { data: target } = await supabase.from("profiles").select("role, slug, anonymized_at").eq("id", memberId).single();
+  // A: de knop/menu-optie verbergt zich voortaan al bij een al-verwijderd lid
+  // (zie MemberRowMenu), maar dit vangt ook de directe aanroep op (bv. een
+  // tweede klik vlak na de eerste, of een verlopen/gecachte pagina) met een
+  // duidelijke melding i.p.v. de generieke "niet gelukt" hieronder.
+  if (target?.anonymized_at) {
+    return { error: "Dit lid is al verwijderd." };
+  }
   if (target?.role === "beheerder") {
     const { count } = await supabase
       .from("profiles")

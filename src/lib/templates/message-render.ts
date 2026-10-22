@@ -5,6 +5,7 @@ import { renderTemplate } from "@/lib/template/render";
 import { escapeHtml } from "@/lib/text/escape-html";
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { renderSignature } from "@/lib/templates/signature";
+import { renderHiddenPreheader, htmlToPreheaderText } from "@/lib/email/preheader";
 
 export type MessageTemplateRow = {
   subject: string;
@@ -59,7 +60,8 @@ export async function renderMessageEmail(
   const cta = `<a href="${escapeHtml(link)}" style="${CTA_STYLE}">${escapeHtml(template.cta_label)}</a>`;
   const signature = `<div style="margin-top:22px">${renderSignature(template.signature_type, settings)}</div>`;
 
-  const html = body + cta + after + signature + (options?.includePreferencesFooter ? preferencesFooter() : "");
+  const preheader = renderHiddenPreheader(htmlToPreheaderText(body));
+  const html = preheader + body + cta + after + signature + (options?.includePreferencesFooter ? preferencesFooter() : "");
   return { subject, html };
 }
 

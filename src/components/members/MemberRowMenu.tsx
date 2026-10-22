@@ -27,6 +27,7 @@ export function MemberRowMenu({
   canEditRole,
   isSelf,
   isOrganizationAccount,
+  isAnonymized,
 }: {
   memberId: string;
   memberName: string;
@@ -35,6 +36,7 @@ export function MemberRowMenu({
   canEditRole: boolean;
   isSelf: boolean;
   isOrganizationAccount: boolean;
+  isAnonymized: boolean;
 }) {
   const [editingRole, setEditingRole] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -116,7 +118,11 @@ export function MemberRowMenu({
     });
   }
 
-  if (canEditRole && !isSelf) {
+  // A: een al-verwijderd (geanonimiseerd) lid duikt via het Status-filter
+  // "Gedeactiveerd" nog wel op in de lijst, maar heeft hier niets meer te
+  // verwijderen -- zonder deze check bleef de optie gewoon klikbaar en
+  // leverde dat enkel de generieke "niet gelukt"-foutmelding op.
+  if (canEditRole && !isSelf && !isAnonymized) {
     items.push({
       label: "Verwijderen",
       danger: true,

@@ -27,6 +27,7 @@ export type BeheerMemberRow = {
   role: UserRole;
   is_active: boolean;
   is_organization_account: boolean;
+  anonymized_at: string | null;
   companyName: string | null;
   boardTitle: string | null;
   // Foutenrapport H4: voor de signaal-links vanuit Statistieken -> Overzicht
@@ -170,6 +171,7 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                 canEditRole={canEditRole}
                 isSelf={member.id === viewerId}
                 isOrganizationAccount={member.is_organization_account}
+                isAnonymized={member.anonymized_at !== null}
               />
             </>
           );

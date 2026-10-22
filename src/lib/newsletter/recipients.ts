@@ -51,10 +51,12 @@ export async function previewNewsletterRecipients(
   let willReceive = 0;
   let excludedUnsubscribed = 0;
 
+  const everyoneOrAllMembers =
+    communication.recipient_filter === "alle_actieve_leden" || communication.recipient_filter === "iedereen";
+
   for (const profile of profiles ?? []) {
     if (!profile.is_active) continue;
-    const matchesFilter =
-      communication.recipient_filter === "alle_actieve_leden" ? true : listProfileIds.has(profile.id) || extraProfileIds.has(profile.id);
+    const matchesFilter = everyoneOrAllMembers ? true : listProfileIds.has(profile.id) || extraProfileIds.has(profile.id);
     if (!matchesFilter) continue;
     const email = profile.email.trim().toLowerCase();
     if (seenEmails.has(email)) continue;
@@ -67,8 +69,11 @@ export async function previewNewsletterRecipients(
     willReceive++;
   }
 
+  const everyoneOrNonMembers =
+    communication.recipient_filter === "iedereen" || communication.recipient_filter === "niet_leden";
+
   for (const contact of contacts ?? []) {
-    const matchesFilter = listContactIds.has(contact.id) || extraContactIds.has(contact.id);
+    const matchesFilter = everyoneOrNonMembers || listContactIds.has(contact.id) || extraContactIds.has(contact.id);
     if (!matchesFilter) continue;
     const email = contact.email.trim().toLowerCase();
     if (seenEmails.has(email)) continue; // al bezet door een lid met hetzelfde adres

@@ -73,7 +73,13 @@ function renderImageBlock(block: Extract<NewsletterBlock, { type: "image" }>): s
 
   const imgPct = Math.min(80, Math.max(20, block.imageWidthPercent ?? 33));
   const textPct = 100 - imgPct;
-  const thumb = `<img src="${escapeHtml(block.url)}" alt="" style="width:100%;height:auto;border-radius:8px;display:block;" />`;
+  // B2: anders dan de "full"-layout hierboven en het event-blok verderop had
+  // deze thumbnail geen max-width -- enkel width:100% t.o.v. de eigen
+  // percentage-brede <td>. Een mailclient die de tabel-kolombreedte niet
+  // (meer) respecteert zodra de afbeelding zelf laadt (bv. na downloaden van
+  // externe afbeeldingen) valt dan terug op de werkelijke pixelgrootte van de
+  // afbeelding, die vaak veel breder is dan de nieuwsbrief zelf.
+  const thumb = `<img src="${escapeHtml(block.url)}" alt="" style="width:100%;max-width:100%;height:auto;border-radius:8px;display:block;" />`;
   const text = `${block.title ? `<h3 style="margin:0 0 4px;font-size:16px;color:${COLORS.foreground};font-family:${FONT};">${escapeHtml(block.title)}</h3>` : ""}${
     block.body ? `<p style="margin:0;font-size:14px;line-height:1.5;color:${COLORS.foreground};font-family:${FONT};">${formatInlineText(block.body)}</p>` : ""
   }`;

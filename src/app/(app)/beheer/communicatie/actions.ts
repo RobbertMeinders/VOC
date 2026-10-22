@@ -210,7 +210,7 @@ export type AudienceState = { error?: string; success?: boolean };
 // al-verstuurde ontvangers over).
 export async function updateCommunicationAudienceAction(
   communicationId: string,
-  recipientFilter: "alle_actieve_leden" | "lijsten",
+  recipientFilter: "alle_actieve_leden" | "lijsten" | "iedereen" | "niet_leden",
   listIds: string[],
   extraProfileIds: string[],
   extraContactIds: string[]

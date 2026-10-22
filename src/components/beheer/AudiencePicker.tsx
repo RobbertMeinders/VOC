@@ -48,8 +48,10 @@ export function AudiencePicker({
 }) {
   const router = useRouter();
   const toast = useToast();
-  const [filter, setFilter] = useState<"alle_actieve_leden" | "lijsten">(
-    initialFilter === "lijsten" ? "lijsten" : "alle_actieve_leden"
+  const [filter, setFilter] = useState<"alle_actieve_leden" | "lijsten" | "iedereen" | "niet_leden">(
+    initialFilter === "lijsten" || initialFilter === "iedereen" || initialFilter === "niet_leden"
+      ? initialFilter
+      : "alle_actieve_leden"
   );
   const [listIds, setListIds] = useState<string[]>(initialListIds);
   const [extraProfileIds, setExtraProfileIds] = useState<string[]>(initialExtraProfileIds);
@@ -119,6 +121,14 @@ export function AudiencePicker({
           Alle actieve leden
         </label>
         <label className="flex items-center gap-2 text-sm text-foreground">
+          <input type="radio" checked={filter === "iedereen"} onChange={() => setFilter("iedereen")} />
+          Iedereen (leden + contacten)
+        </label>
+        <label className="flex items-center gap-2 text-sm text-foreground">
+          <input type="radio" checked={filter === "niet_leden"} onChange={() => setFilter("niet_leden")} />
+          Niet-leden (alleen contacten)
+        </label>
+        <label className="flex items-center gap-2 text-sm text-foreground">
           <input type="radio" checked={filter === "lijsten"} onChange={() => setFilter("lijsten")} />
           Specifieke lijst(en)
         </label>
@@ -135,7 +145,7 @@ export function AudiencePicker({
             )}
             {lists.map((list) => (
               <label key={list.id} className="flex items-center gap-2 text-sm text-foreground">
-                <input type="checkbox" checked={listIds.includes(list.id)} onChange={() => toggleList(list.id)} />
+                <input type="checkbox" checked={listIds.includes(list.id)} onChange={() => toggleList(list.id)} className="rounded" />
                 {list.name}
               </label>
             ))}

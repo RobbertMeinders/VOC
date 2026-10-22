@@ -93,6 +93,7 @@ export async function BeheerLedenContent() {
       role: p.role,
       is_active: p.is_active,
       is_organization_account: p.is_organization_account,
+      anonymized_at: p.anonymized_at,
       companyName: companyByProfile.get(p.id) ?? null,
       boardTitle: boardTitleByProfile.get(p.id) ?? null,
       last_active_at: p.last_active_at,

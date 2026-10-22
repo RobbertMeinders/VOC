@@ -4,6 +4,7 @@ import nodemailer from "nodemailer";
 import type { Transporter } from "nodemailer";
 import { renderMessageEmail } from "@/lib/templates/message-render";
 import { escapeHtml } from "@/lib/text/escape-html";
+import { renderHiddenPreheader } from "@/lib/email/preheader";
 
 export { escapeHtml };
 
@@ -155,7 +156,7 @@ function notificationPreferencesFooter(): string {
 // geladen kon worden).
 async function sendRawNotificationEmail(to: string, title: string, body: string | null, linkUrl: string): Promise<SendResult> {
   const linkHtml = linkUrl ? `<p><a href="${escapeHtml(linkUrl)}">Bekijk in het ledenportaal</a></p>` : "";
-  const html = `<p>${escapeHtml(body ?? "")}</p>${linkHtml}${notificationPreferencesFooter()}`;
+  const html = `${renderHiddenPreheader(body ?? title)}<p>${escapeHtml(body ?? "")}</p>${linkHtml}${notificationPreferencesFooter()}`;
   return sendMail(to, title, html);
 }
 
