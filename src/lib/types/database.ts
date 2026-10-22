@@ -94,6 +94,9 @@ export interface Database {
           instagram_url: string | null;
           facebook_url: string | null;
           is_publicly_visible: boolean;
+          membership_status: "prospect" | "lid" | "opgezegd" | "oud-lid";
+          member_since: string | null;
+          membership_end_date: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -1005,6 +1008,22 @@ export interface Database {
         Args: { p_company_id: string; p_visible: boolean };
         Returns: void;
       };
+      set_company_primary_contact: {
+        Args: { p_company_id: string; p_profile_id: string };
+        Returns: void;
+      };
+      set_company_member_since: {
+        Args: { p_company_id: string; p_date: string | null };
+        Returns: void;
+      };
+      request_company_cancellation: {
+        Args: { p_company_id: string; p_end_date: string };
+        Returns: void;
+      };
+      board_cancel_company_membership: {
+        Args: { p_company_id: string; p_end_date: string };
+        Returns: void;
+      };
       set_company_publicly_visible: {
         Args: { p_company_id: string; p_visible: boolean };
         Returns: void;
@@ -1090,6 +1109,10 @@ export interface Database {
       anonymize_expired_profiles: {
         Args: Record<string, never>;
         Returns: { profile_id: string; old_avatar_url: string | null }[];
+      };
+      process_company_membership_cancellations: {
+        Args: Record<string, never>;
+        Returns: { company_id: string; profiles_anonymized: number }[];
       };
       anonymize_profile_now: {
         Args: { p_id: string };

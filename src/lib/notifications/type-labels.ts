@@ -22,6 +22,7 @@ export const CONFIGURABLE_NOTIFICATION_TYPES = [
   "activity_changed",
   "activity_cancelled",
   "report_resolved",
+  "company_cancellation_started",
 ] as const;
 
 export type ConfigurableNotificationType = (typeof CONFIGURABLE_NOTIFICATION_TYPES)[number];
@@ -42,6 +43,7 @@ export const NOTIFICATION_TYPE_LABELS: Record<ConfigurableNotificationType, { la
   activity_changed: { label: "Activiteit gewijzigd", recipients: "Aangemelde leden" },
   activity_cancelled: { label: "Activiteit afgelast", recipients: "Aangemelde leden" },
   report_resolved: { label: "Rapportage afgehandeld", recipients: "Melder" },
+  company_cancellation_started: { label: "Lidmaatschap opgezegd (bedrijf)", recipients: "Rollen" },
 };
 
 // Alleen deze types hebben een bewerkbare rollenlijst — de overige richten
@@ -57,6 +59,7 @@ export const ROLE_BASED_NOTIFICATION_TYPES: ConfigurableNotificationType[] = [
   "feed_post_report",
   "access_request",
   "new_activity",
+  "company_cancellation_started",
 ];
 
 // Notificatieregels-scherm: twee groepen, in deze volgorde. Alles wat niet in
