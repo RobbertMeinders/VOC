@@ -12,3 +12,13 @@ export function csvEscape(value: string): string {
   const safeValue = FORMULA_PREFIX_CHARS.has(value[0]) ? `'${value}` : value;
   return `"${safeValue.replace(/"/g, '""')}"`;
 }
+
+// Zelfde voorloop-apostrof-truc, voor een .xlsx-cel (lidmaatschap-traject
+// Deel 2, ledenexport): exceljs slaat een plain string altijd als
+// shared-string op (nooit als formule), maar de voorloop-apostrof kost
+// niets en voorkomt dat een cel die met =/+/-/@ begint ooit als formule
+// gelezen wordt, ook als het bestand later in een ander programma bewerkt
+// en opnieuw opgeslagen wordt.
+export function xlsxSafeText(value: string): string {
+  return FORMULA_PREFIX_CHARS.has(value[0]) ? `'${value}` : value;
+}

@@ -1028,6 +1028,30 @@ export interface Database {
         Args: { p_company_id: string; p_visible: boolean };
         Returns: void;
       };
+      get_members_export: {
+        Args: Record<string, never>;
+        Returns: {
+          company_id: string;
+          company_name: string;
+          company_slug: string;
+          membership_status: string;
+          member_since: string | null;
+          membership_end_date: string | null;
+          company_address: string | null;
+          company_postal_code: string | null;
+          company_city: string | null;
+          company_email: string | null;
+          company_phone: string | null;
+          company_website: string | null;
+          contact_profile_id: string | null;
+          contact_first_name: string | null;
+          contact_last_name: string | null;
+          contact_email: string | null;
+          contact_phone: string | null;
+          contact_job_title: string | null;
+          contact_is_primary: boolean | null;
+        }[];
+      };
       get_activity_registration_counts: {
         Args: Record<string, never>;
         Returns: { activity_id: string; registered_count: number }[];
