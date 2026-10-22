@@ -156,8 +156,16 @@ function AppShellBody({
     // naar dezelfde pagina. Sinds het profielhero-herontwerp is de content
     // op beide altijd een tweekoloms-grid (hoofdinhoud + zijbalk), die bij
     // 720px te smal zou staan — nu consistent "breed" in beide gevallen.
+    // Hero-fix (vervolg): /bedrijven/[id]/bewerken matcht dezelfde regex
+    // hierboven (geen eigen @modal-intercept, dus altijd "breed") en is
+    // daarmee al consistent met de weergavepagina. /profiel is de
+    // bewerkpagina van het ledenprofiel (het tegenhanger van /leden/[id]) —
+    // stond nog op "lezen" (720px) terwijl /leden/[id] nu "breed" is, dus
+    // hier expliciet uit de "lezen"-lijst gehaald zodat 'ie via de default
+    // hieronder ook "breed" wordt: weergave en bewerken van hetzelfde
+    // bedrijf/lid delen zo altijd dezelfde breedte.
     if (/^\/(leden|bedrijven)\/[^/]+/.test(pathname)) return "breed";
-    if (pathname === "/privacy" || pathname === "/profiel" || pathname === "/community" || pathname.startsWith("/nieuws/")) return "lezen";
+    if (pathname === "/privacy" || pathname === "/community" || pathname.startsWith("/nieuws/")) return "lezen";
     if (["/agenda", "/documenten", "/notificaties", "/nieuws", "/instellingen"].includes(pathname)) return "lijst";
     return "breed";
   })();
