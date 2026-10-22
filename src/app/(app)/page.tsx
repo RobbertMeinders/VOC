@@ -295,13 +295,13 @@ export default async function HomePage() {
       {showTestfaseBanner && (
         <Link
           href="/testfase"
-          className="flex items-center gap-2 rounded-xl border border-status-warning/30 bg-status-warning-soft px-4 py-3 text-sm text-status-warning hover:brightness-95"
+          className="block rounded-xl border border-status-warning/30 bg-status-warning-soft px-4 py-3 text-sm text-status-warning hover:brightness-95"
         >
-          <span className="flex-1">
-            Je gebruikt de proefversie. Het kan zijn dat er nog fouten in zitten.{" "}
-            <span className="font-medium">Wat je kunt verwachten</span>
+          Je gebruikt de proefversie. Het kan zijn dat er nog fouten in zitten.{" "}
+          <span className="font-medium">
+            Wat je kunt verwachten
+            <ArrowRight size={14} className="ml-1 inline -translate-y-px" />
           </span>
-          <ArrowRight size={14} className="shrink-0" />
         </Link>
       )}
 
