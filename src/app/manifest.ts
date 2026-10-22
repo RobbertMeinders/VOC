@@ -4,7 +4,11 @@ import { getAppSettings } from "@/lib/settings/app-settings";
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const { site_name: siteName, org_name: orgName } = await getAppSettings();
   return {
-    name: siteName,
+    // name is de volledige naam (bv. bij "App-info" op Android); short_name
+    // is wat onder het icoon op het beginscherm past -- tot nu toe allebei
+    // siteName, waardoor pushmeldingen als afzender ook de korte naam
+    // toonden i.p.v. de volledige verenigingsnaam.
+    name: orgName,
     short_name: siteName,
     description: `Het besloten ledenportaal van de ${orgName}.`,
     start_url: "/",
