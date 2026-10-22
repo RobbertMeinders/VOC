@@ -32,11 +32,25 @@ export function ProfileHero({
   pills?: HeroPill[];
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl bg-surface shadow-sm">
+    <div className="relative overflow-hidden rounded-2xl bg-surface shadow-sm">
       <div
         className="h-28 bg-gradient-to-br from-petrol-deep to-petrol bg-cover bg-center"
         style={coverUrl ? { backgroundImage: `url(${coverUrl})` } : undefined}
       />
+      {/* Bug (mobiel): het potloodje stond tot nu toe in de naam-flex-rij en
+          kneep daar, samen met het avatar, de al getruncte naam verder dicht
+          op smalle schermen. Op mobiel staat 'ie nu los, rechtsboven op de
+          banner — desktop's "Bewerken"-pil in de rij hieronder blijft
+          ongewijzigd. */}
+      {editHref && (
+        <Link
+          href={editHref}
+          aria-label={editLabel}
+          className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-muted sm:hidden"
+        >
+          <Pencil size={14} />
+        </Link>
+      )}
       <div className="gradient-rule" />
       {/* Hero-fix: eerder lag de hele naam/tekst-rij met een negative margin
           over de banner heen (onleesbaar op petrol/een foto). Nu schuift
@@ -55,24 +69,13 @@ export function ProfileHero({
             {subtitle && <p className="truncate text-sm text-muted">{subtitle}</p>}
           </div>
           {editHref && (
-            <>
-              {/* Zelfde mobiel/desktop-knopsplitsing als de oude CompanyHeader/
-                  MemberProfileContent-koppen: op mobiel alleen het potloodje. */}
-              <Link
-                href={editHref}
-                aria-label={editLabel}
-                className="mt-3 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-muted sm:hidden"
-              >
-                <Pencil size={14} />
-              </Link>
-              <Link
-                href={editHref}
-                className="mt-3 hidden shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-muted sm:flex"
-              >
-                <Pencil size={14} />
-                {editLabel}
-              </Link>
-            </>
+            <Link
+              href={editHref}
+              className="mt-3 hidden shrink-0 items-center gap-1.5 rounded-full border border-border bg-surface px-3 py-1.5 text-xs font-medium text-foreground hover:border-muted sm:flex"
+            >
+              <Pencil size={14} />
+              {editLabel}
+            </Link>
           )}
         </div>
         {pills.length > 0 && (
