@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { parseUnsubscribeToken } from "@/lib/newsletter/unsubscribe";
+import { parseUnsubscribeToken, type UnsubscribeKind } from "@/lib/newsletter/unsubscribe";
 import { escapeHtml } from "@/lib/text/escape-html";
+import { fetchAppSettings } from "@/lib/settings/app-settings";
 
 // Afmelden zonder inloggen — zelfde URL voor zowel een mens die op de link
 // in de nieuwsbrief klikt (GET, toont een bevestigingsscherm: voorkomt dat
@@ -13,7 +14,12 @@ import { escapeHtml } from "@/lib/text/escape-html";
 const COLORS = { background: "#f7f7f8", surface: "#ffffff", foreground: "#17171a", muted: "#6b6b72", border: "#e5e5ea", red: "#e8000f" };
 const FONT = "-apple-system, 'Segoe UI', Arial, sans-serif";
 
-function page(title: string, body: string, status = 200): NextResponse {
+// Logo i.p.v. de kale orgnaam-tekst erboven (live feedback) — zelfde
+// terugval-logica als renderHeader() in newsletter/render.ts: logo_url uit
+// app_settings als het bestuur die gezet heeft, anders het vaste beeldmerk.
+// siteUrl is nodig voor die terugval-afbeelding; logoUrl zelf is, indien
+// gezet, al een absolute URL.
+function page(title: string, body: string, logoSrc: string, status = 200): NextResponse {
   const html = `<!DOCTYPE html>
 <html lang="nl">
 <head>
@@ -26,7 +32,7 @@ function page(title: string, body: string, status = 200): NextResponse {
 <tr><td align="center" style="padding:48px 16px;">
 <table role="presentation" width="440" cellpadding="0" cellspacing="0" style="width:100%;max-width:440px;background:${COLORS.surface};border-radius:16px;padding:32px;">
 <tr><td style="text-align:center;">
-<p style="margin:0 0 16px;font-size:12px;font-weight:600;letter-spacing:0.04em;color:${COLORS.red};text-transform:uppercase;">Veendammer Ondernemers Compagnie</p>
+<img src="${escapeHtml(logoSrc)}" alt="" width="40" style="width:40px;height:auto;display:block;margin:0 auto 20px;" />
 ${body}
 </td></tr>
 </table>
@@ -37,9 +43,17 @@ ${body}
   return new NextResponse(html, { status, headers: { "content-type": "text/html; charset=utf-8" } });
 }
 
-function confirmForm(token: string): string {
+function confirmForm(token: string, orgName: string, kind: UnsubscribeKind): string {
+  // "Later terugzetten"-opmerking alleen voor leden (profile) -- een
+  // contact heeft geen portaalaccount/instellingenpagina om zich weer aan
+  // te melden; die kan alleen via het bestuur terug op de lijst komen.
+  const reenableNote =
+    kind === "profile"
+      ? `<p style="margin:0 0 20px;font-size:13px;line-height:1.5;color:${COLORS.muted};">Je kunt dit later altijd weer aanzetten via je instellingen in het ledenportaal.</p>`
+      : "";
   return `<h1 style="margin:0 0 12px;font-size:18px;color:${COLORS.foreground};">Afmelden voor de nieuwsbrief?</h1>
-<p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:${COLORS.muted};">Je ontvangt daarna geen nieuwsbrieven meer van de VOC. Weet je het zeker?</p>
+<p style="margin:0 0 12px;font-size:14px;line-height:1.6;color:${COLORS.muted};">Je ontvangt daarna geen nieuwsbrieven meer van ${escapeHtml(orgName)}. Weet je het zeker?</p>
+${reenableNote}
 <form method="POST" action="/afmelden?token=${encodeURIComponent(token)}">
 <button type="submit" style="display:inline-block;background:${COLORS.foreground};color:#ffffff;font-size:14px;font-weight:600;border:none;cursor:pointer;padding:12px 24px;border-radius:8px;font-family:${FONT};">Afmelden bevestigen</button>
 </form>`;
@@ -49,7 +63,7 @@ function resultMessage(message: string): string {
   return `<p style="margin:0;font-size:15px;line-height:1.6;color:${COLORS.foreground};">${escapeHtml(message)}</p>`;
 }
 
-async function performUnsubscribe(token: string): Promise<{ ok: boolean; message: string }> {
+async function performUnsubscribe(token: string, orgName: string): Promise<{ ok: boolean; message: string }> {
   const parsed = parseUnsubscribeToken(token);
   if (!parsed) {
     return { ok: false, message: "Deze afmeldlink is ongeldig." };
@@ -68,16 +82,20 @@ async function performUnsubscribe(token: string): Promise<{ ok: boolean; message
   if (!data) return { ok: false, message: "Deze afmeldlink is ongeldig." };
   if (data.opted_out) return { ok: true, message: "Je was al afgemeld voor de nieuwsbrief." };
   await admin.from("contacts").update({ opted_out: true }).eq("id", parsed.id);
-  return { ok: true, message: "Je bent afgemeld voor de nieuwsbrief van de VOC." };
+  return { ok: true, message: `Je bent afgemeld voor de nieuwsbrief van ${orgName}.` };
 }
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const token = request.nextUrl.searchParams.get("token") ?? "";
+  const admin = createAdminClient();
+  const settings = await fetchAppSettings(admin);
+  const logoSrc = settings.logo_url || `${(process.env.SITE_URL ?? "").replace(/\/$/, "")}/brand/voc-logo-mark.png`;
+
   const parsed = parseUnsubscribeToken(token);
   if (!parsed) {
-    return page("Afmelden", resultMessage("Deze afmeldlink is ongeldig."), 400);
+    return page("Afmelden", resultMessage("Deze afmeldlink is ongeldig."), logoSrc, 400);
   }
-  return page("Afmelden", confirmForm(token));
+  return page("Afmelden", confirmForm(token, settings.org_name, parsed.kind), logoSrc);
 }
 
 // Zelfde endpoint voor de handmatige bevestiging (form hierboven) en de
@@ -85,6 +103,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 // POST naar precies deze URL, met het token in de querystring.
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const token = request.nextUrl.searchParams.get("token") ?? "";
-  const result = await performUnsubscribe(token);
-  return page("Afmelden", resultMessage(result.message), result.ok ? 200 : 400);
+  const admin = createAdminClient();
+  const settings = await fetchAppSettings(admin);
+  const logoSrc = settings.logo_url || `${(process.env.SITE_URL ?? "").replace(/\/$/, "")}/brand/voc-logo-mark.png`;
+
+  const result = await performUnsubscribe(token, settings.org_name);
+  return page("Afmelden", resultMessage(result.message), logoSrc, result.ok ? 200 : 400);
 }
