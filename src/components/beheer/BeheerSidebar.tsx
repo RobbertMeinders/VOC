@@ -74,12 +74,8 @@ export function BeheerSidebar({
     );
   }
 
-  // Redesign-besluit 8: donkerpetrol beheerzijbalk — actief item krijgt een
-  // rood streepje links. Live QA: de transparante border-left-variant voor
-  // het niet-actieve item bleek in de praktijk zelf als een vage witte lijn
-  // te renderen (zelfde probleem dat eerder in de ledenkant is opgelost,
-  // zie Sidebar.tsx) — een los, absoluut gepositioneerd staafje i.p.v. een
-  // border-aanpak, alleen voor het actieve item.
+  // Identiteit Fase 2: donkerpetrol beheerzijbalk — actief item is nu een
+  // volle rode pill (was: wit vlak van 10% + los rood streepje links).
   function renderDesktopItem(item: BeheerNavItem) {
     const active = isActive(item.href);
     const Icon = item.icon;
@@ -89,16 +85,15 @@ export function BeheerSidebar({
         key={item.href}
         href={item.href}
         className={clsx(
-          "relative flex items-center gap-2 whitespace-nowrap rounded-r-lg py-2 pl-3 pr-3 text-sm font-medium transition-all duration-150",
-          active ? "bg-white/10 text-white" : "text-white/70 hover:bg-white/5 hover:text-white"
+          "relative flex items-center gap-2 whitespace-nowrap rounded-lg py-2 pl-3 pr-3 text-sm font-medium transition-all duration-150",
+          active ? "bg-voc-red text-white" : "text-white/70 hover:bg-white/5 hover:text-white"
         )}
       >
-        {active && <span aria-hidden className="absolute inset-y-1.5 left-0 w-[3px] rounded-full bg-voc-red" />}
         <Icon size={16} strokeWidth={active ? 2.5 : 2} />
         {item.label}
         {Boolean(badge) && (
           <span className="ml-auto">
-            <NavBadge count={badge!} label={`${badge} item(s) wachten op jou`} />
+            <NavBadge count={badge!} label={`${badge} item(s) wachten op jou`} inverted={active} />
           </span>
         )}
       </Link>

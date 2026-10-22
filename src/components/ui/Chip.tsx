@@ -7,6 +7,10 @@ type BaseProps = {
   dotColor?: string;
   children: ReactNode;
   className?: string;
+  // Identiteit Fase 2: optionele "red" tone voor de ene chip-rij die als
+  // bewust rood anker fungeert (de agenda-typefilter) — elke andere
+  // aanroepplek laat dit weg en blijft op de bestaande inkt-stijl.
+  tone?: "ink" | "red";
 };
 type ButtonProps = BaseProps & { href?: undefined; onClick: () => void };
 type LinkProps = BaseProps & { href: string; onClick?: undefined };
@@ -18,11 +22,13 @@ type LinkProps = BaseProps & { href: string; onClick?: undefined };
 // (bv. per berichtsoort een labelkleur) — optioneel, niet elke chip heeft
 // een stip.
 export function Chip(props: ButtonProps | LinkProps) {
-  const { active, dotColor, children, className } = props;
+  const { active, dotColor, children, className, tone = "ink" } = props;
   const classes = clsx(
     "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-3 py-1.5 text-xs font-medium transition-colors",
     active
-      ? "border-foreground bg-foreground text-background"
+      ? tone === "red"
+        ? "border-voc-red bg-voc-red text-white"
+        : "border-foreground bg-foreground text-background"
       : "border-border bg-surface text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]",
     className
   );

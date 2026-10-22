@@ -237,6 +237,9 @@ export default async function HomePage() {
           )}
         </div>
       </div>
+      {/* Identiteit Fase 2: petrol->rood verloop als verbindend lijntje
+          onder het welkomstblok. */}
+      <div aria-hidden className="gradient-rule mx-1 rounded-full" />
 
       {/* H (onboarding-opdracht), opnieuw vormgegeven (Opdracht 2): een
           waarschuwingskleur is hier passend — dit ís een waarschuwing dat

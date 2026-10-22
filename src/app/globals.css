@@ -426,6 +426,17 @@ body {
   border-color: var(--border);
 }
 
+/* Identiteit Fase 2: petrol->rood verloop als verbindend lijntje onder de
+   kopbalk (MobileHeader), het welkomstblok (Home) en elke PageHeader —
+   petrol draagt, rood is het anker dat terugkomt. Eén plek i.p.v. losse
+   gradient-definities per component; --petrol/--voc-red worden per element
+   op het moment van gebruik opgelost, dus dit werkt automatisch mee met
+   licht/donker thema zonder hier zelf te hoeven overriden. */
+.gradient-rule {
+  height: 2px;
+  background-image: linear-gradient(to right, var(--petrol), var(--voc-red));
+}
+
 /* Verberg scrollbar op de mobiele bottom navigation zonder functionaliteit te verliezen */
 .no-scrollbar::-webkit-scrollbar {
   display: none;

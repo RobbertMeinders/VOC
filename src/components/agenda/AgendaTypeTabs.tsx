@@ -29,7 +29,12 @@ export function AgendaTypeTabs({ active }: { active?: string }) {
   return (
     <div className="mb-4 flex gap-1.5 overflow-x-auto">
       {TYPE_TABS.map((tab) => (
-        <Chip key={tab.label} onClick={() => selectTab(tab.value)} active={(optimisticActive ?? undefined) === tab.value}>
+        <Chip
+          key={tab.label}
+          onClick={() => selectTab(tab.value)}
+          active={(optimisticActive ?? undefined) === tab.value}
+          tone="red"
+        >
           {tab.label}
         </Chip>
       ))}

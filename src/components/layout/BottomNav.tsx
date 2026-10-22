@@ -42,22 +42,26 @@ export function BottomNav({
               <Link
                 href={href}
                 aria-current={active ? "page" : undefined}
-                className={clsx(
-                  "relative flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-transform duration-150 active:scale-90",
-                  active ? "text-voc-red-text" : "text-muted"
-                )}
+                className="relative flex h-14 flex-col items-center justify-center gap-0.5 text-xs font-medium transition-transform duration-150 active:scale-90"
               >
-                <span className="relative flex h-7 w-7 items-center justify-center">
-                  {/* Redesign: actief = alleen rode tekst/icoon, geen
-                      gevulde achtergrondpil meer. */}
-                  <Icon size={22} strokeWidth={active ? 2.5 : 2} className="relative" />
-                  {count > 0 && (
-                    <span className="animate-pop absolute -right-1.5 -top-1.5 z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-voc-red px-1 text-[10px] font-medium text-white">
-                      {count > 9 ? "9+" : count}
-                    </span>
+                {/* Identiteit Fase 2: actief weer een gevulde rode pill
+                    i.p.v. alleen rode tekst/icoon. */}
+                <span
+                  className={clsx(
+                    "flex flex-col items-center gap-0.5 rounded-2xl px-3 py-1 transition-colors",
+                    active ? "bg-voc-red text-white" : "text-muted"
                   )}
+                >
+                  <span className="relative flex h-7 w-7 items-center justify-center">
+                    <Icon size={22} strokeWidth={active ? 2.5 : 2} className="relative" />
+                    {count > 0 && (
+                      <span className="animate-pop absolute -right-1.5 -top-1.5 z-10 flex h-4 min-w-4 items-center justify-center rounded-full bg-voc-red px-1 text-[10px] font-medium text-white">
+                        {count > 9 ? "9+" : count}
+                      </span>
+                    )}
+                  </span>
+                  {label}
                 </span>
-                {label}
               </Link>
             </li>
           );

@@ -50,24 +50,26 @@ export function Sidebar({
         key={href}
         href={href}
         aria-current={active ? "page" : undefined}
-        // Stijlronde "zelfde indeling, nieuwe stijl": actief item is een
-        // gevuld vlak (bg-raised) met een rood streepje bínnen het vlak
-        // i.p.v. een linkerrand die het item zelf naar rechts duwt — geen
-        // volle rand meer op inactieve items.
+        // Identiteit Fase 2: actief item is nu een volle rode pill (wit
+        // icoon+tekst) i.p.v. een gevuld neutraal vlak met rood streepje —
+        // rood als bewust beperkt anker voor "waar je nu bent".
         className={clsx(
           "relative flex items-center gap-3 rounded-lg py-2.5 pr-3 text-sm transition-colors",
           indented ? "pl-[34px]" : "pl-3",
           active
-            ? "bg-raised font-semibold text-foreground"
+            ? "bg-voc-red font-semibold text-white"
             : "font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
-        {active && <span aria-hidden className="absolute inset-y-1.5 left-1 w-[3px] rounded-full bg-voc-red" />}
-        <Icon size={indented ? 16 : 20} strokeWidth={active ? 2.5 : 2} className={active ? "text-foreground" : "text-muted"} />
+        <Icon size={indented ? 16 : 20} strokeWidth={active ? 2.5 : 2} className={active ? "text-white" : "text-muted"} />
         {label}
         {badgeKey && (
           <span className="ml-auto">
-            <NavBadge count={unread[badgeKey]} label={badgeLabel ? `${unread[badgeKey]} ${badgeLabel}` : undefined} />
+            <NavBadge
+              count={unread[badgeKey]}
+              label={badgeLabel ? `${unread[badgeKey]} ${badgeLabel}` : undefined}
+              inverted={active}
+            />
           </span>
         )}
       </Link>
@@ -94,16 +96,15 @@ export function Sidebar({
         className={clsx(
           "relative flex items-center gap-3 rounded-lg py-2.5 pl-3 pr-3 text-sm transition-colors",
           active
-            ? "bg-raised font-semibold text-foreground"
+            ? "bg-voc-red font-semibold text-white"
             : "font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
-        {active && <span aria-hidden className="absolute inset-y-1.5 left-1 w-[3px] rounded-full bg-voc-red" />}
-        <Icon size={20} strokeWidth={active ? 2.5 : 2} className={active ? "text-foreground" : "text-muted"} />
+        <Icon size={20} strokeWidth={active ? 2.5 : 2} className={active ? "text-white" : "text-muted"} />
         {label}
         {Boolean(badge) && (
           <span className="ml-auto">
-            <NavBadge count={badge!} label={`${badge} item(s) wachten op jou in beheer`} />
+            <NavBadge count={badge!} label={`${badge} item(s) wachten op jou in beheer`} inverted={active} />
           </span>
         )}
       </Link>

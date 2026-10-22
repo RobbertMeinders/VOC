@@ -20,7 +20,13 @@ type SegmentedItem = {
 // echt toe doet (welke volledig andere lijst je ziet, niet alleen een
 // weergavevoorkeur) is de neutrale surface-pil te onopvallend — de
 // "petrol"-variant vult de actieve stand met --petrol en witte tekst i.p.v.
-// surface+inkt. Rood blijft gereserveerd voor acties, dus niet hier.
+// surface+inkt.
+//
+// Identiteit Fase 2 ("rood voert, petrol draagt"): een nieuwe "rood"-variant
+// voor de gekozen stand van een schakelaar als dié ANKER is (bv. Lijst/
+// Kaart) — dit draait het eerdere "rood blijft gereserveerd voor acties"
+// bewust terug voor dit soort gekozen-stand-schakelaars. Bestaande
+// "petrol"-aanroepplekken blijven ongewijzigd petrol.
 export function SegmentedControl({
   items,
   className,
@@ -28,7 +34,7 @@ export function SegmentedControl({
 }: {
   items: SegmentedItem[];
   className?: string;
-  variant?: "subtle" | "petrol";
+  variant?: "subtle" | "petrol" | "rood";
 }) {
   const activeIndex = Math.max(
     0,
@@ -67,7 +73,7 @@ export function SegmentedControl({
           aria-hidden
           className={clsx(
             "absolute inset-y-1 rounded-lg transition-[transform,width] duration-200 ease-out motion-reduce:transition-none",
-            variant === "petrol" ? "bg-petrol shadow-sm" : "bg-surface shadow-sm"
+            variant === "petrol" ? "bg-petrol shadow-sm" : variant === "rood" ? "bg-voc-red shadow-sm" : "bg-surface shadow-sm"
           )}
           style={{ width: indicator.width, transform: `translateX(${indicator.left}px)` }}
         />
@@ -80,7 +86,9 @@ export function SegmentedControl({
           item.active
             ? variant === "petrol"
               ? "font-semibold text-white dark:text-petrol-deep"
-              : "font-semibold text-foreground"
+              : variant === "rood"
+                ? "font-semibold text-white"
+                : "font-semibold text-foreground"
             : "font-medium text-muted hover:text-foreground"
         );
         if (item.href) {

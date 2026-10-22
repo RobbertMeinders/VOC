@@ -39,18 +39,16 @@ export function VerenigingMenu() {
         type="button"
         onClick={toggle}
         aria-expanded={open}
-        // Stijlronde "zelfde indeling, nieuwe stijl": zelfde patroon als
-        // Sidebar.tsx — gevuld vlak + rood streepje bínnen het vlak i.p.v.
-        // een linkerrand.
+        // Identiteit Fase 2: zelfde volle rode pill als Sidebar.tsx voor een
+        // actief/geopend item, i.p.v. een gevuld neutraal vlak met streepje.
         className={clsx(
           "relative flex w-full items-center gap-3 rounded-lg py-2.5 pl-3 pr-3 text-sm transition-colors",
           active || open
-            ? "bg-raised font-semibold text-foreground"
+            ? "bg-voc-red font-semibold text-white"
             : "font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
         )}
       >
-        {(active || open) && <span aria-hidden className="absolute inset-y-1.5 left-1 w-[3px] rounded-full bg-voc-red" />}
-        <Handshake size={20} strokeWidth={active ? 2.5 : 2} className={active || open ? "text-foreground" : "text-muted"} />
+        <Handshake size={20} strokeWidth={active ? 2.5 : 2} className={active || open ? "text-white" : "text-muted"} />
         Vereniging
         <ChevronDown size={16} className={clsx("ml-auto transition-transform duration-150", open && "rotate-180")} />
       </button>
@@ -75,12 +73,11 @@ export function VerenigingMenu() {
                   className={clsx(
                     "relative flex items-center gap-3 rounded-lg py-2.5 pl-[34px] pr-3 text-sm transition-colors",
                     linkActive
-                      ? "bg-raised font-semibold text-foreground"
+                      ? "bg-voc-red font-semibold text-white"
                       : "font-medium text-foreground hover:bg-black/[.04] dark:hover:bg-white/[.06]"
                   )}
                 >
-                  {linkActive && <span aria-hidden className="absolute inset-y-1.5 left-1 w-[3px] rounded-full bg-voc-red" />}
-                  <Icon size={16} strokeWidth={linkActive ? 2.5 : 2} className={linkActive ? "text-foreground" : "text-muted"} />
+                  <Icon size={16} strokeWidth={linkActive ? 2.5 : 2} className={linkActive ? "text-white" : "text-muted"} />
                   {label}
                 </Link>
               );

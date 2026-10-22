@@ -30,9 +30,11 @@ export function Switch({
       disabled={disabled}
       onClick={onChange}
       style={{
-        // Redesign-besluit: schakelaars gaan van rood naar petrol.
-        backgroundColor: checked ? "var(--petrol)" : "transparent",
-        borderColor: checked ? "var(--petrol)" : "var(--border)",
+        // Identiteit Fase 2: de aan-stand is weer rood — rood als het
+        // bewust beperkte anker voor "gekozen/actief" (eerdere
+        // redesign-besluit was petrol; dat wordt hier bewust teruggedraaid).
+        backgroundColor: checked ? "var(--voc-red)" : "transparent",
+        borderColor: checked ? "var(--voc-red)" : "var(--border)",
       }}
       className="relative h-6 w-11 shrink-0 rounded-full border-2 transition-colors disabled:opacity-60"
     >

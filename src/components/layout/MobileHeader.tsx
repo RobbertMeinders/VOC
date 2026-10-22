@@ -21,7 +21,7 @@ export function MobileHeader({
   showTestfase: boolean;
 }) {
   return (
-    <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur md:hidden">
+    <header className="sticky top-0 z-30 bg-surface/95 backdrop-blur md:hidden">
       <div className="flex h-14 items-center justify-between px-4">
         <div className="flex min-w-0 items-center gap-1.5">
           <Logo logoUrl={logoUrl} siteName={siteName} />
@@ -32,6 +32,9 @@ export function MobileHeader({
           <HamburgerMenu showTestfase={showTestfase} />
         </div>
       </div>
+      {/* Identiteit Fase 2: petrol->rood verloop i.p.v. de vlakke
+          border-border-rand onder de kopbalk. */}
+      <div aria-hidden className="gradient-rule" />
     </header>
   );
 }
