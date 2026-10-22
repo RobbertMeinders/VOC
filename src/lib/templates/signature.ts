@@ -24,7 +24,11 @@ function generalWebsite(): { href: string; label: string } | null {
 
 function logoImg(logoUrl: string | null): string {
   if (!logoUrl) return "";
-  return `<img src="${escapeHtml(logoUrl)}" alt="Logo" style="width:84px;height:auto;margin:8px 0 6px;display:block" />`;
+  // width als los HTML-attribuut, niet alleen CSS: sommige mailclients
+  // (o.a. Outlook) negeren CSS-breedtes op <img> zodra de afbeelding laadt
+  // en vallen dan terug op de werkelijke pixelgrootte -- zelfde fix als
+  // eerder al nodig was voor de nieuwsbrief-afbeeldingen (newsletter/render.ts).
+  return `<img src="${escapeHtml(logoUrl)}" alt="Logo" width="84" style="width:84px;height:auto;margin:8px 0 6px;display:block" />`;
 }
 
 export function renderGeneralSignature(settings: AppSettings): string {

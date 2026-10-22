@@ -17,10 +17,15 @@ export type MessageTemplateRow = {
   push_body: string | null;
 };
 
-// Zelfde rode knopstijl als het ontwerpvoorbeeld (docs/design/automatische-
-// berichten) — inline, want e-mailclients negeren een los stylesheet.
-const CTA_STYLE =
-  "display:inline-block;background:#e8000f;color:#fff;font-weight:700;padding:11px 20px;border-radius:8px;text-decoration:none;margin:4px 0 16px";
+// Zelfde rode knopkleur als het ontwerpvoorbeeld (docs/design/automatische-
+// berichten), maar als table/td-knop i.p.v. een los gestylede <a> — zelfde
+// reden/fix als renderButton in newsletter/render.ts: Outlook (en andere
+// Word-rendering-mailclients) negeert padding/border-radius op een <a>-tag,
+// waardoor de knop als een kaal, onopvallend stukje tekst oogde i.p.v. een
+// echte knop.
+function renderCta(url: string, label: string): string {
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin:4px 0 16px;"><tr><td bgcolor="#e8000f" style="border-radius:8px;background:#e8000f;padding:11px 20px;"><a href="${escapeHtml(url)}" style="display:block;color:#ffffff;font-size:14px;font-weight:700;text-decoration:none;">${escapeHtml(label)}</a></td></tr></table>`;
+}
 
 // Zelfde bewoording/stijl als de bestaande notificatiemail-voettekst
 // (lib/email/send.ts), bewust hergebruikt i.p.v. een tweede variant. Wijst
@@ -59,7 +64,7 @@ export async function renderMessageEmail(
   const subject = renderTemplate(template.subject, variables);
   const body = renderTemplate(template.body_html, escapedVariables);
   const after = renderTemplate(template.after_html, escapedVariables);
-  const cta = `<a href="${escapeHtml(link)}" style="${CTA_STYLE}">${escapeHtml(template.cta_label)}</a>`;
+  const cta = renderCta(link, template.cta_label);
   const signature = `<div style="margin-top:22px">${renderSignature(template.signature_type, settings)}</div>`;
 
   const preheader = renderHiddenPreheader(htmlToPreheaderText(body));
