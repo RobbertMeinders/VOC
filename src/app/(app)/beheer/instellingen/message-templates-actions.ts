@@ -5,6 +5,8 @@ import { requireAdmin } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { isEmailConfigured, sendRawHtmlEmail } from "@/lib/email/send";
 import { renderGeneralSignature, renderPersonalSignature } from "@/lib/templates/signature";
+import { renderCta } from "@/lib/templates/message-render";
+import { renderHiddenPreheader, htmlToPlainText, htmlToPreheaderText } from "@/lib/email/preheader";
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { variablesForMessageTemplate } from "@/lib/templates/message-template-variables";
 import { MESSAGE_TEMPLATE_DEFAULTS } from "@/lib/templates/message-template-defaults";
@@ -122,18 +124,29 @@ export async function sendTestMessageEmailAction(
   const { escapeHtml } = await import("@/lib/text/escape-html");
   const escapedVariables = Object.fromEntries(Object.entries(variables).map(([k, v]) => [k, escapeHtml(v)]));
 
-  const ctaStyle =
-    "display:inline-block;background:#e8000f;color:#fff;font-weight:700;padding:11px 20px;border-radius:8px;text-decoration:none;margin:4px 0 16px";
   const testLink = `${process.env.SITE_URL ?? ""}/`;
   const renderedSubject = renderTemplate(subject, variables);
   const renderedBody = renderTemplate(bodyHtml, escapedVariables);
   const renderedAfter = renderTemplate(afterHtml, escapedVariables);
-  const cta = `<a href="${escapeHtml(testLink)}" style="${ctaStyle}">${escapeHtml(ctaLabel)}</a>`;
+  // Dezelfde knop-opbouw als de echte verzending (renderMessageEmail) i.p.v.
+  // een eigen, hier losstaande CTA-stijl -- die laatste miste de VML-fix
+  // voor afgeronde hoeken in Outlook en bleef dus de oude, haakse knop tonen
+  // in een testmail, ook nadat de echte mails al gefixt waren.
+  const cta = renderCta(testLink, ctaLabel);
   const signatureHtml = signatureType === "pers" ? renderPersonalSignature(settings) : renderGeneralSignature(settings);
   const banner = `<p style="margin:0 0 16px;padding:10px 14px;background:#fff3cd;border-radius:8px;font-size:13px;color:#664d03;">Testmail - dit is een voorbeeld, niet daadwerkelijk verstuurd aan een lid.</p>`;
-  const html = banner + renderedBody + cta + renderedAfter + `<div style="margin-top:22px">${signatureHtml}</div>`;
+  const preheader = renderHiddenPreheader(htmlToPreheaderText(renderedBody));
+  const html = preheader + banner + renderedBody + cta + renderedAfter + `<div style="margin-top:22px">${signatureHtml}</div>`;
+  const text = [
+    "Testmail - dit is een voorbeeld, niet daadwerkelijk verstuurd aan een lid.",
+    renderTemplate(htmlToPlainText(bodyHtml), variables),
+    `${ctaLabel}: ${testLink}`,
+    renderTemplate(htmlToPlainText(afterHtml), variables),
+  ]
+    .filter(Boolean)
+    .join("\n\n");
 
-  const result = await sendRawHtmlEmail(profile.email, `[Test] ${renderedSubject}`, html);
+  const result = await sendRawHtmlEmail(profile.email, `[Test] ${renderedSubject}`, html, text);
   if (result.error) {
     return { error: result.error };
   }

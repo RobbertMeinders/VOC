@@ -105,7 +105,7 @@ export async function createInvitationFromProspectAction(prospectId: string): Pr
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
   const rendered = isEmailConfigured() ? await renderMessageEmail("uit-nieuw", link, { greeting: invitationGreeting(firstName) }) : null;
   const { error: emailError } = rendered
-    ? await sendRawHtmlEmail(prospect.email, rendered.subject, rendered.html)
+    ? await sendRawHtmlEmail(prospect.email, rendered.subject, rendered.html, rendered.text)
     : { error: "E-mail versturen is niet geconfigureerd." };
   if (!emailError) {
     // BUGFIX: zelfde ontbrekende expires_at-update als in beheer/aanvragen/

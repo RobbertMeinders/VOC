@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { uploadImage } from "@/lib/supabase/upload";
 import { logAuditAction } from "@/lib/audit/log";
 import { sendRawHtmlEmail } from "@/lib/email/send";
+import { htmlToPlainText } from "@/lib/email/preheader";
 import { renderNewsletterHtml, renderFooterUnsubscribeLine, UNSUBSCRIBE_LINE_TOKEN } from "@/lib/newsletter/render";
 import { buildEventSnapshot } from "@/lib/newsletter/eventSnapshot";
 import { performNewsletterSend } from "@/lib/newsletter/send";
@@ -331,7 +332,7 @@ export async function sendTestNewsletterAction(
     orgName: settings.org_name,
     logoUrl: settings.logo_url,
   }).replace(UNSUBSCRIBE_LINE_TOKEN, renderFooterUnsubscribeLine({ variant: "preview", orgName: settings.org_name }));
-  const result = await sendRawHtmlEmail(profile.email, `[TEST] ${subject}`, html, senderName || null);
+  const result = await sendRawHtmlEmail(profile.email, `[TEST] ${subject}`, html, htmlToPlainText(html), senderName || null);
 
   if (result.error) {
     return { error: result.error };

@@ -5,7 +5,7 @@ import { renderTemplate } from "@/lib/template/render";
 import { escapeHtml } from "@/lib/text/escape-html";
 import { getAppSettings } from "@/lib/settings/app-settings";
 import { renderSignature } from "@/lib/templates/signature";
-import { renderHiddenPreheader, htmlToPreheaderText } from "@/lib/email/preheader";
+import { renderHiddenPreheader, htmlToPreheaderText, htmlToPlainText } from "@/lib/email/preheader";
 
 export type MessageTemplateRow = {
   subject: string;
@@ -27,7 +27,7 @@ export type MessageTemplateRow = {
 // <!--[if !mso]><!-->. Zelfde patroon als renderButton in
 // newsletter/render.ts. v:roundrect kent geen automatische breedte, dus
 // die wordt hier ruw geschat op basis van de labellengte.
-function renderCta(url: string, label: string): string {
+export function renderCta(url: string, label: string): string {
   const escapedUrl = escapeHtml(url);
   const escapedLabel = escapeHtml(label);
   const width = Math.max(140, label.length * 9 + 48);
@@ -70,7 +70,7 @@ export async function renderMessageEmail(
   link: string,
   variables: Record<string, string>,
   options?: { preferencesUrl?: string }
-): Promise<{ subject: string; html: string } | null> {
+): Promise<{ subject: string; html: string; text: string } | null> {
   const template = await getMessageTemplate(key);
   if (!template) return null;
 
@@ -85,7 +85,23 @@ export async function renderMessageEmail(
 
   const preheader = renderHiddenPreheader(htmlToPreheaderText(body));
   const html = preheader + body + cta + after + signature + (options?.preferencesUrl ? preferencesFooter(options.preferencesUrl) : "");
-  return { subject, html };
+
+  // Expliciete tekstversie i.p.v. de mail alleen als HTML versturen — zonder
+  // een multipart/alternative-tekstdeel viel de inbox-voorbeeldtekst bij
+  // sommige mailclients/doorstuurdiensten terug op een kale, door
+  // linktracking herschreven URL i.p.v. nette tekst (live feedback: "pre-
+  // header is weer niet netjes"). Strippen VOOR de {{var}}-substitutie
+  // (tags, geen {{...}}-tokens) met de rauwe (niet HTML-geëscapete)
+  // variabelen — platte tekst heeft geen HTML-escaping nodig.
+  const text = [
+    renderTemplate(htmlToPlainText(template.body_html), variables),
+    `${template.cta_label}: ${link}`,
+    renderTemplate(htmlToPlainText(template.after_html), variables),
+  ]
+    .filter(Boolean)
+    .join("\n\n");
+
+  return { subject, html, text };
 }
 
 // Voor pushmeldingen (geen HTML, geen knop/handtekening) — simpele

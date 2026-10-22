@@ -93,6 +93,7 @@ async function sendMail(
   to: string,
   subject: string,
   html: string,
+  text?: string,
   from?: string | { name: string; address: string },
   replyTo?: string,
   headers?: Record<string, string>
@@ -113,6 +114,11 @@ async function sendMail(
       to,
       subject,
       html,
+      // Expliciet multipart/alternative-tekstdeel i.p.v. alleen HTML -- zonder
+      // dat viel de inbox-voorbeeldtekst bij sommige mailclients/doorstuur-
+      // diensten terug op een door linktracking herschreven kale URL i.p.v.
+      // nette tekst (live feedback).
+      ...(text ? { text } : {}),
       ...(replyTo ? { replyTo } : {}),
       ...(headers ? { headers } : {}),
     });
@@ -163,7 +169,8 @@ async function sendRawNotificationEmail(
 ): Promise<SendResult> {
   const linkHtml = linkUrl ? `<p><a href="${escapeHtml(linkUrl)}">Bekijk in het ledenportaal</a></p>` : "";
   const html = `${renderHiddenPreheader(body ?? title)}<p>${escapeHtml(body ?? "")}</p>${linkHtml}${notificationPreferencesFooter(preferencesUrl)}`;
-  return sendMail(to, title, html);
+  const text = [body ?? title, linkUrl ? `Bekijk in het ledenportaal: ${linkUrl}` : ""].filter(Boolean).join("\n\n");
+  return sendMail(to, title, html, text);
 }
 
 /**
@@ -177,12 +184,13 @@ export async function sendRawHtmlEmail(
   to: string,
   subject: string,
   html: string,
+  text?: string,
   senderName?: string | null,
   replyTo?: string,
   headers?: Record<string, string>
 ): Promise<SendResult> {
   const defaultFrom = process.env.EMAIL_FROM;
-  if (!defaultFrom) return sendMail(to, subject, html, undefined, replyTo, headers);
+  if (!defaultFrom) return sendMail(to, subject, html, text, undefined, replyTo, headers);
 
   const fromAddressMatch = defaultFrom.match(/<([^>]+)>/);
   const fromAddress = fromAddressMatch ? fromAddressMatch[1] : defaultFrom;
@@ -193,7 +201,7 @@ export async function sendRawHtmlEmail(
   // header gelezen kan worden.
   const from = senderName ? { name: senderName, address: fromAddress } : defaultFrom;
 
-  return sendMail(to, subject, html, from, replyTo, headers);
+  return sendMail(to, subject, html, text, from, replyTo, headers);
 }
 
 /**
@@ -220,7 +228,8 @@ export async function sendMemberContactEmail(params: {
     <p style="white-space:pre-line;">${escapeHtml(message)}</p>
     <p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je kunt rechtstreeks op deze e-mail reageren. Je antwoord gaat naar ${escapeHtml(senderName)}, niet naar het ledenportaal.</p>
   `;
-  return sendRawHtmlEmail(to, subject, html, senderName, replyTo);
+  const text = `${senderName} heeft je een bericht gestuurd via het ledenportaal.\n\n${message}\n\nJe kunt rechtstreeks op deze e-mail reageren. Je antwoord gaat naar ${senderName}, niet naar het ledenportaal.`;
+  return sendRawHtmlEmail(to, subject, html, text, senderName, replyTo);
 }
 
 /**
@@ -250,7 +259,7 @@ export async function sendNotificationEmail(
       { preferencesUrl }
     );
     if (rendered) {
-      const result = await sendMail(to, rendered.subject, rendered.html);
+      const result = await sendMail(to, rendered.subject, rendered.html, rendered.text);
       if (!result.error) return result;
     }
   }

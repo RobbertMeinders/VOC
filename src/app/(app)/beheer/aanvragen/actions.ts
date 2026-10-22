@@ -168,7 +168,7 @@ export async function createInvitationFromAccessRequestAction(requestId: string)
   const link = `${process.env.SITE_URL ?? ""}/register/${invitation.token}`;
   const rendered = isEmailConfigured() ? await renderMessageEmail("uit-nieuw", link, { greeting: invitationGreeting(request.first_name) }) : null;
   const { error: emailError } = rendered
-    ? await sendRawHtmlEmail(request.email, rendered.subject, rendered.html)
+    ? await sendRawHtmlEmail(request.email, rendered.subject, rendered.html, rendered.text)
     : { error: "E-mail versturen is niet geconfigureerd." };
   if (!emailError) {
     // BUGFIX: deze actie zette expires_at nooit, terwijl 0081 de kolom juist

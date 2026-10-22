@@ -30,7 +30,7 @@ async function sendInvitationTemplateEmail(
   if (!rendered) {
     return { error: "Sjabloon ontbreekt." };
   }
-  return sendRawHtmlEmail(to, rendered.subject, rendered.html);
+  return sendRawHtmlEmail(to, rendered.subject, rendered.html, rendered.text);
 }
 
 // UX-review punt 17: mirror van de bedrijf-opzoek/aanmaak-logica in

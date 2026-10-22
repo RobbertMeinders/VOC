@@ -99,7 +99,7 @@ export async function signInWithMagicLinkAction(
         const link = `${process.env.SITE_URL ?? ""}/auth/confirm?token_hash=${hashedToken}&type=magiclink&next=${encodeURIComponent(next)}`;
         const { data: matchedProfile } = await admin.from("profiles").select("first_name").eq("email", email).maybeSingle();
         const rendered = await renderMessageEmail("magic", link, { greeting: invitationGreeting(matchedProfile?.first_name) });
-        if (rendered) await sendRawHtmlEmail(email, rendered.subject, rendered.html);
+        if (rendered) await sendRawHtmlEmail(email, rendered.subject, rendered.html, rendered.text);
       }
     } catch {
       // Zie wachtwoord-vergeten/actions.ts — geen enumeratie van bestaande

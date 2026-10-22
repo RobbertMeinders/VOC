@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendRawHtmlEmail } from "@/lib/email/send";
 import { fetchAppSettings } from "@/lib/settings/app-settings";
 import { renderNewsletterHtml, renderFooterUnsubscribeLine, UNSUBSCRIBE_LINE_TOKEN } from "./render";
+import { htmlToPlainText } from "@/lib/email/preheader";
 import { buildUnsubscribeUrl, buildPreferencesUrl } from "./unsubscribe";
 import type { NewsletterBlock } from "./types";
 import type { Database } from "@/lib/types/database";
@@ -128,7 +129,12 @@ export async function performNewsletterSend(
               }
         )
       );
-      const result = await sendRawHtmlEmail(recipient.email, communication.subject, html, communication.sender_name, undefined, {
+      // Expliciete tekstversie i.p.v. de mail alleen als HTML versturen --
+      // zonder multipart/alternative-tekstdeel viel de inbox-voorbeeldtekst
+      // bij sommige mailclients/doorstuurdiensten terug op een door
+      // linktracking herschreven kale URL i.p.v. nette tekst (live feedback).
+      const text = htmlToPlainText(html);
+      const result = await sendRawHtmlEmail(recipient.email, communication.subject, html, text, communication.sender_name, undefined, {
         "List-Unsubscribe": `<${unsubscribeUrl}>`,
         "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
       });

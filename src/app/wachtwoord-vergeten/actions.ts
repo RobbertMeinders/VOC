@@ -34,7 +34,7 @@ export async function requestPasswordResetAction(
         const link = `${process.env.SITE_URL ?? ""}/auth/confirm?token_hash=${hashedToken}&type=recovery&next=/wachtwoord-instellen`;
         const { data: matchedProfile } = await admin.from("profiles").select("first_name").eq("email", email).maybeSingle();
         const rendered = await renderMessageEmail("reset", link, { greeting: invitationGreeting(matchedProfile?.first_name) });
-        if (rendered) await sendRawHtmlEmail(email, rendered.subject, rendered.html);
+        if (rendered) await sendRawHtmlEmail(email, rendered.subject, rendered.html, rendered.text);
       }
     } catch {
       // Bestaat het e-mailadres niet, dan faalt generateLink — dat lekken we

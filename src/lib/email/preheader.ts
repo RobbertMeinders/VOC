@@ -20,14 +20,21 @@ export function renderHiddenPreheader(text: string): string {
   return `<div style="display:none;mso-hide:all;font-size:1px;line-height:1px;max-height:0;max-width:0;overflow:hidden;opacity:0;">${escapeHtml(trimmed)}${"&nbsp;&zwnj;".repeat(8)}</div>`;
 }
 
-// Platte, korte samenvatting uit HTML-inhoud (tags/witruimte eruit), afgekapt
-// op een woordgrens zodat de preview niet halverwege een woord afbreekt.
-export function htmlToPreheaderText(html: string, maxLength = 150): string {
-  const text = html
+// Platte tekst uit HTML-inhoud (tags/witruimte eruit) zonder afkapping —
+// gebruikt voor de expliciete text/plain-versie van een mail (zie
+// message-render.ts).
+export function htmlToPlainText(html: string): string {
+  return html
     .replace(/<[^>]*>/g, " ")
     .replace(/&nbsp;/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+// Korte samenvatting voor de onzichtbare preheader, afgekapt op een
+// woordgrens zodat de preview niet halverwege een woord afbreekt.
+export function htmlToPreheaderText(html: string, maxLength = 150): string {
+  const text = htmlToPlainText(html);
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength).replace(/\s+\S*$/, "")}…`;
 }

@@ -482,8 +482,8 @@ export async function changeEmailAction(_prevState: ChangeEmailState, formData: 
       renderMessageEmail("email", buildLink(newToken), { greeting }),
     ]);
     await Promise.all([
-      currentRendered ? sendRawHtmlEmail(currentEmail, currentRendered.subject, currentRendered.html) : null,
-      newRendered ? sendRawHtmlEmail(email, newRendered.subject, newRendered.html) : null,
+      currentRendered ? sendRawHtmlEmail(currentEmail, currentRendered.subject, currentRendered.html, currentRendered.text) : null,
+      newRendered ? sendRawHtmlEmail(email, newRendered.subject, newRendered.html, newRendered.text) : null,
     ]);
   } catch {
     return { error: "Wijzigen is niet gelukt. Probeer het opnieuw." };

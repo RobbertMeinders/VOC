@@ -495,7 +495,7 @@ export async function inviteColleagueAction(
     bedrijf: company.name,
   });
   const { error: emailError } = rendered
-    ? await sendRawHtmlEmail(email, rendered.subject, rendered.html)
+    ? await sendRawHtmlEmail(email, rendered.subject, rendered.html, rendered.text)
     : { error: "Sjabloon ontbreekt." };
 
   if (!emailError) {
@@ -559,7 +559,7 @@ export async function requestCompanyCancellationAction(companyId: string, endDat
       einddatum: new Date(endDate).toLocaleDateString("nl-NL"),
     });
     if (rendered) {
-      await sendRawHtmlEmail(profile.email, rendered.subject, rendered.html);
+      await sendRawHtmlEmail(profile.email, rendered.subject, rendered.html, rendered.text);
     }
   }
 
