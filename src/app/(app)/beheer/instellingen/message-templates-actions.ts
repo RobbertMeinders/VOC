@@ -24,6 +24,7 @@ export async function updateMessageTemplateAction(
   const bodyHtml = String(formData.get("body_html") ?? "").trim();
   const ctaLabel = String(formData.get("cta_label") ?? "").trim();
   const afterHtml = String(formData.get("after_html") ?? "").trim();
+  const preheader = String(formData.get("preheader") ?? "").trim();
   const signatureType = String(formData.get("signature_type") ?? "alg");
   const pushTitle = formData.get("push_title");
   const pushBody = formData.get("push_body");
@@ -43,6 +44,9 @@ export async function updateMessageTemplateAction(
       body_html: bodyHtml,
       cta_label: ctaLabel,
       after_html: afterHtml,
+      // Leeg veld = terugvallen op de automatische afleiding uit de body
+      // (renderMessageEmail), geen lege preheader-regel versturen.
+      preheader: preheader || null,
       signature_type: signatureType,
       push_title: pushTitle !== null ? String(pushTitle).trim() || null : undefined,
       push_body: pushBody !== null ? String(pushBody).trim() || null : undefined,
@@ -78,6 +82,7 @@ export async function resetMessageTemplateAction(key: string): Promise<ResetMess
       body_html: defaults.bodyHtml,
       cta_label: defaults.ctaLabel,
       after_html: defaults.afterHtml,
+      preheader: defaults.preheader,
       push_title: defaults.pushTitle,
       push_body: defaults.pushBody,
       updated_by: profile.id,
@@ -116,6 +121,7 @@ export async function sendTestMessageEmailAction(
   const bodyHtml = String(formData.get("body_html") ?? "").trim();
   const ctaLabel = String(formData.get("cta_label") ?? "").trim();
   const afterHtml = String(formData.get("after_html") ?? "").trim();
+  const preheaderInput = String(formData.get("preheader") ?? "").trim();
   const signatureType = String(formData.get("signature_type") ?? "alg") === "pers" ? "pers" : "alg";
 
   const variables = Object.fromEntries(variablesForMessageTemplate(key).map((v) => [v.key, v.example]));
@@ -135,7 +141,10 @@ export async function sendTestMessageEmailAction(
   const cta = renderCta(testLink, ctaLabel);
   const signatureHtml = signatureType === "pers" ? renderPersonalSignature(settings) : renderGeneralSignature(settings);
   const banner = `<p style="margin:0 0 16px;padding:10px 14px;background:#fff3cd;border-radius:8px;font-size:13px;color:#664d03;">Testmail - dit is een voorbeeld, niet daadwerkelijk verstuurd aan een lid.</p>`;
-  const preheader = renderHiddenPreheader(htmlToPreheaderText(renderedBody));
+  // Zelfde terugval als renderMessageEmail: het ingevulde preheader-veld,
+  // of anders de automatische afleiding uit de body.
+  const preheaderText = preheaderInput ? renderTemplate(preheaderInput, variables) : htmlToPreheaderText(renderedBody);
+  const preheader = renderHiddenPreheader(preheaderText);
   const html = preheader + banner + renderedBody + cta + renderedAfter + `<div style="margin-top:22px">${signatureHtml}</div>`;
   const text = [
     "Testmail - dit is een voorbeeld, niet daadwerkelijk verstuurd aan een lid.",

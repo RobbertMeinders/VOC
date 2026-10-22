@@ -9,6 +9,7 @@ export type MessageTemplateDefault = {
   bodyHtml: string;
   ctaLabel: string;
   afterHtml: string;
+  preheader: string | null;
   pushTitle: string | null;
   pushBody: string | null;
 };
@@ -26,6 +27,7 @@ export const MESSAGE_TEMPLATE_DEFAULTS: Record<string, MessageTemplateDefault> =
     ctaLabel: "Account aanmaken",
     afterHtml:
       '<p>Deze link is 14 dagen geldig. Mocht je vragen hebben, neem dan gerust contact op via <a href="mailto:info@vocveendam.nl">info@vocveendam.nl</a>.</p>',
+    preheader: "Je aanvraag is goedgekeurd — maak je account aan en ontdek het ledenportaal.",
     pushTitle: null,
     pushBody: null,
   },
@@ -39,6 +41,7 @@ export const MESSAGE_TEMPLATE_DEFAULTS: Record<string, MessageTemplateDefault> =
     ctaLabel: "Maak je account aan",
     afterHtml:
       '<p>De link is 14 dagen geldig en alleen voor jou bedoeld. Heb je vragen over het portaal? Mail ons gerust via <a href="mailto:info@vocveendam.nl">info@vocveendam.nl</a>.</p>',
+    preheader: "Je hebt nu toegang tot het VOC-ledenportaal — maak je account aan.",
     pushTitle: null,
     pushBody: null,
   },
@@ -50,6 +53,7 @@ export const MESSAGE_TEMPLATE_DEFAULTS: Record<string, MessageTemplateDefault> =
       "<p>In het portaal vind je de agenda met netwerkbijeenkomsten en andere activiteiten, meld je je aan en leer je de andere leden kennen. Je account wordt direct aan {{bedrijf}} gekoppeld.</p>",
     ctaLabel: "Maak je account aan",
     afterHtml: "<p>De link is 14 dagen geldig. Verwachtte je deze uitnodiging niet? Dan kun je deze e-mail gewoon negeren.</p>",
+    preheader: "Je bent uitgenodigd voor het VOC-ledenportaal namens je bedrijf.",
     pushTitle: null,
     pushBody: null,
   },
@@ -62,6 +66,7 @@ export const MESSAGE_TEMPLATE_DEFAULTS: Record<string, MessageTemplateDefault> =
     afterHtml:
       "<p>Deze link werkt één keer en is één uur geldig. Is hij verlopen? Vraag dan op de inlogpagina eenvoudig een nieuwe aan.</p>" +
       "<p>Heb je dit niet zelf aangevraagd? Dan hoef je niets te doen. Zonder deze link kan niemand op je account inloggen.</p>",
+    preheader: "Met één klik ben je ingelogd — de link is een uur geldig.",
     pushTitle: null,
     pushBody: null,
   },
@@ -74,6 +79,7 @@ export const MESSAGE_TEMPLATE_DEFAULTS: Record<string, MessageTemplateDefault> =
     afterHtml:
       "<p>De link is één uur geldig. Kies bij voorkeur een wachtwoord dat je nergens anders gebruikt.</p>" +
       "<p>Heb je dit niet zelf aangevraagd? Dan kun je deze e-mail negeren; je huidige wachtwoord blijft gewoon geldig.</p>",
+    preheader: "Kies een nieuw wachtwoord via de link in deze mail — een uur geldig.",
     pushTitle: null,
     pushBody: null,
   },
@@ -85,14 +91,20 @@ export const MESSAGE_TEMPLATE_DEFAULTS: Record<string, MessageTemplateDefault> =
     ctaLabel: "E-mailadres bevestigen",
     afterHtml:
       '<p>Tot je de wijziging bevestigt, blijft je oude e-mailadres in gebruik. Heb je dit niet zelf gedaan? Neem dan contact met ons op via <a href="mailto:info@vocveendam.nl">info@vocveendam.nl</a>.</p>',
+    preheader: "Bevestig je nieuwe e-mailadres om het in gebruik te nemen.",
     pushTitle: null,
     pushBody: null,
   },
+  // De zes hieronder (nieuw-act t/m nieuw-lid) hebben bewust geen vaste
+  // preheader: subject/body zijn zelf al per verzending anders
+  // ({{title}}/{{body}}), dus de automatische afleiding uit de echte
+  // inhoud (renderMessageEmail) is daar informatiever dan één vaste tekst.
   "nieuw-act": {
     subject: "{{title}}",
     bodyHtml: "<p>{{body}}</p>",
     ctaLabel: "Bekijk en meld je aan",
     afterHtml: "",
+    preheader: null,
     pushTitle: "{{title}}",
     pushBody: "{{body}}",
   },
@@ -101,6 +113,7 @@ export const MESSAGE_TEMPLATE_DEFAULTS: Record<string, MessageTemplateDefault> =
     bodyHtml: "<p>{{body}}</p>",
     ctaLabel: "Bekijk de activiteit",
     afterHtml: "",
+    preheader: null,
     pushTitle: "{{title}}",
     pushBody: "{{body}}",
   },
@@ -109,6 +122,7 @@ export const MESSAGE_TEMPLATE_DEFAULTS: Record<string, MessageTemplateDefault> =
     bodyHtml: "<p>{{body}}</p>",
     ctaLabel: "Bekijk de activiteit",
     afterHtml: "",
+    preheader: null,
     pushTitle: "{{title}}",
     pushBody: "{{body}}",
   },
@@ -117,6 +131,7 @@ export const MESSAGE_TEMPLATE_DEFAULTS: Record<string, MessageTemplateDefault> =
     bodyHtml: "<p>{{body}}</p>",
     ctaLabel: "Bekijk de reactie",
     afterHtml: "",
+    preheader: null,
     pushTitle: "{{title}}",
     pushBody: "{{body}}",
   },
@@ -125,6 +140,7 @@ export const MESSAGE_TEMPLATE_DEFAULTS: Record<string, MessageTemplateDefault> =
     bodyHtml: "<p>{{body}}</p>",
     ctaLabel: "Bekijk het bericht",
     afterHtml: "",
+    preheader: null,
     pushTitle: "{{title}}",
     pushBody: "{{body}}",
   },
@@ -133,6 +149,7 @@ export const MESSAGE_TEMPLATE_DEFAULTS: Record<string, MessageTemplateDefault> =
     bodyHtml: "<p>{{body}}</p>",
     ctaLabel: "Bekijk het profiel",
     afterHtml: "",
+    preheader: null,
     pushTitle: "{{title}}",
     pushBody: "{{body}}",
   },

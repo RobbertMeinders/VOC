@@ -805,6 +805,7 @@ export interface Database {
           body_html: string;
           cta_label: string;
           after_html: string;
+          preheader: string | null;
           push_title: string | null;
           push_body: string | null;
           updated_at: string;
@@ -1280,6 +1281,7 @@ export interface Database {
           signature_type: string;
           push_title: string | null;
           push_body: string | null;
+          preheader: string | null;
         }[];
       };
       get_push_template: {

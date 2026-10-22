@@ -73,11 +73,13 @@ export function MessageTemplateEditor({
   const [bodyHtml, setBodyHtml] = useState(template.body_html);
   const [ctaLabel, setCtaLabel] = useState(template.cta_label);
   const [afterHtml, setAfterHtml] = useState(template.after_html);
+  const [preheader, setPreheader] = useState(template.preheader ?? "");
   const [signatureType, setSignatureType] = useState<"alg" | "pers">(template.signature_type);
   const [pushTitle, setPushTitle] = useState(template.push_title ?? "");
   const [pushBody, setPushBody] = useState(template.push_body ?? "");
 
   const subjectRef = useRef<VariableEditorHandle>(null);
+  const preheaderRef = useRef<VariableEditorHandle>(null);
   const bodyRef = useRef<VariableEditorHandle>(null);
   const afterRef = useRef<VariableEditorHandle>(null);
   const activeEditorRef = useRef<VariableEditorHandle | null>(null);
@@ -91,6 +93,7 @@ export function MessageTemplateEditor({
     bodyHtml !== template.body_html ||
     ctaLabel !== template.cta_label ||
     afterHtml !== template.after_html ||
+    preheader !== (template.preheader ?? "") ||
     signatureType !== template.signature_type ||
     pushTitle !== (template.push_title ?? "") ||
     pushBody !== (template.push_body ?? "");
@@ -203,6 +206,19 @@ export function MessageTemplateEditor({
                   className="inline font-semibold text-[#17171a]"
                 />
               </div>
+              <div className="mb-2 text-[13px] text-[#67625b]">
+                Preheader (voorbeeldtekst in de inbox, leeg = automatisch de eerste regel):{" "}
+                <VariableEditor
+                  ref={preheaderRef}
+                  initialValue={preheader}
+                  variables={variables}
+                  mode="text"
+                  onChange={setPreheader}
+                  onFocus={() => (activeEditorRef.current = preheaderRef.current)}
+                  aria-label="Preheader"
+                  className="inline text-[#17171a]"
+                />
+              </div>
               <hr className="mb-3 border-[#e5e5ea]" />
               <VariableEditor
                 ref={bodyRef}
@@ -282,6 +298,7 @@ export function MessageTemplateEditor({
       <input type="hidden" name="body_html" form={formId} value={bodyHtml} />
       <input type="hidden" name="cta_label" form={formId} value={ctaLabel} />
       <input type="hidden" name="after_html" form={formId} value={afterHtml} />
+      <input type="hidden" name="preheader" form={formId} value={preheader} />
       <input type="hidden" name="signature_type" form={formId} value={signatureType} />
       {template.has_push && (
         <>
