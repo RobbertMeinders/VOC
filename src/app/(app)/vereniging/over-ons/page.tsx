@@ -24,9 +24,8 @@ export default async function OverVerenigingPage() {
   // (Introductie/Missie/Visie) — het bestuur voegt zelf kopjes en structuur
   // toe in de tekst, dus is een visuele driedeling hier overbodig. De drie
   // velden blijven in Beheer gewoon drie losse invoervakken (OrgProfileForm);
-  // alleen de weergave hier voegt ze samen. De eerste alinea (altijd de
-  // Introductie) krijgt wel een iets groter "lead"-lettertype — dat is geen
-  // nieuwe driedeling, gewoon wat ritme in een anders vlakke tekstmuur.
+  // alleen de weergave hier voegt ze samen, met gelijke opmaak per alinea
+  // (geen groter "lead"-lettertype op de eerste meer — oogde te ongelijk).
   const paragraphs = [orgProfile.intro_text, orgProfile.mission_text, orgProfile.vision_text].filter((text): text is string =>
     Boolean(text)
   );
@@ -73,7 +72,7 @@ export default async function OverVerenigingPage() {
           </div>
           <div className="flex flex-col gap-4 leading-relaxed text-foreground">
             {paragraphs.map((text, index) => (
-              <p key={index} className={index === 0 ? "whitespace-pre-line text-base font-medium" : "whitespace-pre-line text-sm text-muted"}>
+              <p key={index} className="whitespace-pre-line text-sm">
                 {text}
               </p>
             ))}
