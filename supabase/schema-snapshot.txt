@@ -1267,6 +1267,22 @@ end;
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.get_applied_migration_versions()
+ RETURNS SETOF text
+ LANGUAGE plpgsql
+ STABLE SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not public.is_admin() then
+    raise exception 'not authorized';
+  end if;
+
+  return query select version from public.schema_migration_log order by version;
+end;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.get_communication_delivery_stats()
  RETURNS TABLE(communication_id uuid, sent bigint, failed bigint, total bigint)
  LANGUAGE sql
