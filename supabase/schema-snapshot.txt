@@ -280,6 +280,48 @@ end;
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.board_cancel_company_membership(p_company_id uuid, p_end_date date)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_company_name text;
+  v_company_slug text;
+  v_cfg record;
+begin
+  if not public.is_board() then
+    raise exception 'not authorized';
+  end if;
+
+  if p_end_date <= current_date then
+    raise exception 'end date must be in the future';
+  end if;
+
+  update public.companies
+  set membership_status = 'opgezegd', membership_end_date = p_end_date
+  where id = p_company_id and membership_status = 'lid'
+  returning name, slug into v_company_name, v_company_slug;
+
+  if v_company_name is null then
+    raise exception 'company is not an active member';
+  end if;
+
+  select * into v_cfg from public.notification_dispatch_config('company_cancellation_started');
+  if v_cfg.enabled then
+    insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+    select id, 'company_cancellation_started', 'Lidmaatschap opgezegd door bestuur',
+      coalesce(v_company_name, 'Een bedrijf') || ' is door bestuur/beheer opgezegd per ' || to_char(p_end_date, 'DD-MM-YYYY') || '.',
+      '/bedrijven/' || v_company_slug,
+      v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
+    from public.profiles
+    where is_active and role = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder']));
+  end if;
+end;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.claim_newsletter_contact_recipients(p_communication_id uuid)
  RETURNS TABLE(send_id uuid, contact_id uuid, email text)
  LANGUAGE plpgsql
@@ -544,7 +586,7 @@ $function$
 
 ---
 CREATE OR REPLACE FUNCTION public.companies_for_members()
- RETURNS TABLE(id uuid, name text, slug text, logo_url text, logo_thumb_url text, description text, tagline text, industry text, website text, city text, address text, postal_code text, show_address boolean, phone text, email text, latitude double precision, longitude double precision, linkedin_url text, instagram_url text, facebook_url text, is_publicly_visible boolean, created_by uuid, created_at timestamp with time zone, updated_at timestamp with time zone)
+ RETURNS TABLE(id uuid, name text, slug text, logo_url text, logo_thumb_url text, description text, tagline text, industry text, website text, city text, address text, postal_code text, show_address boolean, phone text, email text, latitude double precision, longitude double precision, linkedin_url text, instagram_url text, facebook_url text, is_publicly_visible boolean, created_by uuid, created_at timestamp with time zone, updated_at timestamp with time zone, membership_status text, member_since date, membership_end_date date)
  LANGUAGE sql
  STABLE SECURITY DEFINER
  SET search_path TO 'public'
@@ -586,13 +628,9 @@ AS $function$
       then c.longitude else null
     end as longitude,
     c.linkedin_url, c.instagram_url, c.facebook_url, c.is_publicly_visible,
-    c.created_by, c.created_at, c.updated_at
+    c.created_by, c.created_at, c.updated_at,
+    c.membership_status, c.member_since, c.membership_end_date
   from public.companies c
-  -- Zelfde reden als de view had: deze functie draait met de rechten van de
-  -- eigenaar (vandaar dat ze de ingetrokken kolommen uit companies zelf nog
-  -- wél kan lezen), dus herhaalt companies_members_select (public.is_active_
-  -- member()) hier expliciet — anders zou een niet-actief lid via deze
-  -- functie weer alles kunnen lezen.
   where public.is_active_member();
 $function$
 
@@ -2723,6 +2761,39 @@ end;
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.process_company_membership_cancellations()
+ RETURNS TABLE(company_id uuid, profiles_anonymized integer)
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_company record;
+  v_member record;
+  v_count int;
+begin
+  for v_company in
+    select c.id from public.companies c
+    where c.membership_status = 'opgezegd' and c.membership_end_date <= current_date
+  loop
+    v_count := 0;
+    for v_member in
+      select cm.profile_id from public.company_members cm where cm.company_id = v_company.id
+    loop
+      perform public.anonymize_profile_now(v_member.profile_id);
+      v_count := v_count + 1;
+    end loop;
+
+    update public.companies set membership_status = 'oud-lid' where id = v_company.id;
+
+    company_id := v_company.id;
+    profiles_anonymized := v_count;
+    return next;
+  end loop;
+end;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.promote_next_waitlisted()
  RETURNS trigger
  LANGUAGE plpgsql
@@ -2797,6 +2868,51 @@ end;
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.request_company_cancellation(p_company_id uuid, p_end_date date)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+declare
+  v_company_name text;
+  v_company_slug text;
+  v_cfg record;
+begin
+  if p_end_date <= current_date then
+    raise exception 'end date must be in the future';
+  end if;
+
+  if not exists (
+    select 1 from public.company_members
+    where company_id = p_company_id and profile_id = auth.uid() and is_primary
+  ) then
+    raise exception 'not authorized';
+  end if;
+
+  update public.companies
+  set membership_end_date = p_end_date
+  where id = p_company_id and membership_status = 'lid'
+  returning name, slug into v_company_name, v_company_slug;
+
+  if v_company_name is null then
+    raise exception 'company is not an active member';
+  end if;
+
+  select * into v_cfg from public.notification_dispatch_config('company_cancellation_started');
+  if v_cfg.enabled then
+    insert into public.notifications (profile_id, type, title, body, link, channel_push_allowed, channel_email_allowed, channel_inapp_allowed)
+    select id, 'company_cancellation_started', 'Lidmaatschap opgezegd (wacht op bevestiging)',
+      coalesce(v_company_name, 'Een bedrijf') || ' heeft het lidmaatschap opgezegd per ' || to_char(p_end_date, 'DD-MM-YYYY') || '.',
+      '/bedrijven/' || v_company_slug,
+      v_cfg.channel_push, v_cfg.channel_email, v_cfg.channel_inapp
+    from public.profiles
+    where is_active and role = any(coalesce(v_cfg.roles, array['bestuurslid', 'beheerder']));
+  end if;
+end;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.resolve_company_slug_alias(p_slug text)
  RETURNS text
  LANGUAGE sql
@@ -2822,6 +2938,55 @@ AS $function$
   where p_query is not null and length(trim(p_query)) >= 2 and name ilike '%' || trim(p_query) || '%'
   order by name
   limit 10;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.set_company_member_since(p_company_id uuid, p_date date)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not (
+    public.is_board()
+    or exists (
+      select 1 from public.company_members
+      where company_id = p_company_id and profile_id = auth.uid()
+    )
+  ) then
+    raise exception 'not authorized';
+  end if;
+
+  update public.companies set member_since = p_date where id = p_company_id;
+end;
+$function$
+
+---
+CREATE OR REPLACE FUNCTION public.set_company_primary_contact(p_company_id uuid, p_profile_id uuid)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  if not public.is_board() then
+    raise exception 'not authorized';
+  end if;
+
+  if not exists (
+    select 1 from public.company_members
+    where company_id = p_company_id and profile_id = p_profile_id
+  ) then
+    raise exception 'profile is not a member of this company';
+  end if;
+
+  update public.company_members set is_primary = false
+  where company_id = p_company_id and is_primary and profile_id <> p_profile_id;
+
+  update public.company_members set is_primary = true
+  where company_id = p_company_id and profile_id = p_profile_id;
+end;
 $function$
 
 ---
