@@ -179,7 +179,7 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
         );
 
         const postsSection = isOwnProfile && posts.length > 0 && (
-          <div className="order-4 rounded-2xl bg-surface p-6 shadow-sm lg:order-none">
+          <div className="order-5 rounded-2xl bg-surface p-6 shadow-sm lg:order-none">
             <h2 className="mb-3 text-sm font-semibold text-foreground">Berichten</h2>
             <MemberPostList
               memberId={id}
@@ -253,7 +253,7 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
         );
 
         const attendedSection = attendedActivities.length > 0 && (
-          <div className="order-5 rounded-2xl bg-surface p-6 shadow-sm lg:order-none">
+          <div className="order-4 rounded-2xl bg-surface p-6 shadow-sm lg:order-none">
             <h2 className="mb-3 text-sm font-semibold text-foreground">Bijgewoonde activiteiten</h2>
             <AttendedActivitiesSection memberId={id} activities={attendedActivities} />
           </div>
