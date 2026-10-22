@@ -103,13 +103,13 @@ export function CompanyMembershipSection({
 
       {membershipStatus === "opgezegd" && membershipEndDate && (
         <p className="rounded-lg bg-status-warning-soft px-3 py-2 text-xs text-status-warning">
-          Lidmaatschap opgezegd — loopt tot {new Date(membershipEndDate).toLocaleDateString("nl-NL")}.
+          Lidmaatschap opgezegd, loopt tot {new Date(membershipEndDate).toLocaleDateString("nl-NL")}.
         </p>
       )}
 
       {membershipStatus === "lid" && membershipEndDate && (
         <p className="rounded-lg bg-status-warning-soft px-3 py-2 text-xs text-status-warning">
-          Opzegging gestart, einddatum {new Date(membershipEndDate).toLocaleDateString("nl-NL")} — wacht nog op bevestiging via e-mail.
+          Opzegging gestart, einddatum {new Date(membershipEndDate).toLocaleDateString("nl-NL")}. Wacht nog op bevestiging via e-mail.
         </p>
       )}
 

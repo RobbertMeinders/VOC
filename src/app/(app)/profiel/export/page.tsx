@@ -28,6 +28,7 @@ export default async function ProfileExportPage() {
       <PageHeader
         title="Mijn gegevens"
         description={`Een overzicht van wat de VOC over jou bewaart, gegenereerd op ${formatDateLong(data.geëxporteerd_op)}.`}
+        back={{ href: "/instellingen", label: "Terug naar instellingen" }}
       />
 
       <div className="flex flex-col gap-6">
@@ -61,7 +62,7 @@ export default async function ProfileExportPage() {
               {data.bedrijfskoppeling.map((row, i) => (
                 <li key={i}>
                   {row.company?.name ?? "Onbekend bedrijf"}
-                  {row.is_primary && " — primair contact"} (sinds {formatDateLong(row.created_at)})
+                  {row.is_primary && " (primair contact)"} (sinds {formatDateLong(row.created_at)})
                 </li>
               ))}
             </ul>
@@ -77,7 +78,7 @@ export default async function ProfileExportPage() {
               {data.activiteit_aanmeldingen.map((row, i) => (
                 <li key={i}>
                   {row.activity?.title ?? "Verwijderde activiteit"}
-                  {row.activity?.starts_at && <> — {formatDateLong(row.activity.starts_at)}</>}
+                  {row.activity?.starts_at && <> ({formatDateLong(row.activity.starts_at)})</>}
                   {row.is_waitlisted && " (wachtlijst)"}
                   {row.attended && " · aanwezig geweest"}
                 </li>
@@ -95,7 +96,7 @@ export default async function ProfileExportPage() {
               {data.feed_berichten.map((post) => (
                 <li key={post.id} className="border-b border-border pb-2 last:border-0 last:pb-0">
                   <p className="mb-1 text-xs text-muted">
-                    {(post.type && POST_TYPE_LABELS[post.type]) ?? post.type} — {formatDateTime(post.created_at)}
+                    {(post.type && POST_TYPE_LABELS[post.type]) ?? post.type} · {formatDateTime(post.created_at)}
                   </p>
                   <p className="whitespace-pre-wrap">{post.content}</p>
                 </li>

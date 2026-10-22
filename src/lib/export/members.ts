@@ -18,18 +18,18 @@ function statusLabel(status: string): string {
 }
 
 // Eén contactpersoon-tekstregel voor de samengevatte kolom op de .xlsx
-// ("Jan Jansen (Directeur) — jan@bedrijf.nl, 06-12345678 — primair"): elke
+// ("Jan Jansen (Directeur), jan@bedrijf.nl, 06-12345678, primair"): elke
 // contactpersoon op zijn eigen regel binnen de cel (newline, geen
-// puntkomma's — die kunnen in een naam of functie voorkomen en zouden de
-// regels dan onleesbaar door elkaar laten lopen).
+// puntkomma's tussen contactpersonen — die kunnen in een naam of functie
+// voorkomen en zouden de regels dan onleesbaar door elkaar laten lopen).
 function formatContactLine(row: ExportRow): string {
   const name = [row.contact_first_name, row.contact_last_name].filter(Boolean).join(" ") || "(naam onbekend)";
   const parts = [name];
   if (row.contact_job_title) parts.push(`(${row.contact_job_title})`);
   const contactInfo = [row.contact_email, row.contact_phone].filter(Boolean).join(", ");
-  if (contactInfo) parts.push(`— ${contactInfo}`);
-  if (row.contact_is_primary) parts.push("— primair");
-  return parts.join(" ");
+  if (contactInfo) parts.push(contactInfo);
+  if (row.contact_is_primary) parts.push("primair");
+  return parts.join(", ");
 }
 
 type CompanyGroup = {

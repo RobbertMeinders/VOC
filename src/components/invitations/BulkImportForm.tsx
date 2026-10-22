@@ -33,7 +33,7 @@ export function BulkImportForm() {
       const text = await file.text();
       const parsed = parseMemberCsv(text);
       if (parsed.length === 0) {
-        setFileError("Geen bruikbare rijen gevonden in dit bestand — controleer de kolomvolgorde en of er meer dan alleen een kopregel in staat.");
+        setFileError("Geen bruikbare rijen gevonden in dit bestand. Controleer de kolomvolgorde en of er meer dan alleen een kopregel in staat.");
         setRows([]);
         return;
       }
