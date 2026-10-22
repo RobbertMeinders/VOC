@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import { cache } from "react";
 import { Globe, Mail, MapPin, Phone } from "lucide-react";
@@ -16,7 +15,6 @@ import { AddressVisibilityPrompt } from "@/components/company/AddressVisibilityP
 import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
 import { ExpandableText } from "@/components/ui/ExpandableText";
 import { ProfileColumns, ProfileHero, type HeroPill } from "@/components/ui/ProfileLayout";
-import { StatusPill, type StatusTone } from "@/components/ui/StatusPill";
 import type { Database } from "@/lib/types/database";
 
 type Company = Database["public"]["Tables"]["companies"]["Row"];
@@ -163,6 +161,10 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
     pills.push({ label: `Lid sinds ${new Date(company.member_since).getFullYear()}`, tone: "petrol" });
   } else if (company.membership_status === "prospect") {
     pills.push({ label: "Prospect", tone: "petrol" });
+  } else if (company.membership_status === "opgezegd") {
+    pills.push({ label: "Opgezegd", tone: "warning" });
+  } else if (company.membership_status === "oud-lid") {
+    pills.push({ label: "Oud-lid", tone: "neutral" });
   }
   if (company.city) pills.push({ label: company.city });
   if (company.tagline && company.industry) pills.push({ label: company.industry });
@@ -185,7 +187,7 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
         pills={pills}
         avatar={
           <div className="overflow-hidden rounded-xl ring-4 ring-surface">
-            <CompanyLogo logoUrl={logoUrl} name={company.name} size={64} />
+            <CompanyLogo logoUrl={logoUrl} name={company.name} size={72} />
           </div>
         }
       />
@@ -303,44 +305,9 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
                 </p>
               </div>
             )}
-
-            <div className="rounded-2xl bg-surface p-6 shadow-sm">
-              <h2 className="mb-3 text-sm font-semibold text-foreground">Lidmaatschap</h2>
-              <div className="flex items-center gap-2 text-sm">
-                <StatusPill tone={MEMBERSHIP_STATUS_TONE[company.membership_status]}>
-                  {MEMBERSHIP_STATUS_LABEL[company.membership_status]}
-                </StatusPill>
-                {company.member_since && (
-                  <span className="text-xs text-muted">sinds {new Date(company.member_since).getFullYear()}</span>
-                )}
-              </div>
-              {canManage && (
-                <p className="mt-2 text-xs text-muted">
-                  Lid sinds, opzeggen en de coverfoto beheer je via{" "}
-                  <Link href={companyHref(company, "/bewerken")} className="text-petrol hover:underline">
-                    Bewerken
-                  </Link>
-                  .
-                </p>
-              )}
-            </div>
           </>
         }
       />
     </div>
   );
 }
-
-const MEMBERSHIP_STATUS_LABEL: Record<Company["membership_status"], string> = {
-  prospect: "Prospect",
-  lid: "Lid",
-  opgezegd: "Opgezegd",
-  "oud-lid": "Oud-lid",
-};
-
-const MEMBERSHIP_STATUS_TONE: Record<Company["membership_status"], StatusTone> = {
-  prospect: "neutral",
-  lid: "success",
-  opgezegd: "warning",
-  "oud-lid": "neutral",
-};
