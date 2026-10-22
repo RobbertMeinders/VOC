@@ -33,10 +33,6 @@ export async function TestfasePageContent({ van }: { van?: string }) {
           <p className="mt-0.5 text-sm text-muted">telt nog niet officieel. Meld je ook aan via de website.</p>
         </div>
         <div>
-          <p className="text-sm font-semibold text-foreground">Nieuwsbrieven</p>
-          <p className="mt-0.5 text-sm text-muted">komen nog niet uit het portaal.</p>
-        </div>
-        <div>
           <p className="text-sm font-semibold text-foreground">Koppelingen met de website</p>
           <p className="mt-0.5 text-sm text-muted">staan nog niet live.</p>
         </div>
