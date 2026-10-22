@@ -4,7 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { sendRawHtmlEmail } from "@/lib/email/send";
 import { fetchAppSettings } from "@/lib/settings/app-settings";
 import { renderNewsletterHtml, renderFooterUnsubscribeLine, UNSUBSCRIBE_LINE_TOKEN } from "./render";
-import { buildUnsubscribeUrl } from "./unsubscribe";
+import { buildUnsubscribeUrl, buildPreferencesUrl } from "./unsubscribe";
 import type { NewsletterBlock } from "./types";
 import type { Database } from "@/lib/types/database";
 
@@ -113,13 +113,19 @@ export async function performNewsletterSend(
 
     for (const recipient of toProcess) {
       const isContact = recipient.contact_id !== null;
-      const unsubscribeUrl = buildUnsubscribeUrl(siteUrl, isContact ? "contact" : "profile", (isContact ? recipient.contact_id : recipient.profile_id)!);
+      const recipientId = (isContact ? recipient.contact_id : recipient.profile_id)!;
+      const unsubscribeUrl = buildUnsubscribeUrl(siteUrl, isContact ? "contact" : "profile", recipientId);
       const html = htmlTemplate.replace(
         UNSUBSCRIBE_LINE_TOKEN,
         renderFooterUnsubscribeLine(
           isContact
             ? { variant: "contact", orgName: settings.org_name, unsubscribeUrl }
-            : { variant: "member", orgName: settings.org_name, siteUrl, unsubscribeUrl }
+            : {
+                variant: "member",
+                orgName: settings.org_name,
+                unsubscribeUrl,
+                preferencesUrl: buildPreferencesUrl(siteUrl, "profile", recipientId),
+              }
         )
       );
       const result = await sendRawHtmlEmail(recipient.email, communication.subject, html, communication.sender_name, undefined, {

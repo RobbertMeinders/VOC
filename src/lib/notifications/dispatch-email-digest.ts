@@ -3,6 +3,7 @@ import "server-only";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendRawHtmlEmail, escapeHtml } from "@/lib/email/send";
 import { NOTIFICATION_TYPE_LABELS, type ConfigurableNotificationType } from "@/lib/notifications/type-labels";
+import { buildPreferencesUrl } from "@/lib/newsletter/unsubscribe";
 
 type DigestRow = {
   notification_id: string;
@@ -44,7 +45,7 @@ export async function dispatchDailyEmailDigest(limit = 500): Promise<{ sent: num
   }
 
   const emailedIds: string[] = [];
-  for (const { email, items } of byProfile.values()) {
+  for (const [profileId, { email, items }] of byProfile) {
     const byType = new Map<string, DigestRow[]>();
     for (const item of items) {
       const group = byType.get(item.type);
@@ -66,7 +67,8 @@ export async function dispatchDailyEmailDigest(limit = 500): Promise<{ sent: num
       })
       .join("");
 
-    const html = `<p>Je dagelijkse samenvatting:</p>${sections}<p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je ontvangt dit als lid van de Veendammer Ondernemers Compagnie. <a href="${escapeHtml(`${siteUrl}/instellingen`)}" style="color:#6b6b72;">Voorkeuren aanpassen</a></p>`;
+    const preferencesUrl = buildPreferencesUrl(siteUrl, "profile", profileId);
+    const html = `<p>Je dagelijkse samenvatting:</p>${sections}<p style="margin-top:20px;padding-top:12px;border-top:1px solid #e5e5ea;font-size:12px;color:#6b6b72;">Je ontvangt dit als lid van de Veendammer Ondernemers Compagnie. <a href="${escapeHtml(preferencesUrl)}" style="color:#6b6b72;">Voorkeuren aanpassen</a></p>`;
 
     const result = await sendRawHtmlEmail(email, "Je dagelijkse samenvatting", html);
     if (!result.error || result.skipped) {

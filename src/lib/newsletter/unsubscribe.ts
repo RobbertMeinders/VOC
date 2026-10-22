@@ -55,3 +55,11 @@ export function buildUnsubscribeUrl(siteUrl: string, kind: UnsubscribeKind, id: 
   const token = buildUnsubscribeToken(kind, id);
   return `${siteUrl.replace(/\/$/, "")}/afmelden?token=${encodeURIComponent(token)}`;
 }
+
+// Zelfde ondertekende token als buildUnsubscribeUrl (niet actie-specifiek,
+// zie src/app/voorkeuren/route.ts) -- alleen een ander pad, voor de
+// "Voorkeuren aanpassen"-link in de mailfooter.
+export function buildPreferencesUrl(siteUrl: string, kind: UnsubscribeKind, id: string): string {
+  const token = buildUnsubscribeToken(kind, id);
+  return `${siteUrl.replace(/\/$/, "")}/voorkeuren?token=${encodeURIComponent(token)}`;
+}

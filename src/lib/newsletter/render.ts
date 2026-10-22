@@ -201,21 +201,23 @@ function renderHeader(siteUrl: string, logoUrl: string | null): string {
 export const UNSUBSCRIBE_LINE_TOKEN = "%%VOC_UNSUBSCRIBE_LINE%%";
 
 // Losse variant per ontvangertype: leden hebben ook nog "Voorkeuren
-// aanpassen" (hun instellingenpagina), externe contacten hebben geen account
-// en dus geen voorkeurenpagina — zij lazen voorheen per ongeluk "je ontvangt
-// dit als lid", wat gewoon onjuist is.
+// aanpassen" (het ondertekende-token-pad /voorkeuren, zie
+// src/app/voorkeuren/route.ts en buildPreferencesUrl -- zelfde token als
+// unsubscribeUrl, geen login nodig), externe contacten hebben geen account
+// en dus geen notificatievoorkeuren (alleen opted_out, al via Afmelden).
+// Zij lazen voorheen per ongeluk "je ontvangt dit als lid", wat gewoon
+// onjuist is.
 export function renderFooterUnsubscribeLine(opts: {
   variant: "member" | "contact" | "preview";
   orgName: string;
-  siteUrl?: string;
   unsubscribeUrl?: string;
+  preferencesUrl?: string;
 }): string {
   const { variant, orgName } = opts;
   const linkStyle = `color:${COLORS.muted};text-decoration:underline;`;
 
   if (variant === "member") {
-    const preferencesUrl = `${(opts.siteUrl ?? "").replace(/\/$/, "")}/instellingen`;
-    return `Je ontvangt dit als lid van ${escapeHtml(orgName)}. <a href="${escapeHtml(preferencesUrl)}" style="${linkStyle}">Voorkeuren aanpassen</a> · <a href="${escapeHtml(opts.unsubscribeUrl ?? "")}" style="${linkStyle}">Afmelden</a>`;
+    return `Je ontvangt dit als lid van ${escapeHtml(orgName)}. <a href="${escapeHtml(opts.preferencesUrl ?? "")}" style="${linkStyle}">Voorkeuren aanpassen</a> · <a href="${escapeHtml(opts.unsubscribeUrl ?? "")}" style="${linkStyle}">Afmelden</a>`;
   }
   if (variant === "contact") {
     return `Je ontvangt dit omdat je op de contactenlijst van ${escapeHtml(orgName)} staat. <a href="${escapeHtml(opts.unsubscribeUrl ?? "")}" style="${linkStyle}">Afmelden</a>`;
