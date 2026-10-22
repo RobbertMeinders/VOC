@@ -10,6 +10,11 @@ alter table public.companies
 alter table public.profiles
   add column cover_url text;
 
+-- profiles heeft (i.t.t. companies, zie 0186) een kolom-gerichte UPDATE-grant
+-- (0139_lock_down_profile_columns.sql) die per kolom moet worden uitgebreid;
+-- zonder deze toevoeging kan niemand de nieuwe kolom zetten.
+grant update (cover_url) on public.profiles to authenticated;
+
 -- Zelfde opzet als avatars/company-logos (0002_storage.sql): privé bucket,
 -- pad-conventie {company_id}/{file} resp. {profile_id}/{file}. Bekijken mag
 -- elk actief lid (zelfde kring als die de hero-pagina's zelf al mag zien);
