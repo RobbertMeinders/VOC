@@ -14,11 +14,18 @@ export function AddressVisibilityPrompt({
   companySlug,
   address,
   message = "Andere leden zien je bedrijfsadres nu niet, en het staat niet op de kaart. Mogen ze het wel zien?",
+  narrow = false,
 }: {
   companyId: string;
   companySlug: string;
   address: string | null;
   message?: string;
+  // Bug: de sm:flex-row-indeling kijkt naar de VIEWPORT-breedte, niet naar
+  // de daadwerkelijke beschikbare ruimte — in de smalle ProfileColumns-
+  // zijbalk (desktop) activeerde "sm:" dus allang, met te weinig ruimte als
+  // gevolg (tekst brak per woord, knoppen liepen af). Op de volle-breedte
+  // plek (de kaart-prompt op /bedrijven) is er wel genoeg ruimte.
+  narrow?: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
 
@@ -35,9 +42,15 @@ export function AddressVisibilityPrompt({
   }
 
   return (
-    <div className="flex flex-col gap-3 rounded-2xl bg-surface p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+    <div
+      className={
+        narrow
+          ? "flex flex-col gap-3 rounded-2xl bg-surface p-4 shadow-sm"
+          : "flex flex-col gap-3 rounded-2xl bg-surface p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+      }
+    >
       <p className="text-sm text-foreground">{message}</p>
-      <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+      <div className={narrow ? "flex shrink-0 flex-col items-start gap-2" : "flex shrink-0 flex-col items-start gap-2 sm:items-end"}>
         <div className="flex gap-2">
           <button
             type="button"

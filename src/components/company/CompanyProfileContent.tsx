@@ -229,7 +229,7 @@ export async function CompanyProfileContent({ id: routeParam }: { id: string }) 
                 "verborgen" (0180_privacy_defaults_hidden.sql) — alleen tonen
                 zolang het adres nog verborgen staat EN nog niet weggeklikt. */}
             {canManage && !company.show_address && !company.address_visibility_prompt_dismissed_at && (
-              <AddressVisibilityPrompt companyId={company.id} companySlug={company.slug} address={company.address} />
+              <AddressVisibilityPrompt companyId={company.id} companySlug={company.slug} address={company.address} narrow />
             )}
 
             {hasContact && (
