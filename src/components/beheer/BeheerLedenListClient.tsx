@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, Mail, Pencil, Phone, Users } from "lucide-react";
+import { ChevronDown, Clock, Mail, Pencil, Phone, Users } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
 import { MemberRowMenu } from "@/components/members/MemberRowMenu";
@@ -13,6 +13,7 @@ import { matchesSearch } from "@/lib/search/normalize";
 import { useUrlFilterState } from "@/lib/dom/useUrlFilterState";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { memberHref } from "@/lib/members/slug";
+import { formatLastActive } from "@/lib/format/date";
 import type { UserRole } from "@/lib/types/database";
 
 export type BeheerMemberRow = {
@@ -54,9 +55,11 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
   // bewust het Status-filter op "Gedeactiveerd" zetten toont ze nog.
   const [active, setActive] = useState(() => getInitial("active") || "actief");
   const [signaal, setSignaal] = useState(() => getInitial("signaal"));
+  const [laatstActief, setLaatstActief] = useState(() => getInitial("laatstActief"));
   // Lazy initializer i.p.v. Date.now() rechtstreeks in de useMemo hieronder
   // aanroepen — die laatste telt als een onzuivere render-aanroep.
   const [ninetyDaysAgo] = useState(() => Date.now() - NINETY_DAYS_MS);
+  const [now] = useState(() => Date.now());
 
   function handleQueryChange(value: string) {
     setQuery(value);
@@ -69,6 +72,10 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
   function handleActiveChange(value: string) {
     setActive(value);
     setParam("active", value);
+  }
+  function handleLaatstActiefChange(value: string) {
+    setLaatstActief(value);
+    setParam("laatstActief", value);
   }
 
   // UX-review Z4: ook op bedrijfsnaam doorzoekbaar, niet alleen naam/e-mail.
@@ -89,9 +96,16 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
         (signaal === "inactief90" &&
           member.is_active &&
           (!member.last_active_at || new Date(member.last_active_at).getTime() < ninetyDaysAgo));
-      return matchesQuery && matchesRole && matchesActive && matchesSignaal;
+      const daysAgo = member.last_active_at ? Math.floor((now - new Date(member.last_active_at).getTime()) / (24 * 60 * 60 * 1000)) : null;
+      const matchesLaatstActief =
+        !laatstActief ||
+        (laatstActief === "7d" && daysAgo !== null && daysAgo <= 7) ||
+        (laatstActief === "30d" && daysAgo !== null && daysAgo <= 30) ||
+        (laatstActief === "90d" && daysAgo !== null && daysAgo >= 90) ||
+        (laatstActief === "nooit" && daysAgo === null);
+      return matchesQuery && matchesRole && matchesActive && matchesSignaal && matchesLaatstActief;
     });
-  }, [members, query, role, active, signaal, ninetyDaysAgo]);
+  }, [members, query, role, active, signaal, laatstActief, ninetyDaysAgo, now]);
 
   const filters: ListToolbarFilter[] = [
     {
@@ -110,6 +124,18 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
         { value: "gedeactiveerd", label: "Gedeactiveerd" },
       ],
       onChange: handleActiveChange,
+    },
+    {
+      key: "laatstActief",
+      label: "Laatst actief",
+      value: laatstActief,
+      options: [
+        { value: "7d", label: "Afgelopen 7 dagen" },
+        { value: "30d", label: "Afgelopen 30 dagen" },
+        { value: "90d", label: "90+ dagen geleden" },
+        { value: "nooit", label: "Nooit ingelogd" },
+      ],
+      onChange: handleLaatstActiefChange,
     },
   ];
 
@@ -184,7 +210,7 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                   exact dezelfde horizontale positie staan — een ontbrekend
                   veld (telefoon) laat zijn kolom leeg (invisible, niet
                   weggelaten) i.p.v. de kolommen erna te laten opschuiven. */}
-              <div className="flex min-w-0 flex-col gap-1.5 sm:grid sm:grid-cols-[minmax(0,1.6fr)_160px_minmax(0,1.6fr)_130px_auto] sm:items-center sm:gap-x-4 sm:gap-y-0">
+              <div className="flex min-w-0 flex-col gap-1.5 sm:grid sm:grid-cols-[minmax(0,1.6fr)_160px_minmax(0,1.6fr)_120px_140px_auto] sm:items-center sm:gap-x-4 sm:gap-y-0">
                 <div className="flex min-w-0 items-center gap-3">
                   <Link href={memberHref(member)} className="flex min-w-0 items-center gap-3 hover:opacity-80">
                     <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={36} />
@@ -218,6 +244,11 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                   <span className="truncate" title={member.phone ?? undefined}>
                     {member.phone}
                   </span>
+                </span>
+
+                <span className="flex min-w-0 items-center gap-1 text-xs text-muted">
+                  <Clock size={11} className="shrink-0" />
+                  <span className="truncate">Laatst actief: {formatLastActive(member.last_active_at)}</span>
                 </span>
 
                 <div className="hidden shrink-0 items-center gap-2 sm:flex">{actions}</div>
