@@ -265,7 +265,7 @@ export default async function HomePage() {
             </Link>
           )}
         </div>
-        <div aria-hidden className="gradient-rule absolute inset-x-0 bottom-0" />
+        <div aria-hidden className="hidden gradient-rule absolute inset-x-0 bottom-0 sm:block" />
       </div>
       {/* Identiteit-verfijning: het petrol->rood lijntje hing hier los
           tussen het welkomstblok en de proefversie-melding (de gap-6 van de

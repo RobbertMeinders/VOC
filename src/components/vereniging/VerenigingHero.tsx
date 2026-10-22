@@ -13,7 +13,7 @@ export function VerenigingHero({ eyebrow = "Vereniging", title, description }: {
       {/* UX-review feedback-ronde 2 punt 8: petrol->rood lijntje terug,
           geïntegreerd als onderrand van dit blok — zelfde patroon als het
           welkomstblok op Home. */}
-      <div aria-hidden className="gradient-rule absolute inset-x-0 bottom-0" />
+      <div aria-hidden className="hidden gradient-rule absolute inset-x-0 bottom-0 sm:block" />
     </div>
   );
 }
