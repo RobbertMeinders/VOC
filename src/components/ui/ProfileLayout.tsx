@@ -34,7 +34,7 @@ export function ProfileHero({
   return (
     <div className="relative overflow-hidden rounded-2xl bg-surface shadow-sm">
       <div
-        className="h-28 bg-gradient-to-br from-petrol-deep to-petrol bg-cover bg-center"
+        className="h-36 bg-gradient-to-br from-petrol-deep to-petrol bg-cover bg-center"
         style={coverUrl ? { backgroundImage: `url(${coverUrl})` } : undefined}
       />
       {/* Bug (mobiel): het potloodje stond tot nu toe in de naam-flex-rij en
@@ -51,7 +51,7 @@ export function ProfileHero({
           <Pencil size={14} />
         </Link>
       )}
-      <div className="gradient-rule" />
+      <div className="hidden gradient-rule sm:block" />
       {/* Hero-fix: eerder lag de hele naam/tekst-rij met een negative margin
           over de banner heen (onleesbaar op petrol/een foto). Nu schuift
           alleen het avatar/logo (losse wrapper, eigen -mt) half over de
