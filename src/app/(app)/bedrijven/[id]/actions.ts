@@ -275,6 +275,22 @@ export async function updateCompanyShowAddressAction(companyId: string, visible:
   return {};
 }
 
+// Lidmaatschap-traject Deel 3: "niet nu" op de adres-zichtbaarheid-prompt
+// (AddressVisibilityPrompt, bedrijfspagina) — via dismiss_company_address_prompt
+// (0180), zelfde smalle-functie-aanpak als set_company_show_address hierboven.
+export async function dismissCompanyAddressPromptAction(companyId: string): Promise<{ error?: string }> {
+  await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase.rpc("dismiss_company_address_prompt", { p_company_id: companyId });
+
+  if (error) {
+    return { error: "Wegklikken is niet gelukt. Probeer het opnieuw." };
+  }
+  revalidatePath(await getCompanySlugPath(supabase, companyId));
+  return {};
+}
+
 // Alleen beheerder — RLS (companies_admin_delete) is de echte grens, dit is
 // alleen voor een nette foutmelding. Company_members/-requests hangen via
 // on delete cascade aan companies, dus die ruimt de database vanzelf op.

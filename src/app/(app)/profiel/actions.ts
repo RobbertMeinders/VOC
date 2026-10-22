@@ -209,6 +209,26 @@ export async function dismissIntroductionPromptAction(): Promise<{ error?: strin
   return {};
 }
 
+// Lidmaatschap-traject Deel 3: "niet nu" op de contactgegevens-zichtbaarheid-
+// prompt (ContactVisibilityPrompt, Home) — eigen vlag, zelfde reden als
+// introduction_prompt_dismissed_at hierboven (anders zou de prompt voor
+// bestaande leden met een oude onboarding_dismissed_at nooit verschijnen).
+export async function dismissContactVisibilityPromptAction(): Promise<{ error?: string }> {
+  const profile = await requireProfile();
+  const supabase = await createClient();
+
+  const { error } = await supabase
+    .from("profiles")
+    .update({ contact_visibility_prompt_dismissed_at: new Date().toISOString() })
+    .eq("id", profile.id);
+
+  if (error) {
+    return { error: "Wegklikken is niet gelukt. Probeer het opnieuw." };
+  }
+  revalidatePath("/");
+  return {};
+}
+
 // B (onboarding-opdracht): eerste-login welkomstdialoog, zie WelcomeDialog
 // (Home) — toont precies één keer, net als de andere "weggeklikt"-vlaggen
 // hierboven.

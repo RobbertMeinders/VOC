@@ -58,6 +58,7 @@ export interface Database {
           publicly_visible: boolean;
           onboarding_dismissed_at: string | null;
           introduction_prompt_dismissed_at: string | null;
+          contact_visibility_prompt_dismissed_at: string | null;
           welcome_dialog_dismissed_at: string | null;
           created_at: string;
           updated_at: string;
@@ -97,6 +98,7 @@ export interface Database {
           membership_status: "prospect" | "lid" | "opgezegd" | "oud-lid";
           member_since: string | null;
           membership_end_date: string | null;
+          address_visibility_prompt_dismissed_at: string | null;
           created_by: string | null;
           created_at: string;
           updated_at: string;
@@ -1006,6 +1008,10 @@ export interface Database {
       };
       set_company_show_address: {
         Args: { p_company_id: string; p_visible: boolean };
+        Returns: void;
+      };
+      dismiss_company_address_prompt: {
+        Args: { p_company_id: string };
         Returns: void;
       };
       set_company_primary_contact: {
