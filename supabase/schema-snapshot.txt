@@ -3220,6 +3220,28 @@ end;
 $function$
 
 ---
+CREATE OR REPLACE FUNCTION public.update_my_profile(p_first_name text, p_last_name text, p_job_title text, p_bio text, p_phone text, p_linkedin_url text, p_set_avatar boolean DEFAULT false, p_avatar_url text DEFAULT NULL::text, p_avatar_thumb_url text DEFAULT NULL::text, p_set_cover boolean DEFAULT false, p_cover_url text DEFAULT NULL::text)
+ RETURNS void
+ LANGUAGE plpgsql
+ SECURITY DEFINER
+ SET search_path TO 'public'
+AS $function$
+begin
+  update public.profiles set
+    first_name = p_first_name,
+    last_name = p_last_name,
+    job_title = p_job_title,
+    bio = p_bio,
+    phone = p_phone,
+    linkedin_url = p_linkedin_url,
+    avatar_url = case when p_set_avatar then p_avatar_url else avatar_url end,
+    avatar_thumb_url = case when p_set_avatar then p_avatar_thumb_url else avatar_thumb_url end,
+    cover_url = case when p_set_cover then p_cover_url else cover_url end
+  where id = auth.uid();
+end;
+$function$
+
+---
 CREATE OR REPLACE FUNCTION public.upsert_public_activity_registration(p_activity_id uuid, p_name text, p_email text, p_company_name text)
  RETURNS void
  LANGUAGE plpgsql
