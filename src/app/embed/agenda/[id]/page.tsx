@@ -13,6 +13,7 @@ import { EmbedWhiteBackground } from "@/components/embed/EmbedWhiteBackground";
 import { ShareActivityButton } from "@/components/embed/ShareActivityButton";
 import { RegisterButton } from "@/components/agenda/RegisterButton";
 import { MemberOrVisitorRegistration } from "@/components/embed/MemberOrVisitorRegistration";
+import { buttonClassName } from "@/components/ui/Button";
 import { activityHref } from "@/lib/agenda/slug";
 import { isWebsiteTheme, withEmbedTheme } from "@/lib/embed/theme";
 import { openSans } from "@/lib/fonts/openSans";
@@ -116,13 +117,13 @@ export default async function AgendaEmbedDetailPage({
   const deadlinePassed = activity.registration_deadline ? new Date(activity.registration_deadline) < new Date() : false;
 
   return (
-    // Zie /embed/agenda/page.tsx voor waarom data-theme="light" + min-h-screen
-    // hier samen nodig zijn (voorkomt de donkere balk die <body> anders
-    // onderin liet doorschemeren bij een donker OS-thema).
+    // Zie /embed/agenda/page.tsx voor waarom hier geen min-h-screen meer
+    // staat (EmbedWhiteBackground dekt de achtergrond nu rechtstreeks af, en
+    // min-h-screen liet de iframe soms niet meer krimpen bij kortere inhoud).
     <div
       data-theme="light"
       data-embed-theme={websiteTheme ? "website" : undefined}
-      className={clsx("min-h-screen bg-surface", websiteTheme && openSans.variable)}
+      className={clsx("bg-surface", websiteTheme && openSans.variable)}
     >
       {/* Live feedback: breedte mag minder, dezelfde maat als een
           activiteitdetail op het portaal zelf (AppShell.tsx's "lezen"-
@@ -198,11 +199,8 @@ export default async function AgendaEmbedDetailPage({
                   portaal: dat zou de iframe laten navigeren naar de volle
                   portaalpagina, wat in dit kleine ingebedde venster niet
                   past — hier dus alleen naam + foto, niet doorklikbaar. */}
-              <a
-                href={activityHref(activity, "/ics")}
-                className="inline-flex h-9 w-fit items-center gap-1.5 self-start rounded-full border border-border bg-surface px-3.5 text-xs font-medium text-foreground hover:bg-black/[.03]"
-              >
-                <Download size={13} />
+              <a href={activityHref(activity, "/ics")} className={buttonClassName("secondary", "md", "w-fit self-start")}>
+                <Download size={15} />
                 Zet in je agenda
               </a>
               {(visibleAttendees.length > 0 || waitlistCount > 0) && (

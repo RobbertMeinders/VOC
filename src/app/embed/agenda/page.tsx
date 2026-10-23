@@ -239,15 +239,20 @@ export default async function AgendaEmbedPage({
   ]);
 
   return (
-    // data-theme="light" + min-h-screen: dwingt het lichte thema af voor de
-    // HELE zichtbare iframe-hoogte, niet alleen voor de inhoud zelf. Zonder
-    // min-h-screen dekt deze div alleen zijn eigen (kortere) inhoud af — het
-    // stuk daaronder blijft dan <body> zelf, die bij een donker OS-thema
-    // alsnog donker inkleurt en als een zwarte balk onderin zichtbaar werd.
+    // data-theme="light": dwingt het lichte thema af, ongeacht het OS-thema
+    // van de bezoeker. Voorheen stond hier ook min-h-screen (100vh) om te
+    // voorkomen dat een donker <body> daaronder zichtbaar werd — dat loste
+    // EmbedWhiteBackground hieronder inmiddels rechtstreeks op (html/body
+    // altijd wit), dus min-h-screen kan weg. Die forceerde namelijk altijd
+    // minimaal de HUIDIGE iframe-hoogte, ook als de werkelijke inhoud korter
+    // was (bv. na het inklappen van "Eerdere activiteiten", of bij het
+    // doorklikken naar kortere inhoud) — de iframe kromp dan niet mee terug
+    // en liet zo juist zelf een interne scrollbalk ontstaan i.p.v. gewoon de
+    // inhoudshoogte te volgen.
     <div
       data-theme="light"
       data-embed-theme={websiteTheme ? "website" : undefined}
-      className={clsx("min-h-screen bg-surface", websiteTheme && openSans.variable)}
+      className={clsx("bg-surface", websiteTheme && openSans.variable)}
     >
       {/* Live feedback: breedte mag minder, dezelfde maat als de portaal-
           agenda zelf (AppShell.tsx's "lijst"-contentbreedte, 960px). */}

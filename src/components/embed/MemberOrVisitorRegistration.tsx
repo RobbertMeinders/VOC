@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { PublicRegistrationForm } from "@/components/embed/PublicRegistrationForm";
 import { PopupLoginLink } from "@/components/embed/PopupLoginLink";
 import { RegisterButton } from "@/components/agenda/RegisterButton";
+import { AnimatedDisclosure } from "@/components/ui/AnimatedDisclosure";
+import { buttonClassName } from "@/components/ui/Button";
 
 type StatusResponse =
   | { profile: null }
@@ -18,6 +20,18 @@ type DocumentWithStorageAccess = Document & {
   hasStorageAccess?: () => Promise<boolean>;
   requestStorageAccess?: () => Promise<void>;
 };
+
+// Dunne lijn met optioneel gecentreerde tekst ertussen (bv. "of") -- zelfde
+// opdeling als de mockup's eigen ".div"-element.
+function Divider({ children }: { children?: React.ReactNode }) {
+  return (
+    <div className="flex items-center gap-2.5 text-xs text-muted">
+      <span className="h-px flex-1 bg-border" />
+      {children}
+      <span className="h-px flex-1 bg-border" />
+    </div>
+  );
+}
 
 // De Storage Access API is de enige uitzondering op de regel dat dit
 // iframe nooit de portaalsessiecookie meekrijgt (zie PopupLoginLink voor de
@@ -109,45 +123,53 @@ export function MemberOrVisitorRegistration({
     </button>
   );
 
-  // Personenmodel: dit formulier staat vanaf nu ALTIJD onder de inlog-optie,
-  // ook als allowPublicRegistration uit staat -- die schakelaar is bedoeld
-  // om echte buitenstaanders/gasten te weren, niet om leden tegen te houden
-  // die liever niet inloggen. upsert_public_activity_registration (0211)
-  // herkent een e-mailadres dat matcht met een bestaand lid zelf en meldt
-  // die ECHT aan (met wachtlijst), ongeacht deze schakelaar -- alleen een
-  // onbekend e-mailadres wordt nog door allowPublicRegistration tegen-
-  // gehouden (met een foutmelding van de RPC zelf). De toelichtingstekst
-  // onder het formulier verschilt wel per geval, zodat een activiteit die
-  // niet voor echte gasten openstaat dat ook uitstraalt.
+  const loginButton = (
+    <PopupLoginLink href={loginHref} className={buttonClassName("primary", "md", "w-full")}>
+      Log in om je aan te melden
+    </PopupLoginLink>
+  );
+
+  // Embed-vormgeving-opdracht: een lid-zonder-account is geen bezoeker. Een
+  // leden-only activiteit toont dus geen volledig gastformulier, alleen een
+  // ingeklapt, bescheiden pad met uitsluitend een e-mailveld; het woord
+  // "bezoeker" verdwijnt overal. upsert_public_activity_registration (0212)
+  // herkent het ingevulde e-mailadres zelf en wijst een onbekend adres met
+  // een eigen, nette foutmelding af (geen gastroute-fallback).
+  if (!allowPublicRegistration) {
+    return (
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col items-center gap-2 text-center">
+          <p className="text-sm text-muted">Deze activiteit is alleen voor leden.</p>
+          {loginButton}
+          {unlockPrompt}
+          {denied && <p className="text-xs text-muted">Kon geen toegang krijgen - gebruik de knop hierboven.</p>}
+        </div>
+        <Divider />
+        <AnimatedDisclosure label="Wel lid, maar nog geen account?" accent>
+          <PublicRegistrationForm activityId={activityId} allowPublicRegistration={false} />
+        </AnimatedDisclosure>
+      </div>
+    );
+  }
+
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex flex-col items-center gap-2">
-        {!allowPublicRegistration && <p className="text-sm text-muted">Deze activiteit is alleen voor leden.</p>}
-        <PopupLoginLink
-          href={loginHref}
-          className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
-        >
-          Log in om je aan te melden
-        </PopupLoginLink>
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col items-center gap-1.5 text-center">
+        {loginButton}
+        <p className="text-xs text-muted">Dan houd je je plek en zie je wie er nog meer komen.</p>
         {unlockPrompt}
         {denied && <p className="text-xs text-muted">Kon geen toegang krijgen - gebruik de knop hierboven.</p>}
       </div>
-      <div className="flex flex-col gap-3 border-t border-border pt-6">
+      <Divider>of</Divider>
+      <div className="flex flex-col gap-3">
         <div>
-          <p className="text-sm text-foreground">{allowPublicRegistration ? "Meld je aan als bezoeker" : "Al lid en liever niet inloggen?"}</p>
-          {/* Personenmodel: bij een activiteit die open staat voor gasten
-              blijft de insteek "meld je aan als bezoeker" (hierboven wijst
-              al op inloggen als je lid bent); bij een ledenactiviteit is dit
-              formulier er juist alleen voor een lid dat liever geen
-              inlogstap doet -- de RPC herkent het ingevulde e-mailadres zelf
-              en wijst een onbekend adres dan alsnog af. */}
+          <p className="text-sm font-semibold text-foreground">Meld je direct aan</p>
           <p className="mt-0.5 text-xs text-muted">
-            {allowPublicRegistration
-              ? "Ben je al lid? Log dan in via de knop hierboven in plaats van dit formulier."
-              : "Vul je gegevens in met je bekende e-mailadres -- we herkennen je automatisch en melden je echt aan."}
+            Aanmelden kan met het e-mailadres dat bij de VOC bekend is - meestal het adres waarop je ook de
+            nieuwsbrief ontvangt.
           </p>
         </div>
-        <PublicRegistrationForm activityId={activityId} />
+        <PublicRegistrationForm activityId={activityId} allowPublicRegistration={true} />
       </div>
     </div>
   );

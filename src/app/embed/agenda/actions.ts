@@ -57,8 +57,13 @@ export async function registerPublicForActivityAction(
   const email = String(formData.get("email") ?? "").trim();
   const companyName = String(formData.get("company_name") ?? "").trim();
 
-  if (!name || !email || !companyName) {
-    return { error: "Naam, e-mailadres en bedrijfsnaam zijn verplicht." };
+  // Embed-vormgeving-opdracht: het leden-only formulier vraagt alleen een
+  // e-mailadres (geen naam/bedrijfsnaam) -- die velden zijn dus alleen
+  // verplicht wanneer het volledige (open-activiteit) formulier ze ook echt
+  // toont. De RPC zelf vult bij een leeg naam/bedrijfsnaam-veld de gegevens
+  // van een eventuele uitnodiging in, of een nette placeholder (0212).
+  if (!email) {
+    return { error: "Vul je e-mailadres in." };
   }
   if (!EMAIL_PATTERN.test(email)) {
     return { error: "Vul een geldig e-mailadres in." };
@@ -100,6 +105,8 @@ export async function registerPublicForActivityAction(
       "Deze activiteit heeft het maximum aantal deelnemers bereikt.",
       "Te veel pogingen met dit e-mailadres. Probeer het over een kwartier opnieuw.",
       "Er staat al een aanmelding met dit e-mailadres voor deze activiteit. Neem contact op met het bestuur als dit niet klopt.",
+      // 0212: leden-only activiteit, e-mailadres niet herkend als lid.
+      "Dit adres kennen we niet als lid. Gebruik het adres waarop je de nieuwsbrief krijgt, of mail ons op info@vocveendam.nl, dan helpen we je.",
     ];
     return {
       error: KNOWN_MESSAGES.includes(error.message)
@@ -167,7 +174,10 @@ export async function registerPublicForActivityAction(
           : personStatus === "geen_lid"
             ? "Benieuwd naar de VOC? Op vocveendam.nl lees je meer over het lidmaatschap."
             : "";
-      const [firstName] = name.trim().split(/\s+/);
+      // Leden-only formulier vraagt geen naam (zie hierboven) -- filter(Boolean)
+      // voorkomt dat een lege name hier een lege-string "voornaam" oplevert;
+      // invitationGreeting(null) valt dan terug op een algemene begroeting.
+      const [firstName] = name.trim().split(/\s+/).filter(Boolean);
       const afmeldlink = buildUnsubscribeUrl(siteUrl, "public_registration", registrationId);
       const rendered = await renderMessageEmail(
         "aanmelding-bevestiging",

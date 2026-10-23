@@ -30,20 +30,23 @@ const sizeClasses: Record<Size, string> = {
   md: "h-10 px-4 text-sm",
 };
 
+// Geëxporteerd zodat niet-<button>-elementen (bv. PopupLoginLink's <a>, dat
+// vanwege het pop-up-tabblad-mechanisme geen <button> kan zijn) exact
+// dezelfde knopstijl kunnen dragen i.p.v. die los te dupliceren — embed-
+// vormgeving-opdracht: één consistent knop-/statussysteem, ook buiten de
+// portaalschermen die <Button> zelf al rechtstreeks gebruiken.
+export function buttonClassName(variant: Variant = "primary", size: Size = "md", className?: string): string {
+  return clsx(
+    "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all duration-150 active:scale-95 disabled:cursor-not-allowed disabled:active:scale-100",
+    variantClasses[variant],
+    sizeClasses[size],
+    className
+  );
+}
+
 export const Button = forwardRef<
   HTMLButtonElement,
   ButtonHTMLAttributes<HTMLButtonElement> & { variant?: Variant; size?: Size }
 >(function Button({ className, variant = "primary", size = "md", ...props }, ref) {
-  return (
-    <button
-      ref={ref}
-      className={clsx(
-        "inline-flex items-center justify-center gap-2 rounded-full font-medium transition-all duration-150 active:scale-95 disabled:cursor-not-allowed disabled:active:scale-100",
-        variantClasses[variant],
-        sizeClasses[size],
-        className
-      )}
-      {...props}
-    />
-  );
+  return <button ref={ref} className={buttonClassName(variant, size, className)} {...props} />;
 });
