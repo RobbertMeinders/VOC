@@ -23,7 +23,13 @@ export function CopyEmbedCode({ code }: { code: string }) {
   return (
     <div className="rounded-xl border border-border bg-background p-3">
       <div className="flex items-start justify-between gap-3">
-        <code className="min-w-0 flex-1 whitespace-pre-wrap break-all text-xs text-foreground">{code}</code>
+        {/* Live feedback: het gegenereerde scriptje is intussen vrij lang
+            geworden (hoogte, scroll-top, sticky viewport-tracking) — een
+            vaste max-hoogte met eigen scroll houdt het blok compact i.p.v.
+            dat elke embed de pagina een heel stuk langer maakt. */}
+        <code className="max-h-40 min-w-0 flex-1 overflow-y-auto whitespace-pre-wrap break-all text-xs text-foreground">
+          {code}
+        </code>
         <button
           type="button"
           onClick={copy}
