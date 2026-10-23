@@ -28,7 +28,12 @@
 --  3) Geeft person_status + waitlisted terug (i.p.v. niets) zodat de
 --     TS-laag de juiste tekst kan tonen zonder nog een aparte round-trip
 --     voor alleen de status.
-create or replace function public.upsert_public_activity_registration(
+--
+-- Postgres staat geen "create or replace" toe die het returntype wijzigt
+-- (hier: void -> table(...)) -- eerst de oude functie expliciet weg.
+drop function if exists public.upsert_public_activity_registration(uuid, text, text, text);
+
+create function public.upsert_public_activity_registration(
   p_activity_id uuid,
   p_name text,
   p_email text,
