@@ -13,7 +13,7 @@ import { matchesSearch } from "@/lib/search/normalize";
 import { useUrlFilterState } from "@/lib/dom/useUrlFilterState";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { memberHref } from "@/lib/members/slug";
-import { formatLastActive } from "@/lib/format/date";
+import { formatLastActive, isRecentlyActive } from "@/lib/format/date";
 import { InvitationResendButton } from "@/components/beheer/InvitationResendButton";
 import type { UserRole } from "@/lib/types/database";
 
@@ -353,10 +353,21 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                     member.source !== "profiel" && "hidden sm:flex sm:invisible"
                   )}
                 >
-                  <Clock size={11} className="shrink-0" />
-                  <span className="truncate" title={`Laatst actief: ${formatLastActive(member.last_active_at)}`}>
-                    {formatLastActive(member.last_active_at)}
-                  </span>
+                  {isRecentlyActive(member.last_active_at) ? (
+                    <>
+                      <span className="h-2 w-2 shrink-0 rounded-full bg-status-success" />
+                      <span className="truncate text-status-success" title="Nu actief">
+                        Nu actief
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Clock size={11} className="shrink-0" />
+                      <span className="truncate" title={`Laatst actief: ${formatLastActive(member.last_active_at)}`}>
+                        {formatLastActive(member.last_active_at)}
+                      </span>
+                    </>
+                  )}
                 </span>
 
                 <div className="hidden shrink-0 items-center gap-2 sm:flex">{actions}</div>

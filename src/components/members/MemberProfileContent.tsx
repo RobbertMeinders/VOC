@@ -5,7 +5,7 @@ import { Clock, Mail, Phone } from "lucide-react";
 import { requireProfile } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrl } from "@/lib/supabase/storage";
-import { formatLastActive } from "@/lib/format/date";
+import { formatLastActive, isRecentlyActive } from "@/lib/format/date";
 import { Avatar } from "@/components/ui/Avatar";
 import { ExpandableText } from "@/components/ui/ExpandableText";
 import { EntitySocialLinks } from "@/components/ui/EntitySocialLinks";
@@ -293,10 +293,17 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
       {isBoard(viewer.role) && (
         <div className="rounded-2xl bg-surface p-6 shadow-sm">
           <h2 className="mb-3 text-sm font-semibold text-foreground">Beheer</h2>
-          <p className="mb-3 flex items-center gap-1.5 text-xs text-muted">
-            <Clock size={12} />
-            Laatst actief: {formatLastActive(member.last_active_at)}
-          </p>
+          {isRecentlyActive(member.last_active_at) ? (
+            <p className="mb-3 flex items-center gap-1.5 text-xs text-status-success">
+              <span className="h-2 w-2 shrink-0 rounded-full bg-status-success" />
+              Nu actief
+            </p>
+          ) : (
+            <p className="mb-3 flex items-center gap-1.5 text-xs text-muted">
+              <Clock size={12} />
+              Laatst actief: {formatLastActive(member.last_active_at)}
+            </p>
+          )}
           <div className="flex flex-col gap-3">
             {isAdmin(viewer.role) && <RoleEditor memberId={member.id} currentRole={member.role} />}
             <AdminEditProfile member={member} avatarUrl={avatarUrl} coverUrl={coverUrl} />

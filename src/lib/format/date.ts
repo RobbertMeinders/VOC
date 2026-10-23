@@ -90,6 +90,15 @@ export function formatDateTime(iso: string): string {
 // current by a client heartbeat — OnlineHeartbeat — while a tab is open,
 // not just at login). Used server-side only (member detail page), so
 // there's no client/server hydration-mismatch concern from Date.now() here.
+// "Nu actief"-indicator: 5 minuten drempel = de 2-minuten OnlineHeartbeat
+// (vuurt bij een zichtbaar tabblad) plus marge, zodat iemand die het
+// tabblad net heeft weggeklikt niet meteen als "niet actief" overkomt.
+// Zelfde server-only redenering als formatLastActive hierboven.
+export function isRecentlyActive(iso: string | null): boolean {
+  if (!iso) return false;
+  return Date.now() - new Date(iso).getTime() < 5 * 60 * 1000;
+}
+
 export function formatLastActive(iso: string | null): string {
   if (!iso) return "Nog nooit ingelogd";
 
