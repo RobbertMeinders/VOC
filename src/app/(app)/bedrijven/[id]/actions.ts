@@ -9,11 +9,12 @@ import { removePreviousImage, uploadImage } from "@/lib/supabase/upload";
 import { geocodeAddress } from "@/lib/geo/geocode";
 import { invalidateQuery } from "@/lib/cache/queryCache";
 import { logAuditAction } from "@/lib/audit/log";
+import { anonymizeProfileFully } from "@/lib/members/anonymize";
 import { isEmailConfigured, sendRawHtmlEmail, invitationGreeting } from "@/lib/email/send";
 import { renderMessageEmail } from "@/lib/templates/message-render";
 import { companyHref } from "@/lib/company/slug";
 import { buildCancellationConfirmUrl } from "@/lib/company/cancellation-link";
-import type { Database } from "@/lib/types/database";
+import type { Database, UserRole } from "@/lib/types/database";
 
 // URL-ronde: revalidatePath() matcht het exacte pad, geen routepatroon — nu
 // bedrijven op slug-URL's draaien, revalideert een pad met het kale UUID de
@@ -335,6 +336,135 @@ export async function deleteCompanyAction(companyId: string, redirectAfter = tru
   revalidatePath("/bedrijven");
   revalidatePath("/beheer/bedrijven");
   if (redirectAfter) redirect("/bedrijven");
+}
+
+// Opschoonknop (naast de gewone "Bedrijf verwijderen" hierboven, die blijft
+// ongewijzigd staan): bedrijf + de leden die ALLEEN aan dit bedrijf
+// gekoppeld zijn in één keer opruimen, i.p.v. een leeg bedrijf achterlaten
+// met personen die nergens meer bij horen. Een gekoppeld lid dat ook bij
+// een ander bedrijf hoort blijft gewoon bestaan — alleen de koppeling met
+// dít bedrijf verdwijnt (cascade via companies.on delete, zie init-schema).
+type CompanyDeletionPerson = { id: string; name: string };
+export type CompanyDeletionPreview = {
+  companyName: string;
+  removed: CompanyDeletionPerson[];
+  kept: CompanyDeletionPerson[];
+  pendingInvitations: number;
+};
+
+async function getCompanyDeletionSplit(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  companyId: string
+) {
+  const { data: members } = await supabase
+    .from("company_members")
+    .select("profile_id, profile:profiles(id, first_name, last_name, role, is_active, anonymized_at)")
+    .eq("company_id", companyId)
+    .returns<
+      { profile_id: string; profile: { id: string; first_name: string; last_name: string; role: UserRole; is_active: boolean; anonymized_at: string | null } | null }[]
+    >();
+
+  const profileIds = (members ?? []).map((m) => m.profile_id);
+  const { data: elsewhere } = profileIds.length
+    ? await supabase.from("company_members").select("profile_id").in("profile_id", profileIds).neq("company_id", companyId)
+    : { data: [] as { profile_id: string }[] };
+  const elsewhereIds = new Set((elsewhere ?? []).map((r) => r.profile_id));
+
+  const removed = (members ?? []).filter((m) => m.profile && !m.profile.anonymized_at && !elsewhereIds.has(m.profile_id));
+  const kept = (members ?? []).filter((m) => m.profile && (m.profile.anonymized_at || elsewhereIds.has(m.profile_id)));
+
+  return { removed, kept };
+}
+
+export async function previewDeleteCompanyWithPeopleAction(
+  companyId: string
+): Promise<CompanyDeletionPreview | { error: string }> {
+  await requireAdmin();
+  const supabase = await createClient();
+
+  const { data: company } = await supabase.from("companies").select("name").eq("id", companyId).maybeSingle();
+  if (!company) return { error: "Dit bedrijf bestaat niet (meer)." };
+
+  const { removed, kept } = await getCompanyDeletionSplit(supabase, companyId);
+
+  const { count: pendingInvitations } = await supabase
+    .from("invitations")
+    .select("id", { count: "exact", head: true })
+    .eq("company_id", companyId)
+    .eq("status", "pending");
+
+  return {
+    companyName: company.name,
+    removed: removed.map((m) => ({ id: m.profile_id, name: `${m.profile!.first_name} ${m.profile!.last_name}` })),
+    kept: kept.map((m) => ({ id: m.profile_id, name: `${m.profile!.first_name} ${m.profile!.last_name}` })),
+    pendingInvitations: pendingInvitations ?? 0,
+  };
+}
+
+export type DeleteCompanyWithPeopleState = { error?: string };
+
+export async function deleteCompanyWithPeopleAction(companyId: string): Promise<DeleteCompanyWithPeopleState> {
+  const viewer = await requireAdmin();
+  const supabase = await createClient();
+
+  const { data: company } = await supabase.from("companies").select("name").eq("id", companyId).maybeSingle();
+  if (!company) {
+    return { error: "Dit bedrijf bestaat niet (meer)." };
+  }
+
+  const { removed } = await getCompanyDeletionSplit(supabase, companyId);
+
+  if (removed.some((m) => m.profile_id === viewer.id)) {
+    return { error: "Je bent zelf (alleen) aan dit bedrijf gekoppeld. Koppel jezelf eerst los, of laat een andere beheerder dit doen." };
+  }
+
+  const removedActiveAdmins = removed.filter((m) => m.profile!.role === "beheerder" && m.profile!.is_active).length;
+  if (removedActiveAdmins > 0) {
+    const { count: totalActiveAdmins } = await supabase
+      .from("profiles")
+      .select("id", { count: "exact", head: true })
+      .eq("role", "beheerder")
+      .eq("is_active", true);
+    if ((totalActiveAdmins ?? 0) <= removedActiveAdmins) {
+      return { error: "Er moet minstens één actieve beheerder overblijven." };
+    }
+  }
+
+  // Eerst de leden anonimiseren die alleen aan dit bedrijf hingen — lukt dit
+  // voor één van hen niet, dan stoppen we voordat het bedrijf zelf verdwijnt
+  // (al geanonimiseerde leden blijven dat, anonymize_profile_now is idempotent
+  // via zijn eigen "where anonymized_at is null"-filter, dus een hernieuwde
+  // poging later is veilig).
+  for (const m of removed) {
+    const result = await anonymizeProfileFully(m.profile_id);
+    if (!result.success) {
+      return { error: `Verwijderen van een gekoppeld lid is niet gelukt (${result.error ?? "onbekende fout"}). Probeer het opnieuw.` };
+    }
+    await logAuditAction("member_deleted", "profile", m.profile_id, { reason: "company_deleted_with_people", companyId });
+  }
+
+  await supabase.from("invitations").update({ status: "revoked" }).eq("company_id", companyId).eq("status", "pending");
+
+  // Company_members (voor zowel de net geanonimiseerde als de "blijft
+  // bestaan"-leden) en company_membership_requests hangen via on delete
+  // cascade aan companies — die ruimt de database vanzelf op.
+  await supabase.from("companies").delete().eq("id", companyId);
+
+  await logAuditAction("company_deleted_with_people", "company", companyId, {
+    companyName: company.name,
+    removedCount: removed.length,
+  });
+
+  invalidateQuery("bedrijven-page-data");
+  invalidateQuery("leden-page-data");
+  invalidateQuery("beheer-bedrijven-page-data");
+  invalidateQuery("beheer-leden-page-data");
+  revalidatePath("/bedrijven");
+  revalidatePath("/beheer/bedrijven");
+  revalidatePath("/beheer/leden");
+  revalidatePath("/leden");
+
+  return {};
 }
 
 // Goedkeuren/afwijzen mag door een bestaand lid van dit bedrijf of door

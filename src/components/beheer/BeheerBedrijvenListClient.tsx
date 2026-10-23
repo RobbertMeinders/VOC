@@ -2,11 +2,12 @@
 
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { Building2, ChevronDown, Mail, MapPin, Pencil, Phone, Receipt } from "lucide-react";
+import { Building2, ChevronDown, Mail, MapPin, Pencil, Phone, Receipt, UserX } from "lucide-react";
 import { clsx } from "clsx";
 import { CompanyLogo } from "@/components/company/CompanyLogo";
 import { DeleteButton } from "@/components/feed/DeleteButton";
 import { CompanyQuickEditForm } from "@/components/beheer/CompanyQuickEditForm";
+import { DeleteCompanyWithPeopleOverlay } from "@/components/beheer/DeleteCompanyWithPeopleOverlay";
 import { ListToolbar, type ListToolbarFilter } from "@/components/ui/ListToolbar";
 import { ComingSoon } from "@/components/ui/ComingSoon";
 import { matchesSearch } from "@/lib/search/normalize";
@@ -54,6 +55,7 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
   const [query, setQuery] = useState(() => getInitial("q"));
   const [status, setStatus] = useState(() => getInitial("status"));
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [cleanupCompanyId, setCleanupCompanyId] = useState<string | null>(null);
 
   function handleQueryChange(value: string) {
     setQuery(value);
@@ -123,12 +125,23 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
                 {expanded ? <ChevronDown size={14} /> : <Pencil size={13} />}
               </button>
               {canDelete && (
-                <DeleteButton
-                  onDelete={deleteCompanyAction.bind(null, company.id, false)}
-                  confirmMessage={`Weet je zeker dat je ${company.name} definitief wilt verwijderen?`}
-                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-muted"
-                  size={13}
-                />
+                <>
+                  <DeleteButton
+                    onDelete={deleteCompanyAction.bind(null, company.id, false)}
+                    confirmMessage={`Weet je zeker dat je ${company.name} definitief wilt verwijderen?`}
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-muted"
+                    size={13}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setCleanupCompanyId(company.id)}
+                    title="Bedrijf verwijderen inclusief personen"
+                    aria-label="Bedrijf verwijderen inclusief personen"
+                    className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-voc-red-text hover:border-muted"
+                  >
+                    <UserX size={13} />
+                  </button>
+                </>
               )}
             </>
           );
@@ -248,6 +261,10 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
       </div>
       {filtered.length === 0 && (
         <ComingSoon icon={Building2} title="Geen bedrijven gevonden" description="Pas je zoekopdracht aan." />
+      )}
+
+      {cleanupCompanyId && (
+        <DeleteCompanyWithPeopleOverlay companyId={cleanupCompanyId} onClose={() => setCleanupCompanyId(null)} />
       )}
     </>
   );
