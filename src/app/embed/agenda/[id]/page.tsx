@@ -9,6 +9,7 @@ import { formatActivityDate } from "@/lib/format/date";
 import { getCurrentProfile } from "@/lib/auth/session";
 import { Avatar } from "@/components/ui/Avatar";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
+import { EmbedWhiteBackground } from "@/components/embed/EmbedWhiteBackground";
 import { ShareActivityButton } from "@/components/embed/ShareActivityButton";
 import { RegisterButton } from "@/components/agenda/RegisterButton";
 import { MemberOrVisitorRegistration } from "@/components/embed/MemberOrVisitorRegistration";
@@ -125,6 +126,7 @@ export default async function AgendaEmbedDetailPage({
     >
       <div className="flex flex-col gap-4 p-4">
         <EmbedAutoHeight />
+        <EmbedWhiteBackground />
         <div className="flex items-center justify-between gap-3">
           <Link
             href={withEmbedTheme("/embed/agenda", thema)}

@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
 import { formatActivityDate } from "@/lib/format/date";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
+import { EmbedWhiteBackground } from "@/components/embed/EmbedWhiteBackground";
 import { isWebsiteTheme, withEmbedTheme } from "@/lib/embed/theme";
 import { openSans } from "@/lib/fonts/openSans";
 import type { Database } from "@/lib/types/database";
@@ -189,6 +190,7 @@ export default async function AgendaEmbedPage({
     >
       <div className="flex flex-col gap-6 p-4">
         <EmbedAutoHeight />
+        <EmbedWhiteBackground />
         {/* Deze titel + intro staan hier i.p.v. los op de WordPress-pagina
             zelf, juist zodat ze ALLEEN op dit overzicht staan — klik je door
             naar een activiteit, dan verandert alleen de inhoud van de iframe

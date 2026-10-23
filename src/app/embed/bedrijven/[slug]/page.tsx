@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls, publicLogoUrl } from "@/lib/supabase/storage";
 import { resolveCompanySlugAlias } from "@/lib/company/slug";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
+import { EmbedWhiteBackground } from "@/components/embed/EmbedWhiteBackground";
 import { CompanyDetailContent, type CompanyDetailData } from "@/components/embed/CompanyDetailContent";
 import { isWebsiteTheme, withEmbedTheme } from "@/lib/embed/theme";
 import { openSans } from "@/lib/fonts/openSans";
@@ -91,6 +92,7 @@ export default async function BedrijfEmbedDetailPage({
           staat. */}
       <div className="mx-auto flex max-w-5xl flex-col gap-4 p-4">
         <EmbedAutoHeight />
+        <EmbedWhiteBackground />
         <Link
           href={withEmbedTheme("/embed/bedrijven", thema)}
           className="flex w-fit items-center gap-1.5 text-sm font-medium text-voc-red-text hover:underline"

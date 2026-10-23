@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { clsx } from "clsx";
 import { AccessRequestForm } from "@/components/auth/AccessRequestForm";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
+import { EmbedWhiteBackground } from "@/components/embed/EmbedWhiteBackground";
 import { isWebsiteTheme } from "@/lib/embed/theme";
 import { openSans } from "@/lib/fonts/openSans";
 
@@ -31,6 +32,7 @@ export default async function AanmeldenEmbedPage({ searchParams }: { searchParam
     >
       <div className="p-4">
         <EmbedAutoHeight />
+        <EmbedWhiteBackground />
         <div className="mx-auto w-full max-w-2xl rounded-2xl bg-surface p-5 shadow-sm">
           <h1 className="mb-1 font-display text-[1.75rem] font-extrabold tracking-[-0.03em] text-foreground sm:text-[2rem]">Word lid van de VOC</h1>
           <p className="mb-5 text-sm text-muted">Laat je gegevens achter en het bestuur neemt contact met je op.</p>

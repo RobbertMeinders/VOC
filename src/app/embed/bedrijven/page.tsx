@@ -3,6 +3,7 @@ import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/server";
 import { publicLogoUrl } from "@/lib/supabase/storage";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
+import { EmbedWhiteBackground } from "@/components/embed/EmbedWhiteBackground";
 import { isWebsiteTheme } from "@/lib/embed/theme";
 import { openSans } from "@/lib/fonts/openSans";
 import { BedrijvenEmbedList } from "./BedrijvenEmbedList";
@@ -72,6 +73,7 @@ export default async function BedrijvenEmbedPage({
           nog zijn eigen, prettige breedte kunnen geven. */}
       <div className="mx-auto max-w-7xl p-4">
         <EmbedAutoHeight />
+        <EmbedWhiteBackground />
         <BedrijvenEmbedList items={items} branches={branches} />
       </div>
     </div>
