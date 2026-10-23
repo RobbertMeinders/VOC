@@ -24,6 +24,16 @@ import { CompanyDetailContent, type CompanyDetailData } from "./CompanyDetailCon
 // scroll/resize meesturen (voc-embed-viewport, door embed-codes/page.tsx's
 // gegenereerde scriptje) tot deze overlay weer sluit ("unwatch-viewport"),
 // en elk berichtje werkt hieronder gewoon als een normale centerY-update.
+//
+// Live feedback (regressie): een al op de website geplakte, oudere
+// embedcode kent "voc-embed-watch-viewport" niet en antwoordt dus nooit --
+// de 250ms-fallback viel dan terug op window.innerHeight/2, wat BINNEN de
+// iframe de (aan de inhoud aangepaste) iframe-hoogte is, niet de echte
+// vensterhoogte: precies de "centreert op inhoud i.p.v. venster"-regressie.
+// Daarom hieronder ALTIJD ook het oude eenmalige "voc-embed-request-
+// viewport" meesturen: een nog niet opnieuw geplakte embedcode reageert
+// daar nog wel op (gewoon éénmalig centreren op het venster, niet sticky),
+// een bijgewerkte reageert op beide (gewoon sticky).
 const VIEWPORT_RESPONSE_TIMEOUT_MS = 250;
 
 export function CompanyDetailOverlay({ slug, onClose }: { slug: string; onClose: () => void }) {
@@ -42,6 +52,7 @@ export function CompanyDetailOverlay({ slug, onClose }: { slug: string; onClose:
       setCenterY(event.data.centerY);
     }
     window.addEventListener("message", onMessage);
+    window.parent.postMessage({ type: "voc-embed-request-viewport" }, "*");
     window.parent.postMessage({ type: "voc-embed-watch-viewport" }, "*");
     const fallbackTimer = window.setTimeout(() => {
       if (!resolved) setCenterY(window.innerHeight / 2);

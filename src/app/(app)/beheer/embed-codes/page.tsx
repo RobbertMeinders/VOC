@@ -103,6 +103,9 @@ ${hashHandling}
       var rect = iframe.getBoundingClientRect();
       window.scrollTo({ top: window.scrollY + rect.top - 100 - 20, behavior: "smooth" });
     }
+    if (event.data.type === "voc-embed-request-viewport") {
+      sendViewport();
+    }
     if (event.data.type === "voc-embed-watch-viewport") {
       sendViewport();
       if (!vWatching) {
