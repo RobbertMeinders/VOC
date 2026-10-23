@@ -28,12 +28,17 @@ export function ContactVisibilityPrompt({ email, phone }: { email: string | null
   const currentValues = phone ? `${email} · ${phone}` : email;
 
   return (
-    <div className="animate-rise-in flex flex-col gap-3 rounded-2xl bg-surface p-4 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+    // Tablet-fix (768px): bij sm:flex-row (640px) past de knoppen-/linkregel
+    // (shrink-0) niet meer naast de tekst zodra de desktop-zijbalk (md:flex,
+    // 288px) het contentgebied versmalt — pas vanaf lg (1024px), zelfde
+    // breedte waarop de zijbalk elders ook pas als "ruim genoeg" geldt, naast
+    // elkaar i.p.v. gestapeld.
+    <div className="animate-rise-in flex flex-col gap-3 rounded-2xl bg-surface p-4 shadow-sm lg:flex-row lg:items-center lg:justify-between">
       <p className="text-sm text-foreground">
         Andere leden zien je e-mail en telefoonnummer nu niet. Een bericht sturen kan altijd. Mogen ze je gegevens
         wel zien?
       </p>
-      <div className="flex shrink-0 flex-col items-start gap-2 sm:items-end">
+      <div className="flex shrink-0 flex-col items-start gap-2 lg:items-end">
         <div className="flex gap-2">
           <button
             type="button"

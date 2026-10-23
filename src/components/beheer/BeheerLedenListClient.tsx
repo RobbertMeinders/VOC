@@ -188,9 +188,15 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
         </button>
       </div>
 
-      <div className="flex flex-col gap-3">
-        {sorted.length === 0 && <ComingSoon icon={Users} title="Geen leden gevonden" description="Pas je zoekopdracht of filter aan." />}
-        {sorted.map((member) => {
+      {sorted.length === 0 && <ComingSoon icon={Users} title="Geen leden gevonden" description="Pas je zoekopdracht of filter aan." />}
+      {/* Tablet-fix (768px): de zijbalk (md:flex, 288px) knijpt het
+          contentgebied daar smaller dan de vaste kolombreedtes hieronder
+          nodig hebben. Een horizontale scroll binnen de lijst i.p.v. de hele
+          pagina laten overlopen — min-w op elke rij voorkomt dat de
+          flexibele kolommen tot onleesbaar smal ineenschrompelen. */}
+      <div className="overflow-x-auto">
+        <div className="flex min-w-0 flex-col gap-3 sm:min-w-[880px]">
+          {sorted.map((member) => {
           const expanded = expandedId === member.id;
           // Eén keer gedefinieerd, twee keer gerenderd (hieronder): op mobiel
           // naast de naam, op sm+ aan het einde van de regel — zelfde
@@ -290,6 +296,7 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
             </div>
           );
         })}
+        </div>
       </div>
     </>
   );

@@ -96,8 +96,14 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
         filters={filters}
       />
 
-      <div className="flex flex-col gap-2">
-        {filtered.map((company) => {
+      {/* Tablet-fix (768px): de zijbalk (md:flex, 288px) knijpt het
+          contentgebied daar smaller dan de vaste kolombreedtes hieronder
+          nodig hebben. Een horizontale scroll binnen de lijst i.p.v. de hele
+          pagina laten overlopen — min-w op elke rij voorkomt dat de
+          flexibele kolommen tot onleesbaar smal ineenschrompelen. */}
+      <div className="overflow-x-auto">
+        <div className="flex min-w-0 flex-col gap-2 sm:min-w-[900px]">
+          {filtered.map((company) => {
           const expanded = expandedId === company.id;
           // Eén keer gedefinieerd, twee keer gerenderd (hieronder): op mobiel
           // naast de naam, op sm+ aan het einde van de regel — zie toelichting
@@ -238,10 +244,11 @@ function BeheerBedrijvenListInner({ companies, canDelete }: { companies: BeheerC
             </div>
           );
         })}
-        {filtered.length === 0 && (
-          <ComingSoon icon={Building2} title="Geen bedrijven gevonden" description="Pas je zoekopdracht aan." />
-        )}
+        </div>
       </div>
+      {filtered.length === 0 && (
+        <ComingSoon icon={Building2} title="Geen bedrijven gevonden" description="Pas je zoekopdracht aan." />
+      )}
     </>
   );
 }
