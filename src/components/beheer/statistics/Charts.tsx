@@ -1,4 +1,6 @@
-import type { ReactNode } from "react";
+"use client";
+
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { clsx } from "clsx";
 
 // Statistieken-herbouw: puur SVG, geen library — zelfde CSS-only
@@ -37,12 +39,12 @@ function ChartTooltip({ x, y, align = "center", children }: { x: number; y: numb
 // beweerde (gemeten met Playwright: dezelfde foreignObject-tekst rendert
 // 86px breed op een 326px-brede kaart en 239px breed op een 900px-brede
 // kaart — exact de containerbreedte-verhouding, dus hij schaalt wél mee).
-// De échte reden dat dit hier niet meer stoort: CHART_WIDTH's eigen
-// `maxWidth` op de <svg> (zie LineChart/BarChart) houdt de schaal nooit
-// boven 1, dus nooit groter dan hier gekozen — dat is ook wat live
-// feedback "elke interactieve grafiek is te groot" oploste (de tooltip
-// hieronder is dezelfde foreignObject-techniek en blies op een brede
-// desktopkaart net zo mee op).
+// De échte oplossing staat in useChartWidth hieronder: de viewBox-breedte
+// volgt nu altijd de daadwerkelijk gemeten kaartbreedte, dus de schaal
+// (gerenderde breedte / viewBox-breedte) is per definitie altijd 1 — nooit
+// groter (geen opblazen bij een brede kaart, zoals live feedback "elke
+// interactieve grafiek is te groot" meldde) en nooit kleiner (geen
+// verkleinen bij een smalle kaart, zoals dit Foutenrapport M3 meldde).
 function AxisLabel({
   x,
   y,
@@ -107,8 +109,35 @@ function describeChart(kind: "Trendgrafiek" | "Staafdiagram", labels: string[], 
   return `${kind}: ${seriesNames}, periode ${labels[0]} tot ${labels[labels.length - 1]}; hoogste waarde ${max}${maxLabel ? ` op ${maxLabel}` : ""}.`;
 }
 
+// Startbreedte vóór de eerste meting (server-render en de allereerste
+// client-paint) — daarna neemt de echte, gemeten kaartbreedte het over.
 const CHART_WIDTH = 640;
 const PADDING = { top: 10, right: 12, bottom: 24, left: 36 };
+
+// Live feedback: de grafiek moet de volle kolombreedte vullen, niet
+// uitrekken — dus geen vaste viewBox-breedte (die de boel juist opblaast
+// of verkleint zodra de kaart breder/smaller is dan die vaste maat, zie de
+// toelichting bij AxisLabel hierboven), maar de daadwerkelijk gemeten
+// <svg>-breedte zelf als viewBox-breedte. Daardoor is "1 viewBox-eenheid"
+// altijd precies 1 CSS-pixel, ongeacht de kaartbreedte, en blijven lijnen,
+// stippen, tekst en tooltip overal exact even groot.
+function useChartWidth(fallback: number) {
+  const ref = useRef<SVGSVGElement>(null);
+  const [width, setWidth] = useState(fallback);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const observer = new ResizeObserver((entries) => {
+      const measured = entries[0]?.contentRect.width;
+      if (measured) setWidth(measured);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return [ref, width] as const;
+}
 
 function niceStep(max: number): number {
   const p = Math.pow(10, Math.floor(Math.log10(Math.max(max, 1))));
@@ -149,9 +178,10 @@ export function LineChart({
   height?: number;
   emptyLabel?: string;
 }) {
+  const [svgRef, chartWidth] = useChartWidth(CHART_WIDTH);
   if (labels.length === 0 || series.every((s) => s.values.every((v) => v === 0))) return <Empty label={emptyLabel} height={height} />;
 
-  const innerW = CHART_WIDTH - PADDING.left - PADDING.right;
+  const innerW = chartWidth - PADDING.left - PADDING.right;
   const innerH = height - PADDING.top - PADDING.bottom;
   const max = Math.max(...series.flatMap((s) => s.values), 1);
   const step = niceStep(max / 4);
@@ -168,15 +198,15 @@ export function LineChart({
   return (
     <>
       <svg
-        viewBox={`0 0 ${CHART_WIDTH} ${height}`}
+        ref={svgRef}
+        viewBox={`0 0 ${chartWidth} ${height}`}
         className="w-full overflow-visible"
-        style={{ maxWidth: CHART_WIDTH }}
         role="img"
         aria-label={describeChart("Trendgrafiek", labels, series)}
       >
       {gridLines.map((v) => (
         <g key={v}>
-          <line x1={PADDING.left} x2={CHART_WIDTH - PADDING.right} y1={y(v)} y2={y(v)} stroke="var(--chart-grid)" strokeWidth={1} />
+          <line x1={PADDING.left} x2={chartWidth - PADDING.right} y1={y(v)} y2={y(v)} stroke="var(--chart-grid)" strokeWidth={1} />
           <AxisLabel x={PADDING.left - 8} y={y(v) - 7} align="end">
             {Math.round(v)}
           </AxisLabel>
@@ -300,9 +330,10 @@ export function BarChart({
   height?: number;
   emptyLabel?: string;
 }) {
+  const [svgRef, chartWidth] = useChartWidth(CHART_WIDTH);
   if (labels.length === 0 || series.every((s) => s.values.every((v) => v === 0))) return <Empty label={emptyLabel} height={height} />;
 
-  const innerW = CHART_WIDTH - PADDING.left - PADDING.right;
+  const innerW = chartWidth - PADDING.left - PADDING.right;
   const innerH = height - PADDING.top - PADDING.bottom;
   const max = Math.max(...series.flatMap((s) => s.values), 1);
   const step = niceStep(max / 4);
@@ -319,15 +350,15 @@ export function BarChart({
   return (
     <>
       <svg
-        viewBox={`0 0 ${CHART_WIDTH} ${height}`}
+        ref={svgRef}
+        viewBox={`0 0 ${chartWidth} ${height}`}
         className="w-full overflow-visible"
-        style={{ maxWidth: CHART_WIDTH }}
         role="img"
         aria-label={describeChart("Staafdiagram", labels, series)}
       >
       {gridLines.map((v) => (
         <g key={v}>
-          <line x1={PADDING.left} x2={CHART_WIDTH - PADDING.right} y1={y(v)} y2={y(v)} stroke="var(--chart-grid)" strokeWidth={1} />
+          <line x1={PADDING.left} x2={chartWidth - PADDING.right} y1={y(v)} y2={y(v)} stroke="var(--chart-grid)" strokeWidth={1} />
           <AxisLabel x={PADDING.left - 8} y={y(v) - 7} align="end">
             {Math.round(v)}
           </AxisLabel>
