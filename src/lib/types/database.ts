@@ -981,9 +981,11 @@ export interface Database {
         Args: { p_activity_id: string };
         Returns: number;
       };
+      // 0211_member_registration_without_login.sql: geeft person_status +
+      // waitlisted terug i.p.v. niets (personenmodel).
       upsert_public_activity_registration: {
         Args: { p_activity_id: string; p_name: string; p_email: string; p_company_name: string | null };
-        Returns: undefined;
+        Returns: { person_status: string; waitlisted: boolean }[];
       };
       // 0209_public_registration_person_match.sql (personenmodel Fase 2).
       match_person_by_email: {

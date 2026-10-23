@@ -212,4 +212,5 @@ export const MIGRATION_VERSIONS = [
   "0208",
   "0209",
   "0210",
+  "0211",
 ] as const;

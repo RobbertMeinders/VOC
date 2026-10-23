@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { invalidateActivityStatsCache } from "@/lib/statistics/shared";
 import { isEmailRateLimited, isIpRateLimited } from "@/lib/auth/rate-limit";
 import { getClientIp } from "@/lib/http/client-ip";
 import { sendInvitationTemplateEmail, type InvitationSource } from "@/lib/invitations/email";
@@ -16,21 +17,29 @@ import { buildUnsubscribeUrl } from "@/lib/newsletter/unsubscribe";
 // hieronder in PublicRegistrationForm.
 export type PersonMatchStatus = "lid" | "lid_zonder_account" | "geen_lid";
 
-export type PublicRegisterState = { error?: string; success?: boolean; personStatus?: PersonMatchStatus };
+export type PublicRegisterState = {
+  error?: string;
+  success?: boolean;
+  personStatus?: PersonMatchStatus;
+  waitlisted?: boolean;
+};
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-// Publiek, geen account nodig — voor niet-leden die zich via de openbare
-// website-embed aanmelden. Schrijft naar public_activity_registrations
-// (0047_public_agenda_registration.sql), volledig los van de "echte"
-// ledenaanmeldingen (activity_registrations): geen wachtlijst, geen
-// koppeling aan een profiel. Nogmaals invullen met HETZELFDE e-mailadres
-// EN dezelfde naam/bedrijfsnaam is een stille no-op (bv. een dubbelklik);
-// met een ANDERE naam/bedrijfsnaam geeft het sinds VOC-07 een foutmelding
-// i.p.v. de bestaande aanmelding stil te overschrijven — wie het
-// e-mailadres van een ander weet/raadt kon anders diens naam/bedrijfsnaam
-// wijzigen. Zelf een typefout herstellen kan dus niet meer zonder contact
-// met het bestuur (bewuste afweging, zie het gesprek hierover).
+// Publiek, geen account nodig — voor wie zich via de openbare website-embed
+// aanmeldt, lid of niet. Schrijft naar public_activity_registrations
+// (0047_public_agenda_registration.sql) voor een echte buitenstaander of een
+// lid-zonder-account, los van de "echte" ledenaanmeldingen
+// (activity_registrations). Matcht het ingevulde e-mailadres exact met een
+// bestaand profiel, dan gaat de RPC zelf (0211) naar die échte tabel i.p.v.
+// hier -- zie upsert_public_activity_registration. Nogmaals invullen met
+// HETZELFDE e-mailadres EN dezelfde naam/bedrijfsnaam is een stille no-op
+// (bv. een dubbelklik); met een ANDERE naam/bedrijfsnaam geeft het sinds
+// VOC-07 een foutmelding i.p.v. de bestaande aanmelding stil te
+// overschrijven — wie het e-mailadres van een ander weet/raadt kon anders
+// diens naam/bedrijfsnaam wijzigen. Zelf een typefout herstellen kan dus
+// niet meer zonder contact met het bestuur (bewuste afweging, zie het
+// gesprek hierover).
 //
 // Gaat via de upsert_public_activity_registration-RPC (security definer,
 // 0060_restrict_cron_only_rpcs_and_registration_update.sql, VOC-07-fix in
@@ -70,12 +79,14 @@ export async function registerPublicForActivityAction(
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("upsert_public_activity_registration", {
-    p_activity_id: activityId,
-    p_name: name,
-    p_email: email,
-    p_company_name: companyName,
-  });
+  const { data: upsertResult, error } = await supabase
+    .rpc("upsert_public_activity_registration", {
+      p_activity_id: activityId,
+      p_name: name,
+      p_email: email,
+      p_company_name: companyName,
+    })
+    .single();
 
   if (error) {
     // F6: upsert_public_activity_registration (0099, rate limiting in 0119)
@@ -98,19 +109,28 @@ export async function registerPublicForActivityAction(
   }
 
   revalidatePath(`/embed/agenda/${activityId}`);
+  revalidatePath("/agenda");
 
-  // Personenmodel Fase 2: exacte e-mailmatch tegen bekende personen (RPC
-  // match_person_by_email, 0209) -- bij een match met een openstaande
-  // uitnodiging stuurt de RPC meteen de velden terug om diezelfde
-  // uitnodigingsmail nogmaals te sturen (nudge). Nooit de bedankmelding
-  // laten mislukken op deze extra stap: een fout hier is nooit ernstiger
-  // dan "geen nudge verstuurd", de aanmelding zelf staat al vast.
-  let personStatus: PersonMatchStatus = "geen_lid";
-  try {
-    const { data: match } = await supabase.rpc("match_person_by_email", { p_email: email }).maybeSingle();
-    if (match) {
-      personStatus = match.status as PersonMatchStatus;
-      if (match.status === "lid_zonder_account" && match.invitation_token) {
+  // Personenmodel: upsert_public_activity_registration (0211) herkent het
+  // e-mailadres nu zelf en meldt een "lid" meteen écht aan (activity_
+  // registrations, met wachtlijst) -- person_status/waitlisted komen dus al
+  // mee terug uit die ene aanroep. Voor "lid_zonder_account" is er daarnaast
+  // nog een losse match_person_by_email-aanroep nodig voor het
+  // uitnodigingstoken (om dezelfde uitnodigingsmail nogmaals te sturen) --
+  // nooit de bedankmelding laten mislukken op die extra stap: een fout hier
+  // is nooit ernstiger dan "geen nudge verstuurd", de aanmelding zelf staat
+  // al vast.
+  const personStatus: PersonMatchStatus = (upsertResult?.person_status as PersonMatchStatus) ?? "geen_lid";
+  const waitlisted = Boolean(upsertResult?.waitlisted);
+  if (personStatus === "lid") {
+    // Zelfde reden als registerForActivityAction (agenda/actions.ts): anders
+    // bleef Statistieken > Activiteiten tot 60s een verouderd aantal tonen.
+    invalidateActivityStatsCache();
+  }
+  if (personStatus === "lid_zonder_account") {
+    try {
+      const { data: match } = await supabase.rpc("match_person_by_email", { p_email: email }).maybeSingle();
+      if (match?.invitation_token) {
         await sendInvitationTemplateEmail(
           (match.invitation_source ?? "nieuw_lid") as InvitationSource,
           email,
@@ -118,9 +138,9 @@ export async function registerPublicForActivityAction(
           match.invitation_first_name
         );
       }
+    } catch {
+      // Zie toelichting hierboven -- de aanmelding is al gelukt.
     }
-  } catch {
-    // Zie toelichting hierboven -- de aanmelding is al gelukt.
   }
 
   // Fase 3: eenvoudige bevestigingsmail na elke publieke aanmelding, met
@@ -168,5 +188,5 @@ export async function registerPublicForActivityAction(
     // Zie toelichting hierboven -- de aanmelding is al gelukt.
   }
 
-  return { success: true, personStatus };
+  return { success: true, personStatus, waitlisted };
 }

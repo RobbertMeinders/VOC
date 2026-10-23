@@ -109,45 +109,46 @@ export function MemberOrVisitorRegistration({
     </button>
   );
 
-  if (allowPublicRegistration) {
-    return (
-      <div className="flex flex-col gap-6">
-        <div className="flex flex-col items-center gap-2">
-          <PopupLoginLink
-            href={loginHref}
-            className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
-          >
-            Log in om je aan te melden
-          </PopupLoginLink>
-          {unlockPrompt}
-          {denied && <p className="text-xs text-muted">Kon geen toegang krijgen - gebruik de knop hierboven.</p>}
-        </div>
-        <div className="flex flex-col gap-3 border-t border-border pt-6">
-          <div>
-            <p className="text-sm text-foreground">Meld je aan als bezoeker</p>
-            {/* Personenmodel Fase 2: verduidelijkt dat een lid zich via
-                inloggen aanmeldt (hierboven), niet via dit formulier --
-                voorheen stonden beide opties zonder toelichting naast
-                elkaar. */}
-            <p className="mt-0.5 text-xs text-muted">Ben je al lid? Log dan in via de knop hierboven in plaats van dit formulier.</p>
-          </div>
-          <PublicRegistrationForm activityId={activityId} />
-        </div>
-      </div>
-    );
-  }
-
+  // Personenmodel: dit formulier staat vanaf nu ALTIJD onder de inlog-optie,
+  // ook als allowPublicRegistration uit staat -- die schakelaar is bedoeld
+  // om echte buitenstaanders/gasten te weren, niet om leden tegen te houden
+  // die liever niet inloggen. upsert_public_activity_registration (0211)
+  // herkent een e-mailadres dat matcht met een bestaand lid zelf en meldt
+  // die ECHT aan (met wachtlijst), ongeacht deze schakelaar -- alleen een
+  // onbekend e-mailadres wordt nog door allowPublicRegistration tegen-
+  // gehouden (met een foutmelding van de RPC zelf). De toelichtingstekst
+  // onder het formulier verschilt wel per geval, zodat een activiteit die
+  // niet voor echte gasten openstaat dat ook uitstraalt.
   return (
-    <div className="flex flex-col items-center gap-3 text-center">
-      <p className="text-sm text-muted">Deze activiteit is alleen voor leden.</p>
-      <PopupLoginLink
-        href={loginHref}
-        className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
-      >
-        Log in om je aan te melden
-      </PopupLoginLink>
-      {unlockPrompt}
-      {denied && <p className="text-xs text-muted">Kon geen toegang krijgen - gebruik de knop hierboven.</p>}
+    <div className="flex flex-col gap-6">
+      <div className="flex flex-col items-center gap-2">
+        {!allowPublicRegistration && <p className="text-sm text-muted">Deze activiteit is alleen voor leden.</p>}
+        <PopupLoginLink
+          href={loginHref}
+          className="inline-block w-fit rounded-full bg-voc-red px-4 py-2 text-sm font-medium text-white hover:bg-voc-red/90"
+        >
+          Log in om je aan te melden
+        </PopupLoginLink>
+        {unlockPrompt}
+        {denied && <p className="text-xs text-muted">Kon geen toegang krijgen - gebruik de knop hierboven.</p>}
+      </div>
+      <div className="flex flex-col gap-3 border-t border-border pt-6">
+        <div>
+          <p className="text-sm text-foreground">{allowPublicRegistration ? "Meld je aan als bezoeker" : "Al lid en liever niet inloggen?"}</p>
+          {/* Personenmodel: bij een activiteit die open staat voor gasten
+              blijft de insteek "meld je aan als bezoeker" (hierboven wijst
+              al op inloggen als je lid bent); bij een ledenactiviteit is dit
+              formulier er juist alleen voor een lid dat liever geen
+              inlogstap doet -- de RPC herkent het ingevulde e-mailadres zelf
+              en wijst een onbekend adres dan alsnog af. */}
+          <p className="mt-0.5 text-xs text-muted">
+            {allowPublicRegistration
+              ? "Ben je al lid? Log dan in via de knop hierboven in plaats van dit formulier."
+              : "Vul je gegevens in met je bekende e-mailadres -- we herkennen je automatisch en melden je echt aan."}
+          </p>
+        </div>
+        <PublicRegistrationForm activityId={activityId} />
+      </div>
     </div>
   );
 }
