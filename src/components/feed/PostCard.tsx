@@ -2,13 +2,13 @@
 
 import { useActionState, useEffect, useRef, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
-import Link from "next/link";
 import { FileText, MessageCircle, ThumbsUp } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
 import { ExpandableText } from "@/components/ui/ExpandableText";
 import { ActionMenu } from "@/components/ui/ActionMenu";
 import { Card } from "@/components/ui/Card";
+import { ProfileLink } from "@/components/ui/ProfileLink";
 import { AttachmentCarousel } from "./AttachmentCarousel";
 import { LikeButton } from "./LikeButton";
 import { CommentForm } from "./CommentForm";
@@ -374,7 +374,7 @@ export function PostCard({
       className={clsx("animate-rise-in scroll-mt-20", compact ? "p-3" : "p-4")}
     >
       <div className="flex items-start justify-between gap-2">
-        <Link href={memberHref(post.author)} className="flex items-center gap-3">
+        <ProfileLink href={memberHref(post.author)} anonymized={post.author.anonymized} className="flex items-center gap-3">
           <Avatar
             firstName={post.author.first_name}
             lastName={post.author.last_name}
@@ -390,7 +390,7 @@ export function PostCard({
               {isEdited && " · bewerkt"}
             </p>
           </div>
-        </Link>
+        </ProfileLink>
         {(canEditPost || canDeletePost || !isOwnPost) && !editing && (
           <ActionMenu
             items={[

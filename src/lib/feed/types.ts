@@ -7,6 +7,10 @@ export type FeedAuthor = {
   // dus daar is deze kolom niet nodig en blijft hij leeg uit de query.
   slug: string;
   avatarUrl: string | null;
+  // Idem: alleen voor de post-auteur daadwerkelijk gevuld uit de query (zie
+  // queries.ts) — bepaalt of PostCard de naam nog als link rendert. Een
+  // geanonimiseerd lid ("Verwijderd lid") mag nergens meer doorklikbaar zijn.
+  anonymized: boolean;
 };
 
 export type FeedAttachment = {

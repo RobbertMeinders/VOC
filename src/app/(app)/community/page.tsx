@@ -31,6 +31,9 @@ export default async function CommunityPage() {
             first_name: profile.first_name,
             last_name: profile.last_name,
             avatarUrl,
+            // De ingelogde gebruiker zelf is per definitie niet geanonimiseerd
+            // (dat zet is_active=false, dus geen geldige sessie meer).
+            anonymized: false,
           }}
           canModerate={isBoard(profile.role)}
           canEditOthers={isAdmin(profile.role)}

@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import Link from "next/link";
 import { Check, X } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
@@ -10,6 +9,7 @@ import { useBodyScrollLock } from "@/lib/dom/useBodyScrollLock";
 import { FloatingPortal } from "@/components/ui/FloatingPortal";
 import { setAttendanceAction } from "@/app/(app)/agenda/actions";
 import { memberHref } from "@/lib/members/slug";
+import { ProfileLink } from "@/components/ui/ProfileLink";
 
 export type Attendee = {
   id: string;
@@ -19,6 +19,7 @@ export type Attendee = {
   avatarUrl: string | null;
   registrationId: string;
   attended: boolean;
+  anonymized: boolean;
 };
 
 const VISIBLE_ATTENDEES = 5;
@@ -65,12 +66,17 @@ function AttendeeRow({
 }) {
   return (
     <div className="flex items-center gap-2 rounded-lg px-1 py-1 hover:bg-black/[.04] dark:hover:bg-white/[.06]">
-      <Link href={memberHref(attendee)} onClick={onClick} className="flex min-w-0 flex-1 items-center gap-2.5">
+      <ProfileLink
+        href={memberHref(attendee)}
+        anonymized={attendee.anonymized}
+        onClick={onClick}
+        className="flex min-w-0 flex-1 items-center gap-2.5"
+      >
         <Avatar firstName={attendee.first_name} lastName={attendee.last_name} avatarUrl={attendee.avatarUrl} size={28} />
         <span className="truncate text-sm text-foreground">
           {attendee.first_name} {attendee.last_name}
         </span>
-      </Link>
+      </ProfileLink>
       {canManage && activityId && <AttendanceCheckbox attendee={attendee} activityId={activityId} />}
     </div>
   );

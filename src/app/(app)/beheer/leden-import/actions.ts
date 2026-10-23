@@ -152,9 +152,14 @@ export async function bulkImportMembersAction(rows: ImportRow[]): Promise<BulkIm
           skipped: [...skipped, { row: 0, email: "", reason: "Bedrijven aanmaken is niet gelukt: " + (slugError?.message ?? "onbekende fout") }],
         };
       }
+      // Zonder expliciete membership_status valt een nieuw bedrijf terug op
+      // de kolom-default 'prospect' (0175_company_membership_status.sql) --
+      // terwijl dit juist de "bestaand lid"-importroute is (zie het
+      // source: "bestaand_lid" op de uitnodiging hieronder). Live feedback:
+      // geïmporteerde bedrijven stonden zo per ongeluk als prospect te boek.
       const { data: created, error: companyError } = await supabase
         .from("companies")
-        .insert({ ...company, ...geocoded[index], slug })
+        .insert({ ...company, ...geocoded[index], slug, membership_status: "lid" })
         .select("id, name")
         .single();
       if (companyError || !created) {
