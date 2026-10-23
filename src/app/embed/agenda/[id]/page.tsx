@@ -185,24 +185,34 @@ export default async function AgendaEmbedDetailPage({
               <p>
                 Je bent ingelogd als <span className="font-medium">{profile.first_name}</span>.
               </p>
-              <RegisterButton
-                activityId={activity.id}
-                initialRegistered={Boolean(registration)}
-                initialWaitlisted={Boolean(registration?.is_waitlisted)}
-                isFull={isFull}
-                deadlinePassed={deadlinePassed}
-              />
-              {/* Zelfde twee dingen als op het portaal zelf (Zet in je
-                  agenda, Wie gaat er ook) — een ingelogd lid dat de embed op
-                  de website bekijkt zag hier tot nu toe minder dan op het
-                  portaal. Geen koppeling naar /leden/[id] zoals op het
-                  portaal: dat zou de iframe laten navigeren naar de volle
-                  portaalpagina, wat in dit kleine ingebedde venster niet
-                  past — hier dus alleen naam + foto, niet doorklikbaar. */}
-              <a href={activityHref(activity, "/ics")} className={buttonClassName("secondary", "md", "w-fit self-start")}>
-                <Download size={15} />
-                Zet in je agenda
-              </a>
+              {/* Live feedback: stond eerst allemaal onder elkaar (status,
+                  afmelden, Zet in je agenda, Wie gaat er ook) — nu de
+                  aanmeld-/status-knop en "Zet in je agenda" naast elkaar in
+                  één rij, compacter en rustiger. RegisterButton stapelt zijn
+                  eigen status-pill + "Afmelden"-linkje nog intern (ongeacht
+                  wel/niet aangemeld), dus die ene child hoeft hier niet apart
+                  behandeld te worden. flex-wrap zodat dit op een smalle
+                  (mobiele) embed netjes onder elkaar valt i.p.v. knelt. Zelfde
+                  twee dingen als op het portaal zelf (Zet in je agenda, Wie
+                  gaat er ook) — een ingelogd lid dat de embed op de website
+                  bekijkt zag hier tot nu toe minder dan op het portaal. Geen
+                  koppeling naar /leden/[id] zoals op het portaal: dat zou de
+                  iframe laten navigeren naar de volle portaalpagina, wat in
+                  dit kleine ingebedde venster niet past — hier dus alleen
+                  naam + foto, niet doorklikbaar. */}
+              <div className="flex flex-wrap items-start gap-2">
+                <RegisterButton
+                  activityId={activity.id}
+                  initialRegistered={Boolean(registration)}
+                  initialWaitlisted={Boolean(registration?.is_waitlisted)}
+                  isFull={isFull}
+                  deadlinePassed={deadlinePassed}
+                />
+                <a href={activityHref(activity, "/ics")} className={buttonClassName("secondary", "md", "w-fit")}>
+                  <Download size={15} />
+                  Zet in je agenda
+                </a>
+              </div>
               {(visibleAttendees.length > 0 || waitlistCount > 0) && (
                 <div className="border-t border-border pt-3">
                   <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">Wie gaat er ook</p>
