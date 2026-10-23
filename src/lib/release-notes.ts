@@ -6,6 +6,15 @@ export type ReleaseNote = { version: string; items: string[] };
 
 export const RELEASE_NOTES: ReleaseNote[] = [
   {
+    version: "0.14.0",
+    items: [
+      "Beheer → Leden toont voortaan ook openstaande uitnodigingen en losse contactpersonen, naast de bestaande leden, met een duidelijke status per persoon.",
+      "Meldt iemand zich aan voor een activiteit via de website zonder in te loggen, dan herkent het portaal nu of die persoon al lid is of al eerder is uitgenodigd.",
+      "Na een aanmelding via de website krijgt de aanmelder voortaan een bevestigingsmail, met een link om de aanmelding weer in te trekken.",
+      "De achtergrond van de agenda/bedrijven-widgets op de website is op mobiele Safari niet meer soms donker.",
+    ],
+  },
+  {
     version: "0.13.0",
     items: [
       "Diverse extra beveiligingsmaatregelen doorgevoerd (o.a. rond formulieren, koppelingen en bestanden).",
