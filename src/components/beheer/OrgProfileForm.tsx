@@ -103,6 +103,7 @@ export function OrgProfileForm({ orgProfile, headerImageUrl }: { orgProfile: Org
           <FormSection label="Introductie" description="Een korte, uitnodigende opening bovenaan de pagina Over de vereniging.">
             <Textarea
               name="intro_text"
+              aria-label="Introductie"
               rows={4}
               defaultValue={orgProfile.intro_text ?? ""}
               placeholder="Nog niet ingevuld. Leden zien dit pas als hier tekst staat."
@@ -111,6 +112,7 @@ export function OrgProfileForm({ orgProfile, headerImageUrl }: { orgProfile: Org
           <FormSection label="Missie" description="Waar staat VOC voor, wat is het doel van de vereniging?">
             <Textarea
               name="mission_text"
+              aria-label="Missie"
               rows={4}
               defaultValue={orgProfile.mission_text ?? ""}
               placeholder="Nog niet ingevuld. Leden zien dit pas als hier tekst staat."
@@ -119,6 +121,7 @@ export function OrgProfileForm({ orgProfile, headerImageUrl }: { orgProfile: Org
           <FormSection label="Visie" description="Welke toekomst streeft VOC voor haar leden en de regio na?">
             <Textarea
               name="vision_text"
+              aria-label="Visie"
               rows={4}
               defaultValue={orgProfile.vision_text ?? ""}
               placeholder="Nog niet ingevuld. Leden zien dit pas als hier tekst staat."

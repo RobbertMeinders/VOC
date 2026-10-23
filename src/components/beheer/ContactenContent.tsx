@@ -57,9 +57,22 @@ function ContactEditRow({ contact, onDone }: { contact: Contact; onDone: () => v
   return (
     <div className="flex flex-col gap-2 border-b border-border py-2 last:border-0">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-        <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Naam" className="flex-1" />
-        <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="naam@bedrijf.nl" className="flex-1" />
-        <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Bedrijf (optioneel)" className="flex-1" />
+        <Input aria-label="Naam" value={name} onChange={(e) => setName(e.target.value)} placeholder="Naam" className="flex-1" />
+        <Input
+          aria-label="E-mailadres"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="naam@bedrijf.nl"
+          className="flex-1"
+        />
+        <Input
+          aria-label="Bedrijf (optioneel)"
+          value={company}
+          onChange={(e) => setCompany(e.target.value)}
+          placeholder="Bedrijf (optioneel)"
+          className="flex-1"
+        />
         <div className="flex gap-2">
           <Button type="button" size="sm" onClick={handleSave} disabled={pending || !name.trim() || !email.trim()}>
             Opslaan
@@ -242,8 +255,14 @@ function ListCard({
     return (
       <div className="rounded-xl border border-border p-3">
         <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Naam" className="flex-1" />
-          <Input value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Omschrijving (optioneel)" className="flex-1" />
+          <Input aria-label="Naam" value={name} onChange={(e) => setName(e.target.value)} placeholder="Naam" className="flex-1" />
+          <Input
+            aria-label="Omschrijving (optioneel)"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Omschrijving (optioneel)"
+            className="flex-1"
+          />
           <div className="flex gap-2">
             <Button type="button" size="sm" onClick={handleRename} disabled={renamePending || !name.trim()}>
               Opslaan
@@ -314,7 +333,7 @@ function ListCard({
 
           <div className="flex flex-col gap-2 sm:flex-row">
             <div className="flex flex-1 items-center gap-2">
-              <Select value={addProfileId} onChange={(e) => setAddProfileId(e.target.value)} className="h-9 flex-1 pl-3">
+              <Select aria-label="Lid toevoegen" value={addProfileId} onChange={(e) => setAddProfileId(e.target.value)} className="h-9 flex-1 pl-3">
                 <option value="">Lid toevoegen…</option>
                 {availableProfiles.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -327,6 +346,7 @@ function ListCard({
                 size="sm"
                 variant="secondary"
                 disabled={!addProfileId}
+                aria-label="Lid toevoegen aan lijst"
                 onClick={async () => {
                   await addProfileToListAction(list.id, addProfileId);
                   setAddProfileId("");
@@ -337,7 +357,7 @@ function ListCard({
               </Button>
             </div>
             <div className="flex flex-1 items-center gap-2">
-              <Select value={addContactId} onChange={(e) => setAddContactId(e.target.value)} className="h-9 flex-1 pl-3">
+              <Select aria-label="Contact toevoegen" value={addContactId} onChange={(e) => setAddContactId(e.target.value)} className="h-9 flex-1 pl-3">
                 <option value="">Contact toevoegen…</option>
                 {availableContacts.map((c) => (
                   <option key={c.id} value={c.id}>
@@ -350,6 +370,7 @@ function ListCard({
                 size="sm"
                 variant="secondary"
                 disabled={!addContactId}
+                aria-label="Contact toevoegen aan lijst"
                 onClick={async () => {
                   await addContactToListAction(list.id, addContactId);
                   setAddContactId("");
