@@ -36,7 +36,15 @@ export function RecentPostPreview({ post }: { post: FeedPost }) {
             </span>
           )}
         </div>
-        {post.content && <ExpandableText text={post.content} className="mt-1" lines={2} mentions />}
+        {post.content && (
+          <ExpandableText
+            text={post.content}
+            className="mt-1"
+            lines={2}
+            mentions
+            anonymizedMentionIds={post.anonymizedMentionIds}
+          />
+        )}
         <div className="mt-2 flex items-center gap-4 text-xs text-muted">
           <span className="flex items-center gap-1">
             <Heart size={14} />

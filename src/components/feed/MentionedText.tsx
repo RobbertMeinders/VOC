@@ -1,14 +1,21 @@
 import Link from "next/link";
 import { Fragment, type ReactNode } from "react";
-
-const MENTION_PATTERN_SOURCE = "@\\[([^\\]]+)\\]\\((profiel|bedrijf):([0-9a-fA-F-]{36})\\)";
+import { MENTION_PATTERN_SOURCE } from "@/lib/feed/mentions";
 
 /**
  * Renders feed content, turning "@[Naam](profiel:uuid)" / "@[Naam](bedrijf:uuid)"
  * mention tokens (inserted by the composer's @-autocomplete) into links,
  * and everything else as plain text.
+ *
+ * Geanonimiseerd-lid-audit: `anonymizedIds` zijn de profiel-id's uit deze
+ * tekst die inmiddels geanonimiseerd zijn (queries.ts bepaalt dat server-
+ * side, zie extractMentionedProfileIds) -- zo'n vermelding wordt platte
+ * tekst i.p.v. een link naar de (niet meer bestaande) profielpagina. De
+ * ooit getypte naam blijft wel gewoon staan (bestaande content wijzigt
+ * niet met terugwerkende kracht, zelfde uitgangspunt als bij een
+ * geanonimiseerde berichtauteur), alleen de link verdwijnt.
  */
-export function MentionedText({ text }: { text: string }) {
+export function MentionedText({ text, anonymizedIds = [] }: { text: string; anonymizedIds?: string[] }) {
   const nodes: ReactNode[] = [];
   let lastIndex = 0;
   let key = 0;
@@ -22,12 +29,16 @@ export function MentionedText({ text }: { text: string }) {
       nodes.push(<Fragment key={key++}>{text.slice(lastIndex, match.index)}</Fragment>);
     }
     const [, name, kind, id] = match;
-    const href = kind === "profiel" ? `/leden/${id}` : `/bedrijven/${id}`;
-    nodes.push(
-      <Link key={key++} href={href} className="font-medium text-petrol hover:underline">
-        {name}
-      </Link>
-    );
+    if (kind === "profiel" && anonymizedIds.includes(id)) {
+      nodes.push(<span key={key++} className="font-medium text-foreground">{name}</span>);
+    } else {
+      const href = kind === "profiel" ? `/leden/${id}` : `/bedrijven/${id}`;
+      nodes.push(
+        <Link key={key++} href={href} className="font-medium text-petrol hover:underline">
+          {name}
+        </Link>
+      );
+    }
     lastIndex = match.index + match[0].length;
   }
   if (lastIndex < text.length) {

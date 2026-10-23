@@ -22,6 +22,7 @@ export function ExpandableText({
   className,
   lines = 2,
   mentions = false,
+  anonymizedMentionIds,
   expandLabel = "Lees meer",
   collapseLabel = "Lees minder",
 }: {
@@ -29,6 +30,7 @@ export function ExpandableText({
   className?: string;
   lines?: number;
   mentions?: boolean;
+  anonymizedMentionIds?: string[];
   expandLabel?: string;
   collapseLabel?: string;
 }) {
@@ -47,7 +49,7 @@ export function ExpandableText({
         ref={ref}
         className={clsx("whitespace-pre-wrap text-sm text-foreground", !expanded && (CLAMP_CLASS[lines] ?? "line-clamp-2"))}
       >
-        {mentions ? <MentionedText text={text} /> : text}
+        {mentions ? <MentionedText text={text} anonymizedIds={anonymizedMentionIds} /> : text}
       </p>
       {overflowing && (
         <button

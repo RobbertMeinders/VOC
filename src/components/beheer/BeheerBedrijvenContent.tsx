@@ -138,10 +138,10 @@ export async function BeheerBedrijvenContent() {
         </Link>
       )}
 
-      <div className="flex flex-wrap items-center gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <NewCompanyButton />
         {isAdmin(profile.role) && (
-          <>
+          <div className="flex flex-wrap items-center gap-2">
             <a
               href="/api/beheer/leden-export/xlsx"
               className="flex items-center gap-1.5 rounded-full border border-border bg-surface px-3.5 py-2 text-sm font-medium text-foreground hover:bg-black/[.03] dark:hover:bg-white/[.06]"
@@ -156,7 +156,7 @@ export async function BeheerBedrijvenContent() {
               <Download size={16} />
               Volledige backup (.csv)
             </a>
-          </>
+          </div>
         )}
       </div>
 

@@ -72,7 +72,13 @@ export async function MemberProfileContent({ id: routeParam }: { id: string }) {
   const supabase = await createClient();
 
   const member = await getCachedMemberProfile(routeParam);
-  if (!member) {
+  // Geanonimiseerd lid (zie anonymize_profile_now, 0168): get_member_profile
+  // filtert hier zelf niet op, dus zonder deze check zou de route-URL (een
+  // oude link/mention) de "Verwijderd lid"-rij gewoon nog tonen, inclusief
+  // stale bedrijfskoppeling-pil (company_members wordt bij anonimiseren niet
+  // opgeruimd). Nergens meer doorklikbaar betekent ook: deze pagina zelf
+  // niet meer bereikbaar.
+  if (!member || member.anonymized_at) {
     notFound();
   }
 

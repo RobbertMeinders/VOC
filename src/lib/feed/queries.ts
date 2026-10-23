@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/types/database";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
+import { extractMentionedProfileIds } from "./mentions";
 import type { FeedAttachment, FeedAuthor, FeedComment, FeedPost, FeedPostType } from "./types";
 
 // likes/comment_likes zitten hier bewust niet in: die werden per rij met
@@ -99,6 +100,23 @@ async function fetchLikeData(supabase: SupabaseClient<Database>, posts: RawPost[
   return { postSummaries, commentCounts, likedPostIds, likedCommentIds };
 }
 
+// Alle "profiel:<uuid>"-id's uit @-vermeldingen in post- en reactie-content
+// van deze batch, die inmiddels geanonimiseerd zijn — één query voor de hele
+// pagina i.p.v. per bericht/reactie. Zie mentions.ts en MentionedText.tsx.
+async function fetchAnonymizedMentionIds(supabase: SupabaseClient<Database>, posts: RawPost[]): Promise<Set<string>> {
+  const ids = new Set<string>();
+  for (const post of posts) {
+    if (post.content) for (const id of extractMentionedProfileIds(post.content)) ids.add(id);
+    for (const comment of post.comments) {
+      for (const id of extractMentionedProfileIds(comment.content)) ids.add(id);
+    }
+  }
+  if (ids.size === 0) return new Set();
+
+  const { data } = await supabase.from("profiles").select("id").in("id", Array.from(ids)).not("anonymized_at", "is", null);
+  return new Set((data ?? []).map((row) => row.id));
+}
+
 // Collects every avatar/attachment path referenced by a batch of raw posts
 // so callers can resolve them with a single signed-URL request per bucket,
 // instead of one request per image (which times the page out once there
@@ -145,7 +163,12 @@ function buildAttachment(attachment: RawAttachment, mediaUrls: Map<string, strin
   };
 }
 
-function buildComment(comment: RawComment, likeData: LikeData, avatarUrls: Map<string, string>): FeedComment {
+function buildComment(
+  comment: RawComment,
+  likeData: LikeData,
+  avatarUrls: Map<string, string>,
+  anonymizedMentionIds: Set<string>
+): FeedComment {
   return {
     id: comment.id,
     postId: comment.post_id,
@@ -154,10 +177,17 @@ function buildComment(comment: RawComment, likeData: LikeData, avatarUrls: Map<s
     author: buildAuthor(comment.author, avatarUrls),
     likesCount: likeData.commentCounts.get(comment.id) ?? 0,
     likedByMe: likeData.likedCommentIds.has(comment.id),
+    anonymizedMentionIds: extractMentionedProfileIds(comment.content).filter((id) => anonymizedMentionIds.has(id)),
   };
 }
 
-function buildPost(post: RawPost, likeData: LikeData, avatarUrls: Map<string, string>, mediaUrls: Map<string, string>): FeedPost {
+function buildPost(
+  post: RawPost,
+  likeData: LikeData,
+  avatarUrls: Map<string, string>,
+  mediaUrls: Map<string, string>,
+  anonymizedMentionIds: Set<string>
+): FeedPost {
   const summary = likeData.postSummaries.get(post.id);
   return {
     id: post.id,
@@ -168,7 +198,7 @@ function buildPost(post: RawPost, likeData: LikeData, avatarUrls: Map<string, st
     author: buildAuthor(post.author, avatarUrls),
     attachments: post.attachments.map((a) => buildAttachment(a, mediaUrls)),
     comments: post.comments
-      .map((c) => buildComment(c, likeData, avatarUrls))
+      .map((c) => buildComment(c, likeData, avatarUrls, anonymizedMentionIds))
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt)),
     likesCount: summary?.likesCount ?? 0,
     likedByMe: likeData.likedPostIds.has(post.id),
@@ -176,18 +206,20 @@ function buildPost(post: RawPost, likeData: LikeData, avatarUrls: Map<string, st
       topLikerName: summary?.topLikerName ?? null,
       count: summary?.likesCount ?? 0,
     },
+    anonymizedMentionIds: post.content ? extractMentionedProfileIds(post.content).filter((id) => anonymizedMentionIds.has(id)) : [],
   };
 }
 
 async function hydrateAll(supabase: SupabaseClient<Database>, posts: RawPost[], viewerId: string): Promise<FeedPost[]> {
   const { avatarPaths, attachmentPaths } = collectPaths(posts);
-  const [avatarUrls, mediaUrls, likeData] = await Promise.all([
+  const [avatarUrls, mediaUrls, likeData, anonymizedMentionIds] = await Promise.all([
     getSignedStorageUrls(supabase, "avatars", avatarPaths),
     getSignedStorageUrls(supabase, "feed-media", attachmentPaths),
     fetchLikeData(supabase, posts, viewerId),
+    fetchAnonymizedMentionIds(supabase, posts),
   ]);
 
-  return posts.map((post) => buildPost(post, likeData, avatarUrls, mediaUrls));
+  return posts.map((post) => buildPost(post, likeData, avatarUrls, mediaUrls, anonymizedMentionIds));
 }
 
 export async function fetchFeedPosts(
@@ -277,10 +309,14 @@ export async function fetchCommentById(
 
   if (!data) return null;
 
-  const [avatarUrls, { data: countRows }, { data: myLike }] = await Promise.all([
+  const mentionedIds = extractMentionedProfileIds(data.content);
+  const [avatarUrls, { data: countRows }, { data: myLike }, { data: anonymizedRows }] = await Promise.all([
     getSignedStorageUrls(supabase, "avatars", [data.author.avatar_url]),
     supabase.rpc("get_feed_comment_like_counts", { p_comment_ids: [commentId] }),
     supabase.from("feed_comment_likes").select("comment_id").eq("profile_id", viewerId).eq("comment_id", commentId).maybeSingle(),
+    mentionedIds.length
+      ? supabase.from("profiles").select("id").in("id", mentionedIds).not("anonymized_at", "is", null)
+      : Promise.resolve({ data: [] }),
   ]);
   const likeData: LikeData = {
     postSummaries: new Map(),
@@ -288,6 +324,7 @@ export async function fetchCommentById(
     likedPostIds: new Set(),
     likedCommentIds: new Set(myLike ? [myLike.comment_id] : []),
   };
+  const anonymizedMentionIds = new Set((anonymizedRows ?? []).map((row) => row.id));
 
-  return buildComment(data, likeData, avatarUrls);
+  return buildComment(data, likeData, avatarUrls, anonymizedMentionIds);
 }

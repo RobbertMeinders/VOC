@@ -33,6 +33,10 @@ export type FeedComment = {
   author: FeedAuthor;
   likesCount: number;
   likedByMe: boolean;
+  // Profiel-id's van @-vermeldingen in `content` die inmiddels geanonimiseerd
+  // zijn (zie extractMentionedProfileIds) — MentionedText rendert deze als
+  // platte tekst i.p.v. link.
+  anonymizedMentionIds: string[];
 };
 
 export type FeedPostType = "vraag" | "aanbod" | "nieuws" | "overig" | "voorstellen";
@@ -54,4 +58,7 @@ export type FeedPost = {
   likesCount: number;
   likedByMe: boolean;
   likeSummary: LikeSummary;
+  // Zie FeedComment.anonymizedMentionIds — zelfde principe, voor het
+  // berichtcontent zelf i.p.v. een reactie.
+  anonymizedMentionIds: string[];
 };

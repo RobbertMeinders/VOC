@@ -265,6 +265,7 @@ function CommentRow({
                   text={comment.content}
                   lines={5}
                   mentions
+                  anonymizedMentionIds={comment.anonymizedMentionIds}
                   expandLabel="Meer weergeven"
                   collapseLabel="Minder weergeven"
                 />
@@ -435,7 +436,17 @@ export function PostCard({
               {POST_TYPE_LABELS[post.type]}
             </span>
           )}
-          {post.content && <ExpandableText text={post.content} className="mt-2" lines={5} mentions expandLabel="Meer weergeven" collapseLabel="Minder weergeven" />}
+          {post.content && (
+            <ExpandableText
+              text={post.content}
+              className="mt-2"
+              lines={5}
+              mentions
+              anonymizedMentionIds={post.anonymizedMentionIds}
+              expandLabel="Meer weergeven"
+              collapseLabel="Minder weergeven"
+            />
+          )}
         </>
       )}
 
