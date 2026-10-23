@@ -77,6 +77,23 @@ function buildEmbedCode(origin: string, embed: (typeof EMBEDS)[number]): string 
   var iframe = document.getElementById("${id}");
   if (!iframe) return;
 ${hashHandling}
+  var vWatching = false;
+  var vRafScheduled = false;
+  function sendViewport() {
+    var vRect = iframe.getBoundingClientRect();
+    var visibleTop = Math.max(vRect.top, 0);
+    var visibleBottom = Math.min(vRect.bottom, window.innerHeight);
+    var centerY = (visibleTop + visibleBottom) / 2 - vRect.top;
+    iframe.contentWindow.postMessage({ type: "voc-embed-viewport", centerY: centerY }, "*");
+  }
+  function scheduleSendViewport() {
+    if (vRafScheduled) return;
+    vRafScheduled = true;
+    window.requestAnimationFrame(function () {
+      vRafScheduled = false;
+      sendViewport();
+    });
+  }
   window.addEventListener("message", function (event) {
     if (event.source !== iframe.contentWindow || !event.data) return;
     if (event.data.type === "voc-embed-height") {
@@ -86,12 +103,18 @@ ${hashHandling}
       var rect = iframe.getBoundingClientRect();
       window.scrollTo({ top: window.scrollY + rect.top - 100 - 20, behavior: "smooth" });
     }
-    if (event.data.type === "voc-embed-request-viewport") {
-      var vRect = iframe.getBoundingClientRect();
-      var visibleTop = Math.max(vRect.top, 0);
-      var visibleBottom = Math.min(vRect.bottom, window.innerHeight);
-      var centerY = (visibleTop + visibleBottom) / 2 - vRect.top;
-      iframe.contentWindow.postMessage({ type: "voc-embed-viewport", centerY: centerY }, "*");
+    if (event.data.type === "voc-embed-watch-viewport") {
+      sendViewport();
+      if (!vWatching) {
+        vWatching = true;
+        window.addEventListener("scroll", scheduleSendViewport, { passive: true });
+        window.addEventListener("resize", scheduleSendViewport);
+      }
+    }
+    if (event.data.type === "voc-embed-unwatch-viewport" && vWatching) {
+      vWatching = false;
+      window.removeEventListener("scroll", scheduleSendViewport);
+      window.removeEventListener("resize", scheduleSendViewport);
     }
   });
 
@@ -160,7 +183,10 @@ export default async function EmbedCodesPage() {
             (deels) achter de menubalk van de website, verhoog dan de <code>100</code> in de regel met{" "}
             <code>rect.top - 100 - 20</code> in het geplakte scriptje (0 als de site geen vaste menubalk heeft). In
             de bedrijvengids opent een bedrijf juist als overlay bovenop de lijst, precies waar je op dat moment aan
-            het kijken bent - daar hoeft dus niets te scrollen. De gehoste <code>embed.js</code> bleek op de
+            het kijken bent, en blijft daar ook staan terwijl je verder scrolt (sticky) - daar hoeft dus niets te
+            scrollen. Een al op de website geplakte embedcode van vóór deze wijziging blijft werken, maar toont de
+            overlay dan weer op de ouderwetse manier (één keer gecentreerd bij openen, niet meer sticky tijdens
+            scrollen) - plak de code hierboven dan opnieuw. De gehoste <code>embed.js</code> bleek op de
             praktijkwebsite onbetrouwbaar (waarschijnlijk een beveiligingsplugin of CSP die extern geladen scripts
             blokkeert), een inline scriptje zonder externe bestandslading niet.
           </p>

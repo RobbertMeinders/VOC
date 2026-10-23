@@ -16,9 +16,14 @@ import { CompanyDetailContent, type CompanyDetailData } from "./CompanyDetailCon
 // oudere embed-code, of deze pagina los in een tabblad zonder iframe --
 // valt dit terug op het midden van het eigen venster.
 //
-// `position: fixed` t.o.v. de iframe-viewport (niet t.o.v. een wrapper), om
-// dezelfde reden als voorheen bij de klikhoogte-aanpak: deze iframe heeft
-// zelf geen scrollbalk, dus "fixed" dekt betrouwbaar de volledige inhoud af.
+// Live feedback: "sticky" tijdens scrollen, dus niet alleen bij openen één
+// keer centreren -- `position: fixed` t.o.v. de iframe-viewport lost dat op
+// zichzelf niet op, want deze iframe heeft geen eigen scrollbalk (de
+// buitenpagina scrolt, het hele iframe-document beweegt daarbij gewoon mee).
+// "watch-viewport" i.p.v. een eenmalige "request": de buitenpagina blijft
+// scroll/resize meesturen (voc-embed-viewport, door embed-codes/page.tsx's
+// gegenereerde scriptje) tot deze overlay weer sluit ("unwatch-viewport"),
+// en elk berichtje werkt hieronder gewoon als een normale centerY-update.
 const VIEWPORT_RESPONSE_TIMEOUT_MS = 250;
 
 export function CompanyDetailOverlay({ slug, onClose }: { slug: string; onClose: () => void }) {
@@ -37,7 +42,7 @@ export function CompanyDetailOverlay({ slug, onClose }: { slug: string; onClose:
       setCenterY(event.data.centerY);
     }
     window.addEventListener("message", onMessage);
-    window.parent.postMessage({ type: "voc-embed-request-viewport" }, "*");
+    window.parent.postMessage({ type: "voc-embed-watch-viewport" }, "*");
     const fallbackTimer = window.setTimeout(() => {
       if (!resolved) setCenterY(window.innerHeight / 2);
     }, VIEWPORT_RESPONSE_TIMEOUT_MS);
@@ -45,6 +50,7 @@ export function CompanyDetailOverlay({ slug, onClose }: { slug: string; onClose:
     return () => {
       window.removeEventListener("message", onMessage);
       window.clearTimeout(fallbackTimer);
+      window.parent.postMessage({ type: "voc-embed-unwatch-viewport" }, "*");
     };
   }, []);
 
