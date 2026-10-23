@@ -355,10 +355,13 @@
 
 /* UX-review E3: ?thema=website op een embed-pagina (zie
    src/lib/embed/theme.ts) laat die aansluiten bij vocveendam.nl zelf i.p.v.
-   bij het portaal — alleen deze drie dingen weken genoeg af om op te
-   vallen (lettertype, knopvorm, achtergrond), de rest van de embed-opmaak
-   blijft gelijk. Scoped op de wrapper-div (zelfde patroon als
-   [data-theme="light"] hierboven), nooit op :root. */
+   bij het portaal — lettertype en achtergrond weken genoeg af om op te
+   vallen, de rest van de embed-opmaak blijft gelijk. Scoped op de
+   wrapper-div (zelfde patroon als [data-theme="light"] hierboven), nooit op
+   :root. Knopvorm hoorde hier eerder ook bij (hoekige 3px-knoppen i.p.v.
+   een pil) — live feedback die dag in dag uit terugkwam ("ronder", "moet
+   meer aansluiten op het portaal") maakte dat die keuze inmiddels achter-
+   haald was, dus knoppen zijn overal weer gewoon rounded-full. */
 [data-embed-theme="website"] {
   font-family: var(--font-open-sans), system-ui, sans-serif;
 }
@@ -396,14 +399,6 @@ body:has([data-theme="light"]) {
 }
 body:has([data-embed-theme="website"]) {
   background: transparent;
-}
-
-/* Portaal-knoppen zijn een pil (rounded-full); de website gebruikt 3px
-   hoeken — een descendant-selector raakt hier wél alle knoppen binnen de
-   embed, want die zijn met opzet allemaal rounded-full (geen vierkante
-   logo's/avatars die hier per ongeluk meegepakt worden). */
-[data-embed-theme="website"] .rounded-full {
-  border-radius: 3px;
 }
 
 body {

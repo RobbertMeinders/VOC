@@ -1,11 +1,13 @@
 // UX-review E3: de /embed/*-pagina's zien er standaard uit als het portaal
 // (Inter, pil-knoppen, grijze pagina-achtergrond) — herkenbaar anders dan
 // vocveendam.nl zelf. ?thema=website laat een embed in plaats daarvan de
-// look van de website aanhouden (Open Sans, hoekige knoppen, transparante
-// achtergrond), zonder dat het portaal zelf ooit verandert: de standaard
-// (geen parameter) blijft het huidige uiterlijk. Eén losse module i.p.v. per
-// pagina een eigen check, zodat elke embed-pagina en elke interne link
-// ertussen hetzelfde "onthoudt" welk thema actief is.
+// look van de website aanhouden (Open Sans, transparante achtergrond),
+// zonder dat het portaal zelf ooit verandert: de standaard (geen parameter)
+// blijft het huidige uiterlijk. Knopvorm hoorde hier eerder ook bij (hoekige
+// knoppen i.p.v. een pil) — zie globals.css voor waarom dat is losgelaten.
+// Eén losse module i.p.v. per pagina een eigen check, zodat elke embed-
+// pagina en elke interne link ertussen hetzelfde "onthoudt" welk thema
+// actief is.
 export function isWebsiteTheme(thema: string | undefined): boolean {
   return thema === "website";
 }
