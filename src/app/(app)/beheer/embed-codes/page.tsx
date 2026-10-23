@@ -86,6 +86,13 @@ ${hashHandling}
       var rect = iframe.getBoundingClientRect();
       window.scrollTo({ top: window.scrollY + rect.top - 100 - 20, behavior: "smooth" });
     }
+    if (event.data.type === "voc-embed-request-viewport") {
+      var vRect = iframe.getBoundingClientRect();
+      var visibleTop = Math.max(vRect.top, 0);
+      var visibleBottom = Math.min(vRect.bottom, window.innerHeight);
+      var centerY = (visibleTop + visibleBottom) / 2 - vRect.top;
+      iframe.contentWindow.postMessage({ type: "voc-embed-viewport", centerY: centerY }, "*");
+    }
   });
 
   iframe.addEventListener("load", function () {

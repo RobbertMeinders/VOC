@@ -386,8 +386,13 @@
    verderop zelfs helemaal verdwijnen (transparant, zodat de achtergrond
    van de WordPress-pagina zelf doorschijnt) — de regel hieronder wint dan
    omdat hij later staat en dezelfde specificiteit heeft. */
+/* Live feedback: alle embeds moeten een zuiver witte achtergrond hebben,
+   niet de warme zandtint die de rest van het portaal als paginakleur
+   gebruikt (--background). Bewust #ffffff hier i.p.v. var(--surface): deze
+   regel geldt juist voor de context waarin --surface zelf nog niet
+   betrouwbaar is (vóór/los van de geneste [data-theme="light"]-wrapper). */
 body:has([data-theme="light"]) {
-  background: #f5f3ef;
+  background: #ffffff;
 }
 body:has([data-embed-theme="website"]) {
   background: transparent;
@@ -763,10 +768,21 @@ button:not(:disabled):active {
 /* Identiteit fase 3: de kaartopbouw (zie Card.tsx) herbruikbaar voor de
    handvol plekken die zelf geen <div>/<article> zijn (een klikbare <Link>),
    dus niet via het Card-component kunnen lopen zonder die interactiviteit
-   te breken. */
+   te breken.
+   Bug (live feedback: zwarte kaarten in een embed-pagina bij een donker
+   systeemthema): var(--color-surface) is de door "@theme inline" afgeleide
+   Tailwind-token — die wordt ÉÉN keer herleid tot var(--surface) op de plek
+   waar --color-surface zelf gedeclareerd staat (:root), niet opnieuw bij elk
+   gebruik. Een geneste [data-theme="light"]-wrapper (elke embed-pagina)
+   herdefinieert wél --surface maar niet --color-surface, dus deze regel
+   bleef de --surface-waarde van :root volgen (en dus het systeemthema) i.p.v.
+   de lokale override. Tailwinds eigen gegenereerde utilities (bv. bg-surface)
+   hebben dit probleem niet — dankzij "inline" verwijzen die rechtstreeks naar
+   var(--surface) i.p.v. naar de bevroren --color-surface-alias. Rechtstreeks
+   naar var(--surface) verwijzen lost het hier ook op. */
 .card-surface {
   border-radius: var(--radius-2xl, 1rem);
-  background-color: var(--color-surface);
+  background-color: var(--surface);
   box-shadow: var(--shadow-sm);
 }
 
