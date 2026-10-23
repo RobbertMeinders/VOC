@@ -32,9 +32,17 @@ function ChartTooltip({ x, y, align = "center", children }: { x: number; y: numb
 
 // Foutenrapport M3: SVG-tekst (<text fontSize={10}>) schaalt mee met de
 // viewBox — op een smalle mobiele kaart (viewBox 640 breed, kaart 326px)
-// kwam dat neer op zo'n 6px daadwerkelijke tekengrootte. Een foreignObject
-// met gewone CSS (zoals de tooltip hierboven al doet) rendert in échte
-// pixels, onafhankelijk van hoe sterk de SVG zelf is uitgerekt.
+// kwam dat neer op zo'n 6px daadwerkelijke tekengrootte. Let op: een
+// foreignObject lost dat NIET op zoals de oorspronkelijke toelichting hier
+// beweerde (gemeten met Playwright: dezelfde foreignObject-tekst rendert
+// 86px breed op een 326px-brede kaart en 239px breed op een 900px-brede
+// kaart — exact de containerbreedte-verhouding, dus hij schaalt wél mee).
+// De échte reden dat dit hier niet meer stoort: CHART_WIDTH's eigen
+// `maxWidth` op de <svg> (zie LineChart/BarChart) houdt de schaal nooit
+// boven 1, dus nooit groter dan hier gekozen — dat is ook wat live
+// feedback "elke interactieve grafiek is te groot" oploste (de tooltip
+// hieronder is dezelfde foreignObject-techniek en blies op een brede
+// desktopkaart net zo mee op).
 function AxisLabel({
   x,
   y,
@@ -159,7 +167,13 @@ export function LineChart({
 
   return (
     <>
-      <svg viewBox={`0 0 ${CHART_WIDTH} ${height}`} className="w-full overflow-visible" role="img" aria-label={describeChart("Trendgrafiek", labels, series)}>
+      <svg
+        viewBox={`0 0 ${CHART_WIDTH} ${height}`}
+        className="w-full overflow-visible"
+        style={{ maxWidth: CHART_WIDTH }}
+        role="img"
+        aria-label={describeChart("Trendgrafiek", labels, series)}
+      >
       {gridLines.map((v) => (
         <g key={v}>
           <line x1={PADDING.left} x2={CHART_WIDTH - PADDING.right} y1={y(v)} y2={y(v)} stroke="var(--chart-grid)" strokeWidth={1} />
@@ -304,7 +318,13 @@ export function BarChart({
 
   return (
     <>
-      <svg viewBox={`0 0 ${CHART_WIDTH} ${height}`} className="w-full overflow-visible" role="img" aria-label={describeChart("Staafdiagram", labels, series)}>
+      <svg
+        viewBox={`0 0 ${CHART_WIDTH} ${height}`}
+        className="w-full overflow-visible"
+        style={{ maxWidth: CHART_WIDTH }}
+        role="img"
+        aria-label={describeChart("Staafdiagram", labels, series)}
+      >
       {gridLines.map((v) => (
         <g key={v}>
           <line x1={PADDING.left} x2={CHART_WIDTH - PADDING.right} y1={y(v)} y2={y(v)} stroke="var(--chart-grid)" strokeWidth={1} />
