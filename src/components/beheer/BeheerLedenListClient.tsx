@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, ArrowUpDown, ArrowUpRight, ChevronDown, Clock, Mail, Pencil, Phone, Send, Users } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ArrowUpRight, ChevronDown, Clock, Mail, Pencil, Phone, Users } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
 import { MemberRowMenu } from "@/components/members/MemberRowMenu";
@@ -14,8 +14,7 @@ import { useUrlFilterState } from "@/lib/dom/useUrlFilterState";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { memberHref } from "@/lib/members/slug";
 import { formatLastActive } from "@/lib/format/date";
-import { sendInvitationEmailAction } from "@/app/(app)/beheer/uitnodigingen/actions";
-import { useToast } from "@/lib/ui/ToastContext";
+import { InvitationResendButton } from "@/components/beheer/InvitationResendButton";
 import type { UserRole } from "@/lib/types/database";
 
 // "Aanmelden zonder account + personenmodel" Fase 1b: deze lijst toonde
@@ -69,33 +68,6 @@ const STATUS_LABELS: Record<PersonStatus, string> = {
 };
 
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
-
-// Hergebruikt de bestaande verstuuractie van Beheer -> Instroom ->
-// Uitnodigingen (sendInvitationEmailAction) i.p.v. een eigen actie te
-// bouwen -- precies dezelfde mail, geldigheidsverlenging en revalidatie.
-function InvitationResendButton({ invitationId }: { invitationId: string }) {
-  const [pending, setPending] = useState(false);
-  const toast = useToast();
-
-  async function handleClick() {
-    setPending(true);
-    const { error } = await sendInvitationEmailAction(invitationId);
-    setPending(false);
-    toast(error ?? "Uitnodiging opnieuw verstuurd.");
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleClick}
-      disabled={pending}
-      aria-label="Uitnodiging opnieuw versturen"
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-muted disabled:opacity-50"
-    >
-      <Send size={13} />
-    </button>
-  );
-}
 
 function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: BeheerMemberRow[]; viewerId: string; canEditRole: boolean }) {
   const { getInitial, setParam } = useUrlFilterState();

@@ -3,35 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { requireBoard } from "@/lib/auth/session";
 import { createClient } from "@/lib/supabase/server";
-import { isEmailConfigured, sendRawHtmlEmail, invitationGreeting } from "@/lib/email/send";
-import { renderMessageEmail } from "@/lib/templates/message-render";
 import { invalidateQuery } from "@/lib/cache/queryCache";
+import { sendInvitationTemplateEmail, type InvitationSource } from "@/lib/invitations/email";
 import type { UserRole } from "@/lib/types/database";
-
-type InvitationSource = "nieuw_lid" | "bestaand_lid" | "collega";
-
-function templateKeyForSource(source: InvitationSource): "uit-nieuw" | "uit-bestaand" | "uit-collega" {
-  if (source === "bestaand_lid") return "uit-bestaand";
-  if (source === "collega") return "uit-collega";
-  return "uit-nieuw";
-}
-
-async function sendInvitationTemplateEmail(
-  source: InvitationSource,
-  to: string,
-  token: string,
-  firstName: string | null
-): Promise<{ error?: string }> {
-  if (!isEmailConfigured()) {
-    return { error: "E-mail versturen is niet geconfigureerd." };
-  }
-  const link = `${process.env.SITE_URL ?? ""}/register/${token}`;
-  const rendered = await renderMessageEmail(templateKeyForSource(source), link, { greeting: invitationGreeting(firstName) });
-  if (!rendered) {
-    return { error: "Sjabloon ontbreekt." };
-  }
-  return sendRawHtmlEmail(to, rendered.subject, rendered.html, rendered.text);
-}
 
 // UX-review punt 17: mirror van de bedrijf-opzoek/aanmaak-logica in
 // createInvitationFromAccessRequestAction (beheer/aanvragen/actions.ts) —

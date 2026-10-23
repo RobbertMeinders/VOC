@@ -985,6 +985,23 @@ export interface Database {
         Args: { p_activity_id: string; p_name: string; p_email: string; p_company_name: string | null };
         Returns: undefined;
       };
+      // 0209_public_registration_person_match.sql (personenmodel Fase 2).
+      match_person_by_email: {
+        Args: { p_email: string };
+        Returns: { status: string; invitation_token: string | null; invitation_first_name: string | null; invitation_source: string | null }[];
+      };
+      get_public_activity_registrations: {
+        Args: { p_activity_id: string };
+        Returns: {
+          id: string;
+          name: string;
+          email: string;
+          company_name: string | null;
+          created_at: string;
+          person_status: string;
+          invitation_id: string | null;
+        }[];
+      };
       get_member_profile: {
         Args: { p_id: string };
         // email/phone zijn hier nullable (i.t.t. profiles.Row): 0061_masked_

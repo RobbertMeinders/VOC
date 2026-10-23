@@ -123,7 +123,14 @@ export function MemberOrVisitorRegistration({
           {denied && <p className="text-xs text-muted">Kon geen toegang krijgen - gebruik de knop hierboven.</p>}
         </div>
         <div className="flex flex-col gap-3 border-t border-border pt-6">
-          <p className="text-sm text-foreground">Meld je aan als bezoeker</p>
+          <div>
+            <p className="text-sm text-foreground">Meld je aan als bezoeker</p>
+            {/* Personenmodel Fase 2: verduidelijkt dat een lid zich via
+                inloggen aanmeldt (hierboven), niet via dit formulier --
+                voorheen stonden beide opties zonder toelichting naast
+                elkaar. */}
+            <p className="mt-0.5 text-xs text-muted">Ben je al lid? Log dan in via de knop hierboven in plaats van dit formulier.</p>
+          </div>
           <PublicRegistrationForm activityId={activityId} />
         </div>
       </div>

@@ -4,8 +4,15 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { isEmailRateLimited, isIpRateLimited } from "@/lib/auth/rate-limit";
 import { getClientIp } from "@/lib/http/client-ip";
+import { sendInvitationTemplateEmail, type InvitationSource } from "@/lib/invitations/email";
 
-export type PublicRegisterState = { error?: string; success?: boolean };
+// Personenmodel Fase 2: of het ingevulde e-mailadres exact overeenkomt met
+// een bestaand lid ("lid"), een openstaande uitnodiging ("lid_zonder_
+// account") of niemand bekend ("geen_lid") -- bepaalt de bedankttekst
+// hieronder in PublicRegistrationForm.
+export type PersonMatchStatus = "lid" | "lid_zonder_account" | "geen_lid";
+
+export type PublicRegisterState = { error?: string; success?: boolean; personStatus?: PersonMatchStatus };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -87,5 +94,30 @@ export async function registerPublicForActivityAction(
   }
 
   revalidatePath(`/embed/agenda/${activityId}`);
-  return { success: true };
+
+  // Personenmodel Fase 2: exacte e-mailmatch tegen bekende personen (RPC
+  // match_person_by_email, 0209) -- bij een match met een openstaande
+  // uitnodiging stuurt de RPC meteen de velden terug om diezelfde
+  // uitnodigingsmail nogmaals te sturen (nudge). Nooit de bedankmelding
+  // laten mislukken op deze extra stap: een fout hier is nooit ernstiger
+  // dan "geen nudge verstuurd", de aanmelding zelf staat al vast.
+  let personStatus: PersonMatchStatus = "geen_lid";
+  try {
+    const { data: match } = await supabase.rpc("match_person_by_email", { p_email: email }).maybeSingle();
+    if (match) {
+      personStatus = match.status as PersonMatchStatus;
+      if (match.status === "lid_zonder_account" && match.invitation_token) {
+        await sendInvitationTemplateEmail(
+          (match.invitation_source ?? "nieuw_lid") as InvitationSource,
+          email,
+          match.invitation_token,
+          match.invitation_first_name
+        );
+      }
+    }
+  } catch {
+    // Zie toelichting hierboven -- de aanmelding is al gelukt.
+  }
+
+  return { success: true, personStatus };
 }

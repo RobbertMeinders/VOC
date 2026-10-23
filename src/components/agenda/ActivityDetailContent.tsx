@@ -22,10 +22,22 @@ import { StatusPill } from "@/components/ui/StatusPill";
 import { deleteActivityAction, decideActivitySubmissionAction } from "@/app/(app)/agenda/actions";
 import { logEvent } from "@/lib/events/log";
 import { activityHref, activityIdFilter, resolveActivitySlugAlias } from "@/lib/agenda/slug";
+import { InvitationResendButton } from "@/components/beheer/InvitationResendButton";
+import { QuickInviteButton } from "@/components/beheer/QuickInviteButton";
 import type { Database } from "@/lib/types/database";
 
 type Activity = Database["public"]["Tables"]["activities"]["Row"];
 type Attachment = Database["public"]["Tables"]["activity_attachments"]["Row"];
+
+// Personenmodel Fase 2: label naast een "Aangemeld via de website"-rij als
+// de exacte e-mailmatch (get_public_activity_registrations, 0209) iemand
+// herkent. "lid" krijgt bewust geen label-tekst (de naam zelf is al
+// duidelijk genoeg; geen actie nodig).
+const PERSON_STATUS_LABELS: Record<"lid" | "lid_zonder_account" | "geen_lid", string | null> = {
+  lid: "· lid",
+  lid_zonder_account: "· lid (geen account)",
+  geen_lid: null,
+};
 
 // Performance-audit #5: generateMetadata (title) en ActivityDetailContent
 // deden allebei hun eigen activities-query voor dezelfde id — cache() dedupet
@@ -99,6 +111,8 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
     email: string;
     company_name: string | null;
     created_at: string;
+    person_status: "lid" | "lid_zonder_account" | "geen_lid";
+    invitation_id: string | null;
   };
 
   // Alle onafhankelijke queries (incl. de indiener, voorheen pas hierna en
@@ -138,15 +152,13 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
           .eq("id", activity.created_by)
           .maybeSingle<SubmitterRow>()
       : Promise.resolve({ data: null as SubmitterRow | null }),
-    // public_activity_registrations is sowieso alleen leesbaar voor bestuur
-    // (RLS), maar niet-bestuursleden slaan deze query gewoon over.
+    // get_public_activity_registrations (0209, personenmodel Fase 2) i.p.v.
+    // rechtstreeks .from("public_activity_registrations") -- geeft er meteen
+    // person_status/invitation_id bij (exacte e-mailmatch tegen profielen/
+    // openstaande uitnodigingen), board-only net als de RPC zelf afdwingt;
+    // niet-bestuursleden slaan deze query gewoon over.
     isBoard(profile.role) && activity.allow_public_registration
-      ? supabase
-          .from("public_activity_registrations")
-          .select("id, name, email, company_name, created_at")
-          .eq("activity_id", activity.id)
-          .order("created_at", { ascending: true })
-          .returns<PublicRegistrationRow[]>()
+      ? supabase.rpc("get_public_activity_registrations", { p_activity_id: activity.id }).returns<PublicRegistrationRow[]>()
       : Promise.resolve({ data: null as PublicRegistrationRow[] | null }),
   ]);
 
@@ -384,13 +396,28 @@ export async function ActivityDetailContent({ id: routeParam }: { id: string }) 
           <p className="mb-3 text-xs text-muted">Staan ook bij Instroom &gt; Potentiële leden.</p>
           <div className="flex flex-col">
             {publicRegistrations.map((registration) => (
-              <div key={registration.id} className="flex flex-col gap-0.5 border-b border-border py-2 last:border-0">
-                <p className="text-sm font-medium text-foreground">{registration.name}</p>
-                <p className="text-xs text-muted">
-                  {registration.email}
-                  {registration.company_name && ` · ${registration.company_name}`} · aangemeld{" "}
-                  {formatLastActive(registration.created_at).toLowerCase()}
-                </p>
+              <div key={registration.id} className="flex flex-wrap items-center justify-between gap-2 border-b border-border py-2 last:border-0">
+                <div className="flex flex-col gap-0.5">
+                  <p className="text-sm font-medium text-foreground">
+                    {registration.name}
+                    {PERSON_STATUS_LABELS[registration.person_status] && (
+                      <span className="ml-2 text-xs font-normal text-muted">{PERSON_STATUS_LABELS[registration.person_status]}</span>
+                    )}
+                  </p>
+                  <p className="text-xs text-muted">
+                    {registration.email}
+                    {registration.company_name && ` · ${registration.company_name}`} · aangemeld{" "}
+                    {formatLastActive(registration.created_at).toLowerCase()}
+                  </p>
+                </div>
+                {/* Personenmodel Fase 2: per-rij actie op basis van de
+                    exacte e-mailmatch -- een echte lid-match heeft hier
+                    niets te doen, de andere twee krijgen precies één
+                    vervolgstap. */}
+                {registration.person_status === "lid_zonder_account" && registration.invitation_id && (
+                  <InvitationResendButton invitationId={registration.invitation_id} />
+                )}
+                {registration.person_status === "geen_lid" && <QuickInviteButton name={registration.name} email={registration.email} />}
               </div>
             ))}
           </div>

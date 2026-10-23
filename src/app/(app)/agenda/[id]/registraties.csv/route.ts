@@ -36,14 +36,16 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   // get_activity_registration_export (0091) i.p.v. rechtstreeks
   // activity_registrations.select('...profile:profiles(..., email)') —
   // profiles.email is sinds die migratie alleen nog via een RPC leesbaar.
+  // get_public_activity_registrations (0209, personenmodel Fase 2) geeft er
+  // de exacte e-mailmatch bij, zodat de "Lid"-kolom hieronder "lid (geen
+  // account)" kan onderscheiden van een echte buitenstaander i.p.v. altijd
+  // "Nee" voor elke website-aanmelding.
   const [{ data: registrations }, { data: publicRegistrations }] = await Promise.all([
     supabase.rpc("get_activity_registration_export", { p_activity_id: activity.id }),
-    supabase
-      .from("public_activity_registrations")
-      .select("name, email, company_name, created_at")
-      .eq("activity_id", activity.id)
-      .order("created_at", { ascending: true }),
+    supabase.rpc("get_public_activity_registrations", { p_activity_id: activity.id }),
   ]);
+
+  const LID_LABELS = { lid: "Ja", lid_zonder_account: "Lid (geen account)", geen_lid: "Nee" } as const;
 
   const rows: string[][] = [["Naam", "E-mailadres", "Bedrijf", "Status", "Lid"]];
   for (const registration of registrations ?? []) {
@@ -56,7 +58,8 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
     ]);
   }
   for (const registration of publicRegistrations ?? []) {
-    rows.push([registration.name, registration.email, registration.company_name ?? "", "Aangemeld", "Nee"]);
+    const personStatus = registration.person_status as keyof typeof LID_LABELS;
+    rows.push([registration.name, registration.email, registration.company_name ?? "", "Aangemeld", LID_LABELS[personStatus] ?? "Nee"]);
   }
 
   const csv = rows.map((row) => row.map(csvEscape).join(",")).join("\n");

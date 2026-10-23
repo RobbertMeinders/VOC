@@ -24,9 +24,18 @@ export function PublicRegistrationForm({ activityId }: { activityId: string }) {
   const [state, formAction] = useActionState(boundAction, initialState);
 
   if (state.success) {
+    // Personenmodel Fase 2: exacte e-mailmatch (match_person_by_email,
+    // 0209) bepaalt een iets andere bedankttekst -- een al uitgenodigd
+    // "lid zonder account" krijgt een seintje dat de uitnodiging net
+    // nogmaals is verstuurd, i.p.v. de generieke tekst die een echte
+    // buitenstaander ziet.
+    const extra =
+      state.personStatus === "lid_zonder_account"
+        ? " Je hebt al een openstaande uitnodiging voor het ledenportaal -- we hebben die net opnieuw naar je gemaild."
+        : "";
     return (
       <p className="rounded-xl border border-status-success/30 bg-status-success-soft px-4 py-3 text-sm text-status-success">
-        Bedankt voor je aanmelding! Tot dan.
+        Bedankt voor je aanmelding! Tot dan.{extra}
       </p>
     );
   }
