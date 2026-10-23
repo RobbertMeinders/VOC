@@ -990,6 +990,11 @@ export interface Database {
         Args: { p_email: string };
         Returns: { status: string; invitation_token: string | null; invitation_first_name: string | null; invitation_source: string | null }[];
       };
+      // 0210_public_registration_confirmation_template.sql.
+      get_public_registration_id: {
+        Args: { p_activity_id: string; p_email: string };
+        Returns: string | null;
+      };
       get_public_activity_registrations: {
         Args: { p_activity_id: string };
         Returns: {

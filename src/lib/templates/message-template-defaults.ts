@@ -153,4 +153,17 @@ export const MESSAGE_TEMPLATE_DEFAULTS: Record<string, MessageTemplateDefault> =
     pushTitle: "{{title}}",
     pushBody: "{{body}}",
   },
+  "aanmelding-bevestiging": {
+    subject: "Je aanmelding voor {{title}} is bevestigd",
+    bodyHtml:
+      "<p>{{greeting}}</p>" +
+      "<p>Je aanmelding voor {{title}} op {{datum}} is bevestigd. We zien je daar graag!</p>" +
+      "<p>{{extra}}</p>",
+    ctaLabel: "Bekijk de activiteit",
+    afterHtml:
+      '<p>Deze bevestiging gaat alleen over je aanmelding voor deze activiteit. Wil je je aanmelding intrekken? <a href="{{afmeldlink}}">{{afmeldlink}}</a></p>',
+    preheader: null,
+    pushTitle: null,
+    pushBody: null,
+  },
 };

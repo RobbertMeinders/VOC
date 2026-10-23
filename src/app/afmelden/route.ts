@@ -44,6 +44,17 @@ ${body}
 }
 
 function confirmForm(token: string, orgName: string, kind: UnsubscribeKind): string {
+  // Personenmodel Fase 3: "public_registration" gaat over het intrekken van
+  // één activiteit-aanmelding, niet over de nieuwsbrief -- eigen titel/tekst
+  // op dezelfde pagina/route, i.p.v. een losse tweede afmeldroute.
+  if (kind === "public_registration") {
+    return `<h1 style="margin:0 0 12px;font-size:18px;color:${COLORS.foreground};">Aanmelding intrekken?</h1>
+<p style="margin:0 0 20px;font-size:14px;line-height:1.6;color:${COLORS.muted};">Je aanmelding voor deze activiteit wordt verwijderd. Weet je het zeker?</p>
+<form method="POST" action="/afmelden?token=${encodeURIComponent(token)}">
+<button type="submit" style="display:inline-block;background:${COLORS.foreground};color:#ffffff;font-size:14px;font-weight:600;border:none;cursor:pointer;padding:12px 24px;border-radius:8px;font-family:${FONT};">Aanmelding intrekken</button>
+</form>`;
+  }
+
   // "Later terugzetten"-opmerking alleen voor leden (profile) -- een
   // contact heeft geen portaalaccount/instellingenpagina om zich weer aan
   // te melden; die kan alleen via het bestuur terug op de lijst komen.
@@ -70,6 +81,16 @@ async function performUnsubscribe(token: string, orgName: string): Promise<{ ok:
   }
 
   const admin = createAdminClient();
+  if (parsed.kind === "public_registration") {
+    // Verwijdert de rij i.p.v. een los "ingetrokken"-vlag -- dit is
+    // dezelfde tabel waarop upsert_public_activity_registration het
+    // maximum aantal deelnemers telt, dus intrekken maakt de plek ook
+    // meteen weer vrij voor iemand anders.
+    const { data } = await admin.from("public_activity_registrations").select("id").eq("id", parsed.id).maybeSingle();
+    if (!data) return { ok: true, message: "Deze aanmelding was al ingetrokken of bestaat niet meer." };
+    await admin.from("public_activity_registrations").delete().eq("id", parsed.id);
+    return { ok: true, message: "Je aanmelding is ingetrokken." };
+  }
   if (parsed.kind === "profile") {
     const { data } = await admin.from("profiles").select("id, email_campaigns").eq("id", parsed.id).maybeSingle();
     if (!data) return { ok: false, message: "Deze afmeldlink is ongeldig." };
@@ -95,7 +116,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   if (!parsed) {
     return page("Afmelden", resultMessage("Deze afmeldlink is ongeldig."), logoSrc, 400);
   }
-  return page("Afmelden", confirmForm(token, settings.org_name, parsed.kind), logoSrc);
+  const title = parsed.kind === "public_registration" ? "Aanmelding intrekken" : "Afmelden";
+  return page(title, confirmForm(token, settings.org_name, parsed.kind), logoSrc);
 }
 
 // Zelfde endpoint voor de handmatige bevestiging (form hierboven) en de
@@ -108,5 +130,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const logoSrc = settings.logo_url || `${(process.env.SITE_URL ?? "").replace(/\/$/, "")}/brand/voc-logo-mark.png`;
 
   const result = await performUnsubscribe(token, settings.org_name);
-  return page("Afmelden", resultMessage(result.message), logoSrc, result.ok ? 200 : 400);
+  const parsed = parseUnsubscribeToken(token);
+  const title = parsed?.kind === "public_registration" ? "Aanmelding intrekken" : "Afmelden";
+  return page(title, resultMessage(result.message), logoSrc, result.ok ? 200 : 400);
 }

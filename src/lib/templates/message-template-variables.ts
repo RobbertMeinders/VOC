@@ -43,6 +43,13 @@ export const MESSAGE_TEMPLATE_VARIABLES: Record<string, VariableDef[]> = {
     { key: "title", label: "Titel", example: "Welkom aan Hebe Jager van Grodal Expeditie B.V." },
     { key: "body", label: "Berichttekst", example: "Het netwerk van de VOC is weer gegroeid." },
   ],
+  "aanmelding-bevestiging": [
+    { key: "greeting", label: "Aanhef", example: "Beste Hebe," },
+    { key: "title", label: "Titel activiteit", example: "Netwerkborrel" },
+    { key: "datum", label: "Datum en tijd", example: "woensdag 18 november, 16:00" },
+    { key: "extra", label: "Extra zin (status-afhankelijk)", example: "Je hebt ook een openstaande uitnodiging voor het ledenportaal." },
+    { key: "afmeldlink", label: "Link om aanmelding in te trekken", example: "https://vocveendam.nl/afmelden?token=..." },
+  ],
 };
 
 export function variablesForMessageTemplate(key: string): VariableDef[] {

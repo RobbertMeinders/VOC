@@ -5,6 +5,10 @@ import { createClient } from "@/lib/supabase/server";
 import { isEmailRateLimited, isIpRateLimited } from "@/lib/auth/rate-limit";
 import { getClientIp } from "@/lib/http/client-ip";
 import { sendInvitationTemplateEmail, type InvitationSource } from "@/lib/invitations/email";
+import { isEmailConfigured, sendRawHtmlEmail, invitationGreeting } from "@/lib/email/send";
+import { renderMessageEmail } from "@/lib/templates/message-render";
+import { formatActivityDate } from "@/lib/format/date";
+import { buildUnsubscribeUrl } from "@/lib/newsletter/unsubscribe";
 
 // Personenmodel Fase 2: of het ingevulde e-mailadres exact overeenkomt met
 // een bestaand lid ("lid"), een openstaande uitnodiging ("lid_zonder_
@@ -113,6 +117,51 @@ export async function registerPublicForActivityAction(
           match.invitation_token,
           match.invitation_first_name
         );
+      }
+    }
+  } catch {
+    // Zie toelichting hierboven -- de aanmelding is al gelukt.
+  }
+
+  // Fase 3: eenvoudige bevestigingsmail na elke publieke aanmelding, met
+  // een status-afhankelijke extra zin en altijd een link om deze specifieke
+  // aanmelding weer in te trekken (buildUnsubscribeUrl, kind
+  // "public_registration" -- verwijdert alleen deze rij, geen nieuwsbrief-
+  // voorkeur). Geen losse herinneringsmail vooraf, bewust: dit is de enige
+  // mail die een publieke aanmelder krijgt. Ook hier geldt: nooit de
+  // bedankmelding laten mislukken op een fout in deze extra stap.
+  try {
+    const siteUrl = process.env.SITE_URL ?? "";
+    // public_activity_registrations is zelf alleen leesbaar voor bestuur
+    // (RLS) -- get_public_registration_id (0210) geeft alleen het eigen
+    // rij-id terug voor precies dit (activity_id, email)-paar.
+    const [{ data: activity }, { data: registrationId }] = await Promise.all([
+      supabase.from("activities").select("title, starts_at").eq("id", activityId).maybeSingle(),
+      supabase.rpc("get_public_registration_id", { p_activity_id: activityId, p_email: email }),
+    ]);
+
+    if (activity && registrationId && isEmailConfigured()) {
+      const extra =
+        personStatus === "lid_zonder_account"
+          ? "Je hebt ook een openstaande uitnodiging voor het ledenportaal - we hebben die net opnieuw naar je gemaild."
+          : personStatus === "geen_lid"
+            ? "Benieuwd naar de VOC? Op vocveendam.nl lees je meer over het lidmaatschap."
+            : "";
+      const [firstName] = name.trim().split(/\s+/);
+      const afmeldlink = buildUnsubscribeUrl(siteUrl, "public_registration", registrationId);
+      const rendered = await renderMessageEmail(
+        "aanmelding-bevestiging",
+        `${siteUrl.replace(/\/$/, "")}/embed/agenda/${activityId}`,
+        {
+          greeting: invitationGreeting(firstName ?? null),
+          title: activity.title,
+          datum: formatActivityDate(activity.starts_at),
+          extra,
+          afmeldlink,
+        }
+      );
+      if (rendered) {
+        await sendRawHtmlEmail(email, rendered.subject, rendered.html, rendered.text);
       }
     }
   } catch {

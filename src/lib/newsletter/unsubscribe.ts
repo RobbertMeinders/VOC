@@ -2,7 +2,12 @@ import "server-only";
 
 import { createHmac, timingSafeEqual } from "crypto";
 
-export type UnsubscribeKind = "profile" | "contact";
+// "public_registration" (Fase 3, personenmodel): intrekken van één
+// specifieke publieke activiteit-aanmelding -- geen nieuwsbriefvoorkeur,
+// maar hergebruikt dezelfde ondertekende-code-infrastructuur (idee en
+// risico zijn identiek: een niet-te-raden maar wel ondertekend id in een
+// mail-link, zonder dat inloggen nodig is).
+export type UnsubscribeKind = "profile" | "contact" | "public_registration";
 
 // Ondertekende afmeldcode i.p.v. een los op te slaan tokenkolom: het id van
 // het lid/contact staat al vast en is niet te raden (uuid), de handtekening
@@ -26,8 +31,20 @@ function sign(payload: string): string {
   return createHmac("sha256", key).update(payload).digest("base64url").slice(0, 22);
 }
 
+function prefixForKind(kind: UnsubscribeKind): "p" | "c" | "r" {
+  if (kind === "profile") return "p";
+  if (kind === "contact") return "c";
+  return "r";
+}
+
+function kindForPrefix(prefix: "p" | "c" | "r"): UnsubscribeKind {
+  if (prefix === "p") return "profile";
+  if (prefix === "c") return "contact";
+  return "public_registration";
+}
+
 export function buildUnsubscribeToken(kind: UnsubscribeKind, id: string): string {
-  const prefix = kind === "profile" ? "p" : "c";
+  const prefix = prefixForKind(kind);
   return `${prefix}.${id}.${sign(`${prefix}:${id}`)}`;
 }
 
@@ -40,7 +57,7 @@ export function parseUnsubscribeToken(token: string): { kind: UnsubscribeKind; i
   const parts = token.split(".");
   if (parts.length !== 3) return null;
   const [prefix, id, signature] = parts;
-  if (prefix !== "p" && prefix !== "c") return null;
+  if (prefix !== "p" && prefix !== "c" && prefix !== "r") return null;
   if (!id || !signature) return null;
 
   const expected = sign(`${prefix}:${id}`);
@@ -48,7 +65,7 @@ export function parseUnsubscribeToken(token: string): { kind: UnsubscribeKind; i
   const b = Buffer.from(expected);
   if (a.length !== b.length || !timingSafeEqual(a, b)) return null;
 
-  return { kind: prefix === "p" ? "profile" : "contact", id };
+  return { kind: kindForPrefix(prefix), id };
 }
 
 export function buildUnsubscribeUrl(siteUrl: string, kind: UnsubscribeKind, id: string): string {
