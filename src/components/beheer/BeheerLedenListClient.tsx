@@ -277,7 +277,15 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                   exact dezelfde horizontale positie staan — een ontbrekend
                   veld (telefoon) laat zijn kolom leeg (invisible, niet
                   weggelaten) i.p.v. de kolommen erna te laten opschuiven. */}
-              <div className="flex min-w-0 flex-col gap-1.5 sm:grid sm:grid-cols-[minmax(0,1.6fr)_160px_minmax(0,1.6fr)_120px_140px_auto] sm:items-center sm:gap-x-4 sm:gap-y-0">
+              {/* Live feedback: rijen verspringen t.o.v. elkaar -- elke rij is
+                  hier zijn eigen grid (geen gedeelde tabel), dus een "auto"-
+                  brede actiekolom laat zijn breedte per rij meeveren met het
+                  aantal knoppen (2 voor een profiel: potlood + menu, 1 voor
+                  een uitnodiging/contact) en duwt daarmee de kolommen ervoor
+                  elke rij een beetje anders uit elkaar. Een vaste breedte,
+                  ruim genoeg voor het breedste geval (twee knoppen), houdt
+                  alle rijen exact gelijk. */}
+              <div className="flex min-w-0 flex-col gap-1.5 sm:grid sm:grid-cols-[minmax(0,1.6fr)_160px_minmax(0,1.6fr)_120px_140px_84px] sm:items-center sm:gap-x-4 sm:gap-y-0">
                 <div className="flex min-w-0 items-center gap-3">
                   {/* Alleen echte profielen hebben een detailpagina --
                       uitnodigingen/contacten renderen dezelfde inhoud zonder

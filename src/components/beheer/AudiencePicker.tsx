@@ -58,6 +58,7 @@ export function AudiencePicker({
 
   const [addProfileId, setAddProfileId] = useState("");
   const [addContactId, setAddContactId] = useState("");
+  const [addListId, setAddListId] = useState("");
   const [newContactName, setNewContactName] = useState("");
   const [newContactEmail, setNewContactEmail] = useState("");
   const [newContactPending, setNewContactPending] = useState(false);
@@ -100,9 +101,11 @@ export function AudiencePicker({
   const extraContacts = contacts.filter((c) => extraContactIds.includes(c.id));
   const availableProfiles = activeProfiles.filter((p) => !extraProfileIds.includes(p.id));
   const availableContacts = contacts.filter((c) => !extraContactIds.includes(c.id));
+  const selectedLists = lists.filter((l) => listIds.includes(l.id));
+  const availableLists = lists.filter((l) => !listIds.includes(l.id));
 
-  function toggleList(listId: string) {
-    setListIds((prev) => (prev.includes(listId) ? prev.filter((id) => id !== listId) : [...prev, listId]));
+  function removeList(listId: string) {
+    setListIds((prev) => prev.filter((id) => id !== listId));
   }
 
   async function handleAddNewContact() {
@@ -147,8 +150,8 @@ export function AudiencePicker({
           Specifieke lijst(en)
         </label>
         {filter === "lijsten" && (
-          <div className="ml-6 flex flex-col gap-1.5">
-            {lists.length === 0 && (
+          <div className="ml-6 flex flex-col gap-2">
+            {lists.length === 0 ? (
               <p className="text-sm text-muted">
                 Nog geen lijsten.{" "}
                 <Link href="/beheer/contacten?tab=lijsten" className="text-petrol hover:underline">
@@ -156,13 +159,47 @@ export function AudiencePicker({
                 </Link>
                 .
               </p>
+            ) : (
+              <>
+                <div className="flex flex-wrap gap-1.5">
+                  {selectedLists.map((list) => (
+                    <span
+                      key={list.id}
+                      className="flex items-center gap-1 rounded-full bg-black/[.06] px-2.5 py-1 text-xs text-foreground dark:bg-white/[.08]"
+                    >
+                      {list.name}
+                      <button type="button" onClick={() => removeList(list.id)} aria-label={`${list.name} verwijderen`}>
+                        <X size={12} />
+                      </button>
+                    </span>
+                  ))}
+                  {selectedLists.length === 0 && <p className="text-sm text-muted">Nog geen lijst gekozen.</p>}
+                </div>
+                <div className="flex items-center gap-2">
+                  <Select value={addListId} onChange={(e) => setAddListId(e.target.value)} className="h-9 flex-1 pl-3" aria-label="Lijst toevoegen">
+                    <option value="">Lijst toevoegen…</option>
+                    {availableLists.map((list) => (
+                      <option key={list.id} value={list.id}>
+                        {list.name}
+                      </option>
+                    ))}
+                  </Select>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="secondary"
+                    disabled={!addListId}
+                    aria-label="Lijst toevoegen aan doelgroep"
+                    onClick={() => {
+                      setListIds((prev) => [...prev, addListId]);
+                      setAddListId("");
+                    }}
+                  >
+                    <Plus size={14} />
+                  </Button>
+                </div>
+              </>
             )}
-            {lists.map((list) => (
-              <label key={list.id} className="flex items-center gap-2 text-sm text-foreground">
-                <input type="checkbox" checked={listIds.includes(list.id)} onChange={() => toggleList(list.id)} className="rounded" />
-                {list.name}
-              </label>
-            ))}
           </div>
         )}
       </div>

@@ -596,6 +596,7 @@ export function NewsletterEditor({
   attempts,
   recipientNames,
   attemptStarterNames,
+  initialTab,
 }: {
   communication: Communication;
   activities: ActivityOption[];
@@ -615,6 +616,7 @@ export function NewsletterEditor({
   attempts: Database["public"]["Tables"]["communication_send_attempts"]["Row"][];
   recipientNames: Record<string, string>;
   attemptStarterNames: Record<string, string>;
+  initialTab?: "inhoud" | "ontvangers" | "verzendingen";
 }) {
   const router = useRouter();
   const confirm = useConfirm();
@@ -642,7 +644,10 @@ export function NewsletterEditor({
   // (hidden) i.p.v. de secties voorwaardelijk te unmounten: de editorstate
   // (subject/blocks/...) en het opslaan-formulier blijven zo intact bij het
   // wisselen van tabblad.
-  const [activeEditorTab, setActiveEditorTab] = useState<"inhoud" | "ontvangers" | "verzendingen">("inhoud");
+  // initialTab: zodat Beheer -> Nieuwsbrieven direct op de Verzendingen-tab
+  // van een campagne kan linken (live feedback: snelkoppeling naar pogingen
+  // + ontvangers vanuit het overzicht), i.p.v. altijd op "Inhoud" te openen.
+  const [activeEditorTab, setActiveEditorTab] = useState<"inhoud" | "ontvangers" | "verzendingen">(initialTab ?? "inhoud");
   const [testSendPending, setTestSendPending] = useState(false);
   const [testSendResult, setTestSendResult] = useState<{ error?: string; success?: boolean } | null>(null);
 

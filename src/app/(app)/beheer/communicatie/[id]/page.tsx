@@ -22,9 +22,17 @@ export const metadata: Metadata = { title: "Nieuwsbrief" };
 // abonnement.
 export const maxDuration = 300;
 
-export default async function CommunicatieDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function CommunicatieDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ tab?: string }>;
+}) {
   await requireBoard();
   const { id } = await params;
+  const { tab } = await searchParams;
+  const initialTab = tab === "ontvangers" || tab === "verzendingen" ? tab : undefined;
   const supabase = await createClient();
 
   const nowIso = new Date().toISOString();
@@ -161,6 +169,7 @@ export default async function CommunicatieDetailPage({ params }: { params: Promi
         attempts={attempts ?? []}
         recipientNames={recipientNames}
         attemptStarterNames={profileNames}
+        initialTab={initialTab}
       />
     </div>
   );

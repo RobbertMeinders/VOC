@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Clock, XCircle, type LucideIcon } from "lucide-react";
+import { CheckCircle2, Clock, Send, XCircle, type LucideIcon } from "lucide-react";
 import { ActionMenu, type ActionMenuItem } from "@/components/ui/ActionMenu";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 import { deleteCommunicationAction, duplicateCommunicationAction } from "@/app/(app)/beheer/communicatie/actions";
@@ -191,6 +191,21 @@ export function CommunicationRow({
           )}
         </div>
       </div>
+      {/* Live feedback: snelkoppeling naar de Verzendingen-tab (pogingen +
+          ontvangers) vanuit het overzicht i.p.v. eerst de kaart te openen en
+          dan handmatig naar dat tabblad te klikken. Alleen zinvol zodra er
+          iets te zien is (ingepland/versturen/verzonden/deels verstuurd) --
+          een concept heeft nog geen verzendingen. */}
+      {communication.status !== "concept" && (
+        <Link
+          href={`/beheer/communicatie/${communication.id}?tab=verzendingen`}
+          aria-label="Verzendingen bekijken"
+          title="Verzendingen bekijken"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-muted"
+        >
+          <Send size={14} />
+        </Link>
+      )}
       <ActionMenu items={items} />
     </div>
   );

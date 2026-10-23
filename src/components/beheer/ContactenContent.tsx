@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Plus, X } from "lucide-react";
 import { clsx } from "clsx";
@@ -8,6 +8,9 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { ActionMenu, type ActionMenuItem } from "@/components/ui/ActionMenu";
+import { ListToolbar } from "@/components/ui/ListToolbar";
+import { useUrlFilterState } from "@/lib/dom/useUrlFilterState";
+import { matchesSearch } from "@/lib/search/normalize";
 import { useConfirm } from "@/lib/ui/ConfirmDialogContext";
 import { useToast } from "@/lib/ui/ToastContext";
 import {
@@ -87,16 +90,28 @@ function ContactEditRow({ contact, onDone }: { contact: Contact; onDone: () => v
   );
 }
 
-function ContactsSection({ contacts }: { contacts: Contact[] }) {
+function ContactsSectionInner({ contacts }: { contacts: Contact[] }) {
   const router = useRouter();
   const confirm = useConfirm();
   const toast = useToast();
+  const { getInitial, setParam } = useUrlFilterState();
+  const [query, setQuery] = useState(() => getInitial("q"));
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState("");
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  function handleQueryChange(value: string) {
+    setQuery(value);
+    setParam("q", value);
+  }
+
+  const filteredContacts = useMemo(
+    () => contacts.filter((contact) => matchesSearch([contact.name, contact.email, contact.company], query)),
+    [contacts, query]
+  );
 
   async function handleAdd() {
     setPending(true);
@@ -119,9 +134,42 @@ function ContactsSection({ contacts }: { contacts: Contact[] }) {
       <p className="text-sm font-medium text-foreground">Contactpersonen</p>
       <p className="mt-0.5 text-sm text-muted">Mensen zonder account die je toch via de nieuwsbrief wilt bereiken.</p>
 
-      <div className="mt-3 flex flex-col gap-2">
-        {contacts.length === 0 && <p className="text-sm text-muted">Nog geen contactpersonen.</p>}
-        {contacts.map((contact) => {
+      <div className="mt-4 flex flex-col gap-2 border-b border-border pb-4 sm:flex-row sm:items-end">
+        <div className="flex-1">
+          <label className="mb-1 block text-xs font-medium text-muted">Naam</label>
+          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Naam" />
+        </div>
+        <div className="flex-1">
+          <label className="mb-1 block text-xs font-medium text-muted">E-mailadres</label>
+          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="naam@bedrijf.nl" />
+        </div>
+        <div className="flex-1">
+          <label className="mb-1 block text-xs font-medium text-muted">Bedrijf (optioneel)</label>
+          <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Bedrijf" />
+        </div>
+        <Button type="button" onClick={handleAdd} disabled={pending || !name.trim() || !email.trim()}>
+          <Plus size={16} />
+          Toevoegen
+        </Button>
+      </div>
+      {error && <p className="mt-2 text-sm text-danger-text">{error}</p>}
+
+      <div className="mt-4">
+        <ListToolbar
+          searchValue={query}
+          onSearchChange={handleQueryChange}
+          searchPlaceholder="Zoek op naam, e-mailadres of bedrijf…"
+          resultCount={filteredContacts.length}
+          totalCount={contacts.length}
+          itemLabel="contactpersonen"
+        />
+      </div>
+
+      <div className="flex flex-col gap-2">
+        {filteredContacts.length === 0 && (
+          <p className="text-sm text-muted">{contacts.length === 0 ? "Nog geen contactpersonen." : "Geen contactpersonen gevonden."}</p>
+        )}
+        {filteredContacts.map((contact) => {
           if (editingId === contact.id) {
             return <ContactEditRow key={contact.id} contact={contact} onDone={() => setEditingId(null)} />;
           }
@@ -168,27 +216,15 @@ function ContactsSection({ contacts }: { contacts: Contact[] }) {
           );
         })}
       </div>
-
-      <div className="mt-4 flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:items-end">
-        <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-muted">Naam</label>
-          <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Naam" />
-        </div>
-        <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-muted">E-mailadres</label>
-          <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="naam@bedrijf.nl" />
-        </div>
-        <div className="flex-1">
-          <label className="mb-1 block text-xs font-medium text-muted">Bedrijf (optioneel)</label>
-          <Input value={company} onChange={(e) => setCompany(e.target.value)} placeholder="Bedrijf" />
-        </div>
-        <Button type="button" onClick={handleAdd} disabled={pending || !name.trim() || !email.trim()}>
-          <Plus size={16} />
-          Toevoegen
-        </Button>
-      </div>
-      {error && <p className="mt-2 text-sm text-danger-text">{error}</p>}
     </div>
+  );
+}
+
+export function ContactsSection(props: { contacts: Contact[] }) {
+  return (
+    <Suspense>
+      <ContactsSectionInner {...props} />
+    </Suspense>
   );
 }
 
