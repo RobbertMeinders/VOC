@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
@@ -5,12 +6,26 @@ import { CalendarDays, MapPin, Users } from "lucide-react";
 import { clsx } from "clsx";
 import { createClient } from "@/lib/supabase/server";
 import { getSignedStorageUrls } from "@/lib/supabase/storage";
-import { formatActivityDate } from "@/lib/format/date";
+import { formatActivityDate, formatActivityTimeOnly } from "@/lib/format/date";
 import { EmbedAutoHeight } from "@/components/embed/EmbedAutoHeight";
 import { EmbedWhiteBackground } from "@/components/embed/EmbedWhiteBackground";
+import { AnimatedDisclosure } from "@/components/ui/AnimatedDisclosure";
 import { isWebsiteTheme, withEmbedTheme } from "@/lib/embed/theme";
 import { openSans } from "@/lib/fonts/openSans";
 import type { Database } from "@/lib/types/database";
+
+// Zelfde dag/weekdag-opmaak als de portaal-agenda (src/app/(app)/agenda/
+// page.tsx) -- hier gedupliceerd i.p.v. gedeeld, want die functie is daar
+// lokaal/niet-geëxporteerd (zelfde afweging als message-template-defaults.ts:
+// een paar regels dubbel is goedkoper dan een gedeelde module voor zo'n
+// kleine, view-specifieke opmaakfunctie).
+function dayParts(iso: string) {
+  const date = new Date(iso);
+  return {
+    day: new Intl.DateTimeFormat("nl-NL", { day: "numeric", timeZone: "Europe/Amsterdam" }).format(date),
+    weekday: new Intl.DateTimeFormat("nl-NL", { weekday: "short", timeZone: "Europe/Amsterdam" }).format(date).toUpperCase(),
+  };
+}
 
 export const metadata: Metadata = { title: "VOC Agenda" };
 
@@ -74,13 +89,13 @@ function ActivityCard({
   );
 }
 
-// Eerdere activiteiten blijven zichtbaar (sociale bewijskracht; een
-// publieke embed verbergt ze bewust niet achter een knop) maar horen geen
-// aandacht te trekken: een compacte, sterk gedempte rij i.p.v. de grote
-// fotokaart van hierboven (volledig grayscale + lagere opacity dan de
-// eerdere opacity-80/grayscale-50%, en een kleine thumbnail i.p.v. een volle
-// foto).
-function PastActivityRow({
+// Live feedback: "Eerdere activiteiten" hoort er hetzelfde uit te zien als
+// op het portaal zelf (src/components/agenda/ActivityCard.tsx, niet-hero-
+// variant) -- dag/weekdag-kolom, gekleurde linkerrand per soort (rood=VOC,
+// petrol=extern) en dezelfde badges, i.p.v. de eerdere eigen, sterk
+// afwijkende compacte rij. Geen Aangemeld/wachtlijst-badge: die zijn
+// lid-specifiek en een anonieme bezoeker heeft geen eigen aanmeldstatus.
+function PastActivityCard({
   activity,
   imageUrl,
   count,
@@ -91,31 +106,77 @@ function PastActivityRow({
   count: number;
   thema?: string;
 }) {
+  const isOfficial = activity.source === "voc";
   return (
     <Link
       href={withEmbedTheme(`/embed/agenda/${activity.id}`, thema)}
-      className="flex items-center gap-3 rounded-lg px-2 py-2 opacity-60 grayscale transition-opacity hover:opacity-80"
+      className={clsx(
+        "card-hover-lift flex items-start gap-3 overflow-hidden rounded-2xl bg-surface p-3",
+        isOfficial ? "shadow-[inset_4px_0_0_0_var(--voc-red),var(--shadow-sm)]" : "shadow-[inset_4px_0_0_0_var(--petrol),var(--shadow-sm)]"
+      )}
+      style={
+        {
+          "--card-accent-shadow": isOfficial
+            ? "inset 4px 0 0 0 var(--voc-red), var(--shadow-sm)"
+            : "inset 4px 0 0 0 var(--petrol), var(--shadow-sm)",
+        } as CSSProperties
+      }
     >
       {imageUrl ? (
         // eslint-disable-next-line @next/next/no-img-element -- a public, external-embed page: keep it framework-agnostic and dependency-free
-        <img src={imageUrl} alt="" className="h-10 w-10 shrink-0 rounded-md object-cover" />
+        <img src={imageUrl} alt="" className="h-[72px] w-[72px] shrink-0 rounded-xl object-cover md:h-[84px] md:w-[120px]" />
       ) : (
-        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-voc-red-light text-voc-red-text">
-          <CalendarDays size={16} />
+        <div className="flex h-[72px] w-[72px] shrink-0 items-center justify-center rounded-xl bg-petrol-soft text-petrol md:h-[84px] md:w-[120px]">
+          <CalendarDays size={28} />
         </div>
       )}
       <div className="min-w-0 flex-1">
-        <p className="truncate text-sm font-medium text-foreground">{activity.title}</p>
-        <p className="truncate text-xs text-muted">
-          {formatActivityDate(activity.starts_at)}
+        <p className="line-clamp-2 font-display text-base leading-snug tracking-[-0.01em] text-foreground md:text-[18px]">
+          {activity.title}
+        </p>
+        <p className="mt-1 truncate text-sm text-muted">
+          {formatActivityTimeOnly(activity.starts_at)}
           {activity.location ? ` · ${activity.location}` : ""}
         </p>
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          {isOfficial ? (
+            <span className="rounded-full bg-danger-soft px-2 py-0.5 text-xs font-medium text-danger-text">VOC</span>
+          ) : (
+            <span className="rounded-full bg-status-neutral-soft px-2 py-0.5 text-xs font-medium text-status-neutral">Extern</span>
+          )}
+          <span className="flex items-center gap-1 text-xs text-muted">
+            <Users size={13} />
+            {count}
+          </span>
+        </div>
       </div>
-      <p className="flex shrink-0 items-center gap-1 text-xs text-muted">
-        <Users size={12} />
-        {count}
-      </p>
     </Link>
+  );
+}
+
+function renderPastGroup(items: Activity[], imageUrls: Map<string, string>, counts: Map<string, number>, thema?: string) {
+  return (
+    <div className="flex flex-col gap-3">
+      {items.map((activity) => {
+        const { day, weekday } = dayParts(activity.starts_at);
+        return (
+          <div key={activity.id} className="flex items-center gap-2.5">
+            <div className="flex w-11 shrink-0 flex-col items-center leading-none">
+              <span className="font-display text-2xl font-extrabold tracking-[-0.02em] text-foreground">{day}</span>
+              <span className="text-[9px] font-bold tracking-wide text-muted">{weekday}</span>
+            </div>
+            <div className="min-w-0 flex-1">
+              <PastActivityCard
+                activity={activity}
+                imageUrl={activity.image_url ? (imageUrls.get(activity.image_url) ?? null) : null}
+                count={counts.get(activity.id) ?? 0}
+                thema={thema}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -188,7 +249,9 @@ export default async function AgendaEmbedPage({
       data-embed-theme={websiteTheme ? "website" : undefined}
       className={clsx("min-h-screen bg-surface", websiteTheme && openSans.variable)}
     >
-      <div className="flex flex-col gap-6 p-4">
+      {/* Live feedback: breedte mag minder, dezelfde maat als de portaal-
+          agenda zelf (AppShell.tsx's "lijst"-contentbreedte, 960px). */}
+      <div className="mx-auto flex w-full max-w-[960px] flex-col gap-6 p-4">
         <EmbedAutoHeight />
         <EmbedWhiteBackground />
         {/* Deze titel + intro staan hier i.p.v. los op de WordPress-pagina
@@ -227,19 +290,10 @@ export default async function AgendaEmbedPage({
         )}
 
         {(past ?? []).length > 0 && (
-          <div className="mt-6">
-            <h3 className="text-lg font-semibold text-foreground">Eerdere activiteiten</h3>
-            <div className="mt-2 flex flex-col divide-y divide-border">
-              {(past ?? []).map((activity) => (
-                <PastActivityRow
-                  key={activity.id}
-                  activity={activity}
-                  imageUrl={activity.image_url ? (imageUrls.get(activity.image_url) ?? null) : null}
-                  count={counts.get(activity.id) ?? 0}
-                  thema={thema}
-                />
-              ))}
-            </div>
+          <div className="mt-2">
+            <AnimatedDisclosure label={`Eerdere activiteiten (${(past ?? []).length})`} contentClassName="opacity-80 grayscale-[65%]">
+              {renderPastGroup(past ?? [], imageUrls, counts, thema)}
+            </AnimatedDisclosure>
           </div>
         )}
       </div>

@@ -124,7 +124,10 @@ export default async function AgendaEmbedDetailPage({
       data-embed-theme={websiteTheme ? "website" : undefined}
       className={clsx("min-h-screen bg-surface", websiteTheme && openSans.variable)}
     >
-      <div className="flex flex-col gap-4 p-4">
+      {/* Live feedback: breedte mag minder, dezelfde maat als een
+          activiteitdetail op het portaal zelf (AppShell.tsx's "lezen"-
+          contentbreedte, 720px). */}
+      <div className="mx-auto flex w-full max-w-[720px] flex-col gap-4 p-4">
         <EmbedAutoHeight />
         <EmbedWhiteBackground />
         <div className="flex items-center justify-between gap-3">
