@@ -2,7 +2,7 @@
 
 import { Suspense, useMemo, useState } from "react";
 import Link from "next/link";
-import { ArrowDown, ArrowUp, ArrowUpDown, ChevronDown, Clock, Mail, Pencil, Phone, Users } from "lucide-react";
+import { ArrowDown, ArrowUp, ArrowUpDown, ArrowUpRight, ChevronDown, Clock, Mail, Pencil, Phone, Send, Users } from "lucide-react";
 import { clsx } from "clsx";
 import { Avatar } from "@/components/ui/Avatar";
 import { MemberRowMenu } from "@/components/members/MemberRowMenu";
@@ -14,19 +14,27 @@ import { useUrlFilterState } from "@/lib/dom/useUrlFilterState";
 import { ROLE_LABELS } from "@/lib/auth/roles";
 import { memberHref } from "@/lib/members/slug";
 import { formatLastActive } from "@/lib/format/date";
+import { sendInvitationEmailAction } from "@/app/(app)/beheer/uitnodigingen/actions";
+import { useToast } from "@/lib/ui/ToastContext";
 import type { UserRole } from "@/lib/types/database";
 
-export type BeheerMemberRow = {
+// "Aanmelden zonder account + personenmodel" Fase 1b: deze lijst toonde
+// eerst alleen echte profielen -- nu ook openstaande uitnodigingen en losse
+// contacten (via get_people_directory, 0208_people_directory.sql), zodat
+// het bestuur in één overzicht alle personen in de pijplijn ziet. `source`
+// bepaalt welke acties/velden een rij krijgt; `personStatus` vervangt de
+// oude binaire is_active-status als filter.
+export type PersonSource = "profiel" | "uitnodiging" | "contact";
+export type PersonStatus = "geactiveerd" | "gedeactiveerd" | "uitgenodigd" | "nog_niet_uitgenodigd";
+
+type PersonBase = {
   id: string;
-  slug: string;
   first_name: string;
   last_name: string;
   email: string;
   phone: string | null;
   avatar_url: string | null;
   avatarUrl: string | null;
-  role: UserRole;
-  is_active: boolean;
   is_organization_account: boolean;
   anonymized_at: string | null;
   companyName: string | null;
@@ -37,13 +45,57 @@ export type BeheerMemberRow = {
   neverAttended12mo: boolean;
 };
 
+// Discriminated union op `source` i.p.v. één plat type met overal
+// optionele/nullable velden -- zo weet TypeScript bij `source === "profiel"`
+// dat role/slug/is_active altijd aanwezig zijn (precies wat
+// MemberRowMenu/MemberQuickEditForm/memberHref nodig hebben), zonder losse
+// non-null-assertions op plekken waar dat feitelijk altijd klopt.
+export type BeheerMemberRow =
+  | (PersonBase & { source: "profiel"; personStatus: "geactiveerd" | "gedeactiveerd"; slug: string; role: UserRole; is_active: boolean })
+  | (PersonBase & { source: "uitnodiging"; personStatus: "uitgenodigd"; slug: null; role: UserRole | null; is_active: false })
+  | (PersonBase & { source: "contact"; personStatus: "nog_niet_uitgenodigd"; slug: null; role: null; is_active: false });
+
 const SIGNAL_LABELS: Record<string, string> = {
   incompleet: "Profiel incompleet",
   nooit: "Nooit naar een activiteit (12 mnd)",
   inactief90: "Niet ingelogd, 90+ dagen",
 };
 
+const STATUS_LABELS: Record<PersonStatus, string> = {
+  geactiveerd: "Geactiveerd",
+  gedeactiveerd: "Gedeactiveerd",
+  uitgenodigd: "Uitgenodigd",
+  nog_niet_uitgenodigd: "Nog niet uitgenodigd",
+};
+
 const NINETY_DAYS_MS = 90 * 24 * 60 * 60 * 1000;
+
+// Hergebruikt de bestaande verstuuractie van Beheer -> Instroom ->
+// Uitnodigingen (sendInvitationEmailAction) i.p.v. een eigen actie te
+// bouwen -- precies dezelfde mail, geldigheidsverlenging en revalidatie.
+function InvitationResendButton({ invitationId }: { invitationId: string }) {
+  const [pending, setPending] = useState(false);
+  const toast = useToast();
+
+  async function handleClick() {
+    setPending(true);
+    const { error } = await sendInvitationEmailAction(invitationId);
+    setPending(false);
+    toast(error ?? "Uitnodiging opnieuw verstuurd.");
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={pending}
+      aria-label="Uitnodiging opnieuw versturen"
+      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-muted disabled:opacity-50"
+    >
+      <Send size={13} />
+    </button>
+  );
+}
 
 function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: BeheerMemberRow[]; viewerId: string; canEditRole: boolean }) {
   const { getInitial, setParam } = useUrlFilterState();
@@ -52,8 +104,10 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
   const [role, setRole] = useState(() => getInitial("role"));
   // UX-review punt 24: zonder expliciete default stonden gedeactiveerde/
   // verwijderde leden gewoon tussen de actieve leden in de lijst — alleen
-  // bewust het Status-filter op "Gedeactiveerd" zetten toont ze nog.
-  const [active, setActive] = useState(() => getInitial("active") || "actief");
+  // bewust het Status-filter aanpassen toont ze nog. Personenmodel Fase 1b:
+  // vier standen i.p.v. de oude binaire actief/gedeactiveerd, default blijft
+  // "geactiveerd" (ongewijzigd standaardgedrag: alleen echte, actieve leden).
+  const [status, setStatus] = useState(() => getInitial("status") || getInitial("active") || "geactiveerd");
   const [signaal, setSignaal] = useState(() => getInitial("signaal"));
   // "" = geen sortering (standaardvolgorde), "desc" = meest recent actief
   // eerst, "asc" = langst geleden (nooit ingelogd eerst) eerst.
@@ -79,9 +133,9 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
     setRole(value);
     setParam("role", value);
   }
-  function handleActiveChange(value: string) {
-    setActive(value);
-    setParam("active", value);
+  function handleStatusChange(value: string) {
+    setStatus(value);
+    setParam("status", value);
   }
 
   // UX-review Z4: ook op bedrijfsnaam doorzoekbaar, niet alleen naam/e-mail.
@@ -92,9 +146,11 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
         query
       );
       const matchesRole = !role || member.role === role;
-      const matchesActive = !active || (active === "actief" ? member.is_active : !member.is_active);
+      const matchesStatus = !status || member.personStatus === status;
       // Foutenrapport H4: zelfde definities als de signalen op Statistieken ->
-      // Overzicht (zie src/lib/statistics/overview.ts).
+      // Overzicht (zie src/lib/statistics/overview.ts). Deze signalen gaan
+      // alleen over echte leden -- de standaard-statusfilter ("geactiveerd")
+      // houdt uitnodigingen/contacten hier al vanzelf buiten beeld.
       const matchesSignaal =
         !signaal ||
         (signaal === "incompleet" && (!member.avatar_url || !member.companyName)) ||
@@ -102,9 +158,9 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
         (signaal === "inactief90" &&
           member.is_active &&
           (!member.last_active_at || new Date(member.last_active_at).getTime() < ninetyDaysAgo));
-      return matchesQuery && matchesRole && matchesActive && matchesSignaal;
+      return matchesQuery && matchesRole && matchesStatus && matchesSignaal;
     });
-  }, [members, query, role, active, signaal, ninetyDaysAgo]);
+  }, [members, query, role, status, signaal, ninetyDaysAgo]);
 
   // Nooit-ingelogd (null) telt als "oneindig lang geleden": staat bij
   // aflopend (meest recent eerst) altijd onderaan, bij oplopend bovenaan.
@@ -132,14 +188,11 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
       onChange: handleRoleChange,
     },
     {
-      key: "active",
+      key: "status",
       label: "Status",
-      value: active,
-      options: [
-        { value: "actief", label: "Actief" },
-        { value: "gedeactiveerd", label: "Gedeactiveerd" },
-      ],
-      onChange: handleActiveChange,
+      value: status,
+      options: (Object.keys(STATUS_LABELS) as PersonStatus[]).map((s) => ({ value: s, label: STATUS_LABELS[s] })),
+      onChange: handleStatusChange,
     },
   ];
 
@@ -188,7 +241,7 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
         </button>
       </div>
 
-      {sorted.length === 0 && <ComingSoon icon={Users} title="Geen leden gevonden" description="Pas je zoekopdracht of filter aan." />}
+      {sorted.length === 0 && <ComingSoon icon={Users} title="Geen personen gevonden" description="Pas je zoekopdracht of filter aan." />}
       {/* Tablet-fix (768px): de zijbalk (md:flex, 288px) knijpt het
           contentgebied daar smaller dan de vaste kolombreedtes hieronder
           nodig hebben. Een horizontale scroll binnen de lijst i.p.v. de hele
@@ -201,34 +254,50 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
           // Eén keer gedefinieerd, twee keer gerenderd (hieronder): op mobiel
           // naast de naam, op sm+ aan het einde van de regel — zelfde
           // redenering als Beheer -> Bedrijven.
-          const actions = (
-            <>
-              <button
-                type="button"
-                onClick={() => setExpandedId(expanded ? null : member.id)}
-                aria-label={expanded ? "Snel bewerken sluiten" : "Snel bewerken"}
-                aria-expanded={expanded}
-                className={clsx(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-foreground hover:border-muted hover:text-foreground",
-                  expanded ? "border-foreground/20 bg-raised text-foreground" : "border-border bg-surface"
-                )}
+          // Personenmodel Fase 1b: alleen echte profielen krijgen de volledige
+          // rol/activeren-acties -- een uitnodiging kan alleen opnieuw
+          // verstuurd worden (bestaande actie, hergebruikt), een los contact
+          // heeft geen eigen uitnodigactie hier en linkt door naar Instroom
+          // (waar het bestuur het e-mailadres zelf in een uitnodiging zet).
+          const actions =
+            member.source === "profiel" ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setExpandedId(expanded ? null : member.id)}
+                  aria-label={expanded ? "Snel bewerken sluiten" : "Snel bewerken"}
+                  aria-expanded={expanded}
+                  className={clsx(
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-foreground hover:border-muted hover:text-foreground",
+                    expanded ? "border-foreground/20 bg-raised text-foreground" : "border-border bg-surface"
+                  )}
+                >
+                  {expanded ? <ChevronDown size={14} /> : <Pencil size={13} />}
+                </button>
+                <MemberRowMenu
+                  memberId={member.id}
+                  memberName={`${member.first_name} ${member.last_name}`}
+                  currentRole={member.role}
+                  isActive={member.is_active}
+                  canEditRole={canEditRole}
+                  isSelf={member.id === viewerId}
+                  isOrganizationAccount={member.is_organization_account}
+                  isAnonymized={member.anonymized_at !== null}
+                />
+              </>
+            ) : member.source === "uitnodiging" ? (
+              <InvitationResendButton invitationId={member.id} />
+            ) : (
+              <Link
+                href="/beheer/instroom?tab=uitnodigingen"
+                aria-label="Uitnodigen via Instroom"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-border bg-surface text-foreground hover:border-muted"
               >
-                {expanded ? <ChevronDown size={14} /> : <Pencil size={13} />}
-              </button>
-              <MemberRowMenu
-                memberId={member.id}
-                memberName={`${member.first_name} ${member.last_name}`}
-                currentRole={member.role}
-                isActive={member.is_active}
-                canEditRole={canEditRole}
-                isSelf={member.id === viewerId}
-                isOrganizationAccount={member.is_organization_account}
-                isAnonymized={member.anonymized_at !== null}
-              />
-            </>
-          );
+                <ArrowUpRight size={14} />
+              </Link>
+            );
           return (
-            <div key={member.id} className="rounded-2xl bg-surface p-3 shadow-sm">
+            <div key={`${member.source}-${member.id}`} className="rounded-2xl bg-surface p-3 shadow-sm">
               {/* Op mobiel gestapelde regels (naam+knoppen, dan de
                   contactgegevens eronder). Vanaf sm (brede beheer-pagina) is
                   dit i.p.v. flex-wrap nu een echt grid met vaste
@@ -238,19 +307,45 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                   weggelaten) i.p.v. de kolommen erna te laten opschuiven. */}
               <div className="flex min-w-0 flex-col gap-1.5 sm:grid sm:grid-cols-[minmax(0,1.6fr)_160px_minmax(0,1.6fr)_120px_140px_auto] sm:items-center sm:gap-x-4 sm:gap-y-0">
                 <div className="flex min-w-0 items-center gap-3">
-                  <Link href={memberHref(member)} className="flex min-w-0 items-center gap-3 hover:opacity-80">
-                    <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={36} />
-                    <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-none">
-                      {member.first_name} {member.last_name}
-                      {member.companyName && <span className="font-normal text-muted"> · {member.companyName}</span>}
-                    </p>
-                  </Link>
+                  {/* Alleen echte profielen hebben een detailpagina --
+                      uitnodigingen/contacten renderen dezelfde inhoud zonder
+                      link. */}
+                  {member.source === "profiel" && member.slug ? (
+                    <Link href={memberHref({ slug: member.slug })} className="flex min-w-0 items-center gap-3 hover:opacity-80">
+                      <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={36} />
+                      <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-none">
+                        {member.first_name} {member.last_name}
+                        {member.companyName && <span className="font-normal text-muted"> · {member.companyName}</span>}
+                      </p>
+                    </Link>
+                  ) : (
+                    <div className="flex min-w-0 items-center gap-3">
+                      <Avatar firstName={member.first_name} lastName={member.last_name} avatarUrl={member.avatarUrl} size={36} />
+                      <p className="max-w-[12rem] truncate text-sm font-medium text-foreground sm:max-w-none">
+                        {member.first_name} {member.last_name}
+                        {member.companyName && <span className="font-normal text-muted"> · {member.companyName}</span>}
+                      </p>
+                    </div>
+                  )}
                   <div className="ml-auto flex shrink-0 items-center gap-2 sm:hidden">{actions}</div>
                 </div>
 
-                <span className="min-w-0 truncate text-xs text-muted" title={`${ROLE_LABELS[member.role]}${!member.is_active ? " · Gedeactiveerd" : ""}`}>
-                  {ROLE_LABELS[member.role]}
-                  {!member.is_active && " · Gedeactiveerd"}
+                <span
+                  className="min-w-0 truncate text-xs text-muted"
+                  title={
+                    member.source === "profiel"
+                      ? `${member.role ? ROLE_LABELS[member.role] : ""}${!member.is_active ? " · Gedeactiveerd" : ""}`
+                      : STATUS_LABELS[member.personStatus]
+                  }
+                >
+                  {member.source === "profiel" ? (
+                    <>
+                      {member.role && ROLE_LABELS[member.role]}
+                      {!member.is_active && " · Gedeactiveerd"}
+                    </>
+                  ) : (
+                    STATUS_LABELS[member.personStatus]
+                  )}
                 </span>
 
                 <span className="flex min-w-0 items-center gap-1 text-xs text-muted">
@@ -272,7 +367,12 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                   </span>
                 </span>
 
-                <span className="flex min-w-0 items-center gap-1 text-xs text-muted">
+                <span
+                  className={clsx(
+                    "flex min-w-0 items-center gap-1 text-xs text-muted",
+                    member.source !== "profiel" && "hidden sm:flex sm:invisible"
+                  )}
+                >
                   <Clock size={11} className="shrink-0" />
                   <span className="truncate" title={`Laatst actief: ${formatLastActive(member.last_active_at)}`}>
                     {formatLastActive(member.last_active_at)}
@@ -282,7 +382,7 @@ function BeheerLedenListInner({ members, viewerId, canEditRole }: { members: Beh
                 <div className="hidden shrink-0 items-center gap-2 sm:flex">{actions}</div>
               </div>
 
-              {expanded && (
+              {expanded && member.source === "profiel" && member.slug && (
                 <MemberQuickEditForm
                   memberId={member.id}
                   memberSlug={member.slug}

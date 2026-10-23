@@ -1006,6 +1006,14 @@ export interface Database {
           phone: string | null;
         })[];
       };
+      // 0208_people_directory.sql — zie PersonDirectoryRow in
+      // BeheerLedenContent.tsx voor het precieze, gediscrimineerde type dat
+      // hier (bewust los van deze globale Database-types) overheen gecast
+      // wordt via .returns<PersonDirectoryRow[]>().
+      get_people_directory: {
+        Args: Record<string, never>;
+        Returns: unknown[];
+      };
       get_activity_registration_export: {
         Args: { p_activity_id: string };
         Returns: { first_name: string; last_name: string; email: string; is_waitlisted: boolean; attended: boolean }[];
